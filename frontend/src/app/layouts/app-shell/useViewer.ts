@@ -1,11 +1,8 @@
-import { useTranslation } from 'react-i18next';
+import { useSession } from '@/features/auth';
 import type { Viewer } from './header/UserMenu';
 
-/**
- * The signed-in user shown in the header. Phase 1 has no auth backend yet,
- * so this returns an anonymous guest; the auth module replaces it.
- */
+/** The signed-in user shown in the header (the shell only renders behind RequireAuth). */
 export function useViewer(): Viewer {
-  const { t } = useTranslation();
-  return { name: t('userMenu.guest') };
+  const { user } = useSession();
+  return { name: user?.name ?? '', email: user?.email, avatarUrl: user?.avatarUrl };
 }

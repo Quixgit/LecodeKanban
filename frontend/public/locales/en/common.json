@@ -1,7 +1,10 @@
 {
   "actions": {
     "close": "Close",
-    "dismiss": "Dismiss notification"
+    "dismiss": "Dismiss notification",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "retry": "Try again"
   },
   "priority": {
     "high": "High",
@@ -60,7 +63,8 @@
     "profile": "Profile",
     "settings": "Settings",
     "uiKit": "UI kit",
-    "guest": "Guest"
+    "guest": "Guest",
+    "signOut": "Sign out"
   },
   "header": {
     "help": "Help & Center",
@@ -88,5 +92,9 @@
     "title": "Page not found",
     "description": "The page you are looking for doesn't exist or has been moved.",
     "back": "Back to Dashboard"
+  },
+  "workspace": {
+    "label": "Workspace",
+    "switch": "Switch workspace"
   }
 }

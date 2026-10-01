@@ -1,11 +1,18 @@
 import { useTranslation } from 'react-i18next';
-import { SUPPORTED_LANGUAGES, useLanguage } from '@/shared/i18n';
+import { SUPPORTED_LANGUAGES, useLanguage, type Language } from '@/shared/i18n';
 import { cn } from '@/shared/lib/cn';
 
-/** Compact UK | EN toggle. */
-export function LanguageSwitcher({ className }: { className?: string }) {
+/** Compact UK | EN toggle. `onChange` lets the shell persist the choice to the profile. */
+export function LanguageSwitcher({
+  className,
+  onChange,
+}: {
+  className?: string;
+  onChange?: (lng: Language) => void;
+}) {
   const { t } = useTranslation();
   const { language, setLanguage } = useLanguage();
+  const select = onChange ?? ((lng: Language) => void setLanguage(lng));
   return (
     <div
       role="radiogroup"
@@ -22,7 +29,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           role="radio"
           aria-checked={language === lng}
           aria-label={t(`language.${lng}`)}
-          onClick={() => void setLanguage(lng)}
+          onClick={() => select(lng)}
           className={cn(
             'h-full rounded-md px-2 text-xs font-semibold uppercase transition-colors duration-micro',
             language === lng

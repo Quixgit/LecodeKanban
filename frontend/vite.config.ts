@@ -18,6 +18,8 @@ export default defineConfig({
         target: process.env.LK_API_URL ?? 'http://127.0.0.1:47101',
         changeOrigin: true,
         ws: true,
+        // Append the real client IP to X-Forwarded-For (API trusts the rightmost entry).
+        xfwd: true,
       },
     },
   },

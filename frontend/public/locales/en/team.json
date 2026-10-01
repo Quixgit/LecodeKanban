@@ -1,0 +1,73 @@
+{
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "viewer": "Viewer"
+  },
+  "roleHints": {
+    "owner": "Full control, including deleting the workspace",
+    "admin": "Manage members, settings and all content",
+    "member": "Create and edit boards, tasks and comments",
+    "viewer": "Read-only access"
+  },
+  "summary": {
+    "members_one": "{{count}} member",
+    "members_other": "{{count}} members",
+    "pending_one": "{{count}} pending invite",
+    "pending_other": "{{count}} pending invites"
+  },
+  "kpi": {
+    "members": "Members",
+    "admins": "Admins & owners",
+    "pending": "Pending invites",
+    "yourRole": "Your role"
+  },
+  "members": {
+    "title": "Members",
+    "search": "Search members…",
+    "you": "You",
+    "columns": {
+      "member": "Member",
+      "email": "Email",
+      "role": "Role",
+      "joined": "Joined",
+      "action": "Action"
+    },
+    "empty": "No members match your search."
+  },
+  "actions": {
+    "invite": "Invite member",
+    "remove": "Remove from workspace",
+    "leave": "Leave workspace",
+    "changeRole": "Change role"
+  },
+  "invite": {
+    "title": "Invite to {{workspace}}",
+    "description": "They'll receive an email with a link to join. Invitations expire after 7 days.",
+    "email": "Email address",
+    "role": "Role",
+    "submit": "Send invitation",
+    "sent": "Invitation sent to {{email}}"
+  },
+  "pending": {
+    "title": "Pending invitations",
+    "empty": "No pending invitations.",
+    "expires": "Expires {{date}}",
+    "revoke": "Revoke",
+    "revoked": "Invitation revoked"
+  },
+  "confirmRemove": {
+    "title": "Remove {{name}}?",
+    "body": "They will immediately lose access to this workspace and its boards.",
+    "confirm": "Remove"
+  },
+  "confirmLeave": {
+    "title": "Leave {{workspace}}?",
+    "body": "You'll lose access until someone invites you again.",
+    "confirm": "Leave"
+  },
+  "roleUpdated": "{{name}} is now {{role}}",
+  "removed": "{{name}} was removed",
+  "left": "You left {{workspace}}"
+}

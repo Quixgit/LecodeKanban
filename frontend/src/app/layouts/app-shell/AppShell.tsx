@@ -2,6 +2,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation } from 'react-router-dom';
+import {
+  useApplyProfileLanguage,
+  useSession,
+  useSessionExpiryListener,
+  VerificationBanner,
+} from '@/features/auth';
 import { CommandPalette } from '@/features/command-palette';
 import { pageTransition } from '@/shared/motion';
 import { Header } from './header/Header';
@@ -15,6 +21,9 @@ export function AppShell() {
   const location = useLocation();
   const commands = useShellCommands();
   const viewer = useViewer();
+  const { user } = useSession();
+  useSessionExpiryListener();
+  useApplyProfileLanguage(user);
 
   return (
     <div className="flex min-h-dvh bg-bg">
@@ -28,6 +37,7 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Header viewer={viewer} />
         <main id="main" tabIndex={-1} className="flex-1 p-6 outline-none">
+          <VerificationBanner />
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}

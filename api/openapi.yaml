@@ -1,0 +1,583 @@
+openapi: 3.0.3
+info:
+  title: LecodeKanban API
+  version: 0.2.0
+  description: |
+    REST API of LecodeKanban. Source of truth for Go DTOs and the TypeScript client (`make gen`).
+
+    **Auth:** httpOnly cookies — `lk_at` (access, ~15 min) and `lk_rt` (rotating refresh,
+    path-scoped to `/api/v1/auth`). **CSRF:** every non-GET request must echo the `lk_csrf`
+    cookie in the `X-CSRF-Token` header (obtain it via `GET /auth/csrf`).
+
+    **Errors** are `{"error": {"code", "message", "fields"?, "meta"?}}`. `code` is stable and
+    translated by clients; `message` is an English developer hint. See `GET /i18n/error-codes`.
+servers:
+  - url: /api/v1
+tags:
+  - name: auth
+  - name: users
+  - name: workspaces
+  - name: system
+
+paths:
+  /auth/csrf:
+    get:
+      tags: [auth]
+      operationId: getCsrf
+      summary: Issue the CSRF cookie
+      security: []
+      responses:
+        "200":
+          description: CSRF token (also set as the lk_csrf cookie)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CsrfToken" }
+  /auth/providers:
+    get:
+      tags: [auth]
+      operationId: getAuthProviders
+      summary: Which OAuth providers are configured
+      security: []
+      responses:
+        "200":
+          description: Provider availability
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthProviders" }
+  /auth/register:
+    post:
+      tags: [auth]
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterRequest" }
+      responses:
+        "201": { $ref: "#/components/responses/Session" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/Session" }
+        "401": { $ref: "#/components/responses/Error" }
+        "423": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /auth/refresh:
+    post:
+      tags: [auth]
+      operationId: refreshSession
+      summary: Rotate the refresh token and issue a new access token
+      security: []
+      responses:
+        "200": { $ref: "#/components/responses/Session" }
+        "401": { $ref: "#/components/responses/Error" }
+  /auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      security: []
+      responses:
+        "204": { description: Logged out (cookies cleared) }
+  /auth/session:
+    get:
+      tags: [auth]
+      operationId: getSession
+      responses:
+        "200": { $ref: "#/components/responses/Session" }
+        "401": { $ref: "#/components/responses/Error" }
+  /auth/verify-email:
+    post:
+      tags: [auth]
+      operationId: verifyEmail
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TokenRequest" }
+      responses:
+        "204": { description: Email verified }
+        "400": { $ref: "#/components/responses/Error" }
+  /auth/verify-email/resend:
+    post:
+      tags: [auth]
+      operationId: resendVerification
+      responses:
+        "204": { description: Verification email queued (no-op if already verified) }
+        "429": { $ref: "#/components/responses/Error" }
+  /auth/password/forgot:
+    post:
+      tags: [auth]
+      operationId: forgotPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmailRequest" }
+      responses:
+        "204": { description: Always succeeds to avoid account enumeration }
+        "429": { $ref: "#/components/responses/Error" }
+  /auth/password/reset:
+    post:
+      tags: [auth]
+      operationId: resetPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResetPasswordRequest" }
+      responses:
+        "204": { description: Password changed; all sessions revoked }
+        "400": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /auth/oauth/{provider}/start:
+    get:
+      tags: [auth]
+      operationId: oauthStart
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/Provider"
+        - name: next
+          in: query
+          description: Relative path to return to after sign-in
+          schema: { type: string }
+      responses:
+        "302": { description: Redirect to the provider }
+        "404": { $ref: "#/components/responses/Error" }
+  /auth/oauth/{provider}/callback:
+    get:
+      tags: [auth]
+      operationId: oauthCallback
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/Provider"
+        - { name: code, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+      responses:
+        "302": { description: "Redirect back to the app (with ?error=<code> on failure)" }
+
+  /users/me:
+    get:
+      tags: [users]
+      operationId: getMe
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+    patch:
+      tags: [users]
+      operationId: updateMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateProfileRequest" }
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "422": { $ref: "#/components/responses/Error" }
+  /users/me/password:
+    post:
+      tags: [users]
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChangePasswordRequest" }
+      responses:
+        "204": { description: Password changed; other sessions revoked }
+        "401": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+
+  /workspaces:
+    get:
+      tags: [workspaces]
+      operationId: listWorkspaces
+      summary: Workspaces the caller belongs to (a personal one is created on first call if none)
+      responses:
+        "200":
+          description: Workspaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Workspace" }
+    post:
+      tags: [workspaces]
+      operationId: createWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkspaceInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workspace" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [workspaces]
+      operationId: getWorkspace
+      responses:
+        "200":
+          description: Workspace
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workspace" }
+        "404": { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [workspaces]
+      operationId: updateWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkspaceInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workspace" }
+        "403": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [workspaces]
+      operationId: deleteWorkspace
+      responses:
+        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/members:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [workspaces]
+      operationId: listMembers
+      responses:
+        "200":
+          description: Members
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Member" }
+  /workspaces/{workspaceId}/members/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceId"
+      - { name: userId, in: path, required: true, schema: { type: string, format: uuid } }
+    patch:
+      tags: [workspaces]
+      operationId: updateMemberRole
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateMemberRequest" }
+      responses:
+        "204": { description: Role updated }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [workspaces]
+      operationId: removeMember
+      summary: Remove a member (or leave, when userId is the caller)
+      responses:
+        "204": { description: Removed }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/invites:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [workspaces]
+      operationId: listInvites
+      responses:
+        "200":
+          description: Open invites
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Invite" }
+    post:
+      tags: [workspaces]
+      operationId: createInvite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateInviteRequest" }
+      responses:
+        "201":
+          description: Invite created and emailed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Invite" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/invites/{inviteId}:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceId"
+      - { name: inviteId, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [workspaces]
+      operationId: revokeInvite
+      responses:
+        "204": { description: Revoked }
+        "404": { $ref: "#/components/responses/Error" }
+  /invites/{token}:
+    parameters:
+      - { name: token, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [workspaces]
+      operationId: previewInvite
+      security: []
+      responses:
+        "200":
+          description: Invite details for the acceptance screen
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvitePreview" }
+        "404": { $ref: "#/components/responses/Error" }
+  /invites/{token}/accept:
+    parameters:
+      - { name: token, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [workspaces]
+      operationId: acceptInvite
+      responses:
+        "200":
+          description: Joined workspace
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workspace" }
+        "403": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+
+  /i18n/error-codes:
+    get:
+      tags: [system]
+      operationId: listErrorCodes
+      security: []
+      responses:
+        "200":
+          description: Every error code the API can return
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+
+components:
+  securitySchemes:
+    cookieAuth: { type: apiKey, in: cookie, name: lk_at }
+  parameters:
+    Provider:
+      name: provider
+      in: path
+      required: true
+      schema: { type: string, enum: [google, github] }
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    Session:
+      description: Authenticated session
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Session" }
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, example: auth.invalid_credentials }
+            message: { type: string }
+            fields:
+              type: array
+              items: { $ref: "#/components/schemas/FieldError" }
+            meta:
+              type: object
+              additionalProperties: true
+    FieldError:
+      type: object
+      required: [field, code]
+      properties:
+        field: { type: string }
+        code: { type: string, example: min_length }
+        params: { type: object, additionalProperties: true }
+    CsrfToken:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string }
+    AuthProviders:
+      type: object
+      required: [google, github]
+      properties:
+        google: { type: boolean }
+        github: { type: boolean }
+    Locale:
+      type: string
+      enum: [en, uk]
+    User:
+      type: object
+      required: [id, email, name, locale, avatarUrl, emailVerified, hasPassword, providers, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, description: Email address (validated server-side) }
+        name: { type: string }
+        locale: { $ref: "#/components/schemas/Locale" }
+        avatarUrl: { type: string, nullable: true }
+        emailVerified: { type: boolean }
+        hasPassword: { type: boolean }
+        providers:
+          type: array
+          items: { type: string, enum: [google, github] }
+        createdAt: { type: string, format: date-time }
+    Session:
+      type: object
+      required: [user]
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        email: { type: string, description: Email address (validated server-side) }
+        password: { type: string, minLength: 10, maxLength: 128 }
+        locale: { $ref: "#/components/schemas/Locale" }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string }
+        password: { type: string }
+    TokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string }
+    EmailRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string }
+    ResetPasswordRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token: { type: string }
+        password: { type: string }
+    ChangePasswordRequest:
+      type: object
+      required: [newPassword]
+      properties:
+        currentPassword: { type: string, description: Required when the account already has a password }
+        newPassword: { type: string }
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        locale: { $ref: "#/components/schemas/Locale" }
+    Role:
+      type: string
+      enum: [owner, admin, member, viewer]
+    InviteRole:
+      type: string
+      enum: [admin, member, viewer]
+    Workspace:
+      type: object
+      required: [id, name, slug, role, memberCount, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        memberCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+    WorkspaceInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+    MemberUser:
+      type: object
+      required: [id, name, email, avatarUrl]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        avatarUrl: { type: string, nullable: true }
+    Member:
+      type: object
+      required: [user, role, joinedAt]
+      properties:
+        user: { $ref: "#/components/schemas/MemberUser" }
+        role: { $ref: "#/components/schemas/Role" }
+        joinedAt: { type: string, format: date-time }
+    UpdateMemberRequest:
+      type: object
+      required: [role]
+      properties:
+        role: { $ref: "#/components/schemas/Role" }
+    Invite:
+      type: object
+      required: [id, email, role, expiresAt, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        role: { $ref: "#/components/schemas/InviteRole" }
+        expiresAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+    CreateInviteRequest:
+      type: object
+      required: [email, role]
+      properties:
+        email: { type: string, description: Email address (validated server-side) }
+        role: { $ref: "#/components/schemas/InviteRole" }
+    InvitePreview:
+      type: object
+      required: [workspaceName, inviterName, email, role, expired, accepted]
+      properties:
+        workspaceName: { type: string }
+        inviterName: { type: string, nullable: true }
+        email: { type: string }
+        role: { $ref: "#/components/schemas/InviteRole" }
+        expired: { type: boolean }
+        accepted: { type: boolean }
+security:
+  - cookieAuth: []

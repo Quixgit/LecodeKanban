@@ -1,0 +1,59 @@
+version: "2"
+# One sqlc package per module: modules never share generated code.
+sql:
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/users/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/users/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: &overrides
+          - db_type: uuid
+            go_type: github.com/google/uuid.UUID
+          - db_type: uuid
+            nullable: true
+            go_type:
+              import: github.com/google/uuid
+              type: NullUUID
+          - db_type: citext
+            go_type: string
+          - db_type: citext
+            nullable: true
+            go_type:
+              type: "*string"
+          - db_type: text
+            nullable: true
+            go_type:
+              type: "*string"
+          - db_type: timestamptz
+            go_type: time.Time
+          - db_type: timestamptz
+            nullable: true
+            go_type:
+              type: "*time.Time"
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/auth/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/auth/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/workspaces/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/workspaces/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides

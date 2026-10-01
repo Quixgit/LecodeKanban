@@ -35,4 +35,5 @@ class IO {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).ResizeObserver ??= IO;
 Element.prototype.scrollIntoView ??= () => undefined;
+window.scrollTo = () => undefined;
 Element.prototype.hasPointerCapture ??= () => false;

@@ -18,3 +18,4 @@ backend/tmp/
 .idea/
 .vscode/
 *.swp
+backend/coverage.out

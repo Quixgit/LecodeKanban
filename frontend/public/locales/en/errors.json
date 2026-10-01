@@ -1,0 +1,51 @@
+{
+  "common": {
+    "internal": "Something went wrong on our side. Please try again.",
+    "bad_request": "The request could not be processed.",
+    "validation": "Please check the highlighted fields.",
+    "unauthorized": "Please sign in to continue.",
+    "forbidden": "You don't have access to this.",
+    "not_found": "We couldn't find what you were looking for.",
+    "conflict": "This conflicts with a recent change. Refresh and try again.",
+    "rate_limited": "Too many attempts. Please wait a moment and try again.",
+    "csrf_failed": "Your session token expired. Refresh the page and try again.",
+    "payload_too_large": "That's too large to upload.",
+    "unavailable": "The service is temporarily unavailable.",
+    "precondition_failed": "Someone else changed this in the meantime. Refresh and try again.",
+    "network": "Can't reach the server. Check your connection."
+  },
+  "auth": {
+    "invalid_credentials": "Incorrect email or password.",
+    "account_locked": "Too many failed attempts. Your account is locked — try again in {{minutes}} min or reset your password.",
+    "session_expired": "Your session has expired. Please sign in again.",
+    "token_invalid": "This link is invalid or has expired. Request a new one.",
+    "current_password_incorrect": "Your current password is incorrect.",
+    "provider_not_configured": "This sign-in method isn't configured yet.",
+    "oauth_failed": "Sign-in with the provider failed. Please try again.",
+    "oauth_email_unverified": "Your email isn't verified with that provider. Verify it there or use email and password.",
+    "oauth_account_conflict": "An account with this email was just created. Please try signing in again."
+  },
+  "users": {
+    "not_found": "User not found.",
+    "email_taken": "An account with this email already exists."
+  },
+  "workspaces": {
+    "not_found": "Workspace not found or you're not a member.",
+    "member_not_found": "This person is no longer a member.",
+    "last_owner": "A workspace needs at least one owner. Make someone else an owner first.",
+    "already_member": "This person is already a member.",
+    "invite_not_found": "This invitation is no longer valid.",
+    "invite_expired": "This invitation has expired. Ask for a new one.",
+    "invite_email_mismatch": "This invitation was sent to a different email address.",
+    "insufficient_role": "Your role doesn't allow this action."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address.",
+    "min_length": "Use at least {{min}} characters.",
+    "max_length": "Use at most {{max}} characters.",
+    "one_of": "Choose one of the available options.",
+    "password_weak": "Mix upper- and lowercase letters, digits or symbols (at least 3 kinds).",
+    "passwords_mismatch": "Passwords don't match."
+  }
+}

@@ -1,41 +1,67 @@
 # LecodeKanban
 
-A modular Kanban and project-management app: Go backend + React/TypeScript frontend, with GitHub,
-Gmail and Google Calendar integrations, in Ukrainian and English.
+A modular Kanban and project-management app: Go modular-monolith backend and a React/TypeScript
+frontend, with GitHub, Gmail and Google Calendar integrations, in Ukrainian and English.
 
-> **Status: phase 1 of 9.** The design system, app shell (sidebar, header, theme, uk/en) and the
-> UI-kit showcase are done. Backend, auth and the product pages arrive in the next phases.
-> See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full layout.
+> **Status: phase 2 of 9.** Done so far:
+> - the design system and app shell;
+> - the backend platform: config, logging, errors, crypto, PostgreSQL, job queue, mail, metrics;
+> - authentication: email + password, Google/GitHub OAuth, rotating sessions, CSRF, verification,
+>   password reset, lockout;
+> - users and workspaces, with RBAC and invitations;
+> - the sign-in pages and the Team page, connected to the API.
+>
+> Projects, boards and the Kanban view come next.
 
-## Quick start (frontend)
+## Requirements
 
-Requirements: Node 20.19+ and npm.
+Go 1.24+ (developed on 1.27), Node 20.19+, Docker (Postgres/Mailpit in dev and testcontainers in
+tests), and optionally [golangci-lint](https://golangci-lint.run) v2.
+
+## Quick start
 
 ```bash
-make install   # npm ci in frontend/
-make dev       # http://23.19.228.158:47100  (also http://localhost:47100)
+cp .env.example .env      # then fill in the secrets (see comments inside)
+make install              # Go modules + npm packages
+make dev                  # Postgres + Mailpit, migrations, API (hot reload) and web
 ```
 
-Then open **`/ui-kit`** for the living style guide, or press <kbd>Ctrl/⌘</kbd>+<kbd>K</kbd>
-anywhere for the command palette.
+| What | Where |
+| --- | --- |
+| App | `http://23.19.228.158:47100` (`LK_PUBLIC_URL`) |
+| UI kit | `/ui-kit` (after signing in) |
+| Dev mailbox (Mailpit, basic auth `LK_MAILPIT_UI_AUTH`) | `http://23.19.228.158:47105` |
+| API health / readiness | `127.0.0.1:47101/healthz`, `/readyz` |
+| Prometheus metrics | `127.0.0.1:47106/metrics` |
 
-Ports and host come from env (`.env.example`); LecodeKanban uses the **47100–47109** range
-([ADR 0004](docs/adr/0004-public-ip-and-port-allocation.md)).
+Register at `/register`. The verification email arrives in Mailpit. Invite teammates from **Team**.
+Press <kbd>Ctrl/⌘</kbd>+<kbd>K</kbd> anywhere for the command palette.
 
 ## Make targets
 
 | Target | What it does |
 | --- | --- |
-| `make dev` | Vite dev server with HMR on `LK_WEB_PORT` (47100) |
-| `make build` | Type-check + production build into `frontend/dist` |
-| `make preview` | Serve the production build on the same port |
-| `make test` | Vitest unit and component tests |
-| `make lint` | ESLint (zero warnings) + Prettier check |
-| `make typecheck` | `tsc --noEmit` (strict) |
-| `make check` | typecheck + lint + test (what CI runs) |
+| `make dev` | Dependencies + migrations, then API (air) and Vite in parallel |
+| `make deps-up` / `deps-down` | Start/stop Postgres and Mailpit (`docker-compose.dev.yml`) |
+| `make migrate-up` / `migrate-down` / `migrate-status` | goose migrations (embedded in the binary) |
+| `make migrate-create name=x` | New SQL migration |
+| `make gen` | sqlc, Go DTOs, TS client and `docs/API.md` from `api/openapi.yaml` |
+| `make gen-check` | Fail if generated code is stale (CI) |
+| `make test` | Go tests (testcontainers PostgreSQL) + Vitest |
+| `make lint` | go vet, golangci-lint, tsc, ESLint, Prettier |
+| `make check` | lint + test |
+| `make build` | Static Go binaries in `backend/bin` + web bundle |
+
+## OAuth sign-in (optional)
+
+Create OAuth apps and set `LK_GOOGLE_CLIENT_*` / `LK_GITHUB_CLIENT_*`. The callback URL is
+`$LK_PUBLIC_URL/api/v1/auth/oauth/<google|github>/callback`. GitHub accepts the bare IP. Google
+requires a hostname (see [ADR 0005](docs/adr/0005-authentication-and-sessions.md)). Buttons for
+unconfigured providers are shown disabled.
 
 ## Docs
 
-- [Design tokens](docs/DESIGN_TOKENS.md): palette, type, radii, shadows and motion, sampled from `docs/design/`
 - [Architecture](docs/ARCHITECTURE.md)
+- [API reference](docs/API.md) (generated) and [OpenAPI spec](api/openapi.yaml)
+- [Design tokens](docs/DESIGN_TOKENS.md)
 - [ADRs](docs/adr/)

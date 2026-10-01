@@ -1,6 +1,17 @@
-import { ChevronDown, LayoutTemplate, Monitor, Moon, Settings, Sun, UserRound } from 'lucide-react';
+import {
+  ChevronDown,
+  LayoutTemplate,
+  LogOut,
+  Monitor,
+  Moon,
+  Settings,
+  Sun,
+  UserRound,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useLogout } from '@/features/auth';
+import { WorkspaceSwitcherItems } from '@/features/workspaces';
 import { useTheme, type ThemePreference } from '@/shared/theme';
 import {
   Avatar,
@@ -26,6 +37,7 @@ export function UserMenu({ viewer }: { viewer: Viewer }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { preference, setPreference } = useTheme();
+  const logout = useLogout();
 
   return (
     <Dropdown>
@@ -50,6 +62,7 @@ export function UserMenu({ viewer }: { viewer: Viewer }) {
             {viewer.email && <p className="truncate text-xs text-text-muted">{viewer.email}</p>}
           </div>
         </div>
+        <WorkspaceSwitcherItems />
         <DropdownSeparator />
         <DropdownItem onSelect={() => navigate('/settings/profile')}>
           <UserRound />
@@ -79,6 +92,16 @@ export function UserMenu({ viewer }: { viewer: Viewer }) {
             );
           })}
         </DropdownRadioGroup>
+        <DropdownSeparator />
+        <DropdownItem
+          danger
+          onSelect={() =>
+            logout.mutate(undefined, { onSettled: () => navigate('/login', { replace: true }) })
+          }
+        >
+          <LogOut />
+          {t('userMenu.signOut')}
+        </DropdownItem>
       </DropdownContent>
     </Dropdown>
   );

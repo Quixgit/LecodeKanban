@@ -1,0 +1,36 @@
+# Development dependencies. The API and web app run on the host (make dev).
+# Ports follow ADR 0004; databases bind to 127.0.0.1 only.
+name: lecodekanban-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lecodekanban
+      POSTGRES_PASSWORD: ${LK_POSTGRES_PASSWORD:?set LK_POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: lecodekanban
+    ports:
+      - "127.0.0.1:${LK_POSTGRES_PORT:-47102}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lecodekanban -d lecodekanban"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Catches all outgoing email in development. The web UI is exposed on the public IP
+  # (so emails can be opened remotely) and therefore protected with basic auth.
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    environment:
+      MP_UI_AUTH: ${LK_MAILPIT_UI_AUTH:?set LK_MAILPIT_UI_AUTH=user:password in .env}
+      MP_MAX_MESSAGES: 2000
+    ports:
+      - "127.0.0.1:${LK_SMTP_PORT:-47104}:1025"
+      - "0.0.0.0:${LK_MAILPIT_UI_PORT:-47105}:8025"
+
+volumes:
+  pgdata:

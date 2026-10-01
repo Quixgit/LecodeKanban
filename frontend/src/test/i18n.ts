@@ -1,15 +1,35 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import enAuth from '../../public/locales/en/auth.json';
 import enCommon from '../../public/locales/en/common.json';
+import enErrors from '../../public/locales/en/errors.json';
 import enNav from '../../public/locales/en/nav.json';
 import enShowcase from '../../public/locales/en/showcase.json';
+import enTeam from '../../public/locales/en/team.json';
+import ukAuth from '../../public/locales/uk/auth.json';
 import ukCommon from '../../public/locales/uk/common.json';
+import ukErrors from '../../public/locales/uk/errors.json';
 import ukNav from '../../public/locales/uk/nav.json';
 import ukShowcase from '../../public/locales/uk/showcase.json';
+import ukTeam from '../../public/locales/uk/team.json';
 
 export const testResources = {
-  en: { common: enCommon, nav: enNav, showcase: enShowcase },
-  uk: { common: ukCommon, nav: ukNav, showcase: ukShowcase },
+  en: {
+    common: enCommon,
+    nav: enNav,
+    errors: enErrors,
+    auth: enAuth,
+    team: enTeam,
+    showcase: enShowcase,
+  },
+  uk: {
+    common: ukCommon,
+    nav: ukNav,
+    errors: ukErrors,
+    auth: ukAuth,
+    team: ukTeam,
+    showcase: ukShowcase,
+  },
 };
 
 /** Synchronous i18n with bundled resources (no HTTP backend in tests). */
@@ -19,7 +39,7 @@ export function initTestI18n(lng: 'en' | 'uk') {
     fallbackLng: 'en',
     resources: testResources,
     defaultNS: 'common',
-    ns: ['common', 'nav', 'showcase'],
+    ns: ['common', 'nav', 'errors', 'auth', 'team', 'showcase'],
     interpolation: { escapeValue: false },
     react: { useSuspense: false },
   });

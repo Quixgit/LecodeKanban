@@ -1,11 +1,21 @@
-import { lazy } from 'react';
+import { lazy, type ReactNode } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+import { GuestOnly, RequireAuth } from '@/features/auth';
 import { AppShell } from './layouts/app-shell/AppShell';
 import type { RouteHandle } from './layouts/app-shell/header/PageTitle';
+import { BootSplash } from './layouts/BootSplash';
+import { AuthLayout } from './layouts/auth/AuthLayout';
 
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const ShowcasePage = lazy(() => import('@/pages/ShowcasePage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const TeamPage = lazy(() => import('@/pages/TeamPage'));
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'));
+const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmailPage'));
+const InvitePage = lazy(() => import('@/pages/InvitePage'));
 
 const page = (key: string): RouteHandle => ({
   titleKey: `pages.${key}.title`,
@@ -19,10 +29,27 @@ const upcoming = (path: string, key: string, index = false): RouteObject => ({
   element: <ComingSoonPage section={key} />,
 });
 
+const guest = (el: ReactNode) => <GuestOnly fallback={<BootSplash />}>{el}</GuestOnly>;
+
 export const routes: RouteObject[] = [
   {
+    element: <AuthLayout />,
+    children: [
+      { path: 'login', element: guest(<LoginPage />) },
+      { path: 'register', element: guest(<RegisterPage />) },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'verify-email', element: <VerifyEmailPage /> },
+      { path: 'invite/:token', element: <InvitePage /> },
+    ],
+  },
+  {
     path: '/',
-    element: <AppShell />,
+    element: (
+      <RequireAuth fallback={<BootSplash />}>
+        <AppShell />
+      </RequireAuth>
+    ),
     children: [
       upcoming('', 'dashboard', true),
       upcoming('projects', 'projects'),
@@ -31,7 +58,7 @@ export const routes: RouteObject[] = [
       upcoming('tasks/:status', 'tasks'),
       upcoming('performance', 'performance'),
       upcoming('help', 'help'),
-      upcoming('team', 'team'),
+      { path: 'team', handle: page('team'), element: <TeamPage /> },
       upcoming('integrations', 'integrations'),
       upcoming('settings', 'settings'),
       upcoming('settings/profile', 'settings'),
