@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -19,8 +20,12 @@ func healthcheck() error {
 	if err != nil {
 		return fmt.Errorf("healthcheck: bad LK_HTTP_ADDR %q: %w", addr, err)
 	}
+	n, err := strconv.Atoi(port)
+	if err != nil || n < 1 || n > 65535 {
+		return fmt.Errorf("healthcheck: bad port in LK_HTTP_ADDR %q", addr)
+	}
 	client := &http.Client{Timeout: 3 * time.Second}
-	resp, err := client.Get("http://127.0.0.1:" + port + "/healthz")
+	resp, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/healthz", n)) //nolint:gosec // G704: fixed loopback host, validated port
 	if err != nil {
 		return err
 	}
