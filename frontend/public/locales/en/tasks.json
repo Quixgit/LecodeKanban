@@ -80,7 +80,6 @@
     "assignees": "Assignees",
     "assigneesPlaceholder": "Choose people",
     "dueDate": "Due date",
-    "progress": "Progress",
     "create": "Create task",
     "save": "Save changes",
     "conflict": "This task changed while you were editing. Your form now shows the latest version."

@@ -83,10 +83,10 @@ func TestCreateValidationAndNumbering(t *testing.T) {
 	}
 
 	stranger := f.User("Stranger", "s@example.com")
-	_, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: " ", Priority: "urgent", Progress: 101, AssigneeIDs: []uuid.UUID{stranger}})
+	_, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: " ", Priority: "urgent", AssigneeIDs: []uuid.UUID{stranger}, LabelIDs: []uuid.UUID{uuid.New()}})
 	mustCode(t, err, apperr.Validation)
 	if n := len(apperr.From(err).Fields); n != 4 {
-		t.Fatalf("expected 4 field errors, got %v", apperr.From(err).Fields)
+		t.Fatalf("expected 4 field errors (title, priority, assignees, labels), got %v", apperr.From(err).Fields)
 	}
 	_, err = f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: uuid.New(), Title: "x"})
 	mustCode(t, err, apperr.Validation)
@@ -101,8 +101,8 @@ func TestUpdateOptimisticConcurrency(t *testing.T) {
 	c := f.card(t, "Draft")
 	due, _ := time.Parse(time.DateOnly, "2030-02-03")
 	u, err := f.Cards.Update(f.ctx, f.member, c.ID, domain.Patch{Version: c.Version, Title: ptr("Final"), SetDue: true, DueDate: &due,
-		AssigneeIDs: &[]uuid.UUID{f.owner}, Progress: ptr(40)})
-	if err != nil || u.Title != "Final" || u.Version != c.Version+1 || u.DueDate == nil || len(u.Assignees) != 1 || u.Progress != 40 {
+		AssigneeIDs: &[]uuid.UUID{f.owner}})
+	if err != nil || u.Title != "Final" || u.Version != c.Version+1 || u.DueDate == nil || len(u.Assignees) != 1 || u.Progress != 0 {
 		t.Fatalf("update: %+v %v", u.Card, err)
 	}
 	_, err = f.Cards.Update(f.ctx, f.owner, c.ID, domain.Patch{Version: c.Version, Title: ptr("Stale")})

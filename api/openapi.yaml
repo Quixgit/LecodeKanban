@@ -20,6 +20,10 @@ tags:
   - name: projects
   - name: boards
   - name: cards
+  - name: comments
+  - name: attachments
+  - name: activity
+  - name: realtime
   - name: system
 
 paths:
@@ -481,6 +485,7 @@ paths:
         - $ref: "#/components/parameters/CardProjectId"
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
+        - $ref: "#/components/parameters/CardLabelId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
         - { name: sort, in: query, schema: { type: string, enum: [key, title, assignee, project, progress, deadline, priority, position, updated] } }
@@ -517,6 +522,7 @@ paths:
         - $ref: "#/components/parameters/CardProjectId"
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
+        - $ref: "#/components/parameters/CardLabelId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
       responses:
@@ -604,6 +610,353 @@ paths:
               schema: { $ref: "#/components/schemas/Card" }
         "409": { $ref: "#/components/responses/Error" }
 
+  /projects/{projectId}/board/columns:
+    parameters: [{ $ref: "#/components/parameters/ProjectId" }]
+    post:
+      tags: [boards]
+      operationId: createColumn
+      description: Adds a custom column right after the last column of its status.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ColumnInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BoardColumn" }
+        "422": { $ref: "#/components/responses/Error" }
+  /columns/{columnId}:
+    parameters: [{ $ref: "#/components/parameters/ColumnId" }]
+    patch:
+      tags: [boards]
+      operationId: updateColumn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ColumnPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BoardColumn" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [boards]
+      operationId: deleteColumn
+      description: Only empty columns can be deleted, and every status keeps at least one column.
+      responses:
+        "204": { description: Deleted }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /columns/{columnId}/move:
+    parameters: [{ $ref: "#/components/parameters/ColumnId" }]
+    post:
+      tags: [boards]
+      operationId: moveColumn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Neighbours" }
+      responses:
+        "200":
+          description: Moved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BoardColumn" }
+  /workspaces/{workspaceId}/views:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [boards]
+      operationId: listSavedViews
+      responses:
+        "200":
+          description: The caller's saved views
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/SavedView" } }
+    post:
+      tags: [boards]
+      operationId: createSavedView
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SavedViewInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedView" }
+        "422": { $ref: "#/components/responses/Error" }
+  /views/{viewId}:
+    parameters: [{ $ref: "#/components/parameters/ViewId" }]
+    patch:
+      tags: [boards]
+      operationId: updateSavedView
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SavedViewPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedView" }
+    delete:
+      tags: [boards]
+      operationId: deleteSavedView
+      responses:
+        "204": { description: Deleted }
+  /workspaces/{workspaceId}/cards/board:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [cards]
+      operationId: boardCards
+      description: Every card matching the filters in board order (position), capped at 3000.
+      parameters:
+        - $ref: "#/components/parameters/CardProjectId"
+        - $ref: "#/components/parameters/CardAssigneeId"
+        - $ref: "#/components/parameters/CardPriority"
+        - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardQuery"
+        - $ref: "#/components/parameters/CardDue"
+      responses:
+        "200":
+          description: Board cards
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CardBoard" }
+  /workspaces/{workspaceId}/labels:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [cards]
+      operationId: listLabels
+      responses:
+        "200":
+          description: Workspace labels
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Label" } }
+    post:
+      tags: [cards]
+      operationId: createLabel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LabelInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Label" }
+        "409": { $ref: "#/components/responses/Error" }
+  /labels/{labelId}:
+    parameters: [{ $ref: "#/components/parameters/LabelId" }]
+    patch:
+      tags: [cards]
+      operationId: updateLabel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LabelPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Label" }
+    delete:
+      tags: [cards]
+      operationId: deleteLabel
+      responses:
+        "204": { description: Deleted (removed from every card) }
+  /cards/{cardId}/checklist:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    get:
+      tags: [cards]
+      operationId: listChecklist
+      responses:
+        "200":
+          description: Items in order
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ChecklistItem" } }
+    post:
+      tags: [cards]
+      operationId: addChecklistItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChecklistItemInput" }
+      responses:
+        "201":
+          description: Created (card progress is recomputed)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChecklistItem" }
+  /checklist-items/{itemId}:
+    parameters: [{ $ref: "#/components/parameters/ItemId" }]
+    patch:
+      tags: [cards]
+      operationId: updateChecklistItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChecklistItemPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChecklistItem" }
+    delete:
+      tags: [cards]
+      operationId: deleteChecklistItem
+      responses:
+        "204": { description: Deleted }
+  /cards/{cardId}/comments:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    get:
+      tags: [comments]
+      operationId: listComments
+      responses:
+        "200":
+          description: Comments, oldest first
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Comment" } }
+    post:
+      tags: [comments]
+      operationId: createComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CommentInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Comment" }
+        "422": { $ref: "#/components/responses/Error" }
+  /comments/{commentId}:
+    parameters: [{ $ref: "#/components/parameters/CommentId" }]
+    patch:
+      tags: [comments]
+      operationId: updateComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CommentInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Comment" }
+        "403": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [comments]
+      operationId: deleteComment
+      responses:
+        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Error" }
+  /cards/{cardId}/attachments:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    get:
+      tags: [attachments]
+      operationId: listAttachments
+      responses:
+        "200":
+          description: Attachments, oldest first
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Attachment" } }
+    post:
+      tags: [attachments]
+      operationId: uploadAttachment
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "201":
+          description: Uploaded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Attachment" }
+        "413": { $ref: "#/components/responses/Error" }
+  /attachments/{attachmentId}:
+    parameters: [{ $ref: "#/components/parameters/AttachmentId" }]
+    delete:
+      tags: [attachments]
+      operationId: deleteAttachment
+      responses:
+        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Error" }
+  /attachments/{attachmentId}/content:
+    parameters: [{ $ref: "#/components/parameters/AttachmentId" }]
+    get:
+      tags: [attachments]
+      operationId: downloadAttachment
+      parameters:
+        - { name: inline, in: query, schema: { type: boolean }, description: Display images inline (other types always download) }
+      responses:
+        "200":
+          description: File bytes
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+  /cards/{cardId}/activity:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    get:
+      tags: [activity]
+      operationId: cardActivity
+      parameters:
+        - { name: before, in: query, schema: { type: integer, format: int64 }, description: Return entries older than this id }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100 } }
+      responses:
+        "200":
+          description: Newest first
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActivityPage" }
+  /workspaces/{workspaceId}/events:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [realtime]
+      operationId: workspaceEvents
+      description: |
+        Server-Sent Events stream of change hints for the workspace. Events: `ready` (once),
+        `change` (data: RealtimeMessage), `resync` (messages may have been missed — refetch).
+      responses:
+        "200":
+          description: Event stream
+          content:
+            text/event-stream:
+              schema: { $ref: "#/components/schemas/RealtimeMessage" }
+
   /i18n/error-codes:
     get:
       tags: [system]
@@ -655,6 +1008,13 @@ components:
     CardAssigneeId: { name: assigneeId, in: query, schema: { type: string, format: uuid } }
     CardPriority: { name: priority, in: query, schema: { $ref: "#/components/schemas/Priority" } }
     CardQuery: { name: q, in: query, schema: { type: string }, description: Search in title or key (e.g. LK-12) }
+    CardLabelId: { name: labelId, in: query, schema: { type: string, format: uuid } }
+    ColumnId: { name: columnId, in: path, required: true, schema: { type: string, format: uuid } }
+    ViewId: { name: viewId, in: path, required: true, schema: { type: string, format: uuid } }
+    LabelId: { name: labelId, in: path, required: true, schema: { type: string, format: uuid } }
+    ItemId: { name: itemId, in: path, required: true, schema: { type: string, format: uuid } }
+    CommentId: { name: commentId, in: path, required: true, schema: { type: string, format: uuid } }
+    AttachmentId: { name: attachmentId, in: path, required: true, schema: { type: string, format: uuid } }
     CardDue: { name: due, in: query, schema: { type: string, enum: [overdue, today, week, month, none] } }
   responses:
     Session:
@@ -953,7 +1313,7 @@ components:
         columns: { type: array, items: { $ref: "#/components/schemas/BoardColumn" } }
     Card:
       type: object
-      required: [id, key, number, title, description, status, columnId, priority, progress, dueDate, project, assignees, position, version, createdAt, updatedAt, completedAt]
+      required: [id, key, number, title, description, status, columnId, priority, progress, dueDate, project, assignees, labels, checklist, commentCount, attachmentCount, position, version, createdAt, updatedAt, completedAt]
       properties:
         id: { type: string, format: uuid }
         key: { type: string, example: LK-12 }
@@ -963,10 +1323,14 @@ components:
         status: { $ref: "#/components/schemas/TaskStatus" }
         columnId: { type: string, format: uuid }
         priority: { $ref: "#/components/schemas/Priority" }
-        progress: { type: integer, minimum: 0, maximum: 100 }
+        progress: { type: integer, minimum: 0, maximum: 100, description: "Derived: checklist share, else workflow stage; 100 only when done (ADR 0010)" }
         dueDate: { type: string, format: date, nullable: true }
         project: { $ref: "#/components/schemas/ProjectRef" }
         assignees: { type: array, items: { $ref: "#/components/schemas/PersonRef" } }
+        labels: { type: array, items: { $ref: "#/components/schemas/Label" } }
+        checklist: { $ref: "#/components/schemas/ChecklistSummary" }
+        commentCount: { type: integer }
+        attachmentCount: { type: integer }
         position: { type: string }
         version: { type: integer, description: Optimistic concurrency token; send it back on update/move }
         createdAt: { type: string, format: date-time }
@@ -982,9 +1346,9 @@ components:
         status: { $ref: "#/components/schemas/TaskStatus" }
         columnId: { type: string, format: uuid }
         priority: { $ref: "#/components/schemas/Priority" }
-        progress: { type: integer, minimum: 0, maximum: 100 }
         dueDate: { type: string, format: date }
         assigneeIds: { type: array, items: { type: string, format: uuid } }
+        labelIds: { type: array, items: { type: string, format: uuid }, maxItems: 10 }
     CardPatch:
       type: object
       required: [version]
@@ -994,19 +1358,162 @@ components:
         title: { type: string }
         description: { type: string }
         priority: { $ref: "#/components/schemas/Priority" }
-        progress: { type: integer, minimum: 0, maximum: 100 }
         dueDate: { type: string, format: date, nullable: true }
         assigneeIds: { type: array, items: { type: string, format: uuid } }
+        labelIds: { type: array, items: { type: string, format: uuid }, maxItems: 10 }
     CardMove:
       type: object
       required: [version]
-      description: Target column (or status → its first column) and neighbours; omitted neighbours append to the end.
+      description: |
+        Target column (project board: neighbours must be in that column) or status only
+        (cross-project board: neighbours may be any cards of that status; the card lands in its
+        project's first column of the status). Omitted neighbours append to the end.
       properties:
         version: { type: integer }
         columnId: { type: string, format: uuid }
         status: { $ref: "#/components/schemas/TaskStatus" }
         afterId: { type: string, format: uuid, nullable: true, description: Card that will be directly above }
         beforeId: { type: string, format: uuid, nullable: true, description: Card that will be directly below }
+    CardBoard:
+      type: object
+      required: [items, truncated]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Card" } }
+        truncated: { type: boolean, description: More cards match than were returned }
+    Label:
+      type: object
+      required: [id, name, tone]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        tone: { $ref: "#/components/schemas/Tone" }
+    LabelInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 40 }
+        tone: { $ref: "#/components/schemas/Tone" }
+    LabelPatch:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 40 }
+        tone: { $ref: "#/components/schemas/Tone" }
+    ChecklistSummary:
+      type: object
+      required: [total, done]
+      properties:
+        total: { type: integer }
+        done: { type: integer }
+    ChecklistItem:
+      type: object
+      required: [id, text, done, position, completedAt]
+      properties:
+        id: { type: string, format: uuid }
+        text: { type: string }
+        done: { type: boolean }
+        position: { type: string }
+        completedAt: { type: string, format: date-time, nullable: true }
+    ChecklistItemInput:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string, minLength: 1, maxLength: 300 }
+    ChecklistItemPatch:
+      type: object
+      description: Any subset; `move` reorders between neighbours.
+      properties:
+        text: { type: string, minLength: 1, maxLength: 300 }
+        done: { type: boolean }
+        move: { $ref: "#/components/schemas/Neighbours" }
+    Neighbours:
+      type: object
+      properties:
+        afterId: { type: string, format: uuid, nullable: true, description: Item that will be directly before }
+        beforeId: { type: string, format: uuid, nullable: true, description: Item that will be directly after }
+    ColumnInput:
+      type: object
+      required: [name, status]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        status: { $ref: "#/components/schemas/TaskStatus" }
+        wipLimit: { type: integer, minimum: 1, maximum: 999, nullable: true }
+    ColumnPatch:
+      type: object
+      description: Absent fields are unchanged; wipLimit null removes the limit.
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        wipLimit: { type: integer, minimum: 1, maximum: 999, nullable: true }
+    SavedView:
+      type: object
+      required: [id, name, config, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        config: { type: object, additionalProperties: true, description: "Opaque view configuration (filters, swimlanes, project)" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    SavedViewInput:
+      type: object
+      required: [name, config]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        config: { type: object, additionalProperties: true }
+    SavedViewPatch:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        config: { type: object, additionalProperties: true }
+    Comment:
+      type: object
+      required: [id, cardId, author, body, mentions, createdAt, editedAt]
+      properties:
+        id: { type: string, format: uuid }
+        cardId: { type: string, format: uuid }
+        author: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
+        body: { type: string, description: "Markdown; mentions are written as @[Name](user-id)" }
+        mentions: { type: array, items: { $ref: "#/components/schemas/PersonRef" } }
+        createdAt: { type: string, format: date-time }
+        editedAt: { type: string, format: date-time, nullable: true }
+    CommentInput:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 10000 }
+    Attachment:
+      type: object
+      required: [id, name, contentType, size, previewable, uploadedBy, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        contentType: { type: string }
+        size: { type: integer, format: int64 }
+        previewable: { type: boolean, description: Image the browser may display inline }
+        uploadedBy: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
+        createdAt: { type: string, format: date-time }
+    ActivityEntry:
+      type: object
+      required: [id, kind, data, actor, at]
+      properties:
+        id: { type: integer, format: int64 }
+        kind: { type: string, example: card.moved, description: "Translatable key: card.created|updated|moved|deleted, checklist.*, comment.*, attachment.*" }
+        data: { type: object, additionalProperties: true }
+        actor: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
+        at: { type: string, format: date-time }
+    ActivityPage:
+      type: object
+      required: [items, nextBefore]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ActivityEntry" } }
+        nextBefore: { type: integer, format: int64, nullable: true }
+    RealtimeMessage:
+      type: object
+      required: [type, workspaceId]
+      properties:
+        type: { type: string, example: card.moved }
+        workspaceId: { type: string, format: uuid }
+        projectId: { type: string, format: uuid }
+        cardId: { type: string, format: uuid }
+        actorId: { type: string, format: uuid }
     CardPage:
       type: object
       required: [items, total, page, pageSize]

@@ -40,6 +40,9 @@ func where(ws uuid.UUID, f domain.Filter, today time.Time) (string, []any) {
 	if f.Priority != nil {
 		conds = append(conds, "c.priority = "+arg(string(*f.Priority)))
 	}
+	if f.LabelID != nil {
+		conds = append(conds, "EXISTS (SELECT 1 FROM card_labels l WHERE l.card_id = c.id AND l.label_id = "+arg(*f.LabelID)+")")
+	}
 	if q := strings.TrimSpace(f.Query); q != "" {
 		if m := keyQuery.FindStringSubmatch(q); m != nil {
 			n, _ := strconv.Atoi(m[2])
@@ -67,6 +70,47 @@ func where(ws uuid.UUID, f domain.Filter, today time.Time) (string, []any) {
 
 const from = "cards c JOIN project_directory pd ON pd.id = c.project_id"
 
+// cardCols / cardDest keep hand-written queries in step with store.Card.
+const cardCols = `c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.number, c.title, c.description,
+	c.status, c.priority, c.progress, c.due_date, c.position, c.version, c.created_by, c.completed_at, c.created_at,
+	c.updated_at, c.archived_at, c.checklist_total, c.checklist_done, c.comment_count, c.attachment_count`
+
+func cardDest(c *store.Card) []any {
+	return []any{&c.ID, &c.WorkspaceID, &c.ProjectID, &c.BoardID, &c.ColumnID, &c.Number, &c.Title, &c.Description,
+		&c.Status, &c.Priority, &c.Progress, &c.DueDate, &c.Position, &c.Version, &c.CreatedBy, &c.CompletedAt,
+		&c.CreatedAt, &c.UpdatedAt, &c.ArchivedAt, &c.ChecklistTotal, &c.ChecklistDone, &c.CommentCount, &c.AttachmentCount}
+}
+
+// BoardLimit caps one board load; the response reports truncation.
+const BoardLimit = 3000
+
+// Board returns every card matching f in board order (position), up to BoardLimit.
+func (r *Repo) Board(ctx context.Context, ws uuid.UUID, f domain.Filter, today time.Time) ([]domain.Card, bool, error) {
+	cond, args := where(ws, f, today)
+	args = append(args, BoardLimit+1)
+	rows, err := r.pool.Query(ctx, fmt.Sprintf(`SELECT %s FROM %s WHERE %s ORDER BY c.position, c.id LIMIT $%d`,
+		cardCols, from, cond, len(args)), args...)
+	if err != nil {
+		return nil, false, err
+	}
+	defer rows.Close()
+	out := []domain.Card{}
+	for rows.Next() {
+		var c store.Card
+		if err := rows.Scan(cardDest(&c)...); err != nil {
+			return nil, false, err
+		}
+		out = append(out, toDomain(c))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, false, err
+	}
+	if len(out) > BoardLimit {
+		return out[:BoardLimit], true, nil
+	}
+	return out, false, nil
+}
+
 // sortExprs whitelists ORDER BY expressions.
 var sortExprs = map[string]string{
 	"key":      "pd.key %[1]s, c.number %[1]s",
@@ -93,10 +137,8 @@ func (r *Repo) List(ctx context.Context, ws uuid.UUID, f domain.Filter, today ti
 	}
 	order := fmt.Sprintf(expr, dir)
 	args = append(args, pg.Limit(), pg.Offset())
-	sql := fmt.Sprintf(`SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.number, c.title, c.description,
-		c.status, c.priority, c.progress, c.due_date, c.position, c.version, c.created_by, c.completed_at, c.created_at,
-		c.updated_at, c.archived_at, count(*) OVER () FROM %s WHERE %s ORDER BY %s, c.id LIMIT $%d OFFSET $%d`,
-		from, cond, order, len(args)-1, len(args))
+	sql := fmt.Sprintf(`SELECT %s, count(*) OVER () FROM %s WHERE %s ORDER BY %s, c.id LIMIT $%d OFFSET $%d`,
+		cardCols, from, cond, order, len(args)-1, len(args))
 
 	rows, err := r.pool.Query(ctx, sql, args...)
 	if err != nil {
@@ -108,9 +150,7 @@ func (r *Repo) List(ctx context.Context, ws uuid.UUID, f domain.Filter, today ti
 	for rows.Next() {
 		var c store.Card
 		var n int64
-		if err := rows.Scan(&c.ID, &c.WorkspaceID, &c.ProjectID, &c.BoardID, &c.ColumnID, &c.Number, &c.Title, &c.Description,
-			&c.Status, &c.Priority, &c.Progress, &c.DueDate, &c.Position, &c.Version, &c.CreatedBy, &c.CompletedAt,
-			&c.CreatedAt, &c.UpdatedAt, &c.ArchivedAt, &n); err != nil {
+		if err := rows.Scan(append(cardDest(&c), &n)...); err != nil {
 			return nil, 0, err
 		}
 		out = append(out, toDomain(c))
@@ -159,9 +199,7 @@ func (r *Repo) Counts(ctx context.Context, ws uuid.UUID, f domain.Filter, today 
 
 // InWorkspace returns which of ids are live cards of ws (bulk safety).
 func (r *Repo) InWorkspace(ctx context.Context, ws uuid.UUID, ids []uuid.UUID) ([]domain.Card, error) {
-	rows, err := r.pool.Query(ctx, `SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.number, c.title,
-		c.description, c.status, c.priority, c.progress, c.due_date, c.position, c.version, c.created_by, c.completed_at,
-		c.created_at, c.updated_at, c.archived_at
+	rows, err := r.pool.Query(ctx, `SELECT `+cardCols+`
 		FROM `+from+` WHERE c.workspace_id = $1 AND c.id = ANY($2::uuid[]) AND c.archived_at IS NULL AND pd.archived_at IS NULL`, ws, ids)
 	if err != nil {
 		return nil, err
@@ -170,9 +208,7 @@ func (r *Repo) InWorkspace(ctx context.Context, ws uuid.UUID, ids []uuid.UUID) (
 	var out []domain.Card
 	for rows.Next() {
 		var c store.Card
-		if err := rows.Scan(&c.ID, &c.WorkspaceID, &c.ProjectID, &c.BoardID, &c.ColumnID, &c.Number, &c.Title, &c.Description,
-			&c.Status, &c.Priority, &c.Progress, &c.DueDate, &c.Position, &c.Version, &c.CreatedBy, &c.CompletedAt,
-			&c.CreatedAt, &c.UpdatedAt, &c.ArchivedAt); err != nil {
+		if err := rows.Scan(cardDest(&c)...); err != nil {
 			return nil, err
 		}
 		out = append(out, toDomain(c))

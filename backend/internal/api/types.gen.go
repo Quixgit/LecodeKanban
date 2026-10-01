@@ -411,6 +411,33 @@ func (e ListCardsParamsOrder) Valid() bool {
 	}
 }
 
+// Defines values for BoardCardsParamsDue.
+const (
+	BoardCardsParamsDueMonth   BoardCardsParamsDue = "month"
+	BoardCardsParamsDueNone    BoardCardsParamsDue = "none"
+	BoardCardsParamsDueOverdue BoardCardsParamsDue = "overdue"
+	BoardCardsParamsDueToday   BoardCardsParamsDue = "today"
+	BoardCardsParamsDueWeek    BoardCardsParamsDue = "week"
+)
+
+// Valid indicates whether the value is a known member of the BoardCardsParamsDue enum.
+func (e BoardCardsParamsDue) Valid() bool {
+	switch e {
+	case BoardCardsParamsDueMonth:
+		return true
+	case BoardCardsParamsDueNone:
+		return true
+	case BoardCardsParamsDueOverdue:
+		return true
+	case BoardCardsParamsDueToday:
+		return true
+	case BoardCardsParamsDueWeek:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CardStatusCountsParamsDue.
 const (
 	CardStatusCountsParamsDueMonth   CardStatusCountsParamsDue = "month"
@@ -537,6 +564,19 @@ func (e ListProjectsParamsOrder) Valid() bool {
 	}
 }
 
+// ActivityEntry defines model for ActivityEntry.
+type ActivityEntry struct {
+	Actor *PersonRef             `json:"actor"`
+	At    time.Time              `json:"at"`
+	Data  map[string]interface{} `json:"data"`
+	Id    int64                  `json:"id"`
+
+	// Kind Translatable key: card.created|updated|moved|deleted, checklist.*, comment.*, attachment.*
+	//
+	// Example: card.moved
+	Kind string `json:"kind"`
+}
+
 // ActivityItem defines model for ActivityItem.
 type ActivityItem struct {
 	Actor *PersonRef `json:"actor"`
@@ -550,6 +590,25 @@ type ActivityItem struct {
 	Id      int64       `json:"id"`
 	Project ProjectRef  `json:"project"`
 	To      TaskStatus  `json:"to"`
+}
+
+// ActivityPage defines model for ActivityPage.
+type ActivityPage struct {
+	Items      []ActivityEntry `json:"items"`
+	NextBefore *int64          `json:"nextBefore"`
+}
+
+// Attachment defines model for Attachment.
+type Attachment struct {
+	ContentType string             `json:"contentType"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
+
+	// Previewable Image the browser may display inline
+	Previewable bool       `json:"previewable"`
+	Size        int64      `json:"size"`
+	UploadedBy  *PersonRef `json:"uploadedBy"`
 }
 
 // AuthProviders defines model for AuthProviders.
@@ -593,19 +652,25 @@ type BulkResult struct {
 
 // Card defines model for Card.
 type Card struct {
-	Assignees   []PersonRef         `json:"assignees"`
-	ColumnId    openapi_types.UUID  `json:"columnId"`
-	CompletedAt *time.Time          `json:"completedAt"`
-	CreatedAt   time.Time           `json:"createdAt"`
-	Description string              `json:"description"`
-	DueDate     *openapi_types.Date `json:"dueDate"`
-	Id          openapi_types.UUID  `json:"id"`
+	Assignees       []PersonRef         `json:"assignees"`
+	AttachmentCount int                 `json:"attachmentCount"`
+	Checklist       ChecklistSummary    `json:"checklist"`
+	ColumnId        openapi_types.UUID  `json:"columnId"`
+	CommentCount    int                 `json:"commentCount"`
+	CompletedAt     *time.Time          `json:"completedAt"`
+	CreatedAt       time.Time           `json:"createdAt"`
+	Description     string              `json:"description"`
+	DueDate         *openapi_types.Date `json:"dueDate"`
+	Id              openapi_types.UUID  `json:"id"`
 
 	// Key Example: LK-12
-	Key       string     `json:"key"`
-	Number    int        `json:"number"`
-	Position  string     `json:"position"`
-	Priority  Priority   `json:"priority"`
+	Key      string   `json:"key"`
+	Labels   []Label  `json:"labels"`
+	Number   int      `json:"number"`
+	Position string   `json:"position"`
+	Priority Priority `json:"priority"`
+
+	// Progress Derived: checklist share, else workflow stage; 100 only when done (ADR 0010)
 	Progress  int        `json:"progress"`
 	Project   ProjectRef `json:"project"`
 	Status    TaskStatus `json:"status"`
@@ -616,20 +681,30 @@ type Card struct {
 	Version int `json:"version"`
 }
 
+// CardBoard defines model for CardBoard.
+type CardBoard struct {
+	Items []Card `json:"items"`
+
+	// Truncated More cards match than were returned
+	Truncated bool `json:"truncated"`
+}
+
 // CardInput defines model for CardInput.
 type CardInput struct {
 	AssigneeIds *[]openapi_types.UUID `json:"assigneeIds,omitempty"`
 	ColumnId    *openapi_types.UUID   `json:"columnId,omitempty"`
 	Description *string               `json:"description,omitempty"`
 	DueDate     *openapi_types.Date   `json:"dueDate,omitempty"`
+	LabelIds    *[]openapi_types.UUID `json:"labelIds,omitempty"`
 	Priority    *Priority             `json:"priority,omitempty"`
-	Progress    *int                  `json:"progress,omitempty"`
 	ProjectId   openapi_types.UUID    `json:"projectId"`
 	Status      *TaskStatus           `json:"status,omitempty"`
 	Title       string                `json:"title"`
 }
 
-// CardMove Target column (or status → its first column) and neighbours; omitted neighbours append to the end.
+// CardMove Target column (project board: neighbours must be in that column) or status only
+// (cross-project board: neighbours may be any cards of that status; the card lands in its
+// project's first column of the status). Omitted neighbours append to the end.
 type CardMove struct {
 	// AfterId Card that will be directly above
 	AfterId *openapi_types.UUID `json:"afterId,omitempty"`
@@ -654,8 +729,8 @@ type CardPatch struct {
 	AssigneeIds *[]openapi_types.UUID `json:"assigneeIds,omitempty"`
 	Description *string               `json:"description,omitempty"`
 	DueDate     *openapi_types.Date   `json:"dueDate,omitempty"`
+	LabelIds    *[]openapi_types.UUID `json:"labelIds,omitempty"`
 	Priority    *Priority             `json:"priority,omitempty"`
-	Progress    *int                  `json:"progress,omitempty"`
 	Title       *string               `json:"title,omitempty"`
 	Version     int                   `json:"version"`
 }
@@ -665,6 +740,64 @@ type ChangePasswordRequest struct {
 	// CurrentPassword Required when the account already has a password
 	CurrentPassword *string `json:"currentPassword,omitempty"`
 	NewPassword     string  `json:"newPassword"`
+}
+
+// ChecklistItem defines model for ChecklistItem.
+type ChecklistItem struct {
+	CompletedAt *time.Time         `json:"completedAt"`
+	Done        bool               `json:"done"`
+	Id          openapi_types.UUID `json:"id"`
+	Position    string             `json:"position"`
+	Text        string             `json:"text"`
+}
+
+// ChecklistItemInput defines model for ChecklistItemInput.
+type ChecklistItemInput struct {
+	Text string `json:"text"`
+}
+
+// ChecklistItemPatch Any subset; `move` reorders between neighbours.
+type ChecklistItemPatch struct {
+	Done *bool       `json:"done,omitempty"`
+	Move *Neighbours `json:"move,omitempty"`
+	Text *string     `json:"text,omitempty"`
+}
+
+// ChecklistSummary defines model for ChecklistSummary.
+type ChecklistSummary struct {
+	Done  int `json:"done"`
+	Total int `json:"total"`
+}
+
+// ColumnInput defines model for ColumnInput.
+type ColumnInput struct {
+	Name     string     `json:"name"`
+	Status   TaskStatus `json:"status"`
+	WipLimit *int       `json:"wipLimit,omitempty"`
+}
+
+// ColumnPatch Absent fields are unchanged; wipLimit null removes the limit.
+type ColumnPatch struct {
+	Name     *string `json:"name,omitempty"`
+	WipLimit *int    `json:"wipLimit,omitempty"`
+}
+
+// Comment defines model for Comment.
+type Comment struct {
+	Author *PersonRef `json:"author"`
+
+	// Body Markdown; mentions are written as @[Name](user-id)
+	Body      string             `json:"body"`
+	CardId    openapi_types.UUID `json:"cardId"`
+	CreatedAt time.Time          `json:"createdAt"`
+	EditedAt  *time.Time         `json:"editedAt"`
+	Id        openapi_types.UUID `json:"id"`
+	Mentions  []PersonRef        `json:"mentions"`
+}
+
+// CommentInput defines model for CommentInput.
+type CommentInput struct {
+	Body string `json:"body"`
 }
 
 // CreateInviteRequest defines model for CreateInviteRequest.
@@ -749,6 +882,25 @@ type InvitePreview struct {
 // InviteRole defines model for InviteRole.
 type InviteRole string
 
+// Label defines model for Label.
+type Label struct {
+	Id   openapi_types.UUID `json:"id"`
+	Name string             `json:"name"`
+	Tone Tone               `json:"tone"`
+}
+
+// LabelInput defines model for LabelInput.
+type LabelInput struct {
+	Name string `json:"name"`
+	Tone *Tone  `json:"tone,omitempty"`
+}
+
+// LabelPatch defines model for LabelPatch.
+type LabelPatch struct {
+	Name *string `json:"name,omitempty"`
+	Tone *Tone   `json:"tone,omitempty"`
+}
+
 // Locale defines model for Locale.
 type Locale string
 
@@ -771,6 +923,15 @@ type MemberUser struct {
 	Email     string             `json:"email"`
 	Id        openapi_types.UUID `json:"id"`
 	Name      string             `json:"name"`
+}
+
+// Neighbours defines model for Neighbours.
+type Neighbours struct {
+	// AfterId Item that will be directly before
+	AfterId *openapi_types.UUID `json:"afterId,omitempty"`
+
+	// BeforeId Item that will be directly after
+	BeforeId *openapi_types.UUID `json:"beforeId,omitempty"`
 }
 
 // PersonRef defines model for PersonRef.
@@ -869,6 +1030,17 @@ type ProjectSummary struct {
 	Total      int      `json:"total"`
 }
 
+// RealtimeMessage defines model for RealtimeMessage.
+type RealtimeMessage struct {
+	ActorId   *openapi_types.UUID `json:"actorId,omitempty"`
+	CardId    *openapi_types.UUID `json:"cardId,omitempty"`
+	ProjectId *openapi_types.UUID `json:"projectId,omitempty"`
+
+	// Type Example: card.moved
+	Type        string             `json:"type"`
+	WorkspaceId openapi_types.UUID `json:"workspaceId"`
+}
+
 // RegisterRequest defines model for RegisterRequest.
 type RegisterRequest struct {
 	// Email Email address (validated server-side)
@@ -886,6 +1058,28 @@ type ResetPasswordRequest struct {
 
 // Role defines model for Role.
 type Role string
+
+// SavedView defines model for SavedView.
+type SavedView struct {
+	// Config Opaque view configuration (filters, swimlanes, project)
+	Config    map[string]interface{} `json:"config"`
+	CreatedAt time.Time              `json:"createdAt"`
+	Id        openapi_types.UUID     `json:"id"`
+	Name      string                 `json:"name"`
+	UpdatedAt time.Time              `json:"updatedAt"`
+}
+
+// SavedViewInput defines model for SavedViewInput.
+type SavedViewInput struct {
+	Config map[string]interface{} `json:"config"`
+	Name   string                 `json:"name"`
+}
+
+// SavedViewPatch defines model for SavedViewPatch.
+type SavedViewPatch struct {
+	Config *map[string]interface{} `json:"config,omitempty"`
+	Name   *string                 `json:"name,omitempty"`
+}
 
 // Session defines model for Session.
 type Session struct {
@@ -963,6 +1157,9 @@ type WorkspaceInput struct {
 	Name string `json:"name"`
 }
 
+// AttachmentId defines model for AttachmentId.
+type AttachmentId = openapi_types.UUID
+
 // CardAssigneeId defines model for CardAssigneeId.
 type CardAssigneeId = openapi_types.UUID
 
@@ -971,6 +1168,9 @@ type CardDue string
 
 // CardId defines model for CardId.
 type CardId = openapi_types.UUID
+
+// CardLabelId defines model for CardLabelId.
+type CardLabelId = openapi_types.UUID
 
 // CardPriority defines model for CardPriority.
 type CardPriority = Priority
@@ -984,6 +1184,18 @@ type CardQuery = string
 // CardStatus defines model for CardStatus.
 type CardStatus = TaskStatus
 
+// ColumnId defines model for ColumnId.
+type ColumnId = openapi_types.UUID
+
+// CommentId defines model for CommentId.
+type CommentId = openapi_types.UUID
+
+// ItemId defines model for ItemId.
+type ItemId = openapi_types.UUID
+
+// LabelId defines model for LabelId.
+type LabelId = openapi_types.UUID
+
 // Page defines model for Page.
 type Page = int
 
@@ -996,11 +1208,20 @@ type ProjectId = openapi_types.UUID
 // Provider defines model for Provider.
 type Provider string
 
+// ViewId defines model for ViewId.
+type ViewId = openapi_types.UUID
+
 // WorkspaceId defines model for WorkspaceId.
 type WorkspaceId = openapi_types.UUID
 
 // Error defines model for Error.
 type Error = ErrorResponse
+
+// DownloadAttachmentParams defines parameters for DownloadAttachment.
+type DownloadAttachmentParams struct {
+	// Inline Display images inline (other types always download)
+	Inline *bool `form:"inline,omitempty" json:"inline,omitempty"`
+}
 
 // OauthCallbackParams defines parameters for OauthCallback.
 type OauthCallbackParams struct {
@@ -1020,12 +1241,25 @@ type OauthStartParams struct {
 // OauthStartParamsProvider defines parameters for OauthStart.
 type OauthStartParamsProvider string
 
+// CardActivityParams defines parameters for CardActivity.
+type CardActivityParams struct {
+	// Before Return entries older than this id
+	Before *int64 `form:"before,omitempty" json:"before,omitempty"`
+	Limit  *int   `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// UploadAttachmentMultipartBody defines parameters for UploadAttachment.
+type UploadAttachmentMultipartBody struct {
+	File openapi_types.File `json:"file"`
+}
+
 // ListCardsParams defines parameters for ListCards.
 type ListCardsParams struct {
 	Status     *CardStatus     `form:"status,omitempty" json:"status,omitempty"`
 	ProjectId  *CardProjectId  `form:"projectId,omitempty" json:"projectId,omitempty"`
 	AssigneeId *CardAssigneeId `form:"assigneeId,omitempty" json:"assigneeId,omitempty"`
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
+	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
 	// Q Search in title or key (e.g. LK-12)
 	Q        *CardQuery            `form:"q,omitempty" json:"q,omitempty"`
@@ -1045,6 +1279,21 @@ type ListCardsParamsSort string
 // ListCardsParamsOrder defines parameters for ListCards.
 type ListCardsParamsOrder string
 
+// BoardCardsParams defines parameters for BoardCards.
+type BoardCardsParams struct {
+	ProjectId  *CardProjectId  `form:"projectId,omitempty" json:"projectId,omitempty"`
+	AssigneeId *CardAssigneeId `form:"assigneeId,omitempty" json:"assigneeId,omitempty"`
+	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
+	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
+
+	// Q Search in title or key (e.g. LK-12)
+	Q   *CardQuery           `form:"q,omitempty" json:"q,omitempty"`
+	Due *BoardCardsParamsDue `form:"due,omitempty" json:"due,omitempty"`
+}
+
+// BoardCardsParamsDue defines parameters for BoardCards.
+type BoardCardsParamsDue string
+
 // CardStatsParams defines parameters for CardStats.
 type CardStatsParams struct {
 	Days *int `form:"days,omitempty" json:"days,omitempty"`
@@ -1055,6 +1304,7 @@ type CardStatusCountsParams struct {
 	ProjectId  *CardProjectId  `form:"projectId,omitempty" json:"projectId,omitempty"`
 	AssigneeId *CardAssigneeId `form:"assigneeId,omitempty" json:"assigneeId,omitempty"`
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
+	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
 	// Q Search in title or key (e.g. LK-12)
 	Q   *CardQuery                 `form:"q,omitempty" json:"q,omitempty"`
@@ -1109,17 +1359,47 @@ type VerifyEmailJSONRequestBody = TokenRequest
 // UpdateCardJSONRequestBody defines body for UpdateCard for application/json ContentType.
 type UpdateCardJSONRequestBody = CardPatch
 
+// UploadAttachmentMultipartRequestBody defines body for UploadAttachment for multipart/form-data ContentType.
+type UploadAttachmentMultipartRequestBody UploadAttachmentMultipartBody
+
+// AddChecklistItemJSONRequestBody defines body for AddChecklistItem for application/json ContentType.
+type AddChecklistItemJSONRequestBody = ChecklistItemInput
+
+// CreateCommentJSONRequestBody defines body for CreateComment for application/json ContentType.
+type CreateCommentJSONRequestBody = CommentInput
+
 // MoveCardJSONRequestBody defines body for MoveCard for application/json ContentType.
 type MoveCardJSONRequestBody = CardMove
 
+// UpdateChecklistItemJSONRequestBody defines body for UpdateChecklistItem for application/json ContentType.
+type UpdateChecklistItemJSONRequestBody = ChecklistItemPatch
+
+// UpdateColumnJSONRequestBody defines body for UpdateColumn for application/json ContentType.
+type UpdateColumnJSONRequestBody = ColumnPatch
+
+// MoveColumnJSONRequestBody defines body for MoveColumn for application/json ContentType.
+type MoveColumnJSONRequestBody = Neighbours
+
+// UpdateCommentJSONRequestBody defines body for UpdateComment for application/json ContentType.
+type UpdateCommentJSONRequestBody = CommentInput
+
+// UpdateLabelJSONRequestBody defines body for UpdateLabel for application/json ContentType.
+type UpdateLabelJSONRequestBody = LabelPatch
+
 // UpdateProjectJSONRequestBody defines body for UpdateProject for application/json ContentType.
 type UpdateProjectJSONRequestBody = ProjectPatch
+
+// CreateColumnJSONRequestBody defines body for CreateColumn for application/json ContentType.
+type CreateColumnJSONRequestBody = ColumnInput
 
 // UpdateMeJSONRequestBody defines body for UpdateMe for application/json ContentType.
 type UpdateMeJSONRequestBody = UpdateProfileRequest
 
 // ChangePasswordJSONRequestBody defines body for ChangePassword for application/json ContentType.
 type ChangePasswordJSONRequestBody = ChangePasswordRequest
+
+// UpdateSavedViewJSONRequestBody defines body for UpdateSavedView for application/json ContentType.
+type UpdateSavedViewJSONRequestBody = SavedViewPatch
 
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = WorkspaceInput
@@ -1136,8 +1416,14 @@ type BulkCardsJSONRequestBody = BulkCardAction
 // CreateInviteJSONRequestBody defines body for CreateInvite for application/json ContentType.
 type CreateInviteJSONRequestBody = CreateInviteRequest
 
+// CreateLabelJSONRequestBody defines body for CreateLabel for application/json ContentType.
+type CreateLabelJSONRequestBody = LabelInput
+
 // UpdateMemberRoleJSONRequestBody defines body for UpdateMemberRole for application/json ContentType.
 type UpdateMemberRoleJSONRequestBody = UpdateMemberRequest
 
 // CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
 type CreateProjectJSONRequestBody = ProjectInput
+
+// CreateSavedViewJSONRequestBody defines body for CreateSavedView for application/json ContentType.
+type CreateSavedViewJSONRequestBody = SavedViewInput

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addAssignees = `-- name: AddAssignees :exec
@@ -25,6 +26,22 @@ type AddAssigneesParams struct {
 
 func (q *Queries) AddAssignees(ctx context.Context, arg AddAssigneesParams) error {
 	_, err := q.db.Exec(ctx, addAssignees, arg.CardID, arg.UserIds)
+	return err
+}
+
+const addCardLabels = `-- name: AddCardLabels :exec
+INSERT INTO card_labels (card_id, label_id)
+SELECT $1, unnest($2::uuid[])
+ON CONFLICT DO NOTHING
+`
+
+type AddCardLabelsParams struct {
+	CardID   uuid.UUID
+	LabelIds []uuid.UUID
+}
+
+func (q *Queries) AddCardLabels(ctx context.Context, arg AddCardLabelsParams) error {
+	_, err := q.db.Exec(ctx, addCardLabels, arg.CardID, arg.LabelIds)
 	return err
 }
 
@@ -125,21 +142,70 @@ func (q *Queries) ClearAssignees(ctx context.Context, cardID uuid.UUID) error {
 	return err
 }
 
+const clearCardLabels = `-- name: ClearCardLabels :exec
+DELETE FROM card_labels WHERE card_id = $1
+`
+
+func (q *Queries) ClearCardLabels(ctx context.Context, cardID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, clearCardLabels, cardID)
+	return err
+}
+
 const countByProject = `-- name: CountByProject :one
-SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'done')::int AS done
+SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'done')::int AS done,
+       COALESCE(round(avg(progress)), 0)::int AS avg_progress
 FROM cards WHERE project_id = $1 AND archived_at IS NULL
 `
 
 type CountByProjectRow struct {
-	Total int32
-	Done  int32
+	Total       int32
+	Done        int32
+	AvgProgress int32
 }
 
 func (q *Queries) CountByProject(ctx context.Context, projectID uuid.UUID) (CountByProjectRow, error) {
 	row := q.db.QueryRow(ctx, countByProject, projectID)
 	var i CountByProjectRow
-	err := row.Scan(&i.Total, &i.Done)
+	err := row.Scan(&i.Total, &i.Done, &i.AvgProgress)
 	return i, err
+}
+
+const countChecklist = `-- name: CountChecklist :one
+SELECT count(*)::int FROM checklist_items WHERE card_id = $1
+`
+
+func (q *Queries) CountChecklist(ctx context.Context, cardID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, countChecklist, cardID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const countInColumn = `-- name: CountInColumn :one
+SELECT count(*)::int FROM cards WHERE column_id = $1 AND archived_at IS NULL
+`
+
+func (q *Queries) CountInColumn(ctx context.Context, columnID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, countInColumn, columnID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const countLabelsInWorkspace = `-- name: CountLabelsInWorkspace :one
+SELECT count(*)::int FROM labels WHERE workspace_id = $1 AND id = ANY($2::uuid[])
+`
+
+type CountLabelsInWorkspaceParams struct {
+	WorkspaceID uuid.UUID
+	Ids         []uuid.UUID
+}
+
+func (q *Queries) CountLabelsInWorkspace(ctx context.Context, arg CountLabelsInWorkspaceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countLabelsInWorkspace, arg.WorkspaceID, arg.Ids)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const createCard = `-- name: CreateCard :one
@@ -147,7 +213,7 @@ INSERT INTO cards (workspace_id, project_id, board_id, column_id, number, title,
                    progress, due_date, position, created_by, completed_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
         $10, $11, $12, $13, $14)
-RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at
+RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count
 `
 
 type CreateCardParams struct {
@@ -205,12 +271,82 @@ func (q *Queries) CreateCard(ctx context.Context, arg CreateCardParams) (Card, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.ChecklistTotal,
+		&i.ChecklistDone,
+		&i.CommentCount,
+		&i.AttachmentCount,
 	)
 	return i, err
 }
 
+const createChecklistItem = `-- name: CreateChecklistItem :one
+INSERT INTO checklist_items (card_id, text, position) VALUES ($1, $2, $3) RETURNING id, card_id, text, done, position, created_at, completed_at
+`
+
+type CreateChecklistItemParams struct {
+	CardID   uuid.UUID
+	Text     string
+	Position string
+}
+
+func (q *Queries) CreateChecklistItem(ctx context.Context, arg CreateChecklistItemParams) (ChecklistItem, error) {
+	row := q.db.QueryRow(ctx, createChecklistItem, arg.CardID, arg.Text, arg.Position)
+	var i ChecklistItem
+	err := row.Scan(
+		&i.ID,
+		&i.CardID,
+		&i.Text,
+		&i.Done,
+		&i.Position,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const createLabel = `-- name: CreateLabel :one
+INSERT INTO labels (workspace_id, name, tone) VALUES ($1, $2, $3) RETURNING id, workspace_id, name, tone, created_at
+`
+
+type CreateLabelParams struct {
+	WorkspaceID uuid.UUID
+	Name        string
+	Tone        string
+}
+
+func (q *Queries) CreateLabel(ctx context.Context, arg CreateLabelParams) (Label, error) {
+	row := q.db.QueryRow(ctx, createLabel, arg.WorkspaceID, arg.Name, arg.Tone)
+	var i Label
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Name,
+		&i.Tone,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const deleteChecklistItem = `-- name: DeleteChecklistItem :exec
+DELETE FROM checklist_items WHERE id = $1
+`
+
+func (q *Queries) DeleteChecklistItem(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteChecklistItem, id)
+	return err
+}
+
+const deleteLabel = `-- name: DeleteLabel :exec
+DELETE FROM labels WHERE id = $1
+`
+
+func (q *Queries) DeleteLabel(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteLabel, id)
+	return err
+}
+
 const getCard = `-- name: GetCard :one
-SELECT id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at FROM cards WHERE id = $1 AND archived_at IS NULL
+SELECT id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count FROM cards WHERE id = $1 AND archived_at IS NULL
 `
 
 func (q *Queries) GetCard(ctx context.Context, id uuid.UUID) (Card, error) {
@@ -236,6 +372,46 @@ func (q *Queries) GetCard(ctx context.Context, id uuid.UUID) (Card, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.ChecklistTotal,
+		&i.ChecklistDone,
+		&i.CommentCount,
+		&i.AttachmentCount,
+	)
+	return i, err
+}
+
+const getChecklistItem = `-- name: GetChecklistItem :one
+SELECT id, card_id, text, done, position, created_at, completed_at FROM checklist_items WHERE id = $1
+`
+
+func (q *Queries) GetChecklistItem(ctx context.Context, id uuid.UUID) (ChecklistItem, error) {
+	row := q.db.QueryRow(ctx, getChecklistItem, id)
+	var i ChecklistItem
+	err := row.Scan(
+		&i.ID,
+		&i.CardID,
+		&i.Text,
+		&i.Done,
+		&i.Position,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const getLabel = `-- name: GetLabel :one
+SELECT id, workspace_id, name, tone, created_at FROM labels WHERE id = $1
+`
+
+func (q *Queries) GetLabel(ctx context.Context, id uuid.UUID) (Label, error) {
+	row := q.db.QueryRow(ctx, getLabel, id)
+	var i Label
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Name,
+		&i.Tone,
+		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -266,6 +442,43 @@ func (q *Queries) InsertTransition(ctx context.Context, arg InsertTransitionPara
 	return err
 }
 
+const labelsForCards = `-- name: LabelsForCards :many
+SELECT cl.card_id, cl.label_id FROM card_labels cl JOIN labels l ON l.id = cl.label_id
+WHERE cl.card_id = ANY($1::uuid[])
+ORDER BY lower(l.name)
+`
+
+func (q *Queries) LabelsForCards(ctx context.Context, ids []uuid.UUID) ([]CardLabel, error) {
+	rows, err := q.db.Query(ctx, labelsForCards, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CardLabel{}
+	for rows.Next() {
+		var i CardLabel
+		if err := rows.Scan(&i.CardID, &i.LabelID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lastChecklistPosition = `-- name: LastChecklistPosition :one
+SELECT COALESCE(max(position), '')::text FROM checklist_items WHERE card_id = $1
+`
+
+func (q *Queries) LastChecklistPosition(ctx context.Context, cardID uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, lastChecklistPosition, cardID)
+	var column_1 string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const lastPosition = `-- name: LastPosition :one
 SELECT COALESCE(max(position), '')::text FROM cards WHERE column_id = $1 AND archived_at IS NULL
 `
@@ -277,17 +490,100 @@ func (q *Queries) LastPosition(ctx context.Context, columnID uuid.UUID) (string,
 	return column_1, err
 }
 
+const lastPositionInStatus = `-- name: LastPositionInStatus :one
+SELECT COALESCE(max(position), '')::text FROM cards
+WHERE workspace_id = $1 AND status = $2 AND archived_at IS NULL
+`
+
+type LastPositionInStatusParams struct {
+	WorkspaceID uuid.UUID
+	Status      string
+}
+
+func (q *Queries) LastPositionInStatus(ctx context.Context, arg LastPositionInStatusParams) (string, error) {
+	row := q.db.QueryRow(ctx, lastPositionInStatus, arg.WorkspaceID, arg.Status)
+	var column_1 string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const listChecklist = `-- name: ListChecklist :many
+
+SELECT id, card_id, text, done, position, created_at, completed_at FROM checklist_items WHERE card_id = $1 ORDER BY position, id
+`
+
+// Checklist.
+func (q *Queries) ListChecklist(ctx context.Context, cardID uuid.UUID) ([]ChecklistItem, error) {
+	rows, err := q.db.Query(ctx, listChecklist, cardID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ChecklistItem{}
+	for rows.Next() {
+		var i ChecklistItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.CardID,
+			&i.Text,
+			&i.Done,
+			&i.Position,
+			&i.CreatedAt,
+			&i.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listLabels = `-- name: ListLabels :many
+
+SELECT id, workspace_id, name, tone, created_at FROM labels WHERE workspace_id = $1 ORDER BY lower(name)
+`
+
+// Labels.
+func (q *Queries) ListLabels(ctx context.Context, workspaceID uuid.UUID) ([]Label, error) {
+	rows, err := q.db.Query(ctx, listLabels, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Label{}
+	for rows.Next() {
+		var i Label
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.Name,
+			&i.Tone,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const moveCard = `-- name: MoveCard :one
 UPDATE cards SET
     column_id    = $1,
     board_id     = $2,
     status       = $3,
     position     = $4,
-    progress     = CASE WHEN $3 = 'done' THEN 100 ELSE progress END,
+    progress     = $5,
     completed_at = CASE WHEN $3 = 'done' THEN COALESCE(completed_at, now()) ELSE NULL END,
     version      = version + 1
-WHERE id = $5 AND version = $6 AND archived_at IS NULL
-RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at
+WHERE id = $6 AND version = $7 AND archived_at IS NULL
+RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count
 `
 
 type MoveCardParams struct {
@@ -295,6 +591,7 @@ type MoveCardParams struct {
 	BoardID  uuid.UUID
 	Status   string
 	Position string
+	Progress int16
 	ID       uuid.UUID
 	Version  int32
 }
@@ -305,6 +602,7 @@ func (q *Queries) MoveCard(ctx context.Context, arg MoveCardParams) (Card, error
 		arg.BoardID,
 		arg.Status,
 		arg.Position,
+		arg.Progress,
 		arg.ID,
 		arg.Version,
 	)
@@ -329,6 +627,10 @@ func (q *Queries) MoveCard(ctx context.Context, arg MoveCardParams) (Card, error
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.ChecklistTotal,
+		&i.ChecklistDone,
+		&i.CommentCount,
+		&i.AttachmentCount,
 	)
 	return i, err
 }
@@ -342,6 +644,22 @@ RETURNING (next - 1)::int
 func (q *Queries) NextCardNumber(ctx context.Context, projectID uuid.UUID) (int32, error) {
 	row := q.db.QueryRow(ctx, nextCardNumber, projectID)
 	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const nextChecklistPositionAfter = `-- name: NextChecklistPositionAfter :one
+SELECT COALESCE(min(position), '')::text FROM checklist_items WHERE card_id = $1 AND position > $2::text
+`
+
+type NextChecklistPositionAfterParams struct {
+	CardID uuid.UUID
+	After  string
+}
+
+func (q *Queries) NextChecklistPositionAfter(ctx context.Context, arg NextChecklistPositionAfterParams) (string, error) {
+	row := q.db.QueryRow(ctx, nextChecklistPositionAfter, arg.CardID, arg.After)
+	var column_1 string
 	err := row.Scan(&column_1)
 	return column_1, err
 }
@@ -363,6 +681,24 @@ func (q *Queries) NextPositionAfter(ctx context.Context, arg NextPositionAfterPa
 	return column_1, err
 }
 
+const nextPositionAfterInStatus = `-- name: NextPositionAfterInStatus :one
+SELECT COALESCE(min(position), '')::text FROM cards
+WHERE workspace_id = $1 AND status = $2 AND archived_at IS NULL AND position > $3::text
+`
+
+type NextPositionAfterInStatusParams struct {
+	WorkspaceID uuid.UUID
+	Status      string
+	After       string
+}
+
+func (q *Queries) NextPositionAfterInStatus(ctx context.Context, arg NextPositionAfterInStatusParams) (string, error) {
+	row := q.db.QueryRow(ctx, nextPositionAfterInStatus, arg.WorkspaceID, arg.Status, arg.After)
+	var column_1 string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const positionInColumn = `-- name: PositionInColumn :one
 SELECT position FROM cards WHERE id = $1 AND column_id = $2 AND archived_at IS NULL
 `
@@ -379,6 +715,42 @@ func (q *Queries) PositionInColumn(ctx context.Context, arg PositionInColumnPara
 	return position, err
 }
 
+const positionInStatus = `-- name: PositionInStatus :one
+
+SELECT position FROM cards
+WHERE id = $1 AND workspace_id = $2 AND status = $3 AND archived_at IS NULL
+`
+
+type PositionInStatusParams struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Status      string
+}
+
+// Lane-scoped ordering (cross-project board: one lane per status).
+func (q *Queries) PositionInStatus(ctx context.Context, arg PositionInStatusParams) (string, error) {
+	row := q.db.QueryRow(ctx, positionInStatus, arg.ID, arg.WorkspaceID, arg.Status)
+	var position string
+	err := row.Scan(&position)
+	return position, err
+}
+
+const prevChecklistPositionBefore = `-- name: PrevChecklistPositionBefore :one
+SELECT COALESCE(max(position), '')::text FROM checklist_items WHERE card_id = $1 AND position < $2::text
+`
+
+type PrevChecklistPositionBeforeParams struct {
+	CardID uuid.UUID
+	Before string
+}
+
+func (q *Queries) PrevChecklistPositionBefore(ctx context.Context, arg PrevChecklistPositionBeforeParams) (string, error) {
+	row := q.db.QueryRow(ctx, prevChecklistPositionBefore, arg.CardID, arg.Before)
+	var column_1 string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const prevPositionBefore = `-- name: PrevPositionBefore :one
 SELECT COALESCE(max(position), '')::text FROM cards
 WHERE column_id = $1 AND archived_at IS NULL AND position < $2::text
@@ -391,6 +763,24 @@ type PrevPositionBeforeParams struct {
 
 func (q *Queries) PrevPositionBefore(ctx context.Context, arg PrevPositionBeforeParams) (string, error) {
 	row := q.db.QueryRow(ctx, prevPositionBefore, arg.ColumnID, arg.Before)
+	var column_1 string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const prevPositionBeforeInStatus = `-- name: PrevPositionBeforeInStatus :one
+SELECT COALESCE(max(position), '')::text FROM cards
+WHERE workspace_id = $1 AND status = $2 AND archived_at IS NULL AND position < $3::text
+`
+
+type PrevPositionBeforeInStatusParams struct {
+	WorkspaceID uuid.UUID
+	Status      string
+	Before      string
+}
+
+func (q *Queries) PrevPositionBeforeInStatus(ctx context.Context, arg PrevPositionBeforeInStatusParams) (string, error) {
+	row := q.db.QueryRow(ctx, prevPositionBeforeInStatus, arg.WorkspaceID, arg.Status, arg.Before)
 	var column_1 string
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -451,6 +841,103 @@ func (q *Queries) RecentTransitions(ctx context.Context, arg RecentTransitionsPa
 	return items, nil
 }
 
+const refreshChecklistCounts = `-- name: RefreshChecklistCounts :one
+
+UPDATE cards SET
+    checklist_total = (SELECT count(*) FROM checklist_items i WHERE i.card_id = cards.id),
+    checklist_done  = (SELECT count(*) FROM checklist_items i WHERE i.card_id = cards.id AND i.done)
+WHERE cards.id = $1
+RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count
+`
+
+// Derived data (not user edits: no version bump).
+func (q *Queries) RefreshChecklistCounts(ctx context.Context, id uuid.UUID) (Card, error) {
+	row := q.db.QueryRow(ctx, refreshChecklistCounts, id)
+	var i Card
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.ProjectID,
+		&i.BoardID,
+		&i.ColumnID,
+		&i.Number,
+		&i.Title,
+		&i.Description,
+		&i.Status,
+		&i.Priority,
+		&i.Progress,
+		&i.DueDate,
+		&i.Position,
+		&i.Version,
+		&i.CreatedBy,
+		&i.CompletedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+		&i.ChecklistTotal,
+		&i.ChecklistDone,
+		&i.CommentCount,
+		&i.AttachmentCount,
+	)
+	return i, err
+}
+
+const relocateArchivedCards = `-- name: RelocateArchivedCards :exec
+UPDATE cards SET column_id = $1 WHERE column_id = $2 AND archived_at IS NOT NULL
+`
+
+type RelocateArchivedCardsParams struct {
+	ToColumn   uuid.UUID
+	FromColumn uuid.UUID
+}
+
+func (q *Queries) RelocateArchivedCards(ctx context.Context, arg RelocateArchivedCardsParams) error {
+	_, err := q.db.Exec(ctx, relocateArchivedCards, arg.ToColumn, arg.FromColumn)
+	return err
+}
+
+const setAttachmentCount = `-- name: SetAttachmentCount :exec
+UPDATE cards SET attachment_count = $1 WHERE id = $2
+`
+
+type SetAttachmentCountParams struct {
+	Count int32
+	ID    uuid.UUID
+}
+
+func (q *Queries) SetAttachmentCount(ctx context.Context, arg SetAttachmentCountParams) error {
+	_, err := q.db.Exec(ctx, setAttachmentCount, arg.Count, arg.ID)
+	return err
+}
+
+const setCommentCount = `-- name: SetCommentCount :exec
+UPDATE cards SET comment_count = $1 WHERE id = $2
+`
+
+type SetCommentCountParams struct {
+	Count int32
+	ID    uuid.UUID
+}
+
+func (q *Queries) SetCommentCount(ctx context.Context, arg SetCommentCountParams) error {
+	_, err := q.db.Exec(ctx, setCommentCount, arg.Count, arg.ID)
+	return err
+}
+
+const setProgress = `-- name: SetProgress :exec
+UPDATE cards SET progress = $1 WHERE id = $2
+`
+
+type SetProgressParams struct {
+	Progress int16
+	ID       uuid.UUID
+}
+
+func (q *Queries) SetProgress(ctx context.Context, arg SetProgressParams) error {
+	_, err := q.db.Exec(ctx, setProgress, arg.Progress, arg.ID)
+	return err
+}
+
 const transitionsByDay = `-- name: TransitionsByDay :many
 SELECT (at AT TIME ZONE 'UTC')::date AS day, to_status, count(*)::int AS n
 FROM card_transitions
@@ -495,18 +982,16 @@ UPDATE cards SET
     title       = COALESCE($1, title),
     description = COALESCE($2, description),
     priority    = COALESCE($3, priority),
-    progress    = COALESCE($4, progress),
-    due_date    = CASE WHEN $5::bool THEN $6 ELSE due_date END,
+    due_date    = CASE WHEN $4::bool THEN $5 ELSE due_date END,
     version     = version + 1
-WHERE id = $7 AND version = $8 AND archived_at IS NULL
-RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at
+WHERE id = $6 AND version = $7 AND archived_at IS NULL
+RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count
 `
 
 type UpdateCardParams struct {
 	Title       *string
 	Description *string
 	Priority    *string
-	Progress    *int16
 	SetDue      bool
 	DueDate     *time.Time
 	ID          uuid.UUID
@@ -518,7 +1003,6 @@ func (q *Queries) UpdateCard(ctx context.Context, arg UpdateCardParams) (Card, e
 		arg.Title,
 		arg.Description,
 		arg.Priority,
-		arg.Progress,
 		arg.SetDue,
 		arg.DueDate,
 		arg.ID,
@@ -545,6 +1029,72 @@ func (q *Queries) UpdateCard(ctx context.Context, arg UpdateCardParams) (Card, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.ChecklistTotal,
+		&i.ChecklistDone,
+		&i.CommentCount,
+		&i.AttachmentCount,
+	)
+	return i, err
+}
+
+const updateChecklistItem = `-- name: UpdateChecklistItem :one
+UPDATE checklist_items SET
+    text         = COALESCE($1, text),
+    done         = COALESCE($2, done),
+    completed_at = CASE WHEN $2::bool IS NULL THEN completed_at
+                        WHEN $2::bool THEN COALESCE(completed_at, now()) ELSE NULL END,
+    position     = COALESCE($3, position)
+WHERE id = $4
+RETURNING id, card_id, text, done, position, created_at, completed_at
+`
+
+type UpdateChecklistItemParams struct {
+	Text     *string
+	Done     pgtype.Bool
+	Position *string
+	ID       uuid.UUID
+}
+
+func (q *Queries) UpdateChecklistItem(ctx context.Context, arg UpdateChecklistItemParams) (ChecklistItem, error) {
+	row := q.db.QueryRow(ctx, updateChecklistItem,
+		arg.Text,
+		arg.Done,
+		arg.Position,
+		arg.ID,
+	)
+	var i ChecklistItem
+	err := row.Scan(
+		&i.ID,
+		&i.CardID,
+		&i.Text,
+		&i.Done,
+		&i.Position,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const updateLabel = `-- name: UpdateLabel :one
+UPDATE labels SET name = COALESCE($1, name), tone = COALESCE($2, tone)
+WHERE id = $3 RETURNING id, workspace_id, name, tone, created_at
+`
+
+type UpdateLabelParams struct {
+	Name *string
+	Tone *string
+	ID   uuid.UUID
+}
+
+func (q *Queries) UpdateLabel(ctx context.Context, arg UpdateLabelParams) (Label, error) {
+	row := q.db.QueryRow(ctx, updateLabel, arg.Name, arg.Tone, arg.ID)
+	var i Label
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Name,
+		&i.Tone,
+		&i.CreatedAt,
 	)
 	return i, err
 }

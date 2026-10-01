@@ -8,9 +8,11 @@ import (
 	"testing"
 
 	// Blank imports register every module's error codes in the apperr catalog.
+	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/attachments/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/auth/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/boards/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
+	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/comments/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"

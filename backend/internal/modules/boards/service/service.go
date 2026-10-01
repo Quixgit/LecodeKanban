@@ -9,6 +9,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards/repository"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/eventbus"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/fractional"
 )
 
@@ -17,12 +18,25 @@ type Authorizer interface {
 	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
 }
 
-type Service struct {
-	repo *repository.Repo
-	auth Authorizer
+// CardCounter reports and re-homes the cards of a column (cards module, set after construction).
+type CardCounter interface {
+	CountInColumn(ctx context.Context, column uuid.UUID) (int, error)
+	RelocateArchived(ctx context.Context, from, to uuid.UUID) error
 }
 
-func New(repo *repository.Repo, auth Authorizer) *Service { return &Service{repo: repo, auth: auth} }
+type Service struct {
+	repo  *repository.Repo
+	auth  Authorizer
+	bus   *eventbus.Bus
+	cards CardCounter
+}
+
+func New(repo *repository.Repo, auth Authorizer, bus *eventbus.Bus) *Service {
+	return &Service{repo: repo, auth: auth, bus: bus}
+}
+
+// SetCardCounter breaks the boards ↔ cards construction cycle.
+func (s *Service) SetCardCounter(c CardCounter) { s.cards = c }
 
 // EnsureDefault creates the project's board with four columns (idempotent).
 func (s *Service) EnsureDefault(ctx context.Context, ws, project uuid.UUID, name, locale string) error {

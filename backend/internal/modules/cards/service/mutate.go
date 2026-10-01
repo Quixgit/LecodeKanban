@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"slices"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -17,7 +19,9 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/validation"
 )
 
-func validateFields(v *validation.V, title, description *string, priority *domain.Priority, progress *int) {
+const maxLabelsPerCard = 10
+
+func validateFields(v *validation.V, title, description *string, priority *domain.Priority) {
 	if title != nil {
 		*title = strings.TrimSpace(*title)
 		if v.Required("title", *title) {
@@ -30,36 +34,56 @@ func validateFields(v *validation.V, title, description *string, priority *domai
 	if priority != nil && !priority.Valid() {
 		v.OneOf("priority", string(*priority), "high", "medium", "low")
 	}
-	if progress != nil && (*progress < 0 || *progress > 100) {
-		v.Add("progress", validation.Range, map[string]any{"min": 0, "max": 100})
+}
+
+func dedupe(ids []uuid.UUID) []uuid.UUID {
+	out := make([]uuid.UUID, 0, len(ids))
+	for _, id := range ids {
+		if !slices.Contains(out, id) {
+			out = append(out, id)
+		}
 	}
+	return out
 }
 
 func (s *Service) checkAssignees(ctx context.Context, ws uuid.UUID, ids []uuid.UUID, v *validation.V) ([]uuid.UUID, error) {
+	ids = dedupe(ids)
 	if len(ids) == 0 {
-		return nil, nil
+		return ids, nil
 	}
 	roles, err := s.ws.RolesByUser(ctx, ws)
 	if err != nil {
 		return nil, err
 	}
-	seen := map[uuid.UUID]bool{}
-	out := make([]uuid.UUID, 0, len(ids))
 	for _, id := range ids {
-		if seen[id] {
-			continue
-		}
-		seen[id] = true
 		if _, ok := roles[id]; !ok {
 			v.Add("assigneeIds", validation.NotMember, nil)
 			return nil, nil
 		}
-		out = append(out, id)
 	}
-	if len(out) > 20 {
+	if len(ids) > 20 {
 		v.Add("assigneeIds", validation.MaxLength, map[string]any{"max": 20})
 	}
-	return out, nil
+	return ids, nil
+}
+
+func (s *Service) checkLabels(ctx context.Context, ws uuid.UUID, ids []uuid.UUID, v *validation.V) ([]uuid.UUID, error) {
+	ids = dedupe(ids)
+	if len(ids) == 0 {
+		return ids, nil
+	}
+	if len(ids) > maxLabelsPerCard {
+		v.Add("labelIds", validation.MaxLength, map[string]any{"max": maxLabelsPerCard})
+		return nil, nil
+	}
+	ok, err := s.repo.AllLabelsIn(ctx, ws, ids)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		v.Add("labelIds", validation.NotFound, nil)
+	}
+	return ids, nil
 }
 
 // Create adds a card to a project (members and above).
@@ -74,7 +98,7 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewC
 		in.Status = domain.Todo
 	}
 	var v validation.V
-	validateFields(&v, &in.Title, &in.Description, &in.Priority, &in.Progress)
+	validateFields(&v, &in.Title, &in.Description, &in.Priority)
 	if !in.Status.Valid() {
 		v.OneOf("status", string(in.Status), "todo", "in_progress", "in_review", "done")
 	}
@@ -89,6 +113,10 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewC
 	if err != nil {
 		return View{}, err
 	}
+	labels, err := s.checkLabels(ctx, ws, in.LabelIDs, &v)
+	if err != nil {
+		return View{}, err
+	}
 	if err := v.Err(); err != nil {
 		return View{}, err
 	}
@@ -97,28 +125,27 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewC
 	if err != nil {
 		return View{}, err
 	}
-	progress := in.Progress
-	if col.Category == boardsdomain.Done {
-		progress = 100
-	}
+	status := domain.Status(col.Category)
 	var card domain.Card
 	err = s.repo.InTx(ctx, func(r *repository.Repo) error {
 		n, err := r.NextNumber(ctx, in.ProjectID)
 		if err != nil {
 			return err
 		}
-		last, err := r.LastPosition(ctx, col.ID)
+		// End of the whole status lane, which is also the end of the column: keys stay unique
+		// across projects, so the cross-project board orders cards unambiguously.
+		last, err := r.LastInStatus(ctx, ws, status)
 		if err != nil {
 			return err
 		}
-		pos, err := fractional.Between(last, "")
+		pos, err := fractional.BetweenUnique(last, "")
 		if err != nil {
 			return err
 		}
 		card, err = r.Insert(ctx, repository.Insert{
 			WorkspaceID: ws, ProjectID: in.ProjectID, BoardID: col.BoardID, ColumnID: col.ID, Number: n,
-			Title: in.Title, Description: in.Description, Status: domain.Status(col.Category), Priority: in.Priority,
-			Progress: progress, DueDate: in.DueDate, Position: pos, CreatedBy: user,
+			Title: in.Title, Description: in.Description, Status: status, Priority: in.Priority,
+			Progress: domain.DeriveProgress(status, 0, 0), DueDate: in.DueDate, Position: pos, CreatedBy: user,
 		})
 		if err != nil {
 			return err
@@ -126,12 +153,15 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewC
 		if err := r.SetAssignees(ctx, card.ID, assignees); err != nil {
 			return err
 		}
+		if err := r.SetLabels(ctx, card.ID, labels); err != nil {
+			return err
+		}
 		return r.Transition(ctx, card, nil, user)
 	})
 	if err != nil {
 		return View{}, err
 	}
-	_ = s.bus.Publish(ctx, events.CardCreated{CardID: card.ID, ProjectID: card.ProjectID, WorkspaceID: ws, ActorID: user})
+	_ = s.bus.Publish(ctx, events.CardCreated{Card: evCard(card, user), Status: string(card.Status)})
 	return s.presentOne(ctx, card)
 }
 
@@ -158,14 +188,23 @@ func (s *Service) Update(ctx context.Context, user, id uuid.UUID, p domain.Patch
 		return View{}, err
 	}
 	var v validation.V
-	validateFields(&v, p.Title, p.Description, p.Priority, p.Progress)
-	var assignees []uuid.UUID
+	validateFields(&v, p.Title, p.Description, p.Priority)
+	var assignees, labels []uuid.UUID
 	if p.AssigneeIDs != nil {
 		if assignees, err = s.checkAssignees(ctx, cur.WorkspaceID, *p.AssigneeIDs, &v); err != nil {
 			return View{}, err
 		}
 	}
+	if p.LabelIDs != nil {
+		if labels, err = s.checkLabels(ctx, cur.WorkspaceID, *p.LabelIDs, &v); err != nil {
+			return View{}, err
+		}
+	}
 	if err := v.Err(); err != nil {
+		return View{}, err
+	}
+	before, err := s.presentOne(ctx, cur)
+	if err != nil {
 		return View{}, err
 	}
 	var card domain.Card
@@ -175,104 +214,68 @@ func (s *Service) Update(ctx context.Context, user, id uuid.UUID, p domain.Patch
 			return err
 		}
 		if p.AssigneeIDs != nil {
-			return r.SetAssignees(ctx, id, assignees)
+			if err := r.SetAssignees(ctx, id, assignees); err != nil {
+				return err
+			}
+		}
+		if p.LabelIDs != nil {
+			return r.SetLabels(ctx, id, labels)
 		}
 		return nil
 	})
 	if err != nil {
 		return View{}, err
 	}
-	_ = s.bus.Publish(ctx, events.CardUpdated{CardID: id, ProjectID: card.ProjectID, WorkspaceID: card.WorkspaceID, ActorID: user})
-	return s.presentOne(ctx, card)
+	after, err := s.presentOne(ctx, card)
+	if err != nil {
+		return View{}, err
+	}
+	if changes := diff(before.Card, after.Card); len(changes) > 0 {
+		_ = s.bus.Publish(ctx, events.CardUpdated{Card: evCard(card, user), Changes: changes})
+	}
+	return after, nil
 }
 
-// Move places a card in a column between optional neighbours (writes only this card).
-func (s *Service) Move(ctx context.Context, user, id uuid.UUID, m domain.Move) (View, error) {
-	cur, err := s.load(ctx, user, id, wsdomain.PermEditContent)
-	if err != nil {
-		return View{}, err
-	}
-	if m.Status != nil && !m.Status.Valid() {
-		var v validation.V
-		v.OneOf("status", string(*m.Status), "todo", "in_progress", "in_review", "done")
-		return View{}, v.Err()
-	}
-	if m.ColumnID == nil && m.Status == nil {
-		m.ColumnID = &cur.ColumnID
-	}
-	col, err := s.targetColumn(ctx, cur.ProjectID, m.ColumnID, m.Status)
-	if err != nil {
-		return View{}, err
-	}
-	invalid := apperr.New(domain.ErrInvalidMove, "neighbour cards are not adjacent in the target column")
-	var card domain.Card
-	err = s.repo.InTx(ctx, func(r *repository.Repo) error {
-		pos, err := s.position(ctx, r, col.ID, id, m.AfterID, m.BeforeID)
-		if err != nil {
-			return err
-		}
-		if pos == "" {
-			return invalid
-		}
-		card, err = r.Move(ctx, repository.MoveTo{ID: id, ColumnID: col.ID, BoardID: col.BoardID,
-			Status: domain.Status(col.Category), Position: pos, Version: m.Version})
-		if err != nil {
-			return err
-		}
-		if card.Status != cur.Status {
-			from := cur.Status
-			return r.Transition(ctx, card, &from, user)
-		}
+func dateValue(t *time.Time) any {
+	if t == nil {
 		return nil
-	})
-	if err != nil {
-		return View{}, err
 	}
-	_ = s.bus.Publish(ctx, events.CardMoved{CardID: id, ProjectID: card.ProjectID, WorkspaceID: card.WorkspaceID,
-		ActorID: user, From: string(cur.Status), To: string(card.Status)})
-	return s.presentOne(ctx, card)
+	return t.Format(time.DateOnly)
 }
 
-// position computes a fractional key between the neighbours (or at the end). Returns "" when
-// neighbours are not in the column or out of order.
-func (s *Service) position(ctx context.Context, r *repository.Repo, column, self uuid.UUID, after, before *uuid.UUID) (string, error) {
-	lookup := func(id *uuid.UUID) (string, bool, error) {
-		if id == nil || *id == self {
-			return "", false, nil
-		}
-		p, ok, err := r.PositionIn(ctx, *id, column)
-		return p, ok, err
-	}
-	a, hasA, err := lookup(after)
-	if err != nil {
-		return "", err
-	}
-	b, hasB, err := lookup(before)
-	if err != nil {
-		return "", err
-	}
-	if (after != nil && *after != self && !hasA) || (before != nil && *before != self && !hasB) {
-		return "", nil
-	}
-	switch {
-	case hasA && !hasB:
-		if b, err = r.NextAfter(ctx, column, a); err != nil {
-			return "", err
-		}
-	case hasB && !hasA:
-		if a, err = r.PrevBefore(ctx, column, b); err != nil {
-			return "", err
-		}
-	case !hasA && !hasB:
-		if a, err = r.LastPosition(ctx, column); err != nil {
-			return "", err
+// added / removed return the set difference of two id lists.
+func added(from, to []uuid.UUID) []uuid.UUID {
+	out := []uuid.UUID{}
+	for _, id := range to {
+		if !slices.Contains(from, id) {
+			out = append(out, id)
 		}
 	}
-	key, err := fractional.Between(a, b)
-	if err != nil {
-		return "", nil
+	return out
+}
+
+// diff lists the user-visible changes between two versions of a card.
+func diff(a, b domain.Card) []events.FieldChange {
+	var out []events.FieldChange
+	if a.Title != b.Title {
+		out = append(out, events.FieldChange{Field: "title", From: a.Title, To: b.Title})
 	}
-	return key, nil
+	if a.Description != b.Description {
+		out = append(out, events.FieldChange{Field: "description"})
+	}
+	if a.Priority != b.Priority {
+		out = append(out, events.FieldChange{Field: "priority", From: string(a.Priority), To: string(b.Priority)})
+	}
+	if da, db := dateValue(a.DueDate), dateValue(b.DueDate); da != db {
+		out = append(out, events.FieldChange{Field: "dueDate", From: da, To: db})
+	}
+	if add, rm := added(a.Assignees, b.Assignees), added(b.Assignees, a.Assignees); len(add)+len(rm) > 0 {
+		out = append(out, events.FieldChange{Field: "assignees", From: rm, To: add})
+	}
+	if add, rm := added(a.Labels, b.Labels), added(b.Labels, a.Labels); len(add)+len(rm) > 0 {
+		out = append(out, events.FieldChange{Field: "labels", From: rm, To: add})
+	}
+	return out
 }
 
 // Delete archives a card.
@@ -284,68 +287,6 @@ func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
 	if _, err := s.repo.Archive(ctx, id); err != nil {
 		return err
 	}
-	_ = s.bus.Publish(ctx, events.CardDeleted{CardID: id, ProjectID: c.ProjectID, WorkspaceID: c.WorkspaceID, ActorID: user})
+	_ = s.bus.Publish(ctx, events.CardDeleted{Card: evCard(c, user)})
 	return nil
-}
-
-type BulkAction struct {
-	IDs      []uuid.UUID
-	Action   string // move | priority | delete
-	Status   *domain.Status
-	Priority *domain.Priority
-}
-
-// Bulk applies one action to many cards of a workspace (last write wins, no version check).
-func (s *Service) Bulk(ctx context.Context, user, ws uuid.UUID, a BulkAction) (int, error) {
-	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent); err != nil {
-		return 0, err
-	}
-	var v validation.V
-	v.OneOf("action", a.Action, "move", "priority", "delete")
-	if len(a.IDs) == 0 || len(a.IDs) > 500 {
-		v.Add("ids", validation.Count, map[string]any{"min": 1, "max": 500})
-	}
-	if a.Action == "move" && (a.Status == nil || !a.Status.Valid()) {
-		v.Add("status", validation.Required, nil)
-	}
-	if a.Action == "priority" && (a.Priority == nil || !a.Priority.Valid()) {
-		v.Add("priority", validation.Required, nil)
-	}
-	if err := v.Err(); err != nil {
-		return 0, err
-	}
-	cards, err := s.repo.InWorkspace(ctx, ws, a.IDs)
-	if err != nil {
-		return 0, err
-	}
-	changed := 0
-	for _, c := range cards {
-		switch a.Action {
-		case "delete":
-			if ok, err := s.repo.Archive(ctx, c.ID); err != nil {
-				return changed, err
-			} else if ok {
-				_ = s.bus.Publish(ctx, events.CardDeleted{CardID: c.ID, ProjectID: c.ProjectID, WorkspaceID: ws, ActorID: user})
-				changed++
-			}
-		case "priority":
-			if c.Priority == *a.Priority {
-				continue
-			}
-			if _, err := s.repo.Update(ctx, c.ID, domain.Patch{Version: c.Version, Priority: a.Priority}); err != nil {
-				return changed, err
-			}
-			_ = s.bus.Publish(ctx, events.CardUpdated{CardID: c.ID, ProjectID: c.ProjectID, WorkspaceID: ws, ActorID: user})
-			changed++
-		case "move":
-			if c.Status == *a.Status {
-				continue
-			}
-			if _, err := s.Move(ctx, user, c.ID, domain.Move{Version: c.Version, Status: a.Status}); err != nil {
-				return changed, err
-			}
-			changed++
-		}
-	}
-	return changed, nil
 }

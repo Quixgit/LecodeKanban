@@ -25,7 +25,7 @@ const createProject = `-- name: CreateProject :one
 INSERT INTO projects (workspace_id, key, name, description, status, pic_user_id, team, icon, tone, start_date, deadline, created_by)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
         $10, $11, $12)
-RETURNING id, workspace_id, key, name, description, status, pic_user_id, team, icon, tone, start_date, deadline, task_count, done_count, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, key, name, description, status, pic_user_id, team, icon, tone, start_date, deadline, task_count, done_count, created_by, created_at, updated_at, archived_at, progress
 `
 
 type CreateProjectParams struct {
@@ -78,6 +78,7 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Progress,
 	)
 	return i, err
 }
@@ -109,7 +110,7 @@ func (q *Queries) DistinctTeams(ctx context.Context, workspaceID uuid.UUID) ([]s
 }
 
 const getProject = `-- name: GetProject :one
-SELECT id, workspace_id, key, name, description, status, pic_user_id, team, icon, tone, start_date, deadline, task_count, done_count, created_by, created_at, updated_at, archived_at FROM projects WHERE id = $1 AND archived_at IS NULL
+SELECT id, workspace_id, key, name, description, status, pic_user_id, team, icon, tone, start_date, deadline, task_count, done_count, created_by, created_at, updated_at, archived_at, progress FROM projects WHERE id = $1 AND archived_at IS NULL
 `
 
 func (q *Queries) GetProject(ctx context.Context, id uuid.UUID) (Project, error) {
@@ -134,6 +135,7 @@ func (q *Queries) GetProject(ctx context.Context, id uuid.UUID) (Project, error)
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Progress,
 	)
 	return i, err
 }
@@ -214,17 +216,23 @@ func (q *Queries) ProjectsByIDs(ctx context.Context, ids []uuid.UUID) ([]Project
 }
 
 const setProjectCounts = `-- name: SetProjectCounts :exec
-UPDATE projects SET task_count = $1, done_count = $2 WHERE id = $3
+UPDATE projects SET task_count = $1, done_count = $2, progress = $3 WHERE id = $4
 `
 
 type SetProjectCountsParams struct {
 	TaskCount int32
 	DoneCount int32
+	Progress  int16
 	ID        uuid.UUID
 }
 
 func (q *Queries) SetProjectCounts(ctx context.Context, arg SetProjectCountsParams) error {
-	_, err := q.db.Exec(ctx, setProjectCounts, arg.TaskCount, arg.DoneCount, arg.ID)
+	_, err := q.db.Exec(ctx, setProjectCounts,
+		arg.TaskCount,
+		arg.DoneCount,
+		arg.Progress,
+		arg.ID,
+	)
 	return err
 }
 
@@ -240,7 +248,7 @@ UPDATE projects SET
     start_date  = CASE WHEN $10::bool THEN $11 ELSE start_date END,
     deadline    = CASE WHEN $12::bool THEN $13 ELSE deadline END
 WHERE id = $14 AND archived_at IS NULL
-RETURNING id, workspace_id, key, name, description, status, pic_user_id, team, icon, tone, start_date, deadline, task_count, done_count, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, key, name, description, status, pic_user_id, team, icon, tone, start_date, deadline, task_count, done_count, created_by, created_at, updated_at, archived_at, progress
 `
 
 type UpdateProjectParams struct {
@@ -297,6 +305,7 @@ func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (P
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Progress,
 	)
 	return i, err
 }

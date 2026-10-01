@@ -14,13 +14,16 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 
+	activityrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/activity/repository"
+	activitysvc "github.com/reliabilix/lecodekanban/backend/internal/modules/activity/service"
 	boardsrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/boards/repository"
 	boardssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/boards/service"
 	carddomain "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
 	cardsrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/repository"
 	cardssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/service"
+	commentsrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/comments/repository"
+	commentssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/comments/service"
 	projectdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/domain"
 	projectsrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/repository"
 	projectssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/service"
@@ -33,6 +36,8 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/db"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/eventbus"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/mailer"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/realtime"
+	"github.com/reliabilix/lecodekanban/backend/internal/reactions"
 )
 
 const (
@@ -85,10 +90,14 @@ func run(reset bool) error {
 	bus := eventbus.New()
 	users := userssvc.New(usersrepo.New(pool), bus)
 	ws := wssvc.New(wsrepo.New(pool), users, bus, func(context.Context, mailer.Message, string) error { return nil }, "")
-	boards := boardssvc.New(boardsrepo.New(pool), ws)
+	boards := boardssvc.New(boardsrepo.New(pool), ws, bus)
 	projects := projectssvc.New(projectsrepo.New(pool), ws, boards, users, bus)
 	cards := cardssvc.New(cardsrepo.New(pool), ws, projects, boards, users, bus)
 	projects.SetCardCounter(cards)
+	boards.SetCardCounter(cards)
+	comments := commentssvc.New(commentsrepo.New(pool), cards, ws, users, bus)
+	reactions.Register(bus, reactions.Deps{Projects: projects, Cards: cards,
+		Activity: activitysvc.New(activityrepo.New(pool), cards, users), Realtime: silent{}})
 
 	hash, err := crypto.HashPassword(password, crypto.DefaultArgon2)
 	if err != nil {
@@ -136,14 +145,19 @@ func run(reset bool) error {
 		projectIDs[ps.Key] = p.ID
 	}
 
+	labels, err := seedLabels(ctx, cards, owner, w.ID)
+	if err != nil {
+		return err
+	}
 	rng := rand.New(rand.NewPCG(7, 2026)) //nolint:gosec // demo data
+	cardIDs := map[string]uuid.UUID{}
 	for _, cs := range cardsSeed {
 		assignees := make([]uuid.UUID, len(cs.Assignees))
 		for i, a := range cs.Assignees {
 			assignees[i] = ids[a]
 		}
 		nc := carddomain.NewCard{ProjectID: projectIDs[cs.Project], Title: cs.Title, Priority: carddomain.Priority(cs.Priority),
-			Progress: cs.Progress, AssigneeIDs: assignees}
+			AssigneeIDs: assignees, LabelIDs: labelsFor(cs.Title, labels)}
 		if cs.DueDays != 0 {
 			d := today.AddDate(0, 0, cs.DueDays)
 			nc.DueDate = &d
@@ -153,9 +167,19 @@ func run(reset bool) error {
 		if err != nil {
 			return fmt.Errorf("card %q: %w", cs.Title, err)
 		}
+		cardIDs[cs.Title] = v.ID
+		if err := seedChecklist(ctx, cards, actor, v.ID, cs); err != nil {
+			return fmt.Errorf("checklist %q: %w", cs.Title, err)
+		}
 		if err := walk(ctx, cards, pool, rng, v, carddomain.Status(cs.Status), actor, today); err != nil {
 			return fmt.Errorf("card %q: %w", cs.Title, err)
 		}
+	}
+	if err := seedComments(ctx, comments, ids, cardIDs, people); err != nil {
+		return err
+	}
+	if err := backdate(ctx, pool); err != nil {
+		return err
 	}
 	for _, id := range projectIDs {
 		if err := projects.Recount(ctx, id); err != nil {
@@ -163,64 +187,13 @@ func run(reset bool) error {
 		}
 	}
 
-	fmt.Printf("Seeded workspace %q with %d people, %d projects and %d tasks.\n", workspaceName, len(people), len(projectsSeed), len(cardsSeed))
+	fmt.Printf("Seeded workspace %q with %d people, %d projects, %d tasks and %d labels.\n",
+		workspaceName, len(people), len(projectsSeed), len(cardsSeed), len(labelsSeed))
 	fmt.Printf("Sign in as peter@%s (owner) or any other demo user, password: %s\n", emailDomain, password)
 	return nil
 }
 
-var flow = []carddomain.Status{carddomain.Todo, carddomain.InProgress, carddomain.InReview, carddomain.Done}
+// silent drops realtime hints: nobody is watching while the seed runs.
+type silent struct{}
 
-// walk moves a card through the workflow up to its target status and backdates the
-// history over the last two weeks, so the dashboard has realistic activity.
-func walk(ctx context.Context, cards *cardssvc.Service, pool *pgxpool.Pool, rng *rand.Rand, v cardssvc.View,
-	target carddomain.Status, actor uuid.UUID, today time.Time) error {
-	steps := 0
-	for i, s := range flow {
-		if s == target {
-			steps = i
-		}
-	}
-	created := today.AddDate(0, 0, -(steps*2 + rng.IntN(6))).Add(time.Duration(9+rng.IntN(8)) * time.Hour)
-	if _, err := pool.Exec(ctx, `UPDATE cards SET created_at = $2 WHERE id = $1`, v.ID, created); err != nil {
-		return err
-	}
-	if _, err := pool.Exec(ctx, `UPDATE card_transitions SET at = $2 WHERE card_id = $1`, v.ID, created); err != nil {
-		return err
-	}
-	at := created
-	version := v.Version
-	for i := 1; i <= steps; i++ {
-		status := flow[i]
-		moved, err := cards.Move(ctx, actor, v.ID, carddomain.Move{Version: version, Status: &status})
-		if err != nil {
-			return err
-		}
-		version = moved.Version
-		at = at.Add(time.Duration(10+rng.IntN(40)) * time.Hour)
-		if at.After(time.Now()) {
-			at = time.Now().Add(-time.Duration(rng.IntN(180)) * time.Minute)
-		}
-		if _, err := pool.Exec(ctx, `UPDATE card_transitions SET at = $3 WHERE card_id = $1 AND to_status = $2`, v.ID, string(status), at); err != nil {
-			return err
-		}
-		if status == carddomain.Done {
-			if _, err := pool.Exec(ctx, `UPDATE cards SET completed_at = $2 WHERE id = $1`, v.ID, at); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func wipe(ctx context.Context, pool *pgxpool.Pool) error {
-	_, err := pool.Exec(ctx, `
-		DELETE FROM workspaces w WHERE EXISTS (
-			SELECT 1 FROM workspace_members m JOIN users u ON u.id = m.user_id
-			WHERE m.workspace_id = w.id AND m.role = 'owner' AND u.email LIKE '%@'||$1);
-		`, emailDomain)
-	if err != nil {
-		return err
-	}
-	_, err = pool.Exec(ctx, `DELETE FROM users WHERE email LIKE '%@'||$1`, emailDomain)
-	return err
-}
+func (silent) Publish(context.Context, realtime.Message) {}

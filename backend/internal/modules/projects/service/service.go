@@ -42,7 +42,7 @@ type Users interface {
 
 // CardCounter reports card totals per project (cards module).
 type CardCounter interface {
-	CountByProject(ctx context.Context, project uuid.UUID) (total, done int, err error)
+	CountByProject(ctx context.Context, project uuid.UUID) (total, done, progress int, err error)
 }
 
 type Service struct {
@@ -382,11 +382,11 @@ func (s *Service) Recount(ctx context.Context, project uuid.UUID) error {
 	if s.cards == nil {
 		return nil
 	}
-	total, done, err := s.cards.CountByProject(ctx, project)
+	total, done, progress, err := s.cards.CountByProject(ctx, project)
 	if err != nil {
 		return err
 	}
-	return s.repo.SetCounts(ctx, project, total, done)
+	return s.repo.SetCounts(ctx, project, total, done, progress)
 }
 
 // Refs returns minimal project data for other modules (no authorisation).

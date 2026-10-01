@@ -10,6 +10,29 @@ import (
 	"github.com/google/uuid"
 )
 
+type Activity struct {
+	ID          int64
+	WorkspaceID uuid.UUID
+	ProjectID   uuid.NullUUID
+	CardID      uuid.NullUUID
+	ActorID     uuid.NullUUID
+	Kind        string
+	Data        []byte
+	At          time.Time
+}
+
+type Attachment struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	CardID      uuid.UUID
+	Name        string
+	ContentType string
+	SizeBytes   int64
+	StorageKey  string
+	UploadedBy  uuid.NullUUID
+	CreatedAt   time.Time
+}
+
 type Board struct {
 	ID          uuid.UUID
 	WorkspaceID uuid.UUID
@@ -29,25 +52,29 @@ type BoardColumn struct {
 }
 
 type Card struct {
-	ID          uuid.UUID
-	WorkspaceID uuid.UUID
-	ProjectID   uuid.UUID
-	BoardID     uuid.UUID
-	ColumnID    uuid.UUID
-	Number      int32
-	Title       string
-	Description string
-	Status      string
-	Priority    string
-	Progress    int16
-	DueDate     *time.Time
-	Position    string
-	Version     int32
-	CreatedBy   uuid.NullUUID
-	CompletedAt *time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	ArchivedAt  *time.Time
+	ID              uuid.UUID
+	WorkspaceID     uuid.UUID
+	ProjectID       uuid.UUID
+	BoardID         uuid.UUID
+	ColumnID        uuid.UUID
+	Number          int32
+	Title           string
+	Description     string
+	Status          string
+	Priority        string
+	Progress        int16
+	DueDate         *time.Time
+	Position        string
+	Version         int32
+	CreatedBy       uuid.NullUUID
+	CompletedAt     *time.Time
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	ArchivedAt      *time.Time
+	ChecklistTotal  int32
+	ChecklistDone   int32
+	CommentCount    int32
+	AttachmentCount int32
 }
 
 type CardAssignee struct {
@@ -60,6 +87,11 @@ type CardCounter struct {
 	Next      int32
 }
 
+type CardLabel struct {
+	CardID  uuid.UUID
+	LabelID uuid.UUID
+}
+
 type CardTransition struct {
 	ID          int64
 	CardID      uuid.UUID
@@ -69,6 +101,31 @@ type CardTransition struct {
 	ToStatus    string
 	ActorID     uuid.NullUUID
 	At          time.Time
+}
+
+type ChecklistItem struct {
+	ID          uuid.UUID
+	CardID      uuid.UUID
+	Text        string
+	Done        bool
+	Position    string
+	CreatedAt   time.Time
+	CompletedAt *time.Time
+}
+
+type Comment struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	CardID      uuid.UUID
+	AuthorID    uuid.NullUUID
+	Body        string
+	CreatedAt   time.Time
+	EditedAt    *time.Time
+}
+
+type CommentMention struct {
+	CommentID uuid.UUID
+	UserID    uuid.UUID
 }
 
 type Job struct {
@@ -86,6 +143,14 @@ type Job struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	CompletedAt    *time.Time
+}
+
+type Label struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Name        string
+	Tone        string
+	CreatedAt   time.Time
 }
 
 type Project struct {
@@ -107,6 +172,7 @@ type Project struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	ArchivedAt  *time.Time
+	Progress    int16
 }
 
 type ProjectDirectory struct {
@@ -130,6 +196,16 @@ type RefreshToken struct {
 	UserAgent  *string
 	Ip         *string
 	CreatedAt  time.Time
+}
+
+type SavedView struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	UserID      uuid.UUID
+	Name        string
+	Config      []byte
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type User struct {

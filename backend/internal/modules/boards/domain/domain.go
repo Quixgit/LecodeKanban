@@ -2,7 +2,9 @@
 package domain
 
 import (
+	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -49,9 +51,33 @@ type Board struct {
 	Columns     []Column
 }
 
+// SavedView is a personal, named board/list configuration. Config is an opaque JSON object
+// owned by the frontend (filters, swimlanes, project).
+type SavedView struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	UserID      uuid.UUID
+	Name        string
+	Config      json.RawMessage
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+const (
+	MaxColumns       = 12
+	MaxWIPLimit      = 999
+	MaxViewsPerUser  = 50
+	MaxViewConfigLen = 4096
+)
+
 var (
-	ErrBoardNotFound  = apperr.Define("boards.not_found", http.StatusNotFound)
-	ErrColumnNotFound = apperr.Define("boards.column_not_found", http.StatusNotFound)
+	ErrBoardNotFound      = apperr.Define("boards.not_found", http.StatusNotFound)
+	ErrColumnNotFound     = apperr.Define("boards.column_not_found", http.StatusNotFound)
+	ErrColumnNotEmpty     = apperr.Define("boards.column_not_empty", http.StatusConflict)
+	ErrLastColumnOfStatus = apperr.Define("boards.last_column_of_status", http.StatusUnprocessableEntity)
+	ErrTooManyColumns     = apperr.Define("boards.too_many_columns", http.StatusUnprocessableEntity)
+	ErrViewNotFound       = apperr.Define("boards.view_not_found", http.StatusNotFound)
+	ErrInvalidMove        = apperr.Define("boards.invalid_move", http.StatusUnprocessableEntity)
 )
 
 // DefaultColumnNames are the localized names of the four default columns.

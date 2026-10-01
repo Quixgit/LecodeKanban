@@ -11,6 +11,44 @@ import (
 	"github.com/google/uuid"
 )
 
+const countColumns = `-- name: CountColumns :one
+SELECT count(*)::int AS total, count(*) FILTER (WHERE category = $1)::int AS in_category
+FROM board_columns WHERE board_id = $2
+`
+
+type CountColumnsParams struct {
+	Category string
+	BoardID  uuid.UUID
+}
+
+type CountColumnsRow struct {
+	Total      int32
+	InCategory int32
+}
+
+func (q *Queries) CountColumns(ctx context.Context, arg CountColumnsParams) (CountColumnsRow, error) {
+	row := q.db.QueryRow(ctx, countColumns, arg.Category, arg.BoardID)
+	var i CountColumnsRow
+	err := row.Scan(&i.Total, &i.InCategory)
+	return i, err
+}
+
+const countViews = `-- name: CountViews :one
+SELECT count(*)::int FROM saved_views WHERE workspace_id = $1 AND user_id = $2
+`
+
+type CountViewsParams struct {
+	WorkspaceID uuid.UUID
+	UserID      uuid.UUID
+}
+
+func (q *Queries) CountViews(ctx context.Context, arg CountViewsParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countViews, arg.WorkspaceID, arg.UserID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createBoard = `-- name: CreateBoard :one
 INSERT INTO boards (workspace_id, project_id, name) VALUES ($1, $2, $3)
 ON CONFLICT (project_id) DO NOTHING
@@ -66,6 +104,56 @@ func (q *Queries) CreateColumn(ctx context.Context, arg CreateColumnParams) (Boa
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const createView = `-- name: CreateView :one
+INSERT INTO saved_views (workspace_id, user_id, name, config) VALUES ($1, $2, $3, $4)
+RETURNING id, workspace_id, user_id, name, config, created_at, updated_at
+`
+
+type CreateViewParams struct {
+	WorkspaceID uuid.UUID
+	UserID      uuid.UUID
+	Name        string
+	Config      []byte
+}
+
+func (q *Queries) CreateView(ctx context.Context, arg CreateViewParams) (SavedView, error) {
+	row := q.db.QueryRow(ctx, createView,
+		arg.WorkspaceID,
+		arg.UserID,
+		arg.Name,
+		arg.Config,
+	)
+	var i SavedView
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.UserID,
+		&i.Name,
+		&i.Config,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteColumn = `-- name: DeleteColumn :exec
+DELETE FROM board_columns WHERE id = $1
+`
+
+func (q *Queries) DeleteColumn(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteColumn, id)
+	return err
+}
+
+const deleteView = `-- name: DeleteView :exec
+DELETE FROM saved_views WHERE id = $1
+`
+
+func (q *Queries) DeleteView(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteView, id)
+	return err
 }
 
 const firstColumnByCategory = `-- name: FirstColumnByCategory :one
@@ -175,6 +263,52 @@ func (q *Queries) GetColumn(ctx context.Context, id uuid.UUID) (GetColumnRow, er
 	return i, err
 }
 
+const getView = `-- name: GetView :one
+SELECT id, workspace_id, user_id, name, config, created_at, updated_at FROM saved_views WHERE id = $1
+`
+
+func (q *Queries) GetView(ctx context.Context, id uuid.UUID) (SavedView, error) {
+	row := q.db.QueryRow(ctx, getView, id)
+	var i SavedView
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.UserID,
+		&i.Name,
+		&i.Config,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const lastColumnInCategory = `-- name: LastColumnInCategory :one
+SELECT COALESCE(max(position), '')::text FROM board_columns WHERE board_id = $1 AND category = $2
+`
+
+type LastColumnInCategoryParams struct {
+	BoardID  uuid.UUID
+	Category string
+}
+
+func (q *Queries) LastColumnInCategory(ctx context.Context, arg LastColumnInCategoryParams) (string, error) {
+	row := q.db.QueryRow(ctx, lastColumnInCategory, arg.BoardID, arg.Category)
+	var column_1 string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const lastColumnPosition = `-- name: LastColumnPosition :one
+SELECT COALESCE(max(position), '')::text FROM board_columns WHERE board_id = $1
+`
+
+func (q *Queries) LastColumnPosition(ctx context.Context, boardID uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, lastColumnPosition, boardID)
+	var column_1 string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const listColumns = `-- name: ListColumns :many
 SELECT id, board_id, name, category, position, wip_limit, created_at FROM board_columns WHERE board_id = $1 ORDER BY position
 `
@@ -205,4 +339,169 @@ func (q *Queries) ListColumns(ctx context.Context, boardID uuid.UUID) ([]BoardCo
 		return nil, err
 	}
 	return items, nil
+}
+
+const listViews = `-- name: ListViews :many
+
+SELECT id, workspace_id, user_id, name, config, created_at, updated_at FROM saved_views WHERE workspace_id = $1 AND user_id = $2 ORDER BY lower(name), id
+`
+
+type ListViewsParams struct {
+	WorkspaceID uuid.UUID
+	UserID      uuid.UUID
+}
+
+// Saved views (personal).
+func (q *Queries) ListViews(ctx context.Context, arg ListViewsParams) ([]SavedView, error) {
+	rows, err := q.db.Query(ctx, listViews, arg.WorkspaceID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SavedView{}
+	for rows.Next() {
+		var i SavedView
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.UserID,
+			&i.Name,
+			&i.Config,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const nextColumnPositionAfter = `-- name: NextColumnPositionAfter :one
+SELECT COALESCE(min(position), '')::text FROM board_columns WHERE board_id = $1 AND position > $2::text
+`
+
+type NextColumnPositionAfterParams struct {
+	BoardID uuid.UUID
+	After   string
+}
+
+func (q *Queries) NextColumnPositionAfter(ctx context.Context, arg NextColumnPositionAfterParams) (string, error) {
+	row := q.db.QueryRow(ctx, nextColumnPositionAfter, arg.BoardID, arg.After)
+	var column_1 string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const otherColumnInCategory = `-- name: OtherColumnInCategory :one
+SELECT id FROM board_columns WHERE board_id = $1 AND category = $2 AND id <> $3
+ORDER BY position LIMIT 1
+`
+
+type OtherColumnInCategoryParams struct {
+	BoardID  uuid.UUID
+	Category string
+	Exclude  uuid.UUID
+}
+
+func (q *Queries) OtherColumnInCategory(ctx context.Context, arg OtherColumnInCategoryParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, otherColumnInCategory, arg.BoardID, arg.Category, arg.Exclude)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const prevColumnPositionBefore = `-- name: PrevColumnPositionBefore :one
+SELECT COALESCE(max(position), '')::text FROM board_columns WHERE board_id = $1 AND position < $2::text
+`
+
+type PrevColumnPositionBeforeParams struct {
+	BoardID uuid.UUID
+	Before  string
+}
+
+func (q *Queries) PrevColumnPositionBefore(ctx context.Context, arg PrevColumnPositionBeforeParams) (string, error) {
+	row := q.db.QueryRow(ctx, prevColumnPositionBefore, arg.BoardID, arg.Before)
+	var column_1 string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const setColumnPosition = `-- name: SetColumnPosition :exec
+UPDATE board_columns SET position = $1 WHERE id = $2
+`
+
+type SetColumnPositionParams struct {
+	Position string
+	ID       uuid.UUID
+}
+
+func (q *Queries) SetColumnPosition(ctx context.Context, arg SetColumnPositionParams) error {
+	_, err := q.db.Exec(ctx, setColumnPosition, arg.Position, arg.ID)
+	return err
+}
+
+const updateColumn = `-- name: UpdateColumn :one
+UPDATE board_columns SET
+    name      = COALESCE($1, name),
+    wip_limit = CASE WHEN $2::bool THEN $3 ELSE wip_limit END
+WHERE id = $4
+RETURNING id, board_id, name, category, position, wip_limit, created_at
+`
+
+type UpdateColumnParams struct {
+	Name     *string
+	SetWip   bool
+	WipLimit *int32
+	ID       uuid.UUID
+}
+
+func (q *Queries) UpdateColumn(ctx context.Context, arg UpdateColumnParams) (BoardColumn, error) {
+	row := q.db.QueryRow(ctx, updateColumn,
+		arg.Name,
+		arg.SetWip,
+		arg.WipLimit,
+		arg.ID,
+	)
+	var i BoardColumn
+	err := row.Scan(
+		&i.ID,
+		&i.BoardID,
+		&i.Name,
+		&i.Category,
+		&i.Position,
+		&i.WipLimit,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateView = `-- name: UpdateView :one
+UPDATE saved_views SET name = COALESCE($1, name), config = COALESCE($2, config)
+WHERE id = $3
+RETURNING id, workspace_id, user_id, name, config, created_at, updated_at
+`
+
+type UpdateViewParams struct {
+	Name   *string
+	Config []byte
+	ID     uuid.UUID
+}
+
+func (q *Queries) UpdateView(ctx context.Context, arg UpdateViewParams) (SavedView, error) {
+	row := q.db.QueryRow(ctx, updateView, arg.Name, arg.Config, arg.ID)
+	var i SavedView
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.UserID,
+		&i.Name,
+		&i.Config,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

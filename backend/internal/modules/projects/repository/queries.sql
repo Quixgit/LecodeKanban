@@ -25,7 +25,7 @@ RETURNING *;
 UPDATE projects SET archived_at = now() WHERE id = $1 AND archived_at IS NULL;
 
 -- name: SetProjectCounts :exec
-UPDATE projects SET task_count = @task_count, done_count = @done_count WHERE id = @id;
+UPDATE projects SET task_count = @task_count, done_count = @done_count, progress = @progress WHERE id = @id;
 
 -- name: ProjectSummary :one
 SELECT count(*)::int AS total,

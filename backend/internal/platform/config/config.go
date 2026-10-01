@@ -48,6 +48,10 @@ type Config struct {
 
 	EmbeddedWorker bool `env:"LK_EMBEDDED_WORKER" envDefault:"false"`
 
+	// AttachmentsDir holds uploaded files (a named volume in production).
+	AttachmentsDir  string `env:"LK_ATTACHMENTS_DIR" envDefault:"./data/attachments"`
+	AttachmentMaxMB int    `env:"LK_ATTACHMENT_MAX_MB" envDefault:"25"`
+
 	SMTP SMTPConfig
 
 	GoogleClientID     string `env:"LK_GOOGLE_CLIENT_ID"`
@@ -105,6 +109,12 @@ func (c *Config) validate() error {
 	if c.AccessTTL < time.Minute || c.AccessTTL > time.Hour {
 		errs = append(errs, errors.New("LK_ACCESS_TTL must be between 1m and 1h"))
 	}
+	if c.AttachmentMaxMB < 1 || c.AttachmentMaxMB > 200 {
+		errs = append(errs, errors.New("LK_ATTACHMENT_MAX_MB must be between 1 and 200"))
+	}
+	if strings.TrimSpace(c.AttachmentsDir) == "" {
+		errs = append(errs, errors.New("LK_ATTACHMENTS_DIR must not be empty"))
+	}
 	if c.RefreshTTL < time.Hour {
 		errs = append(errs, errors.New("LK_REFRESH_TTL must be at least 1h"))
 	}
@@ -146,6 +156,9 @@ func joinIndented(errs []error) error {
 func (c *Config) SecretKeyBytes() []byte     { return c.secretKey }
 func (c *Config) EncryptionKeyBytes() []byte { return c.encryptionKey }
 func (c *Config) IsProduction() bool         { return c.Env == EnvProduction }
+
+// AttachmentMaxBytes is the per-file upload limit.
+func (c *Config) AttachmentMaxBytes() int64 { return int64(c.AttachmentMaxMB) << 20 }
 
 // Redacted returns a log-safe summary of the configuration.
 func (c *Config) Redacted() map[string]any {

@@ -60,6 +60,59 @@ type Card struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	Assignees   []uuid.UUID
+	Labels      []uuid.UUID
+
+	ChecklistTotal  int
+	ChecklistDone   int
+	CommentCount    int
+	AttachmentCount int
+}
+
+// Ref is the minimal card data other modules (comments, attachments, activity) work with.
+type Ref struct {
+	ID, WorkspaceID, ProjectID uuid.UUID
+	Number                     int
+	Title                      string
+}
+
+// stageProgress is the progress of a card without a checklist, by workflow stage (ADR 0010).
+var stageProgress = map[Status]int{Todo: 0, InProgress: 40, InReview: 80, Done: 100}
+
+// DeriveProgress computes a card's progress: completed cards are 100%; otherwise the share of
+// checked checklist items (capped at 99% so 100% always means "done"), or the stage weight.
+func DeriveProgress(s Status, checklistTotal, checklistDone int) int {
+	if s == Done {
+		return 100
+	}
+	if checklistTotal > 0 {
+		return min(checklistDone*100/checklistTotal, 99)
+	}
+	return stageProgress[s]
+}
+
+type Label struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Name        string
+	Tone        string
+}
+
+var LabelTones = []string{"teal", "amber", "purple", "red", "neutral"}
+
+type ChecklistItem struct {
+	ID          uuid.UUID
+	CardID      uuid.UUID
+	Text        string
+	Done        bool
+	Position    string
+	CreatedAt   time.Time
+	CompletedAt *time.Time
+}
+
+// Change describes one edited field (feeds the activity log).
+type Change struct {
+	Field    string
+	From, To any
 }
 
 type Filter struct {
@@ -67,6 +120,7 @@ type Filter struct {
 	ProjectID  *uuid.UUID
 	AssigneeID *uuid.UUID
 	Priority   *Priority
+	LabelID    *uuid.UUID
 	Query      string
 	Due        string // overdue | today | week | month | none
 	Sort       string // key | title | assignee | project | progress | deadline | priority | position | updated
@@ -80,9 +134,9 @@ type NewCard struct {
 	Title       string
 	Description string
 	Priority    Priority
-	Progress    int
 	DueDate     *time.Time
 	AssigneeIDs []uuid.UUID
+	LabelIDs    []uuid.UUID
 }
 
 type Patch struct {
@@ -90,12 +144,15 @@ type Patch struct {
 	Title       *string
 	Description *string
 	Priority    *Priority
-	Progress    *int
 	SetDue      bool
 	DueDate     *time.Time
 	AssigneeIDs *[]uuid.UUID
+	LabelIDs    *[]uuid.UUID
 }
 
+// Move places a card. With ColumnID the neighbours must sit in that column (project board);
+// with only Status the neighbours may be any cards of that status in the workspace
+// (the cross-project board), and the card lands in its project's first column of the status.
 type Move struct {
 	Version  int
 	ColumnID *uuid.UUID
@@ -139,4 +196,11 @@ var (
 	ErrNotFound        = apperr.Define("cards.not_found", http.StatusNotFound)
 	ErrVersionConflict = apperr.Define("cards.version_conflict", http.StatusConflict)
 	ErrInvalidMove     = apperr.Define("cards.invalid_move", http.StatusUnprocessableEntity)
+	ErrLabelNotFound   = apperr.Define("cards.label_not_found", http.StatusNotFound)
+	ErrLabelExists     = apperr.Define("cards.label_exists", http.StatusConflict)
+	ErrItemNotFound    = apperr.Define("cards.checklist_item_not_found", http.StatusNotFound)
+	ErrChecklistFull   = apperr.Define("cards.checklist_full", http.StatusUnprocessableEntity)
 )
+
+// MaxChecklistItems bounds one card's checklist.
+const MaxChecklistItems = 100

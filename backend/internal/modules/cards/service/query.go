@@ -33,6 +33,19 @@ func (s *Service) List(ctx context.Context, user, ws uuid.UUID, f domain.Filter,
 	return views, total, err
 }
 
+// Board returns every card matching f in board order (capped; truncated reports the cap was hit).
+func (s *Service) Board(ctx context.Context, user, ws uuid.UUID, f domain.Filter) (views []View, truncated bool, err error) {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermView); err != nil {
+		return nil, false, err
+	}
+	cards, truncated, err := s.repo.Board(ctx, ws, f, s.today())
+	if err != nil {
+		return nil, false, err
+	}
+	views, err = s.present(ctx, cards)
+	return views, truncated, err
+}
+
 func (s *Service) Counts(ctx context.Context, user, ws uuid.UUID, f domain.Filter) (domain.Counts, error) {
 	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermView); err != nil {
 		return nil, err

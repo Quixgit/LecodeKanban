@@ -123,3 +123,19 @@ func TestRequestIDRecovererHeaders(t *testing.T) {
 		t.Fatal("query string must not be logged")
 	}
 }
+
+func TestTimeoutSkipsEventStreams(t *testing.T) {
+	var deadlines []bool
+	h := Timeout(time.Minute)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		_, ok := r.Context().Deadline()
+		deadlines = append(deadlines, ok)
+	}))
+	plain := httptest.NewRequest(http.MethodGet, "/", nil)
+	stream := httptest.NewRequest(http.MethodGet, "/", nil)
+	stream.Header.Set("Accept", "text/event-stream")
+	h.ServeHTTP(httptest.NewRecorder(), plain)
+	h.ServeHTTP(httptest.NewRecorder(), stream)
+	if !deadlines[0] || deadlines[1] {
+		t.Fatalf("deadline set: plain=%v stream=%v", deadlines[0], deadlines[1])
+	}
+}

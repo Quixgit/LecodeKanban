@@ -81,12 +81,19 @@ func newServer(t *testing.T) *httptest.Server {
 	t.Setenv("LK_ENCRYPTION_KEY", "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
 	t.Setenv("LK_PUBLIC_URL", "http://app.test")
 	t.Setenv("LK_COOKIE_SECURE", "false")
+	t.Setenv("LK_ATTACHMENTS_DIR", t.TempDir())
 	cfg, err := config.Load()
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv := httptest.NewServer(build(cfg, tdb.Pool, slog.New(slog.NewTextHandler(io.Discard, nil))).Router)
+	app, err := build(cfg, tdb.Pool, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewServer(app.Router)
+	go app.Realtime.Run(t.Context())
 	t.Cleanup(srv.Close)
+	t.Cleanup(app.Realtime.Close) // runs first: ends SSE streams so srv.Close can return
 	return srv
 }
 

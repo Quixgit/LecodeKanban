@@ -573,6 +573,319 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects/{projectId}/board/columns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Adds a custom column right after the last column of its status. */
+        post: operations["createColumn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/columns/{columnId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                columnId: components["parameters"]["ColumnId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Only empty columns can be deleted, and every status keeps at least one column. */
+        delete: operations["deleteColumn"];
+        options?: never;
+        head?: never;
+        patch: operations["updateColumn"];
+        trace?: never;
+    };
+    "/columns/{columnId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                columnId: components["parameters"]["ColumnId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["moveColumn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listSavedViews"];
+        put?: never;
+        post: operations["createSavedView"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/views/{viewId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                viewId: components["parameters"]["ViewId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteSavedView"];
+        options?: never;
+        head?: never;
+        patch: operations["updateSavedView"];
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/cards/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** @description Every card matching the filters in board order (position), capped at 3000. */
+        get: operations["boardCards"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/labels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listLabels"];
+        put?: never;
+        post: operations["createLabel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/labels/{labelId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                labelId: components["parameters"]["LabelId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteLabel"];
+        options?: never;
+        head?: never;
+        patch: operations["updateLabel"];
+        trace?: never;
+    };
+    "/cards/{cardId}/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listChecklist"];
+        put?: never;
+        post: operations["addChecklistItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/checklist-items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: components["parameters"]["ItemId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteChecklistItem"];
+        options?: never;
+        head?: never;
+        patch: operations["updateChecklistItem"];
+        trace?: never;
+    };
+    "/cards/{cardId}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listComments"];
+        put?: never;
+        post: operations["createComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                commentId: components["parameters"]["CommentId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteComment"];
+        options?: never;
+        head?: never;
+        patch: operations["updateComment"];
+        trace?: never;
+    };
+    "/cards/{cardId}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listAttachments"];
+        put?: never;
+        post: operations["uploadAttachment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attachments/{attachmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachmentId: components["parameters"]["AttachmentId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteAttachment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attachments/{attachmentId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachmentId: components["parameters"]["AttachmentId"];
+            };
+            cookie?: never;
+        };
+        get: operations["downloadAttachment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cards/{cardId}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get: operations["cardActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * @description Server-Sent Events stream of change hints for the workspace. Events: `ready` (once),
+         *     `change` (data: RealtimeMessage), `resync` (messages may have been missed — refetch).
+         */
+        get: operations["workspaceEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/i18n/error-codes": {
         parameters: {
             query?: never;
@@ -847,11 +1160,16 @@ export interface components {
             /** Format: uuid */
             columnId: string;
             priority: components["schemas"]["Priority"];
+            /** @description Derived: checklist share, else workflow stage; 100 only when done (ADR 0010) */
             progress: number;
             /** Format: date */
             dueDate: string | null;
             project: components["schemas"]["ProjectRef"];
             assignees: components["schemas"]["PersonRef"][];
+            labels: components["schemas"]["Label"][];
+            checklist: components["schemas"]["ChecklistSummary"];
+            commentCount: number;
+            attachmentCount: number;
             position: string;
             /** @description Optimistic concurrency token; send it back on update/move */
             version: number;
@@ -871,10 +1189,10 @@ export interface components {
             /** Format: uuid */
             columnId?: string;
             priority?: components["schemas"]["Priority"];
-            progress?: number;
             /** Format: date */
             dueDate?: string;
             assigneeIds?: string[];
+            labelIds?: string[];
         };
         /** @description Absent fields are unchanged; dueDate null clears it. */
         CardPatch: {
@@ -882,12 +1200,16 @@ export interface components {
             title?: string;
             description?: string;
             priority?: components["schemas"]["Priority"];
-            progress?: number;
             /** Format: date */
             dueDate?: string | null;
             assigneeIds?: string[];
+            labelIds?: string[];
         };
-        /** @description Target column (or status → its first column) and neighbours; omitted neighbours append to the end. */
+        /**
+         * @description Target column (project board: neighbours must be in that column) or status only
+         *     (cross-project board: neighbours may be any cards of that status; the card lands in its
+         *     project's first column of the status). Omitted neighbours append to the end.
+         */
         CardMove: {
             version: number;
             /** Format: uuid */
@@ -903,6 +1225,156 @@ export interface components {
              * @description Card that will be directly below
              */
             beforeId?: string | null;
+        };
+        CardBoard: {
+            items: components["schemas"]["Card"][];
+            /** @description More cards match than were returned */
+            truncated: boolean;
+        };
+        Label: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            tone: components["schemas"]["Tone"];
+        };
+        LabelInput: {
+            name: string;
+            tone?: components["schemas"]["Tone"];
+        };
+        LabelPatch: {
+            name?: string;
+            tone?: components["schemas"]["Tone"];
+        };
+        ChecklistSummary: {
+            total: number;
+            done: number;
+        };
+        ChecklistItem: {
+            /** Format: uuid */
+            id: string;
+            text: string;
+            done: boolean;
+            position: string;
+            /** Format: date-time */
+            completedAt: string | null;
+        };
+        ChecklistItemInput: {
+            text: string;
+        };
+        /** @description Any subset; `move` reorders between neighbours. */
+        ChecklistItemPatch: {
+            text?: string;
+            done?: boolean;
+            move?: components["schemas"]["Neighbours"];
+        };
+        Neighbours: {
+            /**
+             * Format: uuid
+             * @description Item that will be directly before
+             */
+            afterId?: string | null;
+            /**
+             * Format: uuid
+             * @description Item that will be directly after
+             */
+            beforeId?: string | null;
+        };
+        ColumnInput: {
+            name: string;
+            status: components["schemas"]["TaskStatus"];
+            wipLimit?: number | null;
+        };
+        /** @description Absent fields are unchanged; wipLimit null removes the limit. */
+        ColumnPatch: {
+            name?: string;
+            wipLimit?: number | null;
+        };
+        SavedView: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Opaque view configuration (filters, swimlanes, project) */
+            config: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SavedViewInput: {
+            name: string;
+            config: {
+                [key: string]: unknown;
+            };
+        };
+        SavedViewPatch: {
+            name?: string;
+            config?: {
+                [key: string]: unknown;
+            };
+        };
+        Comment: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            cardId: string;
+            author: components["schemas"]["PersonRef"] | null;
+            /** @description Markdown; mentions are written as @[Name](user-id) */
+            body: string;
+            mentions: components["schemas"]["PersonRef"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            editedAt: string | null;
+        };
+        CommentInput: {
+            body: string;
+        };
+        Attachment: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            contentType: string;
+            /** Format: int64 */
+            size: number;
+            /** @description Image the browser may display inline */
+            previewable: boolean;
+            uploadedBy: components["schemas"]["PersonRef"] | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ActivityEntry: {
+            /** Format: int64 */
+            id: number;
+            /**
+             * @description Translatable key: card.created|updated|moved|deleted, checklist.*, comment.*, attachment.*
+             * @example card.moved
+             */
+            kind: string;
+            data: {
+                [key: string]: unknown;
+            };
+            actor: components["schemas"]["PersonRef"] | null;
+            /** Format: date-time */
+            at: string;
+        };
+        ActivityPage: {
+            items: components["schemas"]["ActivityEntry"][];
+            /** Format: int64 */
+            nextBefore: number | null;
+        };
+        RealtimeMessage: {
+            /** @example card.moved */
+            type: string;
+            /** Format: uuid */
+            workspaceId: string;
+            /** Format: uuid */
+            projectId?: string;
+            /** Format: uuid */
+            cardId?: string;
+            /** Format: uuid */
+            actorId?: string;
         };
         CardPage: {
             items: components["schemas"]["Card"][];
@@ -1002,6 +1474,13 @@ export interface components {
         CardPriority: components["schemas"]["Priority"];
         /** @description Search in title or key (e.g. LK-12) */
         CardQuery: string;
+        CardLabelId: string;
+        ColumnId: string;
+        ViewId: string;
+        LabelId: string;
+        ItemId: string;
+        CommentId: string;
+        AttachmentId: string;
         CardDue: "overdue" | "today" | "week" | "month" | "none";
     };
     requestBodies: never;
@@ -1828,6 +2307,7 @@ export interface operations {
                 projectId?: components["parameters"]["CardProjectId"];
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
+                labelId?: components["parameters"]["CardLabelId"];
                 /** @description Search in title or key (e.g. LK-12) */
                 q?: components["parameters"]["CardQuery"];
                 due?: components["parameters"]["CardDue"];
@@ -1888,6 +2368,7 @@ export interface operations {
                 projectId?: components["parameters"]["CardProjectId"];
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
+                labelId?: components["parameters"]["CardLabelId"];
                 /** @description Search in title or key (e.g. LK-12) */
                 q?: components["parameters"]["CardQuery"];
                 due?: components["parameters"]["CardDue"];
@@ -2056,6 +2537,665 @@ export interface operations {
                 };
             };
             409: components["responses"]["Error"];
+        };
+    };
+    createColumn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ColumnInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardColumn"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteColumn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                columnId: components["parameters"]["ColumnId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    updateColumn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                columnId: components["parameters"]["ColumnId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ColumnPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardColumn"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    moveColumn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                columnId: components["parameters"]["ColumnId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Neighbours"];
+            };
+        };
+        responses: {
+            /** @description Moved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardColumn"];
+                };
+            };
+        };
+    };
+    listSavedViews: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's saved views */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedView"][];
+                };
+            };
+        };
+    };
+    createSavedView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedViewInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedView"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteSavedView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                viewId: components["parameters"]["ViewId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateSavedView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                viewId: components["parameters"]["ViewId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedViewPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedView"];
+                };
+            };
+        };
+    };
+    boardCards: {
+        parameters: {
+            query?: {
+                projectId?: components["parameters"]["CardProjectId"];
+                assigneeId?: components["parameters"]["CardAssigneeId"];
+                priority?: components["parameters"]["CardPriority"];
+                labelId?: components["parameters"]["CardLabelId"];
+                /** @description Search in title or key (e.g. LK-12) */
+                q?: components["parameters"]["CardQuery"];
+                due?: components["parameters"]["CardDue"];
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Board cards */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardBoard"];
+                };
+            };
+        };
+    };
+    listLabels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Workspace labels */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Label"][];
+                };
+            };
+        };
+    };
+    createLabel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Label"];
+                };
+            };
+            409: components["responses"]["Error"];
+        };
+    };
+    deleteLabel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                labelId: components["parameters"]["LabelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted (removed from every card) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateLabel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                labelId: components["parameters"]["LabelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Label"];
+                };
+            };
+        };
+    };
+    listChecklist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Items in order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistItem"][];
+                };
+            };
+        };
+    };
+    addChecklistItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistItemInput"];
+            };
+        };
+        responses: {
+            /** @description Created (card progress is recomputed) */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistItem"];
+                };
+            };
+        };
+    };
+    deleteChecklistItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: components["parameters"]["ItemId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateChecklistItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: components["parameters"]["ItemId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistItemPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistItem"];
+                };
+            };
+        };
+    };
+    listComments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Comments, oldest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Comment"][];
+                };
+            };
+        };
+    };
+    createComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Comment"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                commentId: components["parameters"]["CommentId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    updateComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                commentId: components["parameters"]["CommentId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Comment"];
+                };
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    listAttachments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Attachments, oldest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attachment"][];
+                };
+            };
+        };
+    };
+    uploadAttachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Uploaded */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attachment"];
+                };
+            };
+            413: components["responses"]["Error"];
+        };
+    };
+    deleteAttachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachmentId: components["parameters"]["AttachmentId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    downloadAttachment: {
+        parameters: {
+            query?: {
+                /** @description Display images inline (other types always download) */
+                inline?: boolean;
+            };
+            header?: never;
+            path: {
+                attachmentId: components["parameters"]["AttachmentId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description File bytes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    cardActivity: {
+        parameters: {
+            query?: {
+                /** @description Return entries older than this id */
+                before?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityPage"];
+                };
+            };
+        };
+    };
+    workspaceEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Event stream */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["RealtimeMessage"];
+                };
+            };
         };
     };
     listErrorCodes: {

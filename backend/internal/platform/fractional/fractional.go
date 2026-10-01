@@ -7,6 +7,7 @@ package fractional
 
 import (
 	"errors"
+	"math/rand/v2"
 	"strings"
 )
 
@@ -99,4 +100,32 @@ func Sequence(after string, n int) []string {
 		prev = k
 	}
 	return out
+}
+
+// jitterLen random digits make keys generated independently for the same gap (two columns,
+// two concurrent inserts) differ, so orderings that mix sequences rarely meet equal keys.
+const jitterLen = 3
+
+func jitter() string {
+	b := make([]byte, jitterLen)
+	for i := range b {
+		b[i] = digits[1+rand.IntN(len(digits)-1)] //nolint:gosec // ordering entropy, not a secret
+	}
+	return string(b)
+}
+
+// BetweenUnique is Between plus a random suffix; the result is still strictly between a and b.
+func BetweenUnique(a, b string) (string, error) {
+	m, err := Between(a, b)
+	if err != nil {
+		return "", err
+	}
+	for range 8 {
+		if k := m + jitter(); b == "" || k < b {
+			return k, nil
+		}
+		// m is a prefix of b: narrow towards b and retry.
+		m = midpoint(m, b)
+	}
+	return m, nil
 }

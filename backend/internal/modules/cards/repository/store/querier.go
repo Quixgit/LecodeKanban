@@ -12,23 +12,55 @@ import (
 
 type Querier interface {
 	AddAssignees(ctx context.Context, arg AddAssigneesParams) error
+	AddCardLabels(ctx context.Context, arg AddCardLabelsParams) error
 	ArchiveCard(ctx context.Context, id uuid.UUID) (int64, error)
 	AssigneesForCards(ctx context.Context, ids []uuid.UUID) ([]CardAssignee, error)
 	CardKPIs(ctx context.Context, arg CardKPIsParams) (CardKPIsRow, error)
 	ClearAssignees(ctx context.Context, cardID uuid.UUID) error
+	ClearCardLabels(ctx context.Context, cardID uuid.UUID) error
 	CountByProject(ctx context.Context, projectID uuid.UUID) (CountByProjectRow, error)
+	CountChecklist(ctx context.Context, cardID uuid.UUID) (int32, error)
+	CountInColumn(ctx context.Context, columnID uuid.UUID) (int32, error)
+	CountLabelsInWorkspace(ctx context.Context, arg CountLabelsInWorkspaceParams) (int32, error)
 	CreateCard(ctx context.Context, arg CreateCardParams) (Card, error)
+	CreateChecklistItem(ctx context.Context, arg CreateChecklistItemParams) (ChecklistItem, error)
+	CreateLabel(ctx context.Context, arg CreateLabelParams) (Label, error)
+	DeleteChecklistItem(ctx context.Context, id uuid.UUID) error
+	DeleteLabel(ctx context.Context, id uuid.UUID) error
 	GetCard(ctx context.Context, id uuid.UUID) (Card, error)
+	GetChecklistItem(ctx context.Context, id uuid.UUID) (ChecklistItem, error)
+	GetLabel(ctx context.Context, id uuid.UUID) (Label, error)
 	InsertTransition(ctx context.Context, arg InsertTransitionParams) error
+	LabelsForCards(ctx context.Context, ids []uuid.UUID) ([]CardLabel, error)
+	LastChecklistPosition(ctx context.Context, cardID uuid.UUID) (string, error)
 	LastPosition(ctx context.Context, columnID uuid.UUID) (string, error)
+	LastPositionInStatus(ctx context.Context, arg LastPositionInStatusParams) (string, error)
+	// Checklist.
+	ListChecklist(ctx context.Context, cardID uuid.UUID) ([]ChecklistItem, error)
+	// Labels.
+	ListLabels(ctx context.Context, workspaceID uuid.UUID) ([]Label, error)
 	MoveCard(ctx context.Context, arg MoveCardParams) (Card, error)
 	NextCardNumber(ctx context.Context, projectID uuid.UUID) (int32, error)
+	NextChecklistPositionAfter(ctx context.Context, arg NextChecklistPositionAfterParams) (string, error)
 	NextPositionAfter(ctx context.Context, arg NextPositionAfterParams) (string, error)
+	NextPositionAfterInStatus(ctx context.Context, arg NextPositionAfterInStatusParams) (string, error)
 	PositionInColumn(ctx context.Context, arg PositionInColumnParams) (string, error)
+	// Lane-scoped ordering (cross-project board: one lane per status).
+	PositionInStatus(ctx context.Context, arg PositionInStatusParams) (string, error)
+	PrevChecklistPositionBefore(ctx context.Context, arg PrevChecklistPositionBeforeParams) (string, error)
 	PrevPositionBefore(ctx context.Context, arg PrevPositionBeforeParams) (string, error)
+	PrevPositionBeforeInStatus(ctx context.Context, arg PrevPositionBeforeInStatusParams) (string, error)
 	RecentTransitions(ctx context.Context, arg RecentTransitionsParams) ([]RecentTransitionsRow, error)
+	// Derived data (not user edits: no version bump).
+	RefreshChecklistCounts(ctx context.Context, id uuid.UUID) (Card, error)
+	RelocateArchivedCards(ctx context.Context, arg RelocateArchivedCardsParams) error
+	SetAttachmentCount(ctx context.Context, arg SetAttachmentCountParams) error
+	SetCommentCount(ctx context.Context, arg SetCommentCountParams) error
+	SetProgress(ctx context.Context, arg SetProgressParams) error
 	TransitionsByDay(ctx context.Context, arg TransitionsByDayParams) ([]TransitionsByDayRow, error)
 	UpdateCard(ctx context.Context, arg UpdateCardParams) (Card, error)
+	UpdateChecklistItem(ctx context.Context, arg UpdateChecklistItemParams) (ChecklistItem, error)
+	UpdateLabel(ctx context.Context, arg UpdateLabelParams) (Label, error)
 }
 
 var _ Querier = (*Queries)(nil)

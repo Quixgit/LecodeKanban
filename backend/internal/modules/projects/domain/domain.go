@@ -42,12 +42,13 @@ type Project struct {
 	Deadline    *time.Time
 	TaskCount   int
 	DoneCount   int
+	AvgProgress int // average progress of live cards (ADR 0010)
 	CreatedBy   *uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
-// Progress is the share of completed cards, 0–100.
+// Progress is the average progress of the project's cards, 0–100 (ADR 0010).
 func (p Project) Progress() int {
 	if p.TaskCount == 0 {
 		if p.Status == StatusCompleted {
@@ -55,7 +56,7 @@ func (p Project) Progress() int {
 		}
 		return 0
 	}
-	return p.DoneCount * 100 / p.TaskCount
+	return p.AvgProgress
 }
 
 // Overdue reports a missed deadline on a project that is not completed.

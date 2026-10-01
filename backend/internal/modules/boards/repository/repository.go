@@ -99,3 +99,124 @@ func columnRow(id, board, project, ws uuid.UUID, name, cat, pos string, wip *int
 	}
 	return col
 }
+
+// ColumnPatch changes a column's name and/or WIP limit (SetWIP with nil WIP clears it).
+type ColumnPatch struct {
+	Name   *string
+	SetWIP bool
+	WIP    *int
+}
+
+func (r *Repo) AddColumn(ctx context.Context, board uuid.UUID, name string, cat domain.Category, pos string, wip *int) (uuid.UUID, error) {
+	c, err := r.q.CreateColumn(ctx, store.CreateColumnParams{BoardID: board, Name: name, Category: string(cat), Position: pos})
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if wip != nil {
+		_, err = r.UpdateColumn(ctx, c.ID, ColumnPatch{SetWIP: true, WIP: wip})
+	}
+	return c.ID, err
+}
+
+func (r *Repo) UpdateColumn(ctx context.Context, id uuid.UUID, p ColumnPatch) (uuid.UUID, error) {
+	params := store.UpdateColumnParams{ID: id, Name: p.Name, SetWip: p.SetWIP}
+	if p.WIP != nil {
+		n := int32(*p.WIP) //nolint:gosec // G115: validated ≤ MaxWIPLimit
+		params.WipLimit = &n
+	}
+	c, err := r.q.UpdateColumn(ctx, params)
+	if db.IsNoRows(err) {
+		return uuid.Nil, apperr.Wrap(domain.ErrColumnNotFound, "column not found", err)
+	}
+	return c.ID, err
+}
+
+func (r *Repo) SetColumnPosition(ctx context.Context, id uuid.UUID, pos string) error {
+	return r.q.SetColumnPosition(ctx, store.SetColumnPositionParams{ID: id, Position: pos})
+}
+
+// OtherColumnInCategory returns another column of the same status on the board.
+func (r *Repo) OtherColumnInCategory(ctx context.Context, board uuid.UUID, cat domain.Category, exclude uuid.UUID) (uuid.UUID, error) {
+	id, err := r.q.OtherColumnInCategory(ctx, store.OtherColumnInCategoryParams{BoardID: board, Category: string(cat), Exclude: exclude})
+	if db.IsNoRows(err) {
+		return uuid.Nil, apperr.Wrap(domain.ErrLastColumnOfStatus, "each status needs at least one column", err)
+	}
+	return id, err
+}
+
+func (r *Repo) DeleteColumn(ctx context.Context, id uuid.UUID) error {
+	return r.q.DeleteColumn(ctx, id)
+}
+
+// CountColumns returns the board's column total and how many have the category.
+func (r *Repo) CountColumns(ctx context.Context, board uuid.UUID, cat domain.Category) (total, inCategory int, err error) {
+	row, err := r.q.CountColumns(ctx, store.CountColumnsParams{BoardID: board, Category: string(cat)})
+	return int(row.Total), int(row.InCategory), err
+}
+
+func (r *Repo) LastColumnInCategory(ctx context.Context, board uuid.UUID, cat domain.Category) (string, error) {
+	return r.q.LastColumnInCategory(ctx, store.LastColumnInCategoryParams{BoardID: board, Category: string(cat)})
+}
+
+func (r *Repo) NextColumnAfter(ctx context.Context, board uuid.UUID, after string) (string, error) {
+	return r.q.NextColumnPositionAfter(ctx, store.NextColumnPositionAfterParams{BoardID: board, After: after})
+}
+
+func (r *Repo) PrevColumnBefore(ctx context.Context, board uuid.UUID, before string) (string, error) {
+	return r.q.PrevColumnPositionBefore(ctx, store.PrevColumnPositionBeforeParams{BoardID: board, Before: before})
+}
+
+func (r *Repo) LastColumn(ctx context.Context, board uuid.UUID) (string, error) {
+	return r.q.LastColumnPosition(ctx, board)
+}
+
+func toView(v store.SavedView) domain.SavedView {
+	return domain.SavedView{ID: v.ID, WorkspaceID: v.WorkspaceID, UserID: v.UserID, Name: v.Name, Config: v.Config,
+		CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt}
+}
+
+func (r *Repo) Views(ctx context.Context, ws, user uuid.UUID) ([]domain.SavedView, error) {
+	rows, err := r.q.ListViews(ctx, store.ListViewsParams{WorkspaceID: ws, UserID: user})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.SavedView, len(rows))
+	for i, v := range rows {
+		out[i] = toView(v)
+	}
+	return out, nil
+}
+
+func (r *Repo) CountViews(ctx context.Context, ws, user uuid.UUID) (int, error) {
+	n, err := r.q.CountViews(ctx, store.CountViewsParams{WorkspaceID: ws, UserID: user})
+	return int(n), err
+}
+
+func (r *Repo) View(ctx context.Context, id uuid.UUID) (domain.SavedView, error) {
+	v, err := r.q.GetView(ctx, id)
+	if db.IsNoRows(err) {
+		return domain.SavedView{}, apperr.Wrap(domain.ErrViewNotFound, "view not found", err)
+	}
+	if err != nil {
+		return domain.SavedView{}, err
+	}
+	return toView(v), nil
+}
+
+func (r *Repo) CreateView(ctx context.Context, ws, user uuid.UUID, name string, config []byte) (domain.SavedView, error) {
+	v, err := r.q.CreateView(ctx, store.CreateViewParams{WorkspaceID: ws, UserID: user, Name: name, Config: config})
+	if err != nil {
+		return domain.SavedView{}, err
+	}
+	return toView(v), nil
+}
+
+func (r *Repo) UpdateView(ctx context.Context, id uuid.UUID, name *string, config []byte) (domain.SavedView, error) {
+	v, err := r.q.UpdateView(ctx, store.UpdateViewParams{ID: id, Name: name, Config: config})
+	if err != nil {
+		return domain.SavedView{}, err
+	}
+	return toView(v), nil
+}
+
+func (r *Repo) DeleteView(ctx context.Context, id uuid.UUID) error { return r.q.DeleteView(ctx, id) }

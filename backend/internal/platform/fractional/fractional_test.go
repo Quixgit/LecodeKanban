@@ -73,3 +73,39 @@ func TestAdversarialGrowth(t *testing.T) {
 		t.Fatalf("sequence %v", seq)
 	}
 }
+
+func TestBetweenUniqueStaysInBoundsAndDiffers(t *testing.T) {
+	r := rand.New(rand.NewPCG(1, 2))
+	keys := Sequence("", 5)
+	for i := 0; i < 2000; i++ {
+		a, b := "", ""
+		switch r.IntN(3) {
+		case 0:
+			a = keys[r.IntN(len(keys))]
+		case 1:
+			b = keys[r.IntN(len(keys))]
+		default:
+			x, y := r.IntN(len(keys)), r.IntN(len(keys))
+			if x == y {
+				continue
+			}
+			a, b = keys[min(x, y)], keys[max(x, y)]
+		}
+		k, err := BetweenUnique(a, b)
+		if err != nil || !valid(k) || (a != "" && k <= a) || (b != "" && k >= b) {
+			t.Fatalf("BetweenUnique(%q,%q) = %q, %v", a, b, k, err)
+		}
+		keys = append(keys, k)
+		slices.Sort(keys)
+	}
+	// Same gap twice → different keys.
+	x, _ := BetweenUnique("a1", "a2")
+	y, _ := BetweenUnique("a1", "a2")
+	if x == y {
+		t.Fatalf("expected distinct keys, got %q twice", x)
+	}
+	// Prefix case: the midpoint of ("1","2V") is "2", a prefix of b.
+	if k, err := BetweenUnique("1", "2V"); err != nil || k <= "1" || k >= "2V" {
+		t.Fatalf("prefix case: %q %v", k, err)
+	}
+}

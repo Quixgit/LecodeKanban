@@ -41,6 +41,8 @@ func toDomain(c store.Card) domain.Card {
 		Priority: domain.Priority(c.Priority), Progress: int(c.Progress), DueDate: c.DueDate, Position: c.Position,
 		Version: int(c.Version), CreatedBy: uuidPtr(c.CreatedBy), CompletedAt: c.CompletedAt,
 		CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt,
+		ChecklistTotal: int(c.ChecklistTotal), ChecklistDone: int(c.ChecklistDone),
+		CommentCount: int(c.CommentCount), AttachmentCount: int(c.AttachmentCount),
 	}
 }
 
@@ -110,10 +112,6 @@ func (r *Repo) Update(ctx context.Context, id uuid.UUID, p domain.Patch) (domain
 		s := string(*p.Priority)
 		params.Priority = &s
 	}
-	if p.Progress != nil {
-		v := int16(*p.Progress) //nolint:gosec // G115: validated 0–100
-		params.Progress = &v
-	}
 	c, err := r.q.UpdateCard(ctx, params)
 	if db.IsNoRows(err) {
 		return domain.Card{}, r.conflictOrMissing(ctx, id)
@@ -128,12 +126,14 @@ type MoveTo struct {
 	ID, ColumnID, BoardID uuid.UUID
 	Status                domain.Status
 	Position              string
+	Progress              int
 	Version               int
 }
 
 func (r *Repo) Move(ctx context.Context, m MoveTo) (domain.Card, error) {
 	c, err := r.q.MoveCard(ctx, store.MoveCardParams{
-		ID: m.ID, ColumnID: m.ColumnID, BoardID: m.BoardID, Status: string(m.Status), Position: m.Position, Version: int32(m.Version), //nolint:gosec // G115
+		ID: m.ID, ColumnID: m.ColumnID, BoardID: m.BoardID, Status: string(m.Status), Position: m.Position,
+		Progress: int16(m.Progress), Version: int32(m.Version), //nolint:gosec // G115: 0–100 / version counter
 	})
 	if db.IsNoRows(err) {
 		return domain.Card{}, r.conflictOrMissing(ctx, m.ID)
@@ -207,7 +207,51 @@ func (r *Repo) Transition(ctx context.Context, c domain.Card, from *domain.Statu
 	})
 }
 
-func (r *Repo) CountByProject(ctx context.Context, project uuid.UUID) (int, int, error) {
+// CountByProject returns total, completed and average progress of a project's live cards.
+func (r *Repo) CountByProject(ctx context.Context, project uuid.UUID) (total, done, progress int, err error) {
 	row, err := r.q.CountByProject(ctx, project)
-	return int(row.Total), int(row.Done), err
+	return int(row.Total), int(row.Done), int(row.AvgProgress), err
+}
+
+func (r *Repo) CountInColumn(ctx context.Context, column uuid.UUID) (int, error) {
+	n, err := r.q.CountInColumn(ctx, column)
+	return int(n), err
+}
+
+// PositionInStatus returns a card's position if it is a live card of the status in ws.
+func (r *Repo) PositionInStatus(ctx context.Context, card, ws uuid.UUID, st domain.Status) (string, bool, error) {
+	p, err := r.q.PositionInStatus(ctx, store.PositionInStatusParams{ID: card, WorkspaceID: ws, Status: string(st)})
+	if db.IsNoRows(err) {
+		return "", false, nil
+	}
+	return p, err == nil, err
+}
+
+func (r *Repo) NextAfterInStatus(ctx context.Context, ws uuid.UUID, st domain.Status, after string) (string, error) {
+	return r.q.NextPositionAfterInStatus(ctx, store.NextPositionAfterInStatusParams{WorkspaceID: ws, Status: string(st), After: after})
+}
+
+func (r *Repo) PrevBeforeInStatus(ctx context.Context, ws uuid.UUID, st domain.Status, before string) (string, error) {
+	return r.q.PrevPositionBeforeInStatus(ctx, store.PrevPositionBeforeInStatusParams{WorkspaceID: ws, Status: string(st), Before: before})
+}
+
+func (r *Repo) LastInStatus(ctx context.Context, ws uuid.UUID, st domain.Status) (string, error) {
+	return r.q.LastPositionInStatus(ctx, store.LastPositionInStatusParams{WorkspaceID: ws, Status: string(st)})
+}
+
+// RelocateArchived moves archived cards out of a column that is about to be deleted.
+func (r *Repo) RelocateArchived(ctx context.Context, from, to uuid.UUID) error {
+	return r.q.RelocateArchivedCards(ctx, store.RelocateArchivedCardsParams{FromColumn: from, ToColumn: to})
+}
+
+func (r *Repo) SetProgress(ctx context.Context, card uuid.UUID, progress int) error {
+	return r.q.SetProgress(ctx, store.SetProgressParams{ID: card, Progress: int16(progress)}) //nolint:gosec // G115: 0–100
+}
+
+func (r *Repo) SetCommentCount(ctx context.Context, card uuid.UUID, n int) error {
+	return r.q.SetCommentCount(ctx, store.SetCommentCountParams{ID: card, Count: int32(n)}) //nolint:gosec // G115: bounded count
+}
+
+func (r *Repo) SetAttachmentCount(ctx context.Context, card uuid.UUID, n int) error {
+	return r.q.SetAttachmentCount(ctx, store.SetAttachmentCountParams{ID: card, Count: int32(n)}) //nolint:gosec // G115: bounded count
 }

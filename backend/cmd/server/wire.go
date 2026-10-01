@@ -13,16 +13,20 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/reliabilix/lecodekanban/backend/internal/api"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/activity"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/attachments"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/attachments/storage/local"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/auth"
 	authevents "github.com/reliabilix/lecodekanban/backend/internal/modules/auth/events"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/cards"
-	cardevents "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/events"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/comments"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/i18n"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/projects"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users"
 	usershttp "github.com/reliabilix/lecodekanban/backend/internal/modules/users/transport/http"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces"
+	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/authtoken"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/config"
@@ -30,16 +34,19 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/httpx"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/metrics"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/middleware"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/realtime"
+	"github.com/reliabilix/lecodekanban/backend/internal/reactions"
 )
 
 // App is the fully wired HTTP application (composition root).
 type App struct {
-	Router  http.Handler
-	Metrics *metrics.Metrics
+	Router   http.Handler
+	Metrics  *metrics.Metrics
+	Realtime *realtime.Hub
 }
 
 // build wires every module by hand: no globals, no reflection.
-func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) *App {
+func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, error) {
 	bus := eventbus.New()
 	tokens := authtoken.NewManager(cfg.SecretKeyBytes(), cfg.AccessTTL)
 	m := metrics.New()
@@ -58,7 +65,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) *App {
 	wsMod := workspaces.New(workspaces.Deps{Pool: pool, Bus: bus, Users: usersMod.Service, PublicURL: cfg.PublicURL})
 	i18nMod := i18n.New()
 
-	boardsMod := boards.New(pool, wsMod.Service)
+	boardsMod := boards.New(pool, wsMod.Service, bus)
 	projectsMod := projects.New(projects.Deps{
 		Pool: pool, Bus: bus, Workspaces: wsMod.Service, Boards: boardsMod.Service, Users: usersMod.Service,
 		Locale: func(r *http.Request) string {
@@ -74,24 +81,25 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) *App {
 		Boards: boardsMod.Service, Users: usersMod.Service,
 	})
 	projectsMod.Service.SetCardCounter(cardsMod.Service)
+	boardsMod.Service.SetCardCounter(cardsMod.Service)
+
+	commentsMod := comments.New(comments.Deps{Pool: pool, Bus: bus, Cards: cardsMod.Service,
+		Workspaces: wsMod.Service, Users: usersMod.Service})
+	storage, err := local.New(cfg.AttachmentsDir)
+	if err != nil {
+		return nil, err
+	}
+	attachmentsMod := attachments.New(attachments.Deps{Pool: pool, Bus: bus, Storage: storage,
+		MaxBytes: cfg.AttachmentMaxBytes(), Cards: cardsMod.Service, Workspaces: wsMod.Service, Users: usersMod.Service})
+	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
+	hub := realtime.NewHub(cfg.DatabaseURL, log)
 
 	// Cross-module reactions.
 	eventbus.Subscribe(bus, func(ctx context.Context, e authevents.UserRegistered) error {
 		return wsMod.Service.EnsurePersonal(ctx, e.UserID)
 	})
-	// Project progress counters follow card changes.
-	eventbus.Subscribe(bus, func(ctx context.Context, e cardevents.CardCreated) error {
-		return projectsMod.Service.Recount(ctx, e.ProjectID)
-	})
-	eventbus.Subscribe(bus, func(ctx context.Context, e cardevents.CardMoved) error {
-		if e.From == e.To {
-			return nil
-		}
-		return projectsMod.Service.Recount(ctx, e.ProjectID)
-	})
-	eventbus.Subscribe(bus, func(ctx context.Context, e cardevents.CardDeleted) error {
-		return projectsMod.Service.Recount(ctx, e.ProjectID)
-	})
+	reactions.Register(bus, reactions.Deps{Projects: projectsMod.Service, Cards: cardsMod.Service,
+		Activity: activityMod.Service, Realtime: realtime.NewPublisher(pool, log)})
 
 	origins := allowedOrigins(cfg)
 	r := chi.NewRouter()
@@ -139,6 +147,24 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) *App {
 			projectsMod.HTTP.PrivateRoutes(r)
 			boardsMod.HTTP.PrivateRoutes(r)
 			cardsMod.HTTP.PrivateRoutes(r)
+			commentsMod.HTTP.PrivateRoutes(r)
+			attachmentsMod.HTTP.PrivateRoutes(r)
+			activityMod.HTTP.PrivateRoutes(r)
+			r.Get("/workspaces/{workspaceId}/events", hub.Handler(
+				func(r *http.Request) (uuid.UUID, error) {
+					id, err := uuid.Parse(chi.URLParam(r, "workspaceId"))
+					if err != nil {
+						return uuid.Nil, apperr.New(wsdomain.ErrNotFound, "workspace not found")
+					}
+					return id, nil
+				},
+				func(r *http.Request, ws uuid.UUID) error {
+					p, _ := authtoken.FromContext(r.Context())
+					_, err := wsMod.Service.Authorize(r.Context(), ws, p.UserID, wsdomain.PermView)
+					return err
+				},
+				httpx.WriteError,
+			))
 		})
 
 		r.NotFound(httpx.H(func(http.ResponseWriter, *http.Request) error {
@@ -148,7 +174,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) *App {
 			return apperr.New(apperr.NotFound, "route not found")
 		}))
 	})
-	return &App{Router: r, Metrics: m}
+	return &App{Router: r, Metrics: m, Realtime: hub}, nil
 }
 
 // allowedOrigins are the browser origins permitted to send state-changing requests.

@@ -56,15 +56,35 @@
   },
   "boards": {
     "not_found": "Board not found.",
-    "column_not_found": "This column no longer exists."
+    "column_not_found": "This column no longer exists.",
+    "column_not_empty": "Move the tasks out of this column before deleting it.",
+    "last_column_of_status": "Each status needs at least one column.",
+    "too_many_columns": "A board can have at most {{max}} columns.",
+    "view_not_found": "This saved view no longer exists.",
+    "invalid_move": "The column can't be placed there. Refresh the board and try again."
   },
   "cards": {
     "not_found": "Task not found or no longer available.",
     "version_conflict": "Someone else just changed this task. Reload it to see the latest version.",
-    "invalid_move": "The task can't be placed there. Refresh the list and try again."
+    "invalid_move": "The task can't be placed there. Refresh the list and try again.",
+    "label_not_found": "This label no longer exists.",
+    "label_exists": "A label with this name already exists.",
+    "checklist_item_not_found": "This checklist item no longer exists.",
+    "checklist_full": "A checklist can have at most {{max}} items."
   },
   "projects": {
     "not_found": "Project not found or archived.",
     "key_taken": "This project key is already used in the workspace."
+  },
+  "comments": {
+    "not_found": "Comment not found or already deleted.",
+    "forbidden": "You can only change your own comments."
+  },
+  "attachments": {
+    "not_found": "File not found or already deleted.",
+    "too_large": "The file is too large.",
+    "too_many": "A task can have at most {{max}} files.",
+    "no_file": "Choose a file to upload.",
+    "forbidden": "Only the uploader or an admin can delete this file."
   }
 }

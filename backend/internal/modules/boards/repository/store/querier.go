@@ -11,13 +11,29 @@ import (
 )
 
 type Querier interface {
+	CountColumns(ctx context.Context, arg CountColumnsParams) (CountColumnsRow, error)
+	CountViews(ctx context.Context, arg CountViewsParams) (int32, error)
 	CreateBoard(ctx context.Context, arg CreateBoardParams) (Board, error)
 	CreateColumn(ctx context.Context, arg CreateColumnParams) (BoardColumn, error)
+	CreateView(ctx context.Context, arg CreateViewParams) (SavedView, error)
+	DeleteColumn(ctx context.Context, id uuid.UUID) error
+	DeleteView(ctx context.Context, id uuid.UUID) error
 	FirstColumnByCategory(ctx context.Context, arg FirstColumnByCategoryParams) (FirstColumnByCategoryRow, error)
 	GetBoard(ctx context.Context, id uuid.UUID) (Board, error)
 	GetBoardByProject(ctx context.Context, projectID uuid.UUID) (Board, error)
 	GetColumn(ctx context.Context, id uuid.UUID) (GetColumnRow, error)
+	GetView(ctx context.Context, id uuid.UUID) (SavedView, error)
+	LastColumnInCategory(ctx context.Context, arg LastColumnInCategoryParams) (string, error)
+	LastColumnPosition(ctx context.Context, boardID uuid.UUID) (string, error)
 	ListColumns(ctx context.Context, boardID uuid.UUID) ([]BoardColumn, error)
+	// Saved views (personal).
+	ListViews(ctx context.Context, arg ListViewsParams) ([]SavedView, error)
+	NextColumnPositionAfter(ctx context.Context, arg NextColumnPositionAfterParams) (string, error)
+	OtherColumnInCategory(ctx context.Context, arg OtherColumnInCategoryParams) (uuid.UUID, error)
+	PrevColumnPositionBefore(ctx context.Context, arg PrevColumnPositionBeforeParams) (string, error)
+	SetColumnPosition(ctx context.Context, arg SetColumnPositionParams) error
+	UpdateColumn(ctx context.Context, arg UpdateColumnParams) (BoardColumn, error)
+	UpdateView(ctx context.Context, arg UpdateViewParams) (SavedView, error)
 }
 
 var _ Querier = (*Queries)(nil)

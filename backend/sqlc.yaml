@@ -106,3 +106,36 @@ sql:
         emit_interface: true
         emit_empty_slices: true
         overrides: *overrides
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/comments/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/comments/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/attachments/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/attachments/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/activity/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/activity/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides

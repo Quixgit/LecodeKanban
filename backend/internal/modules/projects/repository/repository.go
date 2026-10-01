@@ -44,7 +44,7 @@ func toDomain(p store.Project) domain.Project {
 		ID: p.ID, WorkspaceID: p.WorkspaceID, Key: p.Key, Name: p.Name, Description: p.Description,
 		Status: domain.Status(p.Status), PICID: uuidPtr(p.PicUserID), Team: p.Team, Icon: p.Icon, Tone: p.Tone,
 		StartDate: p.StartDate, Deadline: p.Deadline, TaskCount: int(p.TaskCount), DoneCount: int(p.DoneCount),
-		CreatedBy: uuidPtr(p.CreatedBy), CreatedAt: p.CreatedAt, UpdatedAt: p.UpdatedAt,
+		AvgProgress: int(p.Progress), CreatedBy: uuidPtr(p.CreatedBy), CreatedAt: p.CreatedAt, UpdatedAt: p.UpdatedAt,
 	}
 }
 
@@ -96,8 +96,9 @@ func (r *Repo) Update(ctx context.Context, id uuid.UUID, p domain.Patch) (domain
 
 func (r *Repo) Archive(ctx context.Context, id uuid.UUID) error { return r.q.ArchiveProject(ctx, id) }
 
-func (r *Repo) SetCounts(ctx context.Context, id uuid.UUID, total, done int) error {
-	return r.q.SetProjectCounts(ctx, store.SetProjectCountsParams{ID: id, TaskCount: int32(total), DoneCount: int32(done)}) //nolint:gosec // G115: card counts fit int32
+func (r *Repo) SetCounts(ctx context.Context, id uuid.UUID, total, done, progress int) error {
+	return r.q.SetProjectCounts(ctx, store.SetProjectCountsParams{ID: id, TaskCount: int32(total), DoneCount: int32(done), //nolint:gosec // G115: card counts fit int32
+		Progress: int16(progress)}) //nolint:gosec // G115: 0–100
 }
 
 func (r *Repo) Summary(ctx context.Context, ws uuid.UUID, today time.Time) (domain.Summary, error) {
@@ -134,7 +135,7 @@ var sortColumns = map[string]string{
 	"progress": "progress_pct",
 }
 
-const progressExpr = "(CASE WHEN task_count = 0 THEN CASE WHEN status = 'completed' THEN 100 ELSE 0 END ELSE done_count * 100 / task_count END)"
+const progressExpr = "(CASE WHEN task_count = 0 THEN CASE WHEN status = 'completed' THEN 100 ELSE 0 END ELSE progress END)"
 
 // EscapeLike escapes LIKE metacharacters in user search text.
 func EscapeLike(s string) string {
@@ -213,7 +214,7 @@ func (r *Repo) List(ctx context.Context, ws uuid.UUID, f domain.Filter, today ti
 		var n int64
 		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.Key, &p.Name, &p.Description, &p.Status, &p.PicUserID, &p.Team,
 			&p.Icon, &p.Tone, &p.StartDate, &p.Deadline, &p.TaskCount, &p.DoneCount, &p.CreatedBy, &p.CreatedAt,
-			&p.UpdatedAt, &p.ArchivedAt, &pct, &n); err != nil {
+			&p.UpdatedAt, &p.ArchivedAt, &p.Progress, &pct, &n); err != nil {
 			return nil, 0, err
 		}
 		out = append(out, toDomain(p))

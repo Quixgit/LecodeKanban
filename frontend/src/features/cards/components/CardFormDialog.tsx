@@ -38,7 +38,6 @@ const schema = z.object({
   priority: z.enum(['high', 'medium', 'low']),
   assigneeIds: z.array(z.string()),
   dueDate: z.string(),
-  progress: z.number().int().min(0).max(100),
 });
 type Values = z.infer<typeof schema>;
 
@@ -72,11 +71,10 @@ function defaults(
     priority: card?.priority ?? 'medium',
     assigneeIds: card?.assignees.map((a) => a.id) ?? [],
     dueDate: card?.dueDate ?? '',
-    progress: card?.progress ?? 0,
   };
 }
 
-const FIELDS = ['title', 'description', 'projectId', 'assigneeIds', 'dueDate', 'progress'] as const;
+const FIELDS = ['title', 'description', 'projectId', 'assigneeIds', 'dueDate'] as const;
 
 /** Create / edit a task. Edits send the card version; on conflict the latest version is loaded. */
 export function CardFormDialog({
@@ -135,7 +133,6 @@ export function CardFormDialog({
           description: v.description || undefined,
           status: v.status,
           priority: v.priority,
-          progress: v.progress,
           assigneeIds: v.assigneeIds,
           dueDate: v.dueDate || undefined,
         });
@@ -150,7 +147,6 @@ export function CardFormDialog({
           title: v.title,
           description: v.description,
           priority: v.priority,
-          progress: v.progress,
           assigneeIds: v.assigneeIds,
           dueDate: v.dueDate || null,
         },
@@ -282,24 +278,6 @@ export function CardFormDialog({
           {errors.assigneeIds && (
             <p className="text-xs text-danger-ink">{fe(errors.assigneeIds.message)}</p>
           )}
-        </div>
-        <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <label
-            htmlFor="card-progress"
-            className="flex justify-between text-sm font-medium text-text"
-          >
-            {t('form.progress')}
-            <span className="tabular text-text-muted">{form.watch('progress')}%</span>
-          </label>
-          <input
-            id="card-progress"
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            className="accent-[rgb(var(--c-primary))]"
-            {...form.register('progress', { valueAsNumber: true })}
-          />
         </div>
       </form>
     </Modal>

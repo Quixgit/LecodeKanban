@@ -7,6 +7,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards/repository"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards/service"
 	transport "github.com/reliabilix/lecodekanban/backend/internal/modules/boards/transport/http"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/eventbus"
 )
 
 type Module struct {
@@ -14,7 +15,7 @@ type Module struct {
 	HTTP    *transport.Handler
 }
 
-func New(pool *pgxpool.Pool, auth service.Authorizer) *Module {
-	svc := service.New(repository.New(pool), auth)
+func New(pool *pgxpool.Pool, auth service.Authorizer, bus *eventbus.Bus) *Module {
+	svc := service.New(repository.New(pool), auth, bus)
 	return &Module{Service: svc, HTTP: transport.NewHandler(svc)}
 }

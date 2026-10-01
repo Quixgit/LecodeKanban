@@ -3,7 +3,6 @@ package http
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -31,6 +30,15 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Get("/workspaces/{workspaceId}/cards/summary", httpx.H(h.summary))
 	r.Post("/workspaces/{workspaceId}/cards/bulk", httpx.H(h.bulk))
 	r.Get("/workspaces/{workspaceId}/cards/stats", httpx.H(h.stats))
+	r.Get("/workspaces/{workspaceId}/cards/board", httpx.H(h.board))
+	r.Get("/workspaces/{workspaceId}/labels", httpx.H(h.labels))
+	r.Post("/workspaces/{workspaceId}/labels", httpx.H(h.createLabel))
+	r.Patch("/labels/{labelId}", httpx.H(h.updateLabel))
+	r.Delete("/labels/{labelId}", httpx.H(h.deleteLabel))
+	r.Get("/cards/{cardId}/checklist", httpx.H(h.checklist))
+	r.Post("/cards/{cardId}/checklist", httpx.H(h.addItem))
+	r.Patch("/checklist-items/{itemId}", httpx.H(h.updateItem))
+	r.Delete("/checklist-items/{itemId}", httpx.H(h.deleteItem))
 	r.Get("/cards/{cardId}", httpx.H(h.get))
 	r.Patch("/cards/{cardId}", httpx.H(h.update))
 	r.Delete("/cards/{cardId}", httpx.H(h.delete))
@@ -71,6 +79,12 @@ func ToAPI(v service.View) api.Card {
 			Icon: api.ProjectIcon(v.Project.Icon), Tone: api.Tone(v.Project.Tone)},
 		Assignees: make([]api.PersonRef, len(v.Assignees)), Position: v.Position, Version: v.Version,
 		CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt, CompletedAt: v.CompletedAt,
+		Labels:       make([]api.Label, len(v.LabelList)),
+		Checklist:    api.ChecklistSummary{Total: v.ChecklistTotal, Done: v.ChecklistDone},
+		CommentCount: v.CommentCount, AttachmentCount: v.AttachmentCount,
+	}
+	for i, l := range v.LabelList {
+		out.Labels[i] = labelToAPI(l)
 	}
 	if v.DueDate != nil {
 		out.DueDate = &openapi_types.Date{Time: *v.DueDate}
@@ -96,6 +110,9 @@ func filterFrom(r *http.Request) domain.Filter {
 	if id, err := uuid.Parse(q.Get("assigneeId")); err == nil {
 		f.AssigneeID = &id
 	}
+	if id, err := uuid.Parse(q.Get("labelId")); err == nil {
+		f.LabelID = &id
+	}
 	return f
 }
 
@@ -114,23 +131,6 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) error {
 		items[i] = ToAPI(v)
 	}
 	httpx.WriteJSON(w, http.StatusOK, api.CardPage{Items: items, Total: total, Page: pg.Page, PageSize: pg.Size})
-	return nil
-}
-
-func counts(c domain.Counts) api.StatusCounts {
-	return api.StatusCounts{Todo: c[domain.Todo], InProgress: c[domain.InProgress], InReview: c[domain.InReview], Done: c[domain.Done]}
-}
-
-func (h *Handler) summary(w http.ResponseWriter, r *http.Request) error {
-	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
-	if err != nil {
-		return err
-	}
-	c, err := h.svc.Counts(r.Context(), userID(r), ws, filterFrom(r))
-	if err != nil {
-		return err
-	}
-	httpx.WriteJSON(w, http.StatusOK, counts(c))
 	return nil
 }
 
@@ -153,11 +153,11 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) error {
 	if in.Priority != nil {
 		nc.Priority = domain.Priority(*in.Priority)
 	}
-	if in.Progress != nil {
-		nc.Progress = *in.Progress
-	}
 	if in.AssigneeIds != nil {
 		nc.AssigneeIDs = *in.AssigneeIds
+	}
+	if in.LabelIds != nil {
+		nc.LabelIDs = *in.LabelIds
 	}
 	v, err := h.svc.Create(r.Context(), userID(r), ws, nc)
 	if err != nil {
@@ -185,9 +185,21 @@ type patchBody struct {
 	Title       optional.Field[string]             `json:"title"`
 	Description optional.Field[string]             `json:"description"`
 	Priority    optional.Field[string]             `json:"priority"`
-	Progress    optional.Field[int]                `json:"progress"`
 	DueDate     optional.Field[openapi_types.Date] `json:"dueDate"`
 	AssigneeIDs optional.Field[[]uuid.UUID]        `json:"assigneeIds"`
+	LabelIDs    optional.Field[[]uuid.UUID]        `json:"labelIds"`
+}
+
+// idList maps a JSON list field to a patch: absent → nil, null or [] → empty list.
+func idList(f optional.Field[[]uuid.UUID]) *[]uuid.UUID {
+	if ids := f.Ptr(); ids != nil {
+		return ids
+	}
+	if f.Set {
+		empty := []uuid.UUID{}
+		return &empty
+	}
+	return nil
 }
 
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) error {
@@ -199,17 +211,11 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) error {
 	if err := httpx.DecodeJSON(w, r, &b); err != nil {
 		return err
 	}
-	p := domain.Patch{Version: b.Version, Title: b.Title.Ptr(), Description: b.Description.Ptr(), Progress: b.Progress.Ptr(),
-		SetDue: b.DueDate.Set, DueDate: fromDate(b.DueDate.Ptr())}
+	p := domain.Patch{Version: b.Version, Title: b.Title.Ptr(), Description: b.Description.Ptr(),
+		SetDue: b.DueDate.Set, DueDate: fromDate(b.DueDate.Ptr()), AssigneeIDs: idList(b.AssigneeIDs), LabelIDs: idList(b.LabelIDs)}
 	if s := b.Priority.Ptr(); s != nil {
 		pr := domain.Priority(*s)
 		p.Priority = &pr
-	}
-	if ids := b.AssigneeIDs.Ptr(); ids != nil {
-		p.AssigneeIDs = ids
-	} else if b.AssigneeIDs.Set {
-		empty := []uuid.UUID{}
-		p.AssigneeIDs = &empty
 	}
 	v, err := h.svc.Update(r.Context(), userID(r), id, p)
 	if err != nil {
@@ -241,6 +247,25 @@ func (h *Handler) move(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func (h *Handler) board(w http.ResponseWriter, r *http.Request) error {
+	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	f := filterFrom(r)
+	f.Status, f.Sort = nil, ""
+	views, truncated, err := h.svc.Board(r.Context(), userID(r), ws, f)
+	if err != nil {
+		return err
+	}
+	items := make([]api.Card, len(views))
+	for i, v := range views {
+		items[i] = ToAPI(v)
+	}
+	httpx.WriteJSON(w, http.StatusOK, api.CardBoard{Items: items, Truncated: truncated})
+	return nil
+}
+
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) error {
 	id, err := param(r, "cardId", domain.ErrNotFound)
 	if err != nil {
@@ -250,82 +275,5 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	httpx.NoContent(w)
-	return nil
-}
-
-func (h *Handler) bulk(w http.ResponseWriter, r *http.Request) error {
-	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
-	if err != nil {
-		return err
-	}
-	var in api.BulkCardAction
-	if err := httpx.DecodeJSON(w, r, &in); err != nil {
-		return err
-	}
-	a := service.BulkAction{IDs: in.Ids, Action: string(in.Action)}
-	if in.Status != nil {
-		s := domain.Status(*in.Status)
-		a.Status = &s
-	}
-	if in.Priority != nil {
-		p := domain.Priority(*in.Priority)
-		a.Priority = &p
-	}
-	n, err := h.svc.Bulk(r.Context(), userID(r), ws, a)
-	if err != nil {
-		return err
-	}
-	httpx.WriteJSON(w, http.StatusOK, api.BulkResult{Updated: n})
-	return nil
-}
-
-func trend(cur, prev int) api.Trend {
-	pct := 0.0
-	if prev > 0 {
-		pct = float64(cur-prev) * 100 / float64(prev)
-	}
-	return api.Trend{Value: cur, Previous: prev, ChangePct: float32(pct)}
-}
-
-func (h *Handler) stats(w http.ResponseWriter, r *http.Request) error {
-	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
-	if err != nil {
-		return err
-	}
-	days, _ := strconv.Atoi(r.URL.Query().Get("days"))
-	st, err := h.svc.Stats(r.Context(), userID(r), ws, days)
-	if err != nil {
-		return err
-	}
-	out := api.DashboardStats{
-		Active: st.KPIs.Active, Total: st.KPIs.Total, InReview: st.KPIs.InReview, Overdue: st.KPIs.Overdue,
-		CompletedThisWeek: trend(st.KPIs.DoneThisWeek, st.KPIs.DonePrevWeek),
-		CreatedThisWeek:   trend(st.KPIs.CreatedThisWeek, st.KPIs.CreatedPrevWeek),
-		StatusCounts:      counts(st.Counts),
-		Daily:             make([]api.DailyActivity, len(st.Daily)),
-		Activity:          make([]api.ActivityItem, len(st.Activity)),
-	}
-	for i, d := range st.Daily {
-		out.Daily[i] = api.DailyActivity{Date: openapi_types.Date{Time: d.Date}, Todo: d.Counts[domain.Todo],
-			InProgress: d.Counts[domain.InProgress], InReview: d.Counts[domain.InReview], Done: d.Counts[domain.Done]}
-	}
-	for i, t := range st.Activity {
-		ref := st.Projects[t.ProjectID]
-		item := api.ActivityItem{Id: t.ID, To: api.TaskStatus(t.To), At: t.At,
-			Project: api.ProjectRef{Id: ref.ID, Key: ref.Key, Name: ref.Name, Icon: api.ProjectIcon(ref.Icon), Tone: api.Tone(ref.Tone)}}
-		item.Card.Id, item.Card.Key, item.Card.Title = t.CardID, ref.Key+"-"+strconv.Itoa(t.Number), t.Title
-		if t.From != nil {
-			f := api.TaskStatus(*t.From)
-			item.From = &f
-		}
-		if t.ActorID != nil {
-			if u, ok := st.Actors[*t.ActorID]; ok {
-				p := person(u.ID, u.Name, u.AvatarURL)
-				item.Actor = &p
-			}
-		}
-		out.Activity[i] = item
-	}
-	httpx.WriteJSON(w, http.StatusOK, out)
 	return nil
 }

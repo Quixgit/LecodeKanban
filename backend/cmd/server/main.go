@@ -50,13 +50,18 @@ func run() error {
 	}
 	defer pool.Close()
 
-	app := build(cfg, pool, log)
+	app, err := build(cfg, pool, log)
+	if err != nil {
+		return err
+	}
+	go app.Realtime.Run(ctx)
 
 	api := &http.Server{
 		Addr: cfg.HTTPAddr, Handler: app.Router,
 		ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 30 * time.Second,
 		WriteTimeout: 60 * time.Second, IdleTimeout: 120 * time.Second,
 	}
+	api.RegisterOnShutdown(app.Realtime.Close) // end SSE streams so Shutdown can drain
 	metricsSrv := &http.Server{Addr: cfg.MetricsAddr, Handler: app.Metrics.Handler(), ReadHeaderTimeout: 5 * time.Second}
 
 	errc := make(chan error, 3)

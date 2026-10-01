@@ -73,6 +73,14 @@ Base URL: `/api/v1`
 | Method | Path | Auth | Request | Responses | Summary |
 | --- | --- | --- | --- | --- | --- |
 | GET | `/projects/{projectId}/board` | session |  | 200 |  |
+| POST | `/projects/{projectId}/board/columns` | session | ColumnInput | 201, 422 Error |  |
+| PATCH | `/columns/{columnId}` | session | ColumnPatch | 200, 422 Error |  |
+| DELETE | `/columns/{columnId}` | session |  | 204, 409 Error, 422 Error |  |
+| POST | `/columns/{columnId}/move` | session | Neighbours | 200 |  |
+| GET | `/workspaces/{workspaceId}/views` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/views` | session | SavedViewInput | 201, 422 Error |  |
+| PATCH | `/views/{viewId}` | session | SavedViewPatch | 200 |  |
+| DELETE | `/views/{viewId}` | session |  | 204 |  |
 
 ## cards
 
@@ -87,6 +95,45 @@ Base URL: `/api/v1`
 | PATCH | `/cards/{cardId}` | session | CardPatch | 200, 409 Error |  |
 | DELETE | `/cards/{cardId}` | session |  | 204 |  |
 | POST | `/cards/{cardId}/move` | session | CardMove | 200, 409 Error |  |
+| GET | `/workspaces/{workspaceId}/cards/board` | session |  | 200 |  |
+| GET | `/workspaces/{workspaceId}/labels` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/labels` | session | LabelInput | 201, 409 Error |  |
+| PATCH | `/labels/{labelId}` | session | LabelPatch | 200 |  |
+| DELETE | `/labels/{labelId}` | session |  | 204 |  |
+| GET | `/cards/{cardId}/checklist` | session |  | 200 |  |
+| POST | `/cards/{cardId}/checklist` | session | ChecklistItemInput | 201 |  |
+| PATCH | `/checklist-items/{itemId}` | session | ChecklistItemPatch | 200 |  |
+| DELETE | `/checklist-items/{itemId}` | session |  | 204 |  |
+
+## comments
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/cards/{cardId}/comments` | session |  | 200 |  |
+| POST | `/cards/{cardId}/comments` | session | CommentInput | 201, 422 Error |  |
+| PATCH | `/comments/{commentId}` | session | CommentInput | 200, 403 Error |  |
+| DELETE | `/comments/{commentId}` | session |  | 204, 403 Error |  |
+
+## attachments
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/cards/{cardId}/attachments` | session |  | 200 |  |
+| POST | `/cards/{cardId}/attachments` | session |  | 201, 413 Error |  |
+| DELETE | `/attachments/{attachmentId}` | session |  | 204, 403 Error |  |
+| GET | `/attachments/{attachmentId}/content` | session |  | 200 |  |
+
+## activity
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/cards/{cardId}/activity` | session |  | 200 |  |
+
+## realtime
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/events` | session |  | 200 |  |
 
 ## system
 
@@ -134,10 +181,30 @@ Base URL: `/api/v1`
 - **ProjectSummary** — `total`: integer, `completed`: integer, `inProgress`: integer, `pending`: integer, `overdue`: integer, `teams`: array
 - **BoardColumn** — `id`: string, `name`: string, `status`: TaskStatus, `position`: string, `wipLimit`: integer \| null
 - **Board** — `id`: string, `projectId`: string, `name`: string, `columns`: array
-- **Card** — `id`: string, `key`: string, `number`: integer, `title`: string, `description`: string, `status`: TaskStatus, `columnId`: string, `priority`: Priority, `progress`: integer, `dueDate`: string \| null, `project`: ProjectRef, `assignees`: array, `position`: string, `version`: integer, `createdAt`: string, `updatedAt`: string, `completedAt`: string \| null
-- **CardInput** — `projectId`: string, `title`: string, `description?`: string, `status?`: TaskStatus, `columnId?`: string, `priority?`: Priority, `progress?`: integer, `dueDate?`: string, `assigneeIds?`: array
-- **CardPatch** — `version`: integer, `title?`: string, `description?`: string, `priority?`: Priority, `progress?`: integer, `dueDate?`: string \| null, `assigneeIds?`: array
+- **Card** — `id`: string, `key`: string, `number`: integer, `title`: string, `description`: string, `status`: TaskStatus, `columnId`: string, `priority`: Priority, `progress`: integer, `dueDate`: string \| null, `project`: ProjectRef, `assignees`: array, `labels`: array, `checklist`: ChecklistSummary, `commentCount`: integer, `attachmentCount`: integer, `position`: string, `version`: integer, `createdAt`: string, `updatedAt`: string, `completedAt`: string \| null
+- **CardInput** — `projectId`: string, `title`: string, `description?`: string, `status?`: TaskStatus, `columnId?`: string, `priority?`: Priority, `dueDate?`: string, `assigneeIds?`: array, `labelIds?`: array
+- **CardPatch** — `version`: integer, `title?`: string, `description?`: string, `priority?`: Priority, `dueDate?`: string \| null, `assigneeIds?`: array, `labelIds?`: array
 - **CardMove** — `version`: integer, `columnId?`: string, `status?`: TaskStatus, `afterId?`: string \| null, `beforeId?`: string \| null
+- **CardBoard** — `items`: array, `truncated`: boolean
+- **Label** — `id`: string, `name`: string, `tone`: Tone
+- **LabelInput** — `name`: string, `tone?`: Tone
+- **LabelPatch** — `name?`: string, `tone?`: Tone
+- **ChecklistSummary** — `total`: integer, `done`: integer
+- **ChecklistItem** — `id`: string, `text`: string, `done`: boolean, `position`: string, `completedAt`: string \| null
+- **ChecklistItemInput** — `text`: string
+- **ChecklistItemPatch** — `text?`: string, `done?`: boolean, `move?`: Neighbours
+- **Neighbours** — `afterId?`: string \| null, `beforeId?`: string \| null
+- **ColumnInput** — `name`: string, `status`: TaskStatus, `wipLimit?`: integer \| null
+- **ColumnPatch** — `name?`: string, `wipLimit?`: integer \| null
+- **SavedView** — `id`: string, `name`: string, `config`: object, `createdAt`: string, `updatedAt`: string
+- **SavedViewInput** — `name`: string, `config`: object
+- **SavedViewPatch** — `name?`: string, `config?`: object
+- **Comment** — `id`: string, `cardId`: string, `author`: object \| null, `body`: string, `mentions`: array, `createdAt`: string, `editedAt`: string \| null
+- **CommentInput** — `body`: string
+- **Attachment** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `previewable`: boolean, `uploadedBy`: object \| null, `createdAt`: string
+- **ActivityEntry** — `id`: integer, `kind`: string, `data`: object, `actor`: object \| null, `at`: string
+- **ActivityPage** — `items`: array, `nextBefore`: integer \| null
+- **RealtimeMessage** — `type`: string, `workspaceId`: string, `projectId?`: string, `cardId?`: string, `actorId?`: string
 - **CardPage** — `items`: array, `total`: integer, `page`: integer, `pageSize`: integer
 - **StatusCounts** — `todo`: integer, `in_progress`: integer, `in_review`: integer, `done`: integer
 - **BulkCardAction** — `ids`: array, `action`: string, `status?`: TaskStatus, `priority?`: Priority

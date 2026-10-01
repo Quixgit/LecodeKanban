@@ -42,7 +42,7 @@ type cardSeed struct {
 	Project, Title, Status, Priority string
 	Assignees                        []string
 	DueDays                          int // relative to today; 0 = none
-	Progress                         int
+	Progress                         int // approximate: becomes the share of checked checklist items
 }
 
 var cardsSeed = []cardSeed{
@@ -92,4 +92,51 @@ var cardsSeed = []cardSeed{
 	{"DEV", "Partner OAuth app registration", "in_review", "high", []string{"michael"}, 7, 92},
 	{"PLT", "Feature flag service evaluation", "in_review", "low", []string{"timmy"}, 11, 88},
 	{"OBS", "Service level objectives draft", "in_progress", "medium", []string{"nina"}, 13, 20},
+}
+
+// checklistSteps is the checklist given to started cards; Progress decides how many are checked.
+var checklistSteps = []string{"Clarify scope and acceptance criteria", "Implement", "Write tests", "Update documentation", "Get sign-off"}
+
+type labelSeed struct {
+	Name, Tone string
+	Keywords   []string // case-insensitive title matches
+}
+
+var labelsSeed = []labelSeed{
+	{"Frontend", "teal", []string{"ui", "screen", "navigation", "tour", "page", "poster", "accessibility"}},
+	{"Backend", "purple", []string{"api", "server", "postgresql", "job queue", "authentication", "sync", "oauth", "sandbox"}},
+	{"Bug", "red", []string{"fix", "crash"}},
+	{"Design", "amber", []string{"design", "redesign", "template"}},
+	{"Docs", "neutral", []string{"runbook", "policy", "handbook", "reference", "checklist", "draft"}},
+}
+
+// commentThread is a short conversation on a card: {author, text}; {name} placeholders become
+// mentions of that person.
+type commentThread struct {
+	Card     string
+	Messages [][2]string
+}
+
+var commentsSeed = []commentThread{
+	{"Schedule onboarding calls with first 20 customers", [][2]string{
+		{"nina", "Booked 11 calls so far. {lisa} could you take the EMEA slots on Thursday?"},
+		{"lisa", "Sure, added them to my calendar. I'll share notes in the doc afterwards."},
+	}},
+	{"Offline sync for task lists", [][2]string{
+		{"daniel", "Conflict resolution is the tricky part — proposing last-writer-wins per field. {timmy} thoughts?"},
+		{"timmy", "Agreed for text fields. For checklists we should merge item sets instead."},
+	}},
+	{"Migrate DNS to new provider", [][2]string{
+		{"leo", "TTLs lowered to 300s. Cutover planned after the maintenance window."},
+	}},
+	{"Gather system requirements from Marketing", [][2]string{
+		{"jesslyn", "Requirements doc is ready for review. {peter} please sign off when you have a minute."},
+	}},
+	{"Upgrade PostgreSQL to 16", [][2]string{
+		{"michael", "Replica is on 16 and stable for 48h. {daniel} can we schedule the primary switchover?"},
+		{"daniel", "Let's do Tuesday 06:00 UTC, lowest traffic."},
+	}},
+	{"Redesign bottom navigation", [][2]string{
+		{"jesslyn", "New prototype uploaded. Feedback welcome before Friday!"},
+	}},
 }
