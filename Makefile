@@ -13,7 +13,7 @@ ENV := set -a; [ -f .env ] && . ./.env; set +a;
 
 .PHONY: help install deps-up deps-down dev dev-api dev-web migrate-up migrate-down migrate-status \
         migrate-create seed gen gen-check build test test-backend test-frontend cover lint lint-backend \
-        lint-frontend fmt check clean
+        lint-frontend fmt check clean deploy deploy-ps deploy-logs deploy-down
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -21,6 +21,20 @@ help: ## Show available targets
 install: ## Install Go modules and npm packages
 	cd $(BE) && go mod download
 	cd $(FE) && npm ci
+
+# ---------------------------------------------------------------- production stack (docs/adr/0009)
+
+deploy: ## Build images and (re)start the always-on stack (docker-compose.yml)
+	docker compose up -d --build --wait
+
+deploy-ps: ## Status of the production containers
+	docker compose ps
+
+deploy-logs: ## Follow API, worker and web logs
+	docker compose logs -f --tail 100 api worker web
+
+deploy-down: ## Stop the production stack (data volume is kept)
+	docker compose down
 
 # ---------------------------------------------------------------- local dev
 

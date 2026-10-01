@@ -37,6 +37,23 @@ make dev                  # Postgres + Mailpit, migrations, API (hot reload) and
 Register at `/register`. The verification email arrives in Mailpit. Invite teammates from **Team**.
 Press <kbd>Ctrl/⌘</kbd>+<kbd>K</kbd> anywhere for the command palette.
 
+## Always-on deployment (this host)
+
+The app runs permanently from `docker-compose.yml` (Postgres, Mailpit, migrations, API, worker,
+nginx serving the SPA and proxying `/api`). Every service uses `restart: unless-stopped`, so the
+Docker daemon brings it back after crashes and reboots — no terminal session needed.
+
+```bash
+make deploy        # build images + (re)start; run after pulling new code
+make deploy-ps     # container status / health
+make deploy-logs   # follow api, worker and web logs
+```
+
+Only port `47100` is public. Postgres (`127.0.0.1:47102`) and SMTP stay on loopback, so
+`make seed` / `make migrate-up` from the host keep working. While the stack runs, ports
+47100–47105 are taken: for hot-reload development stop it first (`make deploy-down`, then `make dev`).
+See [ADR 0009](docs/adr/0009-always-on-docker-deployment.md).
+
 ## Make targets
 
 | Target | What it does |

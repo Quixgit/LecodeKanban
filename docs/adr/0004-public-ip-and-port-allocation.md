@@ -16,7 +16,7 @@ LecodeKanban reserves the **47100–47109** range:
 | Port | Service | Bind |
 | --- | --- | --- |
 | 47100 | Web (Vite dev server now; nginx serving the SPA in production) | `0.0.0.0` |
-| 47101 | Go API (REST + WebSocket) | `0.0.0.0` in prod compose, `127.0.0.1` in dev (Vite proxies `/api`) |
+| 47101 | Go API (REST + WebSocket) | internal compose network in prod (nginx proxies `/api`, ADR 0009), `127.0.0.1` in dev (Vite proxies `/api`) |
 | 47102 | PostgreSQL | `127.0.0.1` only |
 | 47103 | Redis | `127.0.0.1` only |
 

@@ -1,0 +1,102 @@
+# Production stack for this host (docs/adr/0009). Every service restarts automatically,
+# including after a reboot (the Docker daemon brings `unless-stopped` containers back).
+# Only the web entrypoint is public; databases and the API stay on loopback / the internal network.
+#
+#   docker compose up -d --build     # deploy / update
+#   docker compose logs -f api web   # follow logs
+name: lecodekanban
+
+x-backend-env: &backend-env
+  LK_ENV: production
+  LK_LOG_LEVEL: ${LK_LOG_LEVEL:-info}
+  LK_HTTP_ADDR: ":47101"
+  LK_METRICS_ADDR: ":47106"
+  LK_PUBLIC_URL: ${LK_PUBLIC_URL:?set LK_PUBLIC_URL in .env}
+  LK_CORS_ORIGINS: ${LK_CORS_ORIGINS:-}
+  LK_TRUST_PROXY: "true"
+  LK_COOKIE_SECURE: ${LK_COOKIE_SECURE:-false}
+  LK_EMBEDDED_WORKER: "false"
+  LK_DATABASE_URL: postgres://lecodekanban:${LK_POSTGRES_PASSWORD}@postgres:5432/lecodekanban?sslmode=disable
+  LK_SECRET_KEY: ${LK_SECRET_KEY:?set LK_SECRET_KEY in .env}
+  LK_ENCRYPTION_KEY: ${LK_ENCRYPTION_KEY:?set LK_ENCRYPTION_KEY in .env}
+  LK_SMTP_HOST: ${LK_PROD_SMTP_HOST:-mailpit}
+  LK_SMTP_PORT: ${LK_PROD_SMTP_PORT:-1025}
+  LK_SMTP_TLS: ${LK_PROD_SMTP_TLS:-none}
+  LK_SMTP_USERNAME: ${LK_SMTP_USERNAME:-}
+  LK_SMTP_PASSWORD: ${LK_SMTP_PASSWORD:-}
+  LK_SMTP_FROM: ${LK_SMTP_FROM:-LecodeKanban <no-reply@lecodekanban.local>}
+  LK_GOOGLE_CLIENT_ID: ${LK_GOOGLE_CLIENT_ID:-}
+  LK_GOOGLE_CLIENT_SECRET: ${LK_GOOGLE_CLIENT_SECRET:-}
+  LK_GITHUB_CLIENT_ID: ${LK_GITHUB_CLIENT_ID:-}
+  LK_GITHUB_CLIENT_SECRET: ${LK_GITHUB_CLIENT_SECRET:-}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lecodekanban
+      POSTGRES_PASSWORD: ${LK_POSTGRES_PASSWORD:?set LK_POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: lecodekanban
+    ports:
+      # loopback only — lets `make migrate-up` / `make seed` / backups run from the host
+      - "127.0.0.1:${LK_POSTGRES_PORT:-47102}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lecodekanban -d lecodekanban"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    environment:
+      MP_UI_AUTH: ${LK_MAILPIT_UI_AUTH:?set LK_MAILPIT_UI_AUTH=user:password in .env}
+      MP_MAX_MESSAGES: 2000
+    ports:
+      - "127.0.0.1:${LK_SMTP_PORT:-47104}:1025"
+      - "0.0.0.0:${LK_MAILPIT_UI_PORT:-47105}:8025"
+
+  migrate:
+    build: ./backend
+    image: lecodekanban-backend:latest
+    entrypoint: ["/app/migrate", "up"]
+    environment: *backend-env
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  api:
+    image: lecodekanban-backend:latest
+    restart: unless-stopped
+    environment: *backend-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    stop_grace_period: 20s
+
+  worker:
+    image: lecodekanban-backend:latest
+    entrypoint: ["/app/worker"]
+    restart: unless-stopped
+    environment: *backend-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck: { disable: true }
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_TEAM_MEETING_URL: ${VITE_TEAM_MEETING_URL:-}
+        VITE_GMAIL_INBOX_URL: ${VITE_GMAIL_INBOX_URL:-https://mail.google.com/mail/u/0/#inbox}
+    image: lecodekanban-web:latest
+    restart: unless-stopped
+    ports:
+      - "${LK_WEB_HOST:-0.0.0.0}:${LK_WEB_PORT:-47100}:8080"
+    depends_on:
+      api: { condition: service_healthy }
+
+volumes:
+  pgdata:
