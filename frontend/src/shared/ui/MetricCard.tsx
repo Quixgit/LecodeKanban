@@ -9,6 +9,8 @@ export interface MetricCardProps {
   total?: ReactNode;
   trend?: number;
   trendLabel?: ReactNode;
+  /** Secondary line shown when there is no trend. */
+  caption?: ReactNode;
   /** Top-right slot, typically an IconButton with "…" menu. */
   menu?: ReactNode;
   className?: string;
@@ -21,6 +23,7 @@ export function MetricCard({
   total,
   trend,
   trendLabel,
+  caption,
   menu,
   className,
 }: MetricCardProps) {
@@ -34,6 +37,7 @@ export function MetricCard({
         {value}
         {total !== undefined && <span className="font-medium text-text-faint"> / {total}</span>}
       </p>
+      {trend === undefined && caption && <p className="text-sm text-text-secondary">{caption}</p>}
       {trend !== undefined && (
         <div className="flex items-center gap-2 text-sm text-text-secondary">
           <TrendChip value={trend} />

@@ -190,3 +190,84 @@ func TestOAuthStartUnconfiguredAndHealth(t *testing.T) {
 		t.Fatalf("unknown route: %d", code)
 	}
 }
+
+func TestEndToEndProjectsAndCards(t *testing.T) {
+	srv := newServer(t)
+	c := newClient(t, srv.URL)
+	c.do("GET", "/api/v1/auth/csrf", nil, nil)
+	c.do("POST", "/api/v1/auth/register", map[string]any{"name": "Peter", "email": "p@example.com", "password": "Kanban-Board-2026", "locale": "uk"}, nil)
+	var spaces []struct {
+		ID string `json:"id"`
+	}
+	c.do("GET", "/api/v1/workspaces", nil, &spaces)
+	ws := spaces[0].ID
+
+	var project struct {
+		ID, Key string
+		Team    *string
+	}
+	if code := c.do("POST", "/api/v1/workspaces/"+ws+"/projects", map[string]any{"name": "Kanban Core", "team": "Engineering", "deadline": "2030-01-31"}, &project); code != 201 || project.Key != "KC" {
+		t.Fatalf("create project: %d %+v", code, project)
+	}
+	var board struct {
+		Columns []struct{ ID, Name, Status string } `json:"columns"`
+	}
+	if code := c.do("GET", "/api/v1/projects/"+project.ID+"/board", nil, &board); code != 200 || len(board.Columns) != 4 || board.Columns[0].Name != "До виконання" {
+		t.Fatalf("board: %d %+v", code, board)
+	}
+
+	type card struct {
+		ID, Key, Status string
+		Version         int
+		DueDate         *string `json:"dueDate"`
+	}
+	var cd card
+	if code := c.do("POST", "/api/v1/workspaces/"+ws+"/cards", map[string]any{"projectId": project.ID, "title": "Ship it", "dueDate": "2030-01-10"}, &cd); code != 201 || cd.Key != "KC-1" {
+		t.Fatalf("create card: %d %+v", code, cd)
+	}
+	// null clears the due date; absent fields stay.
+	if code := c.do("PATCH", "/api/v1/cards/"+cd.ID, map[string]any{"version": cd.Version, "dueDate": nil}, &cd); code != 200 || cd.DueDate != nil {
+		t.Fatalf("patch: %d %+v", code, cd)
+	}
+	var e errBody
+	if code := c.do("PATCH", "/api/v1/cards/"+cd.ID, map[string]any{"version": 1, "title": "x"}, &e); code != 409 || e.Error.Code != "cards.version_conflict" {
+		t.Fatalf("stale patch: %d %s", code, e.Error.Code)
+	}
+	if code := c.do("POST", "/api/v1/cards/"+cd.ID+"/move", map[string]any{"version": cd.Version, "status": "done"}, &cd); code != 200 || cd.Status != "done" {
+		t.Fatalf("move: %d %+v", code, cd)
+	}
+
+	var page struct {
+		Items []card `json:"items"`
+		Total int    `json:"total"`
+	}
+	if code := c.do("GET", "/api/v1/workspaces/"+ws+"/cards?status=done&q=kc-1&sort=deadline&order=asc&pageSize=5", nil, &page); code != 200 || page.Total != 1 {
+		t.Fatalf("list: %d %+v", code, page)
+	}
+	var counts map[string]int
+	c.do("GET", "/api/v1/workspaces/"+ws+"/cards/summary", nil, &counts)
+	if counts["done"] != 1 || counts["todo"] != 0 {
+		t.Fatalf("counts %v", counts)
+	}
+	var proj struct {
+		Progress  int `json:"progress"`
+		TaskCount int `json:"taskCount"`
+	}
+	c.do("GET", "/api/v1/projects/"+project.ID, nil, &proj)
+	if proj.Progress != 100 || proj.TaskCount != 1 {
+		t.Fatalf("project counters %+v", proj)
+	}
+	var stats struct {
+		Daily    []map[string]any `json:"daily"`
+		Activity []map[string]any `json:"activity"`
+	}
+	if code := c.do("GET", "/api/v1/workspaces/"+ws+"/cards/stats?days=14", nil, &stats); code != 200 || len(stats.Daily) != 14 || len(stats.Activity) != 2 {
+		t.Fatalf("stats: %d daily=%d activity=%d", code, len(stats.Daily), len(stats.Activity))
+	}
+	if code := c.do("PATCH", "/api/v1/projects/"+project.ID, map[string]any{"team": nil}, &project); code != 200 || project.Team != nil {
+		t.Fatalf("clear team: %d %+v", code, project)
+	}
+	if code := c.do("GET", "/api/v1/workspaces/"+ws+"/projects?team=Engineering", nil, &page); code != 200 || page.Total != 0 {
+		t.Fatalf("filter after clear: %d %d", code, page.Total)
+	}
+}

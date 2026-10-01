@@ -12,7 +12,7 @@ GOLANGCI ?= golangci-lint
 ENV := set -a; [ -f .env ] && . ./.env; set +a;
 
 .PHONY: help install deps-up deps-down dev dev-api dev-web migrate-up migrate-down migrate-status \
-        migrate-create gen gen-check build test test-backend test-frontend cover lint lint-backend \
+        migrate-create seed gen gen-check build test test-backend test-frontend cover lint lint-backend \
         lint-frontend fmt check clean
 
 help: ## Show available targets
@@ -49,6 +49,9 @@ migrate-down: ## Roll back the last migration
 
 migrate-status: ## Show migration status
 	$(ENV) cd $(BE) && go run ./cmd/migrate status
+
+seed: ## Load demo data (people, projects, tasks, history); add RESET=1 to recreate
+	$(ENV) cd $(BE) && go run ./cmd/seed $(if $(RESET),-reset,)
 
 migrate-create: ## Create a migration: make migrate-create name=add_boards
 	@test -n "$(name)" || (echo "usage: make migrate-create name=<snake_case>" && exit 1)

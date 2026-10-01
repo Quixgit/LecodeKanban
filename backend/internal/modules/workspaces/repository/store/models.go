@@ -10,6 +10,67 @@ import (
 	"github.com/google/uuid"
 )
 
+type Board struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	ProjectID   uuid.UUID
+	Name        string
+	CreatedAt   time.Time
+}
+
+type BoardColumn struct {
+	ID        uuid.UUID
+	BoardID   uuid.UUID
+	Name      string
+	Category  string
+	Position  string
+	WipLimit  *int32
+	CreatedAt time.Time
+}
+
+type Card struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	ProjectID   uuid.UUID
+	BoardID     uuid.UUID
+	ColumnID    uuid.UUID
+	Number      int32
+	Title       string
+	Description string
+	Status      string
+	Priority    string
+	Progress    int16
+	DueDate     *time.Time
+	Position    string
+	Version     int32
+	CreatedBy   uuid.NullUUID
+	CompletedAt *time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	ArchivedAt  *time.Time
+}
+
+type CardAssignee struct {
+	CardID uuid.UUID
+	UserID uuid.UUID
+}
+
+type CardCounter struct {
+	ProjectID uuid.UUID
+	Next      int32
+}
+
+type CardTransition struct {
+	ID          int64
+	CardID      uuid.UUID
+	WorkspaceID uuid.UUID
+	ProjectID   uuid.UUID
+	FromStatus  *string
+	ToStatus    string
+	ActorID     uuid.NullUUID
+	At          time.Time
+}
+
 type Job struct {
 	ID             int64
 	Kind           string
@@ -25,6 +86,37 @@ type Job struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	CompletedAt    *time.Time
+}
+
+type Project struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Key         string
+	Name        string
+	Description string
+	Status      string
+	PicUserID   uuid.NullUUID
+	Team        *string
+	Icon        string
+	Tone        string
+	StartDate   *time.Time
+	Deadline    *time.Time
+	TaskCount   int32
+	DoneCount   int32
+	CreatedBy   uuid.NullUUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	ArchivedAt  *time.Time
+}
+
+type ProjectDirectory struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Key         string
+	Name        string
+	Icon        string
+	Tone        string
+	ArchivedAt  *time.Time
 }
 
 type RefreshToken struct {
@@ -52,6 +144,13 @@ type User struct {
 	LockedUntil      *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+}
+
+type UserDirectory struct {
+	ID        uuid.UUID
+	Name      string
+	Email     string
+	AvatarUrl *string
 }
 
 type UserIdentity struct {

@@ -393,6 +393,186 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listProjects"];
+        put?: never;
+        post: operations["createProject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/projects/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["projectSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{projectId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getProject"];
+        put?: never;
+        post?: never;
+        delete: operations["archiveProject"];
+        options?: never;
+        head?: never;
+        patch: operations["updateProject"];
+        trace?: never;
+    };
+    "/projects/{projectId}/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getBoard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listCards"];
+        put?: never;
+        post: operations["createCard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/cards/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["cardStatusCounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/cards/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bulkCards"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/cards/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["cardStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cards/{cardId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getCard"];
+        put?: never;
+        post?: never;
+        delete: operations["deleteCard"];
+        options?: never;
+        head?: never;
+        patch: operations["updateCard"];
+        trace?: never;
+    };
+    "/cards/{cardId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["moveCard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/i18n/error-codes": {
         parameters: {
             query?: never;
@@ -544,6 +724,250 @@ export interface components {
             expired: boolean;
             accepted: boolean;
         };
+        /** @enum {string} */
+        TaskStatus: "todo" | "in_progress" | "in_review" | "done";
+        /** @enum {string} */
+        Priority: "high" | "medium" | "low";
+        /** @enum {string} */
+        ProjectStatus: "pending" | "in_progress" | "completed";
+        /** @enum {string} */
+        Tone: "teal" | "amber" | "purple" | "red" | "neutral";
+        /** @enum {string} */
+        ProjectIcon: "folder" | "rocket" | "shield" | "code" | "target" | "sparkles" | "globe" | "megaphone" | "layers" | "flask";
+        PersonRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            avatarUrl: string | null;
+        };
+        ProjectRef: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            tone: components["schemas"]["Tone"];
+            icon: components["schemas"]["ProjectIcon"];
+        };
+        Project: {
+            /** Format: uuid */
+            id: string;
+            /** @example LK */
+            key: string;
+            name: string;
+            description: string;
+            status: components["schemas"]["ProjectStatus"];
+            overdue: boolean;
+            pic: components["schemas"]["PersonRef"] | null;
+            picRole: components["schemas"]["Role"] | null;
+            team: string | null;
+            icon: components["schemas"]["ProjectIcon"];
+            tone: components["schemas"]["Tone"];
+            /** Format: date */
+            startDate: string | null;
+            /** Format: date */
+            deadline: string | null;
+            taskCount: number;
+            doneCount: number;
+            progress: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ProjectInput: {
+            name: string;
+            /** @description 2–6 uppercase letters/digits; derived from the name when omitted */
+            key?: string;
+            description?: string;
+            status?: components["schemas"]["ProjectStatus"];
+            /** Format: uuid */
+            picId?: string;
+            team?: string;
+            icon?: components["schemas"]["ProjectIcon"];
+            tone?: components["schemas"]["Tone"];
+            /** Format: date */
+            startDate?: string;
+            /** Format: date */
+            deadline?: string;
+        };
+        /** @description Absent fields are unchanged; null clears nullable fields. */
+        ProjectPatch: {
+            name?: string;
+            description?: string;
+            status?: components["schemas"]["ProjectStatus"];
+            /** Format: uuid */
+            picId?: string | null;
+            team?: string | null;
+            icon?: components["schemas"]["ProjectIcon"];
+            tone?: components["schemas"]["Tone"];
+            /** Format: date */
+            startDate?: string | null;
+            /** Format: date */
+            deadline?: string | null;
+        };
+        ProjectPage: {
+            items: components["schemas"]["Project"][];
+            total: number;
+            page: number;
+            pageSize: number;
+        };
+        ProjectSummary: {
+            total: number;
+            completed: number;
+            inProgress: number;
+            pending: number;
+            overdue: number;
+            teams: string[];
+        };
+        BoardColumn: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            status: components["schemas"]["TaskStatus"];
+            position: string;
+            wipLimit: number | null;
+        };
+        Board: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            projectId: string;
+            name: string;
+            columns: components["schemas"]["BoardColumn"][];
+        };
+        Card: {
+            /** Format: uuid */
+            id: string;
+            /** @example LK-12 */
+            key: string;
+            number: number;
+            title: string;
+            description: string;
+            status: components["schemas"]["TaskStatus"];
+            /** Format: uuid */
+            columnId: string;
+            priority: components["schemas"]["Priority"];
+            progress: number;
+            /** Format: date */
+            dueDate: string | null;
+            project: components["schemas"]["ProjectRef"];
+            assignees: components["schemas"]["PersonRef"][];
+            position: string;
+            /** @description Optimistic concurrency token; send it back on update/move */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            completedAt: string | null;
+        };
+        CardInput: {
+            /** Format: uuid */
+            projectId: string;
+            title: string;
+            description?: string;
+            status?: components["schemas"]["TaskStatus"];
+            /** Format: uuid */
+            columnId?: string;
+            priority?: components["schemas"]["Priority"];
+            progress?: number;
+            /** Format: date */
+            dueDate?: string;
+            assigneeIds?: string[];
+        };
+        /** @description Absent fields are unchanged; dueDate null clears it. */
+        CardPatch: {
+            version: number;
+            title?: string;
+            description?: string;
+            priority?: components["schemas"]["Priority"];
+            progress?: number;
+            /** Format: date */
+            dueDate?: string | null;
+            assigneeIds?: string[];
+        };
+        /** @description Target column (or status → its first column) and neighbours; omitted neighbours append to the end. */
+        CardMove: {
+            version: number;
+            /** Format: uuid */
+            columnId?: string;
+            status?: components["schemas"]["TaskStatus"];
+            /**
+             * Format: uuid
+             * @description Card that will be directly above
+             */
+            afterId?: string | null;
+            /**
+             * Format: uuid
+             * @description Card that will be directly below
+             */
+            beforeId?: string | null;
+        };
+        CardPage: {
+            items: components["schemas"]["Card"][];
+            total: number;
+            page: number;
+            pageSize: number;
+        };
+        StatusCounts: {
+            todo: number;
+            in_progress: number;
+            in_review: number;
+            done: number;
+        };
+        BulkCardAction: {
+            ids: string[];
+            /** @enum {string} */
+            action: "move" | "priority" | "delete";
+            status?: components["schemas"]["TaskStatus"];
+            priority?: components["schemas"]["Priority"];
+        };
+        BulkResult: {
+            updated: number;
+        };
+        DailyActivity: {
+            /** Format: date */
+            date: string;
+            /** @description Cards created */
+            todo: number;
+            in_progress: number;
+            in_review: number;
+            done: number;
+        };
+        ActivityItem: {
+            /** Format: int64 */
+            id: number;
+            card: {
+                /** Format: uuid */
+                id: string;
+                key: string;
+                title: string;
+            };
+            project: components["schemas"]["ProjectRef"];
+            actor: components["schemas"]["PersonRef"] | null;
+            from: components["schemas"]["TaskStatus"] | null;
+            to: components["schemas"]["TaskStatus"];
+            /** Format: date-time */
+            at: string;
+        };
+        Trend: {
+            value: number;
+            previous: number;
+            /** @description Percent change vs previous period (0 when previous is 0) */
+            changePct: number;
+        };
+        DashboardStats: {
+            active: number;
+            total: number;
+            inReview: number;
+            overdue: number;
+            completedThisWeek: components["schemas"]["Trend"];
+            createdThisWeek: components["schemas"]["Trend"];
+            statusCounts: components["schemas"]["StatusCounts"];
+            daily: components["schemas"]["DailyActivity"][];
+            activity: components["schemas"]["ActivityItem"][];
+        };
     };
     responses: {
         /** @description Authenticated session */
@@ -568,6 +992,17 @@ export interface components {
     parameters: {
         Provider: "google" | "github";
         WorkspaceId: string;
+        ProjectId: string;
+        CardId: string;
+        Page: number;
+        PageSize: number;
+        CardStatus: components["schemas"]["TaskStatus"];
+        CardProjectId: string;
+        CardAssigneeId: string;
+        CardPriority: components["schemas"]["Priority"];
+        /** @description Search in title or key (e.g. LK-12) */
+        CardQuery: string;
+        CardDue: "overdue" | "today" | "week" | "month" | "none";
     };
     requestBodies: never;
     headers: never;
@@ -1207,6 +1642,420 @@ export interface operations {
             };
             403: components["responses"]["Error"];
             410: components["responses"]["Error"];
+        };
+    };
+    listProjects: {
+        parameters: {
+            query?: {
+                /** @description Search in name or key */
+                q?: string;
+                status?: components["schemas"]["ProjectStatus"];
+                picId?: string;
+                team?: string;
+                progress?: "not_started" | "early" | "midway" | "almost" | "done";
+                deadline?: "overdue" | "week" | "month" | "later" | "none";
+                sort?: "updated" | "name" | "deadline" | "progress" | "created";
+                order?: "asc" | "desc";
+                page?: components["parameters"]["Page"];
+                pageSize?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Projects page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPage"];
+                };
+            };
+        };
+    };
+    createProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    projectSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description KPI counts and filter facets */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectSummary"];
+                };
+            };
+        };
+    };
+    getProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Project */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    archiveProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Archived */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    updateProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    getBoard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Board with ordered columns */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Board"];
+                };
+            };
+        };
+    };
+    listCards: {
+        parameters: {
+            query?: {
+                status?: components["parameters"]["CardStatus"];
+                projectId?: components["parameters"]["CardProjectId"];
+                assigneeId?: components["parameters"]["CardAssigneeId"];
+                priority?: components["parameters"]["CardPriority"];
+                /** @description Search in title or key (e.g. LK-12) */
+                q?: components["parameters"]["CardQuery"];
+                due?: components["parameters"]["CardDue"];
+                sort?: "key" | "title" | "assignee" | "project" | "progress" | "deadline" | "priority" | "position" | "updated";
+                order?: "asc" | "desc";
+                page?: components["parameters"]["Page"];
+                pageSize?: components["parameters"]["PageSize"];
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cards page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardPage"];
+                };
+            };
+        };
+    };
+    createCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    cardStatusCounts: {
+        parameters: {
+            query?: {
+                projectId?: components["parameters"]["CardProjectId"];
+                assigneeId?: components["parameters"]["CardAssigneeId"];
+                priority?: components["parameters"]["CardPriority"];
+                /** @description Search in title or key (e.g. LK-12) */
+                q?: components["parameters"]["CardQuery"];
+                due?: components["parameters"]["CardDue"];
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Card counts per status for the same filters as listCards */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusCounts"];
+                };
+            };
+        };
+    };
+    bulkCards: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkCardAction"];
+            };
+        };
+        responses: {
+            /** @description Number of cards changed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkResult"];
+                };
+            };
+        };
+    };
+    cardStats: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Dashboard KPIs, daily activity and recent transitions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardStats"];
+                };
+            };
+        };
+    };
+    getCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Card */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    deleteCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Archived */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            409: components["responses"]["Error"];
+        };
+    };
+    moveCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardMove"];
+            };
+        };
+        responses: {
+            /** @description Moved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            409: components["responses"]["Error"];
         };
     };
     listErrorCodes: {

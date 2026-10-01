@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useMatches } from 'react-router-dom';
+import { useSession } from '@/features/auth';
 import { fadeUp } from '@/shared/motion';
 
 export interface RouteHandle {
@@ -16,7 +17,10 @@ function isRouteHandle(h: unknown): h is RouteHandle {
 /** Title + subtitle of the deepest route that declares a handle. */
 export function PageTitle() {
   const { t } = useTranslation('nav');
+  const { user } = useSession();
   const matches = useMatches();
+  // Titles may greet the user ("Hello, {{name}}!") — first name only.
+  const name = user?.name.split(/\s+/)[0] ?? '';
   const handle = [...matches]
     .reverse()
     .map((m) => m.handle)
@@ -33,7 +37,7 @@ export function PageTitle() {
         exit="exit"
         className="min-w-0"
       >
-        <h1 className="truncate text-md font-semibold text-text">{t(handle.titleKey)}</h1>
+        <h1 className="truncate text-md font-semibold text-text">{t(handle.titleKey, { name })}</h1>
         {handle.subtitleKey && (
           <p className="hidden truncate text-sm text-text-secondary md:block">
             {t(handle.subtitleKey)}

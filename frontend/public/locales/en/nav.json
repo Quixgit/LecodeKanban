@@ -36,7 +36,7 @@
   },
   "pages": {
     "dashboard": {
-      "title": "Dashboard",
+      "title": "Hello, {{name}}!",
       "subtitle": "New day, fresh energy. Let's ship!"
     },
     "projects": {

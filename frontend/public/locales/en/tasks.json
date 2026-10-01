@@ -1,0 +1,100 @@
+{
+  "search": "Search Task…",
+  "filter": "Filter",
+  "filters": {
+    "title": "Filter tasks",
+    "project": "Project",
+    "assignee": "Assignee",
+    "priority": "Priority",
+    "due": "Due",
+    "any": "Any",
+    "me": "Assigned to me",
+    "clear": "Clear",
+    "dueOptions": {
+      "overdue": "Overdue",
+      "today": "Due today",
+      "week": "Next 7 days",
+      "month": "Next 30 days",
+      "none": "No due date"
+    }
+  },
+  "add": "Add Task",
+  "viewAll": "View All",
+  "collapse": "Collapse {{status}}",
+  "expand": "Expand {{status}}",
+  "backToAll": "All tasks",
+  "columns": {
+    "key": "Task ID",
+    "title": "Task Name",
+    "assignee": "Assignee",
+    "project": "Project Name",
+    "progress": "Progress",
+    "deadline": "Deadline",
+    "priority": "Priority",
+    "action": "Action"
+  },
+  "unassigned": "Unassigned",
+  "noDue": "—",
+  "more": "+{{count}}",
+  "select": {
+    "all": "Select all tasks in {{status}}",
+    "row": "Select {{key}}"
+  },
+  "row": {
+    "actions": "Actions for {{key}}",
+    "edit": "Edit task",
+    "moveTo": "Move to",
+    "delete": "Delete task"
+  },
+  "bulk": {
+    "selected_one": "{{count}} task selected",
+    "selected_other": "{{count}} tasks selected",
+    "move": "Move to",
+    "priority": "Set priority",
+    "delete": "Delete",
+    "clear": "Clear selection",
+    "done_one": "{{count}} task updated",
+    "done_other": "{{count}} tasks updated",
+    "deleted_one": "{{count}} task deleted",
+    "deleted_other": "{{count}} tasks deleted",
+    "confirmTitle_one": "Delete {{count}} task?",
+    "confirmTitle_other": "Delete {{count}} tasks?",
+    "confirmBody": "Deleted tasks disappear from lists, boards and the dashboard."
+  },
+  "empty": {
+    "group": "No tasks here yet.",
+    "filtered": "No tasks match your filters.",
+    "noProjects": "Create a project first — tasks always belong to a project.",
+    "createProject": "Go to Projects"
+  },
+  "form": {
+    "createTitle": "New task",
+    "editTitle": "Edit {{key}}",
+    "title": "Title",
+    "titlePlaceholder": "What needs to be done?",
+    "description": "Description",
+    "descriptionPlaceholder": "Add details, links or acceptance criteria (Markdown supported)",
+    "project": "Project",
+    "status": "Status",
+    "priority": "Priority",
+    "assignees": "Assignees",
+    "assigneesPlaceholder": "Choose people",
+    "dueDate": "Due date",
+    "progress": "Progress",
+    "create": "Create task",
+    "save": "Save changes",
+    "conflict": "This task changed while you were editing. Your form now shows the latest version."
+  },
+  "toast": {
+    "created": "{{key}} created",
+    "updated": "{{key}} updated",
+    "moved": "{{key}} moved to {{status}}",
+    "deleted": "{{key}} deleted"
+  },
+  "confirmDelete": {
+    "title": "Delete {{key}}?",
+    "body": "The task will be removed from lists, boards and the dashboard.",
+    "confirm": "Delete"
+  },
+  "showing": "Showing {{from}}–{{to}} of {{total}}"
+}

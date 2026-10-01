@@ -9,6 +9,9 @@ import (
 
 	// Blank imports register every module's error codes in the apperr catalog.
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/auth/domain"
+	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/boards/domain"
+	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
+	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
@@ -53,7 +56,7 @@ func TestEveryErrorCodeIsTranslated(t *testing.T) {
 			codes = append(codes, string(c))
 		}
 	}
-	for _, v := range []string{validation.Required, validation.Email, validation.MinLength, validation.MaxLength, validation.OneOf, validation.Weak} {
+	for _, v := range validation.All {
 		codes = append(codes, "validation."+v)
 	}
 	for _, lang := range []string{"en", "uk"} {

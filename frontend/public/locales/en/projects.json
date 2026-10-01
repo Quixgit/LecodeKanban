@@ -1,0 +1,107 @@
+{
+  "kpi": {
+    "total": "Total Projects",
+    "completed": "Completed Projects",
+    "inProgress": "In Progress",
+    "pending": "Pending Projects",
+    "overdue": "Overdue"
+  },
+  "search": "Search project…",
+  "filters": {
+    "status": "Status",
+    "pic": "PIC",
+    "team": "Team",
+    "progress": "Progress",
+    "deadline": "Deadline",
+    "any": "Any",
+    "clear": "Clear filters",
+    "progressOptions": {
+      "not_started": "Not started",
+      "early": "1–33%",
+      "midway": "34–66%",
+      "almost": "67–99%",
+      "done": "100%"
+    },
+    "deadlineOptions": {
+      "overdue": "Overdue",
+      "week": "Next 7 days",
+      "month": "Next 30 days",
+      "later": "Later",
+      "none": "No deadline"
+    }
+  },
+  "views": {
+    "label": "Projects view",
+    "list": "List",
+    "card": "Card"
+  },
+  "add": "Add Project",
+  "card": {
+    "pic": "PIC:",
+    "teamRole": "Team/Role:",
+    "completedTasks": "Completed Tasks:",
+    "deadline": "Deadline:",
+    "progress": "Progress:",
+    "viewDetails": "View Details",
+    "edit": "Edit Project Info",
+    "noPic": "Unassigned",
+    "noTeam": "No team",
+    "noDeadline": "No deadline",
+    "overdue": "Overdue",
+    "actions": "Project actions",
+    "archive": "Archive project"
+  },
+  "table": {
+    "project": "Project",
+    "pic": "PIC",
+    "team": "Team",
+    "tasks": "Tasks",
+    "progress": "Progress",
+    "deadline": "Deadline",
+    "status": "Status",
+    "action": "Action"
+  },
+  "empty": {
+    "title": "No projects yet",
+    "description": "Create the first project to start planning work.",
+    "filtered": "No projects match these filters."
+  },
+  "form": {
+    "createTitle": "New project",
+    "editTitle": "Edit project",
+    "description": "Projects group tasks, people and deadlines.",
+    "name": "Project name",
+    "namePlaceholder": "e.g. Mobile App v2",
+    "key": "Key",
+    "keyHint": "Prefix for task IDs, e.g. MOB-12. Leave empty to generate.",
+    "about": "Description",
+    "status": "Status",
+    "pic": "Person in charge",
+    "team": "Team",
+    "teamPlaceholder": "e.g. Engineering",
+    "startDate": "Start date",
+    "deadline": "Deadline",
+    "icon": "Icon",
+    "tone": "Colour",
+    "create": "Create project",
+    "save": "Save changes",
+    "none": "None"
+  },
+  "tones": {
+    "teal": "Teal",
+    "amber": "Amber",
+    "purple": "Purple",
+    "red": "Red",
+    "neutral": "Graphite"
+  },
+  "toast": {
+    "created": "Project “{{name}}” created",
+    "updated": "Project updated",
+    "archived": "Project archived"
+  },
+  "confirmArchive": {
+    "title": "Archive “{{name}}”?",
+    "body": "The project and its tasks will be hidden from lists and the dashboard.",
+    "confirm": "Archive"
+  }
+}

@@ -3,7 +3,17 @@ export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: Language = 'en';
 
 /** Translation namespaces; each maps to public/locales/<lng>/<ns>.json. */
-export const NAMESPACES = ['common', 'nav', 'errors', 'auth', 'team', 'showcase'] as const;
+export const NAMESPACES = [
+  'common',
+  'nav',
+  'errors',
+  'auth',
+  'team',
+  'projects',
+  'tasks',
+  'dashboard',
+  'showcase',
+] as const;
 export type Namespace = (typeof NAMESPACES)[number];
 
 export const LANGUAGE_STORAGE_KEY = 'lk-lang';

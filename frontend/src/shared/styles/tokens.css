@@ -67,6 +67,12 @@
   --c-chart-3: 241 205 131; /* #f1cd83 sand */
   --c-chart-4: 35 35 35;
 
+  /* Data-viz series for workflow status (validated: dataviz validate_palette.js, light). */
+  --c-series-todo: 63 111 196; /* #3f6fc4 */
+  --c-series-progress: 194 132 26; /* #c2841a */
+  --c-series-review: 138 99 199; /* #8a63c7 */
+  --c-series-done: 31 154 144; /* #1f9a90 */
+
   /* Announcement card gradient */
   --g-announce: linear-gradient(160deg, #d1f1ef 0%, #e6f6f5 45%, #f1f9fa 100%);
 
@@ -163,6 +169,11 @@
   --c-chart-2: 152 126 200;
   --c-chart-3: 214 168 82;
   --c-chart-4: 210 216 215;
+
+  --c-series-todo: 90 128 208; /* #5a80d0 (validated, dark surface) */
+  --c-series-progress: 194 134 42; /* #c2862a */
+  --c-series-review: 143 111 200; /* #8f6fc8 */
+  --c-series-done: 19 156 144; /* #139c90 */
 
   --g-announce: linear-gradient(160deg, #173a38 0%, #152d2c 50%, #151d1d 100%);
 

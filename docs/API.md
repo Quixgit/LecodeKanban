@@ -1,4 +1,4 @@
-# LecodeKanban API — v0.2.0
+# LecodeKanban API — v0.3.0
 
 > Generated from `api/openapi.yaml` by `make gen`. Do not edit by hand.
 
@@ -57,6 +57,37 @@ Base URL: `/api/v1`
 | GET | `/invites/{token}` | public |  | 200, 404 Error |  |
 | POST | `/invites/{token}/accept` | session |  | 200, 403 Error, 410 Error |  |
 
+## projects
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/projects` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/projects` | session | ProjectInput | 201, 409 Error, 422 Error |  |
+| GET | `/workspaces/{workspaceId}/projects/summary` | session |  | 200 |  |
+| GET | `/projects/{projectId}` | session |  | 200, 404 Error |  |
+| PATCH | `/projects/{projectId}` | session | ProjectPatch | 200, 403 Error |  |
+| DELETE | `/projects/{projectId}` | session |  | 204, 403 Error |  |
+
+## boards
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/projects/{projectId}/board` | session |  | 200 |  |
+
+## cards
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/cards` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/cards` | session | CardInput | 201, 422 Error |  |
+| GET | `/workspaces/{workspaceId}/cards/summary` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/cards/bulk` | session | BulkCardAction | 200 |  |
+| GET | `/workspaces/{workspaceId}/cards/stats` | session |  | 200 |  |
+| GET | `/cards/{cardId}` | session |  | 200, 404 Error |  |
+| PATCH | `/cards/{cardId}` | session | CardPatch | 200, 409 Error |  |
+| DELETE | `/cards/{cardId}` | session |  | 204 |  |
+| POST | `/cards/{cardId}/move` | session | CardMove | 200, 409 Error |  |
+
 ## system
 
 | Method | Path | Auth | Request | Responses | Summary |
@@ -89,3 +120,29 @@ Base URL: `/api/v1`
 - **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string
 - **CreateInviteRequest** — `email`: string, `role`: InviteRole
 - **InvitePreview** — `workspaceName`: string, `inviterName`: string \| null, `email`: string, `role`: InviteRole, `expired`: boolean, `accepted`: boolean
+- **TaskStatus**: `todo` | `in_progress` | `in_review` | `done`
+- **Priority**: `high` | `medium` | `low`
+- **ProjectStatus**: `pending` | `in_progress` | `completed`
+- **Tone**: `teal` | `amber` | `purple` | `red` | `neutral`
+- **ProjectIcon**: `folder` | `rocket` | `shield` | `code` | `target` | `sparkles` | `globe` | `megaphone` | `layers` | `flask`
+- **PersonRef** — `id`: string, `name`: string, `avatarUrl`: string \| null
+- **ProjectRef** — `id`: string, `key`: string, `name`: string, `tone`: Tone, `icon`: ProjectIcon
+- **Project** — `id`: string, `key`: string, `name`: string, `description`: string, `status`: ProjectStatus, `overdue`: boolean, `pic`: object \| null, `picRole`: object \| null, `team`: string \| null, `icon`: ProjectIcon, `tone`: Tone, `startDate`: string \| null, `deadline`: string \| null, `taskCount`: integer, `doneCount`: integer, `progress`: integer, `createdAt`: string, `updatedAt`: string
+- **ProjectInput** — `name`: string, `key?`: string, `description?`: string, `status?`: ProjectStatus, `picId?`: string, `team?`: string, `icon?`: ProjectIcon, `tone?`: Tone, `startDate?`: string, `deadline?`: string
+- **ProjectPatch** — `name?`: string, `description?`: string, `status?`: ProjectStatus, `picId?`: string \| null, `team?`: string \| null, `icon?`: ProjectIcon, `tone?`: Tone, `startDate?`: string \| null, `deadline?`: string \| null
+- **ProjectPage** — `items`: array, `total`: integer, `page`: integer, `pageSize`: integer
+- **ProjectSummary** — `total`: integer, `completed`: integer, `inProgress`: integer, `pending`: integer, `overdue`: integer, `teams`: array
+- **BoardColumn** — `id`: string, `name`: string, `status`: TaskStatus, `position`: string, `wipLimit`: integer \| null
+- **Board** — `id`: string, `projectId`: string, `name`: string, `columns`: array
+- **Card** — `id`: string, `key`: string, `number`: integer, `title`: string, `description`: string, `status`: TaskStatus, `columnId`: string, `priority`: Priority, `progress`: integer, `dueDate`: string \| null, `project`: ProjectRef, `assignees`: array, `position`: string, `version`: integer, `createdAt`: string, `updatedAt`: string, `completedAt`: string \| null
+- **CardInput** — `projectId`: string, `title`: string, `description?`: string, `status?`: TaskStatus, `columnId?`: string, `priority?`: Priority, `progress?`: integer, `dueDate?`: string, `assigneeIds?`: array
+- **CardPatch** — `version`: integer, `title?`: string, `description?`: string, `priority?`: Priority, `progress?`: integer, `dueDate?`: string \| null, `assigneeIds?`: array
+- **CardMove** — `version`: integer, `columnId?`: string, `status?`: TaskStatus, `afterId?`: string \| null, `beforeId?`: string \| null
+- **CardPage** — `items`: array, `total`: integer, `page`: integer, `pageSize`: integer
+- **StatusCounts** — `todo`: integer, `in_progress`: integer, `in_review`: integer, `done`: integer
+- **BulkCardAction** — `ids`: array, `action`: string, `status?`: TaskStatus, `priority?`: Priority
+- **BulkResult** — `updated`: integer
+- **DailyActivity** — `date`: string, `todo`: integer, `in_progress`: integer, `in_review`: integer, `done`: integer
+- **ActivityItem** — `id`: integer, `card`: object, `project`: ProjectRef, `actor`: object \| null, `from`: object \| null, `to`: TaskStatus, `at`: string
+- **Trend** — `value`: integer, `previous`: integer, `changePct`: number
+- **DashboardStats** — `active`: integer, `total`: integer, `inReview`: integer, `overdue`: integer, `completedThisWeek`: Trend, `createdThisWeek`: Trend, `statusCounts`: StatusCounts, `daily`: array, `activity`: array

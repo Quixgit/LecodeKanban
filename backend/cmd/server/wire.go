@@ -15,7 +15,11 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/api"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/auth"
 	authevents "github.com/reliabilix/lecodekanban/backend/internal/modules/auth/events"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/cards"
+	cardevents "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/events"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/i18n"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/projects"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users"
 	usershttp "github.com/reliabilix/lecodekanban/backend/internal/modules/users/transport/http"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces"
@@ -54,9 +58,39 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) *App {
 	wsMod := workspaces.New(workspaces.Deps{Pool: pool, Bus: bus, Users: usersMod.Service, PublicURL: cfg.PublicURL})
 	i18nMod := i18n.New()
 
+	boardsMod := boards.New(pool, wsMod.Service)
+	projectsMod := projects.New(projects.Deps{
+		Pool: pool, Bus: bus, Workspaces: wsMod.Service, Boards: boardsMod.Service, Users: usersMod.Service,
+		Locale: func(r *http.Request) string {
+			p, _ := authtoken.FromContext(r.Context())
+			if u, err := usersMod.Service.Get(r.Context(), p.UserID); err == nil {
+				return string(u.Locale)
+			}
+			return "en"
+		},
+	})
+	cardsMod := cards.New(cards.Deps{
+		Pool: pool, Bus: bus, Workspaces: wsMod.Service, Projects: projectsMod.Service,
+		Boards: boardsMod.Service, Users: usersMod.Service,
+	})
+	projectsMod.Service.SetCardCounter(cardsMod.Service)
+
 	// Cross-module reactions.
 	eventbus.Subscribe(bus, func(ctx context.Context, e authevents.UserRegistered) error {
 		return wsMod.Service.EnsurePersonal(ctx, e.UserID)
+	})
+	// Project progress counters follow card changes.
+	eventbus.Subscribe(bus, func(ctx context.Context, e cardevents.CardCreated) error {
+		return projectsMod.Service.Recount(ctx, e.ProjectID)
+	})
+	eventbus.Subscribe(bus, func(ctx context.Context, e cardevents.CardMoved) error {
+		if e.From == e.To {
+			return nil
+		}
+		return projectsMod.Service.Recount(ctx, e.ProjectID)
+	})
+	eventbus.Subscribe(bus, func(ctx context.Context, e cardevents.CardDeleted) error {
+		return projectsMod.Service.Recount(ctx, e.ProjectID)
 	})
 
 	origins := allowedOrigins(cfg)
@@ -102,6 +136,9 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) *App {
 			authMod.HTTP.PrivateRoutes(r)
 			usersHTTP.Routes(r)
 			wsMod.HTTP.PrivateRoutes(r)
+			projectsMod.HTTP.PrivateRoutes(r)
+			boardsMod.HTTP.PrivateRoutes(r)
+			cardsMod.HTTP.PrivateRoutes(r)
 		})
 
 		r.NotFound(httpx.H(func(http.ResponseWriter, *http.Request) error {

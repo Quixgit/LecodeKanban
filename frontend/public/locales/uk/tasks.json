@@ -1,0 +1,108 @@
+{
+  "search": "Пошук задач…",
+  "filter": "Фільтр",
+  "filters": {
+    "title": "Фільтри задач",
+    "project": "Проєкт",
+    "assignee": "Виконавець",
+    "priority": "Пріоритет",
+    "due": "Термін",
+    "any": "Будь-який",
+    "me": "Призначені мені",
+    "clear": "Скинути",
+    "dueOptions": {
+      "overdue": "Прострочені",
+      "today": "Сьогодні",
+      "week": "Найближчі 7 днів",
+      "month": "Найближчі 30 днів",
+      "none": "Без терміну"
+    }
+  },
+  "add": "Додати задачу",
+  "viewAll": "Переглянути всі",
+  "collapse": "Згорнути «{{status}}»",
+  "expand": "Розгорнути «{{status}}»",
+  "backToAll": "Усі задачі",
+  "columns": {
+    "key": "ID задачі",
+    "title": "Назва задачі",
+    "assignee": "Виконавець",
+    "project": "Проєкт",
+    "progress": "Прогрес",
+    "deadline": "Дедлайн",
+    "priority": "Пріоритет",
+    "action": "Дія"
+  },
+  "unassigned": "Не призначено",
+  "noDue": "—",
+  "more": "+{{count}}",
+  "select": {
+    "all": "Вибрати всі задачі в «{{status}}»",
+    "row": "Вибрати {{key}}"
+  },
+  "row": {
+    "actions": "Дії з {{key}}",
+    "edit": "Редагувати",
+    "moveTo": "Перемістити до",
+    "delete": "Видалити"
+  },
+  "bulk": {
+    "selected_one": "Вибрано {{count}} задачу",
+    "selected_few": "Вибрано {{count}} задачі",
+    "selected_many": "Вибрано {{count}} задач",
+    "selected_other": "Вибрано {{count}} задачі",
+    "move": "Перемістити до",
+    "priority": "Пріоритет",
+    "delete": "Видалити",
+    "clear": "Скасувати вибір",
+    "done_one": "Оновлено {{count}} задачу",
+    "done_few": "Оновлено {{count}} задачі",
+    "done_many": "Оновлено {{count}} задач",
+    "done_other": "Оновлено {{count}} задачі",
+    "deleted_one": "Видалено {{count}} задачу",
+    "deleted_few": "Видалено {{count}} задачі",
+    "deleted_many": "Видалено {{count}} задач",
+    "deleted_other": "Видалено {{count}} задачі",
+    "confirmTitle_one": "Видалити {{count}} задачу?",
+    "confirmTitle_few": "Видалити {{count}} задачі?",
+    "confirmTitle_many": "Видалити {{count}} задач?",
+    "confirmTitle_other": "Видалити {{count}} задачі?",
+    "confirmBody": "Видалені задачі зникнуть зі списків, дощок і дашборду."
+  },
+  "empty": {
+    "group": "Тут поки немає задач.",
+    "filtered": "Немає задач за цими фільтрами.",
+    "noProjects": "Спершу створіть проєкт — задачі завжди належать проєкту.",
+    "createProject": "До проєктів"
+  },
+  "form": {
+    "createTitle": "Нова задача",
+    "editTitle": "Редагувати {{key}}",
+    "title": "Назва",
+    "titlePlaceholder": "Що потрібно зробити?",
+    "description": "Опис",
+    "descriptionPlaceholder": "Деталі, посилання чи критерії приймання (підтримується Markdown)",
+    "project": "Проєкт",
+    "status": "Статус",
+    "priority": "Пріоритет",
+    "assignees": "Виконавці",
+    "assigneesPlaceholder": "Оберіть людей",
+    "dueDate": "Термін",
+    "progress": "Прогрес",
+    "create": "Створити задачу",
+    "save": "Зберегти",
+    "conflict": "Задачу змінили, поки ви редагували. У формі тепер остання версія."
+  },
+  "toast": {
+    "created": "{{key}} створено",
+    "updated": "{{key}} оновлено",
+    "moved": "{{key}} переміщено до «{{status}}»",
+    "deleted": "{{key}} видалено"
+  },
+  "confirmDelete": {
+    "title": "Видалити {{key}}?",
+    "body": "Задача зникне зі списків, дощок і дашборду.",
+    "confirm": "Видалити"
+  },
+  "showing": "Показано {{from}}–{{to}} з {{total}}"
+}

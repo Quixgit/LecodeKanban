@@ -10,7 +10,7 @@ import { Button, EmptyState, Field, FormAlert, PasswordInput } from '@/shared/ui
 import { authApi } from '../api/authApi';
 import { sessionKey } from '../hooks/useSession';
 import { resetSchema, type ResetValues } from '../model/schemas';
-import { applyServerFieldErrors } from '../model/serverErrors';
+import { applyServerFieldErrors } from '@/shared/lib/serverErrors';
 import { AuthHeading } from './AuthHeading';
 import { StrengthMeter } from './StrengthMeter';
 

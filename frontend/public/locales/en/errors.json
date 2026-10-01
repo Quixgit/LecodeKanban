@@ -46,6 +46,25 @@
     "max_length": "Use at most {{max}} characters.",
     "one_of": "Choose one of the available options.",
     "password_weak": "Mix upper- and lowercase letters, digits or symbols (at least 3 kinds).",
-    "passwords_mismatch": "Passwords don't match."
+    "passwords_mismatch": "Passwords don't match.",
+    "range": "Enter a value between {{min}} and {{max}}.",
+    "not_member": "Choose someone from this workspace.",
+    "not_found": "The selected item no longer exists.",
+    "project_key": "Use 2–6 capital letters or digits, starting with a letter.",
+    "date_order": "The deadline can't be before the start date.",
+    "count": "Select between {{min}} and {{max}} items."
+  },
+  "boards": {
+    "not_found": "Board not found.",
+    "column_not_found": "This column no longer exists."
+  },
+  "cards": {
+    "not_found": "Task not found or no longer available.",
+    "version_conflict": "Someone else just changed this task. Reload it to see the latest version.",
+    "invalid_move": "The task can't be placed there. Refresh the list and try again."
+  },
+  "projects": {
+    "not_found": "Project not found or archived.",
+    "key_taken": "This project key is already used in the workspace."
   }
 }

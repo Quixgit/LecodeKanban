@@ -1,5 +1,5 @@
 import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu';
-import { Check } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
 import { forwardRef, type ComponentPropsWithoutRef, type ElementRef } from 'react';
 import { cn } from '../lib/cn';
 
@@ -59,6 +59,51 @@ export const DropdownRadioItem = forwardRef<
   </DropdownPrimitive.RadioItem>
 ));
 DropdownRadioItem.displayName = 'DropdownRadioItem';
+
+export const DropdownCheckboxItem = forwardRef<
+  ElementRef<typeof DropdownPrimitive.CheckboxItem>,
+  ComponentPropsWithoutRef<typeof DropdownPrimitive.CheckboxItem>
+>(({ className, children, ...props }, ref) => (
+  <DropdownPrimitive.CheckboxItem ref={ref} className={cn(itemBase, 'pr-8', className)} {...props}>
+    {children}
+    <DropdownPrimitive.ItemIndicator className="absolute right-2.5 flex">
+      <Check className="!text-primary" />
+    </DropdownPrimitive.ItemIndicator>
+  </DropdownPrimitive.CheckboxItem>
+));
+DropdownCheckboxItem.displayName = 'DropdownCheckboxItem';
+
+export const DropdownSub = DropdownPrimitive.Sub;
+
+export const DropdownSubTrigger = forwardRef<
+  ElementRef<typeof DropdownPrimitive.SubTrigger>,
+  ComponentPropsWithoutRef<typeof DropdownPrimitive.SubTrigger>
+>(({ className, children, ...props }, ref) => (
+  <DropdownPrimitive.SubTrigger
+    ref={ref}
+    className={cn(itemBase, 'pr-8 data-[state=open]:bg-surface-muted', className)}
+    {...props}
+  >
+    {children}
+    <ChevronRight className="absolute right-2.5" />
+  </DropdownPrimitive.SubTrigger>
+));
+DropdownSubTrigger.displayName = 'DropdownSubTrigger';
+
+export const DropdownSubContent = forwardRef<
+  ElementRef<typeof DropdownPrimitive.SubContent>,
+  ComponentPropsWithoutRef<typeof DropdownPrimitive.SubContent>
+>(({ className, ...props }, ref) => (
+  <DropdownPrimitive.Portal>
+    <DropdownPrimitive.SubContent
+      ref={ref}
+      sideOffset={6}
+      className={cn(surface, 'min-w-[180px]', className)}
+      {...props}
+    />
+  </DropdownPrimitive.Portal>
+));
+DropdownSubContent.displayName = 'DropdownSubContent';
 
 export function DropdownLabel({
   className,

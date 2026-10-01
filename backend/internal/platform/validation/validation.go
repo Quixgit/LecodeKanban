@@ -19,7 +19,16 @@ const (
 	MaxLength = "max_length"
 	OneOf     = "one_of"
 	Weak      = "password_weak"
+	Range     = "range"       // number outside {min,max}
+	NotMember = "not_member"  // user is not a member of the workspace
+	NotFound  = "not_found"   // referenced entity does not exist (in this workspace)
+	KeyFormat = "project_key" // project key format
+	DateOrder = "date_order"  // end date before start date
+	Count     = "count"       // list length outside {min,max}
 )
+
+// All lists every field-error code (used to verify translations).
+var All = []string{Required, Email, MinLength, MaxLength, OneOf, Weak, Range, NotMember, NotFound, KeyFormat, DateOrder, Count}
 
 // V collects field errors; the zero value is ready to use.
 type V struct{ fields []apperr.FieldError }

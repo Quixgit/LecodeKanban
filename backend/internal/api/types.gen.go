@@ -9,6 +9,27 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for BulkCardActionAction.
+const (
+	BulkCardActionActionDelete   BulkCardActionAction = "delete"
+	BulkCardActionActionMove     BulkCardActionAction = "move"
+	BulkCardActionActionPriority BulkCardActionAction = "priority"
+)
+
+// Valid indicates whether the value is a known member of the BulkCardActionAction enum.
+func (e BulkCardActionAction) Valid() bool {
+	switch e {
+	case BulkCardActionActionDelete:
+		return true
+	case BulkCardActionActionMove:
+		return true
+	case BulkCardActionActionPriority:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for InviteRole.
 const (
 	InviteRoleAdmin  InviteRole = "admin"
@@ -48,6 +69,90 @@ func (e Locale) Valid() bool {
 	}
 }
 
+// Defines values for Priority.
+const (
+	High   Priority = "high"
+	Low    Priority = "low"
+	Medium Priority = "medium"
+)
+
+// Valid indicates whether the value is a known member of the Priority enum.
+func (e Priority) Valid() bool {
+	switch e {
+	case High:
+		return true
+	case Low:
+		return true
+	case Medium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProjectIcon.
+const (
+	Code      ProjectIcon = "code"
+	Flask     ProjectIcon = "flask"
+	Folder    ProjectIcon = "folder"
+	Globe     ProjectIcon = "globe"
+	Layers    ProjectIcon = "layers"
+	Megaphone ProjectIcon = "megaphone"
+	Rocket    ProjectIcon = "rocket"
+	Shield    ProjectIcon = "shield"
+	Sparkles  ProjectIcon = "sparkles"
+	Target    ProjectIcon = "target"
+)
+
+// Valid indicates whether the value is a known member of the ProjectIcon enum.
+func (e ProjectIcon) Valid() bool {
+	switch e {
+	case Code:
+		return true
+	case Flask:
+		return true
+	case Folder:
+		return true
+	case Globe:
+		return true
+	case Layers:
+		return true
+	case Megaphone:
+		return true
+	case Rocket:
+		return true
+	case Shield:
+		return true
+	case Sparkles:
+		return true
+	case Target:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProjectStatus.
+const (
+	ProjectStatusCompleted  ProjectStatus = "completed"
+	ProjectStatusInProgress ProjectStatus = "in_progress"
+	ProjectStatusPending    ProjectStatus = "pending"
+)
+
+// Valid indicates whether the value is a known member of the ProjectStatus enum.
+func (e ProjectStatus) Valid() bool {
+	switch e {
+	case ProjectStatusCompleted:
+		return true
+	case ProjectStatusInProgress:
+		return true
+	case ProjectStatusPending:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Role.
 const (
 	RoleAdmin  Role = "admin"
@@ -72,6 +177,57 @@ func (e Role) Valid() bool {
 	}
 }
 
+// Defines values for TaskStatus.
+const (
+	TaskStatusDone       TaskStatus = "done"
+	TaskStatusInProgress TaskStatus = "in_progress"
+	TaskStatusInReview   TaskStatus = "in_review"
+	TaskStatusTodo       TaskStatus = "todo"
+)
+
+// Valid indicates whether the value is a known member of the TaskStatus enum.
+func (e TaskStatus) Valid() bool {
+	switch e {
+	case TaskStatusDone:
+		return true
+	case TaskStatusInProgress:
+		return true
+	case TaskStatusInReview:
+		return true
+	case TaskStatusTodo:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Tone.
+const (
+	Amber   Tone = "amber"
+	Neutral Tone = "neutral"
+	Purple  Tone = "purple"
+	Red     Tone = "red"
+	Teal    Tone = "teal"
+)
+
+// Valid indicates whether the value is a known member of the Tone enum.
+func (e Tone) Valid() bool {
+	switch e {
+	case Amber:
+		return true
+	case Neutral:
+		return true
+	case Purple:
+		return true
+	case Red:
+		return true
+	case Teal:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UserProviders.
 const (
 	UserProvidersGithub UserProviders = "github"
@@ -84,6 +240,33 @@ func (e UserProviders) Valid() bool {
 	case UserProvidersGithub:
 		return true
 	case UserProvidersGoogle:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CardDue.
+const (
+	CardDueMonth   CardDue = "month"
+	CardDueNone    CardDue = "none"
+	CardDueOverdue CardDue = "overdue"
+	CardDueToday   CardDue = "today"
+	CardDueWeek    CardDue = "week"
+)
+
+// Valid indicates whether the value is a known member of the CardDue enum.
+func (e CardDue) Valid() bool {
+	switch e {
+	case CardDueMonth:
+		return true
+	case CardDueNone:
+		return true
+	case CardDueOverdue:
+		return true
+	case CardDueToday:
+		return true
+	case CardDueWeek:
 		return true
 	default:
 		return false
@@ -144,10 +327,337 @@ func (e OauthStartParamsProvider) Valid() bool {
 	}
 }
 
+// Defines values for ListCardsParamsDue.
+const (
+	ListCardsParamsDueMonth   ListCardsParamsDue = "month"
+	ListCardsParamsDueNone    ListCardsParamsDue = "none"
+	ListCardsParamsDueOverdue ListCardsParamsDue = "overdue"
+	ListCardsParamsDueToday   ListCardsParamsDue = "today"
+	ListCardsParamsDueWeek    ListCardsParamsDue = "week"
+)
+
+// Valid indicates whether the value is a known member of the ListCardsParamsDue enum.
+func (e ListCardsParamsDue) Valid() bool {
+	switch e {
+	case ListCardsParamsDueMonth:
+		return true
+	case ListCardsParamsDueNone:
+		return true
+	case ListCardsParamsDueOverdue:
+		return true
+	case ListCardsParamsDueToday:
+		return true
+	case ListCardsParamsDueWeek:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListCardsParamsSort.
+const (
+	ListCardsParamsSortAssignee ListCardsParamsSort = "assignee"
+	ListCardsParamsSortDeadline ListCardsParamsSort = "deadline"
+	ListCardsParamsSortKey      ListCardsParamsSort = "key"
+	ListCardsParamsSortPosition ListCardsParamsSort = "position"
+	ListCardsParamsSortPriority ListCardsParamsSort = "priority"
+	ListCardsParamsSortProgress ListCardsParamsSort = "progress"
+	ListCardsParamsSortProject  ListCardsParamsSort = "project"
+	ListCardsParamsSortTitle    ListCardsParamsSort = "title"
+	ListCardsParamsSortUpdated  ListCardsParamsSort = "updated"
+)
+
+// Valid indicates whether the value is a known member of the ListCardsParamsSort enum.
+func (e ListCardsParamsSort) Valid() bool {
+	switch e {
+	case ListCardsParamsSortAssignee:
+		return true
+	case ListCardsParamsSortDeadline:
+		return true
+	case ListCardsParamsSortKey:
+		return true
+	case ListCardsParamsSortPosition:
+		return true
+	case ListCardsParamsSortPriority:
+		return true
+	case ListCardsParamsSortProgress:
+		return true
+	case ListCardsParamsSortProject:
+		return true
+	case ListCardsParamsSortTitle:
+		return true
+	case ListCardsParamsSortUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListCardsParamsOrder.
+const (
+	ListCardsParamsOrderAsc  ListCardsParamsOrder = "asc"
+	ListCardsParamsOrderDesc ListCardsParamsOrder = "desc"
+)
+
+// Valid indicates whether the value is a known member of the ListCardsParamsOrder enum.
+func (e ListCardsParamsOrder) Valid() bool {
+	switch e {
+	case ListCardsParamsOrderAsc:
+		return true
+	case ListCardsParamsOrderDesc:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CardStatusCountsParamsDue.
+const (
+	CardStatusCountsParamsDueMonth   CardStatusCountsParamsDue = "month"
+	CardStatusCountsParamsDueNone    CardStatusCountsParamsDue = "none"
+	CardStatusCountsParamsDueOverdue CardStatusCountsParamsDue = "overdue"
+	CardStatusCountsParamsDueToday   CardStatusCountsParamsDue = "today"
+	CardStatusCountsParamsDueWeek    CardStatusCountsParamsDue = "week"
+)
+
+// Valid indicates whether the value is a known member of the CardStatusCountsParamsDue enum.
+func (e CardStatusCountsParamsDue) Valid() bool {
+	switch e {
+	case CardStatusCountsParamsDueMonth:
+		return true
+	case CardStatusCountsParamsDueNone:
+		return true
+	case CardStatusCountsParamsDueOverdue:
+		return true
+	case CardStatusCountsParamsDueToday:
+		return true
+	case CardStatusCountsParamsDueWeek:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListProjectsParamsProgress.
+const (
+	ListProjectsParamsProgressAlmost     ListProjectsParamsProgress = "almost"
+	ListProjectsParamsProgressDone       ListProjectsParamsProgress = "done"
+	ListProjectsParamsProgressEarly      ListProjectsParamsProgress = "early"
+	ListProjectsParamsProgressMidway     ListProjectsParamsProgress = "midway"
+	ListProjectsParamsProgressNotStarted ListProjectsParamsProgress = "not_started"
+)
+
+// Valid indicates whether the value is a known member of the ListProjectsParamsProgress enum.
+func (e ListProjectsParamsProgress) Valid() bool {
+	switch e {
+	case ListProjectsParamsProgressAlmost:
+		return true
+	case ListProjectsParamsProgressDone:
+		return true
+	case ListProjectsParamsProgressEarly:
+		return true
+	case ListProjectsParamsProgressMidway:
+		return true
+	case ListProjectsParamsProgressNotStarted:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListProjectsParamsDeadline.
+const (
+	ListProjectsParamsDeadlineLater   ListProjectsParamsDeadline = "later"
+	ListProjectsParamsDeadlineMonth   ListProjectsParamsDeadline = "month"
+	ListProjectsParamsDeadlineNone    ListProjectsParamsDeadline = "none"
+	ListProjectsParamsDeadlineOverdue ListProjectsParamsDeadline = "overdue"
+	ListProjectsParamsDeadlineWeek    ListProjectsParamsDeadline = "week"
+)
+
+// Valid indicates whether the value is a known member of the ListProjectsParamsDeadline enum.
+func (e ListProjectsParamsDeadline) Valid() bool {
+	switch e {
+	case ListProjectsParamsDeadlineLater:
+		return true
+	case ListProjectsParamsDeadlineMonth:
+		return true
+	case ListProjectsParamsDeadlineNone:
+		return true
+	case ListProjectsParamsDeadlineOverdue:
+		return true
+	case ListProjectsParamsDeadlineWeek:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListProjectsParamsSort.
+const (
+	ListProjectsParamsSortCreated  ListProjectsParamsSort = "created"
+	ListProjectsParamsSortDeadline ListProjectsParamsSort = "deadline"
+	ListProjectsParamsSortName     ListProjectsParamsSort = "name"
+	ListProjectsParamsSortProgress ListProjectsParamsSort = "progress"
+	ListProjectsParamsSortUpdated  ListProjectsParamsSort = "updated"
+)
+
+// Valid indicates whether the value is a known member of the ListProjectsParamsSort enum.
+func (e ListProjectsParamsSort) Valid() bool {
+	switch e {
+	case ListProjectsParamsSortCreated:
+		return true
+	case ListProjectsParamsSortDeadline:
+		return true
+	case ListProjectsParamsSortName:
+		return true
+	case ListProjectsParamsSortProgress:
+		return true
+	case ListProjectsParamsSortUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListProjectsParamsOrder.
+const (
+	ListProjectsParamsOrderAsc  ListProjectsParamsOrder = "asc"
+	ListProjectsParamsOrderDesc ListProjectsParamsOrder = "desc"
+)
+
+// Valid indicates whether the value is a known member of the ListProjectsParamsOrder enum.
+func (e ListProjectsParamsOrder) Valid() bool {
+	switch e {
+	case ListProjectsParamsOrderAsc:
+		return true
+	case ListProjectsParamsOrderDesc:
+		return true
+	default:
+		return false
+	}
+}
+
+// ActivityItem defines model for ActivityItem.
+type ActivityItem struct {
+	Actor *PersonRef `json:"actor"`
+	At    time.Time  `json:"at"`
+	Card  struct {
+		Id    openapi_types.UUID `json:"id"`
+		Key   string             `json:"key"`
+		Title string             `json:"title"`
+	} `json:"card"`
+	From    *TaskStatus `json:"from"`
+	Id      int64       `json:"id"`
+	Project ProjectRef  `json:"project"`
+	To      TaskStatus  `json:"to"`
+}
+
 // AuthProviders defines model for AuthProviders.
 type AuthProviders struct {
 	Github bool `json:"github"`
 	Google bool `json:"google"`
+}
+
+// Board defines model for Board.
+type Board struct {
+	Columns   []BoardColumn      `json:"columns"`
+	Id        openapi_types.UUID `json:"id"`
+	Name      string             `json:"name"`
+	ProjectId openapi_types.UUID `json:"projectId"`
+}
+
+// BoardColumn defines model for BoardColumn.
+type BoardColumn struct {
+	Id       openapi_types.UUID `json:"id"`
+	Name     string             `json:"name"`
+	Position string             `json:"position"`
+	Status   TaskStatus         `json:"status"`
+	WipLimit *int               `json:"wipLimit"`
+}
+
+// BulkCardAction defines model for BulkCardAction.
+type BulkCardAction struct {
+	Action   BulkCardActionAction `json:"action"`
+	Ids      []openapi_types.UUID `json:"ids"`
+	Priority *Priority            `json:"priority,omitempty"`
+	Status   *TaskStatus          `json:"status,omitempty"`
+}
+
+// BulkCardActionAction defines model for BulkCardAction.Action.
+type BulkCardActionAction string
+
+// BulkResult defines model for BulkResult.
+type BulkResult struct {
+	Updated int `json:"updated"`
+}
+
+// Card defines model for Card.
+type Card struct {
+	Assignees   []PersonRef         `json:"assignees"`
+	ColumnId    openapi_types.UUID  `json:"columnId"`
+	CompletedAt *time.Time          `json:"completedAt"`
+	CreatedAt   time.Time           `json:"createdAt"`
+	Description string              `json:"description"`
+	DueDate     *openapi_types.Date `json:"dueDate"`
+	Id          openapi_types.UUID  `json:"id"`
+
+	// Key Example: LK-12
+	Key       string     `json:"key"`
+	Number    int        `json:"number"`
+	Position  string     `json:"position"`
+	Priority  Priority   `json:"priority"`
+	Progress  int        `json:"progress"`
+	Project   ProjectRef `json:"project"`
+	Status    TaskStatus `json:"status"`
+	Title     string     `json:"title"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+
+	// Version Optimistic concurrency token; send it back on update/move
+	Version int `json:"version"`
+}
+
+// CardInput defines model for CardInput.
+type CardInput struct {
+	AssigneeIds *[]openapi_types.UUID `json:"assigneeIds,omitempty"`
+	ColumnId    *openapi_types.UUID   `json:"columnId,omitempty"`
+	Description *string               `json:"description,omitempty"`
+	DueDate     *openapi_types.Date   `json:"dueDate,omitempty"`
+	Priority    *Priority             `json:"priority,omitempty"`
+	Progress    *int                  `json:"progress,omitempty"`
+	ProjectId   openapi_types.UUID    `json:"projectId"`
+	Status      *TaskStatus           `json:"status,omitempty"`
+	Title       string                `json:"title"`
+}
+
+// CardMove Target column (or status → its first column) and neighbours; omitted neighbours append to the end.
+type CardMove struct {
+	// AfterId Card that will be directly above
+	AfterId *openapi_types.UUID `json:"afterId,omitempty"`
+
+	// BeforeId Card that will be directly below
+	BeforeId *openapi_types.UUID `json:"beforeId,omitempty"`
+	ColumnId *openapi_types.UUID `json:"columnId,omitempty"`
+	Status   *TaskStatus         `json:"status,omitempty"`
+	Version  int                 `json:"version"`
+}
+
+// CardPage defines model for CardPage.
+type CardPage struct {
+	Items    []Card `json:"items"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"pageSize"`
+	Total    int    `json:"total"`
+}
+
+// CardPatch Absent fields are unchanged; dueDate null clears it.
+type CardPatch struct {
+	AssigneeIds *[]openapi_types.UUID `json:"assigneeIds,omitempty"`
+	Description *string               `json:"description,omitempty"`
+	DueDate     *openapi_types.Date   `json:"dueDate,omitempty"`
+	Priority    *Priority             `json:"priority,omitempty"`
+	Progress    *int                  `json:"progress,omitempty"`
+	Title       *string               `json:"title,omitempty"`
+	Version     int                   `json:"version"`
 }
 
 // ChangePasswordRequest defines model for ChangePasswordRequest.
@@ -167,6 +677,30 @@ type CreateInviteRequest struct {
 // CsrfToken defines model for CsrfToken.
 type CsrfToken struct {
 	Token string `json:"token"`
+}
+
+// DailyActivity defines model for DailyActivity.
+type DailyActivity struct {
+	Date       openapi_types.Date `json:"date"`
+	Done       int                `json:"done"`
+	InProgress int                `json:"in_progress"`
+	InReview   int                `json:"in_review"`
+
+	// Todo Cards created
+	Todo int `json:"todo"`
+}
+
+// DashboardStats defines model for DashboardStats.
+type DashboardStats struct {
+	Active            int             `json:"active"`
+	Activity          []ActivityItem  `json:"activity"`
+	CompletedThisWeek Trend           `json:"completedThisWeek"`
+	CreatedThisWeek   Trend           `json:"createdThisWeek"`
+	Daily             []DailyActivity `json:"daily"`
+	InReview          int             `json:"inReview"`
+	Overdue           int             `json:"overdue"`
+	StatusCounts      StatusCounts    `json:"statusCounts"`
+	Total             int             `json:"total"`
 }
 
 // EmailRequest defines model for EmailRequest.
@@ -239,6 +773,102 @@ type MemberUser struct {
 	Name      string             `json:"name"`
 }
 
+// PersonRef defines model for PersonRef.
+type PersonRef struct {
+	AvatarUrl *string            `json:"avatarUrl"`
+	Id        openapi_types.UUID `json:"id"`
+	Name      string             `json:"name"`
+}
+
+// Priority defines model for Priority.
+type Priority string
+
+// Project defines model for Project.
+type Project struct {
+	CreatedAt   time.Time           `json:"createdAt"`
+	Deadline    *openapi_types.Date `json:"deadline"`
+	Description string              `json:"description"`
+	DoneCount   int                 `json:"doneCount"`
+	Icon        ProjectIcon         `json:"icon"`
+	Id          openapi_types.UUID  `json:"id"`
+
+	// Key Example: LK
+	Key       string              `json:"key"`
+	Name      string              `json:"name"`
+	Overdue   bool                `json:"overdue"`
+	Pic       *PersonRef          `json:"pic"`
+	PicRole   *Role               `json:"picRole"`
+	Progress  int                 `json:"progress"`
+	StartDate *openapi_types.Date `json:"startDate"`
+	Status    ProjectStatus       `json:"status"`
+	TaskCount int                 `json:"taskCount"`
+	Team      *string             `json:"team"`
+	Tone      Tone                `json:"tone"`
+	UpdatedAt time.Time           `json:"updatedAt"`
+}
+
+// ProjectIcon defines model for ProjectIcon.
+type ProjectIcon string
+
+// ProjectInput defines model for ProjectInput.
+type ProjectInput struct {
+	Deadline    *openapi_types.Date `json:"deadline,omitempty"`
+	Description *string             `json:"description,omitempty"`
+	Icon        *ProjectIcon        `json:"icon,omitempty"`
+
+	// Key 2–6 uppercase letters/digits; derived from the name when omitted
+	Key       *string             `json:"key,omitempty"`
+	Name      string              `json:"name"`
+	PicId     *openapi_types.UUID `json:"picId,omitempty"`
+	StartDate *openapi_types.Date `json:"startDate,omitempty"`
+	Status    *ProjectStatus      `json:"status,omitempty"`
+	Team      *string             `json:"team,omitempty"`
+	Tone      *Tone               `json:"tone,omitempty"`
+}
+
+// ProjectPage defines model for ProjectPage.
+type ProjectPage struct {
+	Items    []Project `json:"items"`
+	Page     int       `json:"page"`
+	PageSize int       `json:"pageSize"`
+	Total    int       `json:"total"`
+}
+
+// ProjectPatch Absent fields are unchanged; null clears nullable fields.
+type ProjectPatch struct {
+	Deadline    *openapi_types.Date `json:"deadline,omitempty"`
+	Description *string             `json:"description,omitempty"`
+	Icon        *ProjectIcon        `json:"icon,omitempty"`
+	Name        *string             `json:"name,omitempty"`
+	PicId       *openapi_types.UUID `json:"picId,omitempty"`
+	StartDate   *openapi_types.Date `json:"startDate,omitempty"`
+	Status      *ProjectStatus      `json:"status,omitempty"`
+	Team        *string             `json:"team,omitempty"`
+	Tone        *Tone               `json:"tone,omitempty"`
+}
+
+// ProjectRef defines model for ProjectRef.
+type ProjectRef struct {
+	Icon ProjectIcon        `json:"icon"`
+	Id   openapi_types.UUID `json:"id"`
+	Key  string             `json:"key"`
+	Name string             `json:"name"`
+	Tone Tone               `json:"tone"`
+}
+
+// ProjectStatus defines model for ProjectStatus.
+type ProjectStatus string
+
+// ProjectSummary defines model for ProjectSummary.
+type ProjectSummary struct {
+	Completed  int      `json:"completed"`
+	InProgress int      `json:"inProgress"`
+	Overdue    int      `json:"overdue"`
+	Pending    int      `json:"pending"`
+	Teams      []string `json:"teams"`
+	Total      int      `json:"total"`
+}
+
 // RegisterRequest defines model for RegisterRequest.
 type RegisterRequest struct {
 	// Email Email address (validated server-side)
@@ -262,9 +892,31 @@ type Session struct {
 	User User `json:"user"`
 }
 
+// StatusCounts defines model for StatusCounts.
+type StatusCounts struct {
+	Done       int `json:"done"`
+	InProgress int `json:"in_progress"`
+	InReview   int `json:"in_review"`
+	Todo       int `json:"todo"`
+}
+
+// TaskStatus defines model for TaskStatus.
+type TaskStatus string
+
 // TokenRequest defines model for TokenRequest.
 type TokenRequest struct {
 	Token string `json:"token"`
+}
+
+// Tone defines model for Tone.
+type Tone string
+
+// Trend defines model for Trend.
+type Trend struct {
+	// ChangePct Percent change vs previous period (0 when previous is 0)
+	ChangePct float32 `json:"changePct"`
+	Previous  int     `json:"previous"`
+	Value     int     `json:"value"`
 }
 
 // UpdateMemberRequest defines model for UpdateMemberRequest.
@@ -311,6 +963,36 @@ type WorkspaceInput struct {
 	Name string `json:"name"`
 }
 
+// CardAssigneeId defines model for CardAssigneeId.
+type CardAssigneeId = openapi_types.UUID
+
+// CardDue defines model for CardDue.
+type CardDue string
+
+// CardId defines model for CardId.
+type CardId = openapi_types.UUID
+
+// CardPriority defines model for CardPriority.
+type CardPriority = Priority
+
+// CardProjectId defines model for CardProjectId.
+type CardProjectId = openapi_types.UUID
+
+// CardQuery defines model for CardQuery.
+type CardQuery = string
+
+// CardStatus defines model for CardStatus.
+type CardStatus = TaskStatus
+
+// Page defines model for Page.
+type Page = int
+
+// PageSize defines model for PageSize.
+type PageSize = int
+
+// ProjectId defines model for ProjectId.
+type ProjectId = openapi_types.UUID
+
 // Provider defines model for Provider.
 type Provider string
 
@@ -338,6 +1020,77 @@ type OauthStartParams struct {
 // OauthStartParamsProvider defines parameters for OauthStart.
 type OauthStartParamsProvider string
 
+// ListCardsParams defines parameters for ListCards.
+type ListCardsParams struct {
+	Status     *CardStatus     `form:"status,omitempty" json:"status,omitempty"`
+	ProjectId  *CardProjectId  `form:"projectId,omitempty" json:"projectId,omitempty"`
+	AssigneeId *CardAssigneeId `form:"assigneeId,omitempty" json:"assigneeId,omitempty"`
+	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
+
+	// Q Search in title or key (e.g. LK-12)
+	Q        *CardQuery            `form:"q,omitempty" json:"q,omitempty"`
+	Due      *ListCardsParamsDue   `form:"due,omitempty" json:"due,omitempty"`
+	Sort     *ListCardsParamsSort  `form:"sort,omitempty" json:"sort,omitempty"`
+	Order    *ListCardsParamsOrder `form:"order,omitempty" json:"order,omitempty"`
+	Page     *Page                 `form:"page,omitempty" json:"page,omitempty"`
+	PageSize *PageSize             `form:"pageSize,omitempty" json:"pageSize,omitempty"`
+}
+
+// ListCardsParamsDue defines parameters for ListCards.
+type ListCardsParamsDue string
+
+// ListCardsParamsSort defines parameters for ListCards.
+type ListCardsParamsSort string
+
+// ListCardsParamsOrder defines parameters for ListCards.
+type ListCardsParamsOrder string
+
+// CardStatsParams defines parameters for CardStats.
+type CardStatsParams struct {
+	Days *int `form:"days,omitempty" json:"days,omitempty"`
+}
+
+// CardStatusCountsParams defines parameters for CardStatusCounts.
+type CardStatusCountsParams struct {
+	ProjectId  *CardProjectId  `form:"projectId,omitempty" json:"projectId,omitempty"`
+	AssigneeId *CardAssigneeId `form:"assigneeId,omitempty" json:"assigneeId,omitempty"`
+	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
+
+	// Q Search in title or key (e.g. LK-12)
+	Q   *CardQuery                 `form:"q,omitempty" json:"q,omitempty"`
+	Due *CardStatusCountsParamsDue `form:"due,omitempty" json:"due,omitempty"`
+}
+
+// CardStatusCountsParamsDue defines parameters for CardStatusCounts.
+type CardStatusCountsParamsDue string
+
+// ListProjectsParams defines parameters for ListProjects.
+type ListProjectsParams struct {
+	// Q Search in name or key
+	Q        *string                     `form:"q,omitempty" json:"q,omitempty"`
+	Status   *ProjectStatus              `form:"status,omitempty" json:"status,omitempty"`
+	PicId    *openapi_types.UUID         `form:"picId,omitempty" json:"picId,omitempty"`
+	Team     *string                     `form:"team,omitempty" json:"team,omitempty"`
+	Progress *ListProjectsParamsProgress `form:"progress,omitempty" json:"progress,omitempty"`
+	Deadline *ListProjectsParamsDeadline `form:"deadline,omitempty" json:"deadline,omitempty"`
+	Sort     *ListProjectsParamsSort     `form:"sort,omitempty" json:"sort,omitempty"`
+	Order    *ListProjectsParamsOrder    `form:"order,omitempty" json:"order,omitempty"`
+	Page     *Page                       `form:"page,omitempty" json:"page,omitempty"`
+	PageSize *PageSize                   `form:"pageSize,omitempty" json:"pageSize,omitempty"`
+}
+
+// ListProjectsParamsProgress defines parameters for ListProjects.
+type ListProjectsParamsProgress string
+
+// ListProjectsParamsDeadline defines parameters for ListProjects.
+type ListProjectsParamsDeadline string
+
+// ListProjectsParamsSort defines parameters for ListProjects.
+type ListProjectsParamsSort string
+
+// ListProjectsParamsOrder defines parameters for ListProjects.
+type ListProjectsParamsOrder string
+
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
 
@@ -353,6 +1106,15 @@ type RegisterJSONRequestBody = RegisterRequest
 // VerifyEmailJSONRequestBody defines body for VerifyEmail for application/json ContentType.
 type VerifyEmailJSONRequestBody = TokenRequest
 
+// UpdateCardJSONRequestBody defines body for UpdateCard for application/json ContentType.
+type UpdateCardJSONRequestBody = CardPatch
+
+// MoveCardJSONRequestBody defines body for MoveCard for application/json ContentType.
+type MoveCardJSONRequestBody = CardMove
+
+// UpdateProjectJSONRequestBody defines body for UpdateProject for application/json ContentType.
+type UpdateProjectJSONRequestBody = ProjectPatch
+
 // UpdateMeJSONRequestBody defines body for UpdateMe for application/json ContentType.
 type UpdateMeJSONRequestBody = UpdateProfileRequest
 
@@ -365,8 +1127,17 @@ type CreateWorkspaceJSONRequestBody = WorkspaceInput
 // UpdateWorkspaceJSONRequestBody defines body for UpdateWorkspace for application/json ContentType.
 type UpdateWorkspaceJSONRequestBody = WorkspaceInput
 
+// CreateCardJSONRequestBody defines body for CreateCard for application/json ContentType.
+type CreateCardJSONRequestBody = CardInput
+
+// BulkCardsJSONRequestBody defines body for BulkCards for application/json ContentType.
+type BulkCardsJSONRequestBody = BulkCardAction
+
 // CreateInviteJSONRequestBody defines body for CreateInvite for application/json ContentType.
 type CreateInviteJSONRequestBody = CreateInviteRequest
 
 // UpdateMemberRoleJSONRequestBody defines body for UpdateMemberRole for application/json ContentType.
 type UpdateMemberRoleJSONRequestBody = UpdateMemberRequest
+
+// CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
+type CreateProjectJSONRequestBody = ProjectInput

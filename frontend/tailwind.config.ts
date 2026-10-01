@@ -45,6 +45,10 @@ const colorNames = [
   'chart-2',
   'chart-3',
   'chart-4',
+  'series-todo',
+  'series-progress',
+  'series-review',
+  'series-done',
 ] as const;
 
 export default {

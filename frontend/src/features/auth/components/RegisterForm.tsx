@@ -10,7 +10,7 @@ import { useFieldError } from '@/shared/hooks/useFieldError';
 import { Button, Field, FormAlert, Input, PasswordInput } from '@/shared/ui';
 import { useRegister } from '../hooks/useSession';
 import { registerSchema, type RegisterValues } from '../model/schemas';
-import { applyServerFieldErrors } from '../model/serverErrors';
+import { applyServerFieldErrors } from '@/shared/lib/serverErrors';
 import { AuthHeading } from './AuthHeading';
 import { OAuthButtons, OrDivider } from './OAuthButtons';
 import { StrengthMeter } from './StrengthMeter';

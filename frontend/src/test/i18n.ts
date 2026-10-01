@@ -4,12 +4,18 @@ import enAuth from '../../public/locales/en/auth.json';
 import enCommon from '../../public/locales/en/common.json';
 import enErrors from '../../public/locales/en/errors.json';
 import enNav from '../../public/locales/en/nav.json';
+import enProjects from '../../public/locales/en/projects.json';
+import enTasks from '../../public/locales/en/tasks.json';
+import enDashboard from '../../public/locales/en/dashboard.json';
 import enShowcase from '../../public/locales/en/showcase.json';
 import enTeam from '../../public/locales/en/team.json';
 import ukAuth from '../../public/locales/uk/auth.json';
 import ukCommon from '../../public/locales/uk/common.json';
 import ukErrors from '../../public/locales/uk/errors.json';
 import ukNav from '../../public/locales/uk/nav.json';
+import ukProjects from '../../public/locales/uk/projects.json';
+import ukTasks from '../../public/locales/uk/tasks.json';
+import ukDashboard from '../../public/locales/uk/dashboard.json';
 import ukShowcase from '../../public/locales/uk/showcase.json';
 import ukTeam from '../../public/locales/uk/team.json';
 
@@ -20,6 +26,9 @@ export const testResources = {
     errors: enErrors,
     auth: enAuth,
     team: enTeam,
+    projects: enProjects,
+    tasks: enTasks,
+    dashboard: enDashboard,
     showcase: enShowcase,
   },
   uk: {
@@ -28,6 +37,9 @@ export const testResources = {
     errors: ukErrors,
     auth: ukAuth,
     team: ukTeam,
+    projects: ukProjects,
+    tasks: ukTasks,
+    dashboard: ukDashboard,
     showcase: ukShowcase,
   },
 };
@@ -39,7 +51,7 @@ export function initTestI18n(lng: 'en' | 'uk') {
     fallbackLng: 'en',
     resources: testResources,
     defaultNS: 'common',
-    ns: ['common', 'nav', 'errors', 'auth', 'team', 'showcase'],
+    ns: ['common', 'nav', 'errors', 'auth', 'team', 'projects', 'tasks', 'dashboard', 'showcase'],
     interpolation: { escapeValue: false },
     react: { useSuspense: false },
   });

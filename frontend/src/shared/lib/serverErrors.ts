@@ -1,6 +1,6 @@
 import type { FieldValues, Path, UseFormSetError } from 'react-hook-form';
-import { isApiError } from '@/shared/api';
-import { fieldMessage } from '@/shared/lib/formMessage';
+import { isApiError } from '../api/errors';
+import { fieldMessage } from './formMessage';
 
 /**
  * Maps API field errors onto form fields. Returns true when at least one field was

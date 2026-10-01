@@ -1,0 +1,46 @@
+{
+  "kpi": {
+    "active": "Active Tasks",
+    "completed": "Completed This Week",
+    "created": "New This Week",
+    "overdue": "Overdue Tasks",
+    "inReview": "in review",
+    "vsLastWeek": "Than last week",
+    "open": "open of {{total}}"
+  },
+  "activity": {
+    "title": "Recent Activity Feed",
+    "empty": "No activity yet — create or move a task to see it here.",
+    "created": "{{actor}} created {{card}}",
+    "moved": "{{actor}} moved {{card}} to {{to}}",
+    "someone": "Someone"
+  },
+  "projects": {
+    "title": "Recent Team Projects",
+    "empty": "No projects yet.",
+    "all": "All projects"
+  },
+  "statusChart": {
+    "title": "Tasks by Status",
+    "total": "tasks",
+    "empty": "No tasks yet."
+  },
+  "heatmap": {
+    "title": "Throughput",
+    "subtitle": "Status changes per day",
+    "legend": {
+      "todo": "Created",
+      "in_progress": "Started",
+      "in_review": "In review",
+      "done": "Completed"
+    },
+    "range": {
+      "7": "Last 7 days",
+      "14": "Last 14 days"
+    },
+    "tooltip": "{{date}}",
+    "none": "No activity"
+  },
+  "menu": "More options",
+  "open": "Open"
+}

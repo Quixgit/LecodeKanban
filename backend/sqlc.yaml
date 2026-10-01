@@ -31,6 +31,22 @@ sql:
               type: "*string"
           - db_type: timestamptz
             go_type: time.Time
+          - db_type: date
+            go_type: time.Time
+          - db_type: date
+            nullable: true
+            go_type:
+              type: "*time.Time"
+          - db_type: pg_catalog.int2
+            go_type: int16
+          - db_type: pg_catalog.int2
+            nullable: true
+            go_type:
+              type: "*int16"
+          - db_type: pg_catalog.int4
+            nullable: true
+            go_type:
+              type: "*int32"
           - db_type: timestamptz
             nullable: true
             go_type:
@@ -53,6 +69,39 @@ sql:
       go:
         package: store
         out: internal/modules/workspaces/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/boards/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/boards/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/projects/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/projects/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/cards/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/cards/repository/store
         sql_package: pgx/v5
         emit_interface: true
         emit_empty_slices: true

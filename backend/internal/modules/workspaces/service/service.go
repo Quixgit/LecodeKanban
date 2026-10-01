@@ -90,6 +90,19 @@ func (s *Service) Authorize(ctx context.Context, ws, user uuid.UUID, perm domain
 	return s.authorize(ctx, s.repo, ws, user, perm)
 }
 
+// RolesByUser maps every member of a workspace to their role (internal lookup for other modules).
+func (s *Service) RolesByUser(ctx context.Context, ws uuid.UUID) (map[uuid.UUID]domain.Role, error) {
+	rows, err := s.repo.Members(ctx, ws)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[uuid.UUID]domain.Role, len(rows))
+	for _, m := range rows {
+		out[m.UserID] = m.Role
+	}
+	return out, nil
+}
+
 func (s *Service) create(ctx context.Context, owner uuid.UUID, name string) (domain.Workspace, error) {
 	var out domain.Workspace
 	for attempt := 0; attempt < 3; attempt++ {

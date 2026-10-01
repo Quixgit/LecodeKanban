@@ -10,6 +10,9 @@ const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const ShowcasePage = lazy(() => import('@/pages/ShowcasePage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const TeamPage = lazy(() => import('@/pages/TeamPage'));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+const ProjectsPage = lazy(() => import('@/pages/ProjectsPage'));
+const TasksPage = lazy(() => import('@/pages/TasksPage'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
@@ -51,11 +54,11 @@ export const routes: RouteObject[] = [
       </RequireAuth>
     ),
     children: [
-      upcoming('', 'dashboard', true),
-      upcoming('projects', 'projects'),
+      { index: true, handle: page('dashboard'), element: <DashboardPage /> },
+      { path: 'projects', handle: page('projects'), element: <ProjectsPage /> },
       upcoming('calendar', 'calendar'),
-      upcoming('tasks', 'tasks'),
-      upcoming('tasks/:status', 'tasks'),
+      { path: 'tasks', handle: page('tasks'), element: <TasksPage /> },
+      { path: 'tasks/:status', handle: page('tasks'), element: <TasksPage /> },
       upcoming('performance', 'performance'),
       upcoming('help', 'help'),
       { path: 'team', handle: page('team'), element: <TeamPage /> },
