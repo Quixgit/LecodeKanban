@@ -1,0 +1,70 @@
+@import '@fontsource-variable/inter';
+@import './tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-bg text-sm text-text;
+  }
+
+  ::selection {
+    background: rgb(var(--c-primary) / 0.22);
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--sh-focus);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-border-strong)) transparent;
+  }
+
+  html.theme-switching *,
+  html.theme-switching *::before,
+  html.theme-switching *::after {
+    transition:
+      background-color var(--dur-ui) var(--ease-out),
+      border-color var(--dur-ui) var(--ease-out),
+      color var(--dur-ui) var(--ease-out) !important;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes lk-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes lk-pop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}

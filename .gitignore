@@ -1,0 +1,20 @@
+# deps / builds
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+backend/bin/
+backend/tmp/
+
+# env & secrets (never commit)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

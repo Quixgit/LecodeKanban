@@ -1,0 +1,94 @@
+{
+  "actions": {
+    "close": "Закрити",
+    "dismiss": "Закрити сповіщення"
+  },
+  "priority": {
+    "high": "Високий",
+    "medium": "Середній",
+    "low": "Низький"
+  },
+  "status": {
+    "todo": "До виконання",
+    "in_progress": "В роботі",
+    "in_review": "На перевірці",
+    "done": "Виконано"
+  },
+  "projectStatus": {
+    "in_progress": "В роботі",
+    "completed": "Завершено",
+    "pending": "Очікує",
+    "overdue": "Прострочено"
+  },
+  "tasksCount_one": "{{count}} задача",
+  "tasksCount_few": "{{count}} задачі",
+  "tasksCount_many": "{{count}} задач",
+  "tasksCount_other": "{{count}} задачі",
+  "pagination": {
+    "label": "Пагінація",
+    "previous": "Назад",
+    "next": "Далі",
+    "showing": "Показано {{from}}–{{to}} з {{total}} записів",
+    "showAll": "Показати всі"
+  },
+  "search": {
+    "placeholder": "Пошук…"
+  },
+  "notifications": {
+    "title": "Сповіщення",
+    "emptyTitle": "Нових сповіщень немає",
+    "emptyDescription": "Тут з'являтимуться згадки, призначення та нагадування про дедлайни."
+  },
+  "language": {
+    "label": "Мова",
+    "en": "English",
+    "uk": "Українська",
+    "short": {
+      "en": "EN",
+      "uk": "UK"
+    },
+    "switchTo": "Змінити мову на {{language}}"
+  },
+  "theme": {
+    "label": "Тема",
+    "light": "Світла",
+    "dark": "Темна",
+    "system": "Системна",
+    "switchToLight": "Увімкнути світлу тему",
+    "switchToDark": "Увімкнути темну тему"
+  },
+  "userMenu": {
+    "label": "Меню акаунта",
+    "profile": "Профіль",
+    "settings": "Налаштування",
+    "uiKit": "UI-кіт",
+    "guest": "Гість"
+  },
+  "header": {
+    "help": "Довідковий центр",
+    "settings": "Налаштування",
+    "mail": "Відкрити вхідні Gmail"
+  },
+  "commandPalette": {
+    "title": "Палітра команд",
+    "placeholder": "Введіть команду або пошуковий запит…",
+    "empty": "Нічого не знайдено за запитом «{{query}}»",
+    "groups": {
+      "navigation": "Перейти до",
+      "preferences": "Налаштування"
+    }
+  },
+  "a11y": {
+    "skipToContent": "Перейти до вмісту"
+  },
+  "comingSoon": {
+    "title": "Розділ «{{section}}» вже в роботі",
+    "description": "Цей розділ зараз розробляється. Дизайн-система та навігація готові — перегляньте їх у UI-кіті.",
+    "openUiKit": "Відкрити UI-кіт"
+  },
+  "notFound": {
+    "title": "Сторінку не знайдено",
+    "description": "Сторінка, яку ви шукаєте, не існує або була переміщена.",
+    "back": "На дашборд"
+  }
+}

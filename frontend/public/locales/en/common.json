@@ -1,0 +1,92 @@
+{
+  "actions": {
+    "close": "Close",
+    "dismiss": "Dismiss notification"
+  },
+  "priority": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "status": {
+    "todo": "To Do",
+    "in_progress": "In Progress",
+    "in_review": "In Review",
+    "done": "Completed"
+  },
+  "projectStatus": {
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "pending": "Pending",
+    "overdue": "Overdue"
+  },
+  "tasksCount_one": "{{count}} task",
+  "tasksCount_other": "{{count}} tasks",
+  "pagination": {
+    "label": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "Showing {{from}} to {{to}} of {{total}} entries",
+    "showAll": "Show All"
+  },
+  "search": {
+    "placeholder": "Search…"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "emptyTitle": "You're all caught up",
+    "emptyDescription": "Mentions, assignments and due-date reminders will appear here."
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "uk": "Українська",
+    "short": {
+      "en": "EN",
+      "uk": "UK"
+    },
+    "switchTo": "Switch language to {{language}}"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme"
+  },
+  "userMenu": {
+    "label": "Account menu",
+    "profile": "Profile",
+    "settings": "Settings",
+    "uiKit": "UI kit",
+    "guest": "Guest"
+  },
+  "header": {
+    "help": "Help & Center",
+    "settings": "Settings",
+    "mail": "Open Gmail inbox"
+  },
+  "commandPalette": {
+    "title": "Command palette",
+    "placeholder": "Type a command or search…",
+    "empty": "No results for “{{query}}”",
+    "groups": {
+      "navigation": "Go to",
+      "preferences": "Preferences"
+    }
+  },
+  "a11y": {
+    "skipToContent": "Skip to content"
+  },
+  "comingSoon": {
+    "title": "{{section}} is on its way",
+    "description": "This section is being built right now. The design system and navigation are ready — explore them in the UI kit.",
+    "openUiKit": "Open UI kit"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for doesn't exist or has been moved.",
+    "back": "Back to Dashboard"
+  }
+}

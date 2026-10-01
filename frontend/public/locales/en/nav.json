@@ -1,0 +1,83 @@
+{
+  "sections": {
+    "mainMenu": "Main menu",
+    "workspace": "Workspace"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "calendar": "Calendar",
+    "tasks": "Tasks",
+    "performance": "Performance",
+    "help": "Help & Center",
+    "team": "Team",
+    "integrations": "Integrations",
+    "settings": "Settings"
+  },
+  "tasks": {
+    "todo": "To Do",
+    "in_progress": "In Progress",
+    "in_review": "In Review",
+    "done": "Completed"
+  },
+  "sidebar": {
+    "label": "Main navigation",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "collapseGroup": "Collapse {{name}}",
+    "expandGroup": "Expand {{name}}"
+  },
+  "announcement": {
+    "label": "Team announcement",
+    "title": "Announcement!",
+    "defaultMessage": "Team stand-up is starting soon",
+    "members": "Members:",
+    "join": "Join Now"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "New day, fresh energy. Let's ship!"
+    },
+    "projects": {
+      "title": "Projects",
+      "subtitle": "Track and organize all your team's projects in one place"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "Deadlines, meetings and Google Calendar events together"
+    },
+    "tasks": {
+      "title": "Tasks",
+      "subtitle": "Track and organize all your team's tasks in one place"
+    },
+    "performance": {
+      "title": "Performance",
+      "subtitle": "Velocity, cycle time and throughput across the team"
+    },
+    "help": {
+      "title": "Help & Center",
+      "subtitle": "Shortcuts, guides and a direct line to the team"
+    },
+    "team": {
+      "title": "Team",
+      "subtitle": "Members, roles and invitations"
+    },
+    "integrations": {
+      "title": "Integrations",
+      "subtitle": "Connect GitHub, Gmail and Google Calendar"
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Profile, workspace and notification preferences"
+    },
+    "uiKit": {
+      "title": "UI kit",
+      "subtitle": "LecodeKanban design system — tokens, primitives and motion"
+    },
+    "notFound": {
+      "title": "Not found",
+      "subtitle": "This route does not exist"
+    }
+  }
+}

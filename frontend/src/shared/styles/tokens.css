@@ -1,0 +1,184 @@
+/*
+ * LecodeKanban design tokens.
+ * Source of truth: docs/DESIGN_TOKENS.md (values sampled from docs/design/*.png).
+ * Colors are stored as space-separated RGB channels so Tailwind can apply
+ * opacity modifiers: rgb(var(--c-primary) / 0.5).
+ */
+
+:root {
+  /* ---------- Brand ---------- */
+  --c-primary: 76 181 174; /* #4cb5ae – fills, bars, icons, focus */
+  --c-primary-hover: 63 165 158; /* #3fa59e */
+  --c-primary-solid: 54 130 125; /* #36827d – button bg with white text (AA 4.5:1) */
+  --c-primary-solid-hover: 46 112 108; /* #2e706c */
+  --c-primary-soft: 233 244 242; /* #e9f4f2 – pale teal pill/track */
+  --c-primary-subtle: 245 251 251; /* #f5fbfb – active nav background */
+  --c-primary-border: 178 223 223; /* #b2dfdf – active nav border */
+  --c-primary-ink: 50 121 116; /* #327974 – teal text on pale teal (AA) */
+  --c-on-primary: 255 255 255;
+
+  /* ---------- Surfaces ---------- */
+  --c-bg: 249 249 249; /* #f9f9f9 – app canvas */
+  --c-surface: 255 255 255; /* cards, sidebar, header */
+  --c-surface-muted: 249 249 249; /* table head, segmented track */
+  --c-surface-sunken: 244 244 244; /* #f4f4f4 – kbd, disabled */
+  --c-overlay: 17 24 23; /* backdrop base */
+
+  /* ---------- Borders ---------- */
+  --c-border: 237 237 237; /* #ededed – controls, outer card */
+  --c-border-subtle: 243 243 243; /* #f3f3f3 – table rows, dividers */
+  --c-border-strong: 221 221 221; /* #dddddd – hover outlines */
+
+  /* ---------- Text ---------- */
+  --c-text: 28 28 28; /* #1c1c1c – headings, strong cells */
+  --c-text-secondary: 82 82 82; /* #525252 – body cells */
+  --c-text-muted: 115 115 115; /* #737373 – labels, subtitles (AA) */
+  --c-text-faint: 161 161 161; /* #a1a1a1 – placeholders, "/ 96" totals */
+
+  /* ---------- Status (fill = bars/dots, soft = pill bg, ink = text) ---------- */
+  --c-todo: 35 35 35; /* #232323 */
+  --c-todo-soft: 241 241 241; /* #f1f1f1 */
+  --c-todo-ink: 35 35 35;
+
+  --c-progress: 230 176 75; /* #e6b04b amber */
+  --c-progress-bar: 242 204 131; /* #f2cc83 progress fill */
+  --c-progress-soft: 252 247 234; /* #fcf7ea */
+  --c-progress-ink: 140 107 45; /* #8c6b2d */
+
+  --c-review: 148 116 194; /* #9474c2 purple */
+  --c-review-bar: 184 157 218; /* #b89dda */
+  --c-review-soft: 238 232 247; /* #eee8f7 */
+  --c-review-ink: 119 93 157; /* #775d9d */
+
+  --c-done: 77 182 174; /* #4db6ae teal */
+  --c-done-soft: 233 244 242; /* #e9f4f2 */
+  --c-done-ink: 50 121 116; /* #327974 */
+
+  --c-danger: 208 84 78; /* #d0544e */
+  --c-danger-soft: 247 231 230; /* #f7e7e6 */
+  --c-danger-ink: 176 71 66; /* #b04742 */
+
+  --c-success: 76 181 174;
+  --c-warning: 230 176 75;
+
+  /* Heatmap / chart series (Dashboard "attendance"-style) */
+  --c-chart-1: 76 181 174; /* teal */
+  --c-chart-2: 196 178 221; /* #c4b2dd lavender */
+  --c-chart-3: 241 205 131; /* #f1cd83 sand */
+  --c-chart-4: 35 35 35;
+
+  /* Announcement card gradient */
+  --g-announce: linear-gradient(160deg, #d1f1ef 0%, #e6f6f5 45%, #f1f9fa 100%);
+
+  /* ---------- Radii ---------- */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px; /* buttons, icon buttons */
+  --r-lg: 12px; /* inputs, nav items, inner cards */
+  --r-xl: 16px; /* cards */
+  --r-2xl: 20px; /* page panels */
+  --r-full: 9999px;
+
+  /* ---------- Shadows (soft, large blur, low opacity) ---------- */
+  --sh-xs: 0 1px 2px rgb(16 24 40 / 0.04);
+  --sh-sm: 0 1px 2px rgb(16 24 40 / 0.03), 0 4px 12px -6px rgb(16 24 40 / 0.06);
+  --sh-md: 0 2px 4px rgb(16 24 40 / 0.03), 0 12px 32px -12px rgb(16 24 40 / 0.1);
+  --sh-lg: 0 4px 8px rgb(16 24 40 / 0.04), 0 24px 48px -16px rgb(16 24 40 / 0.16);
+  --sh-drag: 0 8px 16px rgb(16 24 40 / 0.06), 0 28px 56px -12px rgb(16 24 40 / 0.24);
+  --sh-primary: 0 6px 16px -6px rgb(var(--c-primary) / 0.55);
+  --sh-focus: 0 0 0 3px rgb(var(--c-primary) / 0.28);
+
+  /* ---------- Layout ---------- */
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 76px;
+  --header-h: 64px;
+  --row-h: 48px;
+  --control-h: 38px;
+  --control-h-sm: 32px;
+
+  /* ---------- Typography ---------- */
+  --font-sans:
+    'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+
+  /* ---------- Motion ---------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-micro: 140ms;
+  --dur-ui: 220ms;
+  --dur-large: 320ms;
+
+  color-scheme: light;
+}
+
+/* ---------- Dark theme ---------- */
+:root[data-theme='dark'] {
+  --c-primary: 86 196 188;
+  --c-primary-hover: 110 208 201;
+  --c-primary-solid: 76 181 174;
+  --c-primary-solid-hover: 98 196 189;
+  --c-primary-soft: 22 52 50;
+  --c-primary-subtle: 20 40 39;
+  --c-primary-border: 38 92 88;
+  --c-primary-ink: 128 214 207;
+  --c-on-primary: 6 26 24;
+
+  --c-bg: 13 16 16;
+  --c-surface: 21 25 25;
+  --c-surface-muted: 26 31 31;
+  --c-surface-sunken: 32 38 38;
+  --c-overlay: 0 0 0;
+
+  --c-border: 38 45 45;
+  --c-border-subtle: 31 37 37;
+  --c-border-strong: 56 65 65;
+
+  --c-text: 236 240 239;
+  --c-text-secondary: 196 204 202;
+  --c-text-muted: 150 160 158;
+  --c-text-faint: 104 114 112;
+
+  --c-todo: 210 216 215;
+  --c-todo-soft: 36 42 42;
+  --c-todo-ink: 220 226 225;
+
+  --c-progress: 236 190 102;
+  --c-progress-bar: 214 168 82;
+  --c-progress-soft: 52 42 22;
+  --c-progress-ink: 242 204 131;
+
+  --c-review: 172 146 216;
+  --c-review-bar: 152 126 200;
+  --c-review-soft: 42 34 58;
+  --c-review-ink: 200 182 232;
+
+  --c-done: 86 196 188;
+  --c-done-soft: 22 52 50;
+  --c-done-ink: 128 214 207;
+
+  --c-danger: 232 112 106;
+  --c-danger-soft: 60 28 27;
+  --c-danger-ink: 244 160 155;
+
+  --c-chart-1: 86 196 188;
+  --c-chart-2: 152 126 200;
+  --c-chart-3: 214 168 82;
+  --c-chart-4: 210 216 215;
+
+  --g-announce: linear-gradient(160deg, #173a38 0%, #152d2c 50%, #151d1d 100%);
+
+  --sh-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+  --sh-sm: 0 1px 2px rgb(0 0 0 / 0.25), 0 4px 12px -6px rgb(0 0 0 / 0.4);
+  --sh-md: 0 2px 4px rgb(0 0 0 / 0.25), 0 12px 32px -12px rgb(0 0 0 / 0.5);
+  --sh-lg: 0 4px 8px rgb(0 0 0 / 0.3), 0 24px 48px -16px rgb(0 0 0 / 0.6);
+  --sh-drag: 0 8px 16px rgb(0 0 0 / 0.35), 0 28px 56px -12px rgb(0 0 0 / 0.7);
+
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-micro: 0ms;
+    --dur-ui: 0ms;
+    --dur-large: 0ms;
+  }
+}

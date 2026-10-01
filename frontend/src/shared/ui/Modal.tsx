@@ -1,0 +1,103 @@
+import * as Dialog from '@radix-ui/react-dialog';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useRestoreFocus } from '../hooks/useRestoreFocus';
+import { cn } from '../lib/cn';
+import { backdrop, scaleIn } from '../motion/presets';
+import { IconButton } from './IconButton';
+
+export interface ModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: ReactNode;
+  description?: ReactNode;
+  children?: ReactNode;
+  footer?: ReactNode;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const widths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl' } as const;
+
+export function Overlay() {
+  return (
+    <Dialog.Overlay forceMount asChild>
+      <motion.div
+        variants={backdrop}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="fixed inset-0 z-40 bg-overlay/25 backdrop-blur-[3px]"
+      />
+    </Dialog.Overlay>
+  );
+}
+
+/** Centered dialog: scale+fade surface over a blurred backdrop; focus is trapped by Radix. */
+export function Modal({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+  footer,
+  size = 'md',
+}: ModalProps) {
+  const { t } = useTranslation();
+  const restoreFocus = useRestoreFocus(open);
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <AnimatePresence>
+        {open && (
+          <Dialog.Portal forceMount>
+            <Overlay />
+            <div className="fixed inset-0 z-50 grid place-items-center p-4">
+              <Dialog.Content
+                onCloseAutoFocus={restoreFocus}
+                forceMount
+                asChild
+                {...(description ? {} : { 'aria-describedby': undefined })}
+              >
+                <motion.div
+                  variants={scaleIn}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className={cn(
+                    'w-full rounded-2xl border border-border-subtle bg-surface shadow-lg',
+                    widths[size],
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-4 px-6 pb-2 pt-5">
+                    <div>
+                      <Dialog.Title className="text-lg font-semibold text-text">
+                        {title}
+                      </Dialog.Title>
+                      {description && (
+                        <Dialog.Description className="mt-1 text-base text-text-muted">
+                          {description}
+                        </Dialog.Description>
+                      )}
+                    </div>
+                    <Dialog.Close asChild>
+                      <IconButton label={t('actions.close')} variant="ghost" size="sm">
+                        <X />
+                      </IconButton>
+                    </Dialog.Close>
+                  </div>
+                  {children && <div className="px-6 py-3">{children}</div>}
+                  {footer && (
+                    <div className="flex justify-end gap-2 border-t border-border-subtle px-6 py-4">
+                      {footer}
+                    </div>
+                  )}
+                </motion.div>
+              </Dialog.Content>
+            </div>
+          </Dialog.Portal>
+        )}
+      </AnimatePresence>
+    </Dialog.Root>
+  );
+}

@@ -1,0 +1,155 @@
+{
+  "toc": "UI kit sections",
+  "foundations": {
+    "title": "Foundations",
+    "description": "Colour, type, radii and elevation tokens sampled from the reference design.",
+    "colors": {
+      "brand": "Brand",
+      "surfaces": "Surfaces & borders",
+      "text": "Text",
+      "status": "Status"
+    },
+    "typography": "Typography",
+    "radii": "Radii",
+    "shadows": "Shadows",
+    "pangram": "Ship the board, move the card, close the sprint"
+  },
+  "controls": {
+    "title": "Controls",
+    "description": "Buttons, inputs, selects and toggles in every state.",
+    "buttons": "Buttons",
+    "addTask": "Add Task",
+    "filter": "Filter",
+    "export": "Export",
+    "editProject": "Edit Project Info",
+    "soft": "Soft",
+    "ghost": "Ghost",
+    "delete": "Delete",
+    "saving": "Saving",
+    "disabled": "Disabled",
+    "sizes": "Sizes & icon buttons",
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large",
+    "more": "More actions",
+    "add": "Add",
+    "segmented": "Segmented control",
+    "viewLabel": "View",
+    "views": {
+      "list": "List",
+      "kanban": "Kanban",
+      "calendar": "Calendar",
+      "card": "Card"
+    },
+    "inputs": "Search & filters",
+    "searchTask": "Search Task…",
+    "status": "Status",
+    "period": "Period:",
+    "periodValue": "May 2025",
+    "forms": "Form fields",
+    "email": "Email",
+    "emailError": "Enter a valid email address",
+    "name": "Full name",
+    "nameHint": "Shown to your teammates",
+    "toggles": "Checkbox & switch",
+    "checkbox": "Select row",
+    "indeterminate": "Partially selected",
+    "switch": "Email notifications"
+  },
+  "data": {
+    "title": "Data display",
+    "description": "Pills, tags, avatars, progress and KPI tiles.",
+    "priority": "Priority",
+    "taskStatus": "Task status",
+    "paid": "Merged",
+    "projectStatus": "Project status",
+    "groupTags": "Group headers",
+    "avatars": "Avatars",
+    "progress": "Progress bars",
+    "trends": "Trend chips",
+    "kpis": "KPI row",
+    "kpi": {
+      "total": "Total Projects",
+      "completed": "Completed Projects",
+      "inProgress": "In Progress",
+      "pending": "Pending Projects",
+      "overdue": "Overdue"
+    },
+    "metrics": "Metric cards",
+    "metric": {
+      "activeTasks": "Active Tasks",
+      "openBugs": "Open Bugs",
+      "vsYesterday": "Than yesterday"
+    }
+  },
+  "table": {
+    "title": "Table",
+    "description": "Sortable columns, bulk selection and pagination.",
+    "collapse": "Collapse group",
+    "viewAll": "View All",
+    "selectAll": "Select all rows",
+    "selectRow": "Select {{id}}",
+    "rowActions": "Row actions",
+    "columns": {
+      "id": "Task ID",
+      "name": "Task Name",
+      "assignee": "Assignee",
+      "project": "Project Name",
+      "progress": "Progress",
+      "deadline": "Deadline",
+      "priority": "Priority",
+      "action": "Action"
+    }
+  },
+  "projects": {
+    "title": "Project cards",
+    "description": "Composition of primitives, matching the Projects page.",
+    "pic": "PIC:",
+    "teamRole": "Team/Role:",
+    "completedTasks": "Completed Tasks:",
+    "deadline": "Deadline:",
+    "progress": "Progress:",
+    "viewDetails": "View Details",
+    "edit": "Edit Project Info"
+  },
+  "overlays": {
+    "title": "Overlays & feedback",
+    "description": "Modal, drawer, menus, tooltips, toasts, skeletons and empty states.",
+    "surfaces": "Surfaces",
+    "openModal": "Open modal",
+    "openDrawer": "Open drawer",
+    "openMenu": "Open menu",
+    "menu": {
+      "edit": "Edit",
+      "duplicate": "Duplicate",
+      "archive": "Archive",
+      "delete": "Delete"
+    },
+    "tooltipText": "Tooltips appear after a short delay",
+    "hoverMe": "Hover me",
+    "toasts": "Toasts",
+    "toast": {
+      "success": "Success",
+      "successTitle": "Card moved",
+      "successBody": "Moved to In Review.",
+      "info": "Info",
+      "infoTitle": "Sync started",
+      "error": "Error",
+      "errorTitle": "Couldn't save changes",
+      "errorBody": "Someone else edited this card. Refresh and try again."
+    },
+    "loading": "Skeleton",
+    "empty": "Empty state",
+    "emptyTitle": "No tasks yet",
+    "emptyBody": "Create the first task for this column to get things moving.",
+    "modal": {
+      "title": "Delete this task?",
+      "body": "The task and its comments will be removed. This can't be undone.",
+      "cancel": "Cancel"
+    },
+    "drawer": {
+      "done": "Done",
+      "body": "The card detail drawer slides in from the right with a blurred backdrop; focus is trapped inside and returns to the trigger on close."
+    }
+  }
+}
