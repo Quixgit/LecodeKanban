@@ -16,6 +16,8 @@ x-backend-env: &backend-env
   LK_TRUST_PROXY: "true"
   LK_COOKIE_SECURE: ${LK_COOKIE_SECURE:-false}
   LK_EMBEDDED_WORKER: "false"
+  LK_ATTACHMENTS_DIR: /data/attachments
+  LK_ATTACHMENT_MAX_MB: ${LK_ATTACHMENT_MAX_MB:-25}
   LK_DATABASE_URL: postgres://lecodekanban:${LK_POSTGRES_PASSWORD}@postgres:5432/lecodekanban?sslmode=disable
   LK_SECRET_KEY: ${LK_SECRET_KEY:?set LK_SECRET_KEY in .env}
   LK_ENCRYPTION_KEY: ${LK_ENCRYPTION_KEY:?set LK_ENCRYPTION_KEY in .env}
@@ -72,6 +74,8 @@ services:
     image: lecodekanban-backend:latest
     restart: unless-stopped
     environment: *backend-env
+    volumes:
+      - attachments:/data/attachments
     depends_on:
       migrate: { condition: service_completed_successfully }
     stop_grace_period: 20s
@@ -100,3 +104,4 @@ services:
 
 volumes:
   pgdata:
+  attachments:

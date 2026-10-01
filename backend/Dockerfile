@@ -10,9 +10,12 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
     for cmd in server worker migrate seed; do \
       go build -ldflags="-s -w" -o /out/$cmd ./cmd/$cmd || exit 1; \
     done
+# Owned by distroless "nonroot" (65532) so a fresh named volume inherits writable ownership.
+RUN mkdir -p /data/attachments && chown -R 65532:65532 /data
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /out/ /app/
+COPY --from=build --chown=65532:65532 /data /data
 USER nonroot:nonroot
 EXPOSE 47101
 HEALTHCHECK --interval=15s --timeout=4s --start-period=10s --retries=3 CMD ["/app/server", "healthcheck"]

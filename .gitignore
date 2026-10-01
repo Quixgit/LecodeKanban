@@ -19,3 +19,6 @@ backend/tmp/
 .vscode/
 *.swp
 backend/coverage.out
+
+# local uploads (dev)
+backend/data/
