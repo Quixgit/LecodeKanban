@@ -14,6 +14,13 @@ export function formatDate(date: Date | string | number, lang: string): string {
   );
 }
 
+/** Compact date for cards: "Jun 10" / "10 черв.". */
+export function formatShortDate(date: Date | string | number, lang: string): string {
+  return new Intl.DateTimeFormat(lang, { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(
+    new Date(date),
+  );
+}
+
 export function formatRelative(date: Date | string | number, lang: string): string {
   return formatDistanceToNow(new Date(date), { addSuffix: true, locale: dateLocale(lang) });
 }

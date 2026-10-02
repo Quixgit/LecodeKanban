@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation } from 'react-router-dom';
@@ -9,6 +9,8 @@ import {
   VerificationBanner,
 } from '@/features/auth';
 import { CommandPalette } from '@/features/command-palette';
+import { useWorkspaceEvents } from '@/features/realtime';
+import { useCurrentWorkspace } from '@/features/workspaces';
 import { pageTransition } from '@/shared/motion';
 import { Header } from './header/Header';
 import { PageSkeleton } from './PageSkeleton';
@@ -22,7 +24,9 @@ export function AppShell() {
   const commands = useShellCommands();
   const viewer = useViewer();
   const { user } = useSession();
+  const { workspace } = useCurrentWorkspace();
   useSessionExpiryListener();
+  useWorkspaceEvents(workspace?.id); // live updates from teammates, for every page
   useApplyProfileLanguage(user);
 
   return (
@@ -38,19 +42,17 @@ export function AppShell() {
         <Header viewer={viewer} />
         <main id="main" tabIndex={-1} className="flex-1 p-6 outline-none">
           <VerificationBanner />
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={location.pathname}
-              variants={pageTransition}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <Suspense fallback={<PageSkeleton />}>
-                <Outlet />
-              </Suspense>
-            </motion.div>
-          </AnimatePresence>
+          {/* Enter-only: an exit phase around lazy routes can stall and leave a blank, inert page. */}
+          <motion.div
+            key={location.pathname}
+            variants={pageTransition}
+            initial="hidden"
+            animate="visible"
+          >
+            <Suspense fallback={<PageSkeleton />}>
+              <Outlet />
+            </Suspense>
+          </motion.div>
         </main>
       </div>
       <CommandPalette commands={commands} />

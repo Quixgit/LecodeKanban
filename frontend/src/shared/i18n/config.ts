@@ -11,6 +11,10 @@ export const NAMESPACES = [
   'team',
   'projects',
   'tasks',
+  'kanban',
+  'card',
+  'time',
+  'calendar',
   'dashboard',
   'showcase',
 ] as const;

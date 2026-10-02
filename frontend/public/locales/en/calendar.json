@@ -1,0 +1,30 @@
+{
+  "prev": "Previous",
+  "next": "Next",
+  "today": "Today",
+  "weekOf": "Week of {{date}}",
+  "mode": {
+    "label": "Calendar range",
+    "month": "Month",
+    "week": "Week",
+    "day": "Day"
+  },
+  "more": "+{{count}} more",
+  "cellLabel": "{{date}}, {{count}} tasks",
+  "openDay": "Open day {{date}}",
+  "addOn": "Add a task on {{date}}",
+  "truncated": "Showing the first tasks only — narrow the filters to see the rest.",
+  "unscheduled": {
+    "title": "No due date",
+    "empty": "Every open task has a due date.",
+    "hint": "Drag a task onto a day to schedule it.",
+    "more": "+{{count}} more not shown"
+  },
+  "a11y": {
+    "instructions": "Press space to pick up a task, arrow keys to move it between days, space to drop, Escape to cancel. You can also open the task and set its due date.",
+    "pickedUp": "Picked up {{title}}.",
+    "over": "{{title}} is over {{date}}.",
+    "dropped": "Dropped {{title}} on {{date}}.",
+    "cancelled": "Move of {{title}} cancelled."
+  }
+}

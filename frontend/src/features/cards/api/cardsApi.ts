@@ -9,6 +9,13 @@ export type Priority = components['schemas']['Priority'];
 export type StatusCounts = components['schemas']['StatusCounts'];
 export type DashboardStats = components['schemas']['DashboardStats'];
 export type BulkCardAction = components['schemas']['BulkCardAction'];
+export type Label = components['schemas']['Label'];
+export type LabelInput = components['schemas']['LabelInput'];
+export type LabelPatch = components['schemas']['LabelPatch'];
+export type CardBoard = components['schemas']['CardBoard'];
+export type BoardQuery = NonNullable<
+  paths['/workspaces/{workspaceId}/cards/board']['get']['parameters']['query']
+>;
 export type CardQuery = NonNullable<
   paths['/workspaces/{workspaceId}/cards']['get']['parameters']['query']
 >;
@@ -42,4 +49,16 @@ export const cardsApi = {
   remove: (cardId: string) => unwrap(api.DELETE('/cards/{cardId}', card(cardId))),
   bulk: (workspaceId: string, body: BulkCardAction) =>
     unwrap(api.POST('/workspaces/{workspaceId}/cards/bulk', { params: ws(workspaceId), body })),
+  board: (workspaceId: string, query: BoardQuery) =>
+    unwrap(
+      api.GET('/workspaces/{workspaceId}/cards/board', { params: { ...ws(workspaceId), query } }),
+    ),
+  labels: (workspaceId: string) =>
+    unwrap(api.GET('/workspaces/{workspaceId}/labels', { params: ws(workspaceId) })),
+  createLabel: (workspaceId: string, body: LabelInput) =>
+    unwrap(api.POST('/workspaces/{workspaceId}/labels', { params: ws(workspaceId), body })),
+  updateLabel: (labelId: string, body: LabelPatch) =>
+    unwrap(api.PATCH('/labels/{labelId}', { params: { path: { labelId } }, body })),
+  deleteLabel: (labelId: string) =>
+    unwrap(api.DELETE('/labels/{labelId}', { params: { path: { labelId } } })),
 };

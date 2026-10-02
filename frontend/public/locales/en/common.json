@@ -96,5 +96,13 @@
   "workspace": {
     "label": "Workspace",
     "switch": "Switch workspace"
+  },
+  "routeError": {
+    "title": "Something went wrong",
+    "description": "This page failed to load. Reloading usually fixes it.",
+    "updated": "A new version is available",
+    "updatedHint": "Reloading to get the latest version…",
+    "reload": "Reload",
+    "home": "Go to Dashboard"
   }
 }

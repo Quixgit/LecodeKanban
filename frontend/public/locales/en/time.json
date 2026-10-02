@@ -1,0 +1,22 @@
+{
+  "title": "Time tracking",
+  "start": "Start timer",
+  "switch": "Start here",
+  "stop": "Stop",
+  "running": "Timer running",
+  "durationLabel": "Time spent",
+  "durationPlaceholder": "1h 30m",
+  "durationInvalid": "Try “1h 30m”, “45m” or “1:30” (1 minute to 24 hours).",
+  "note": "Note",
+  "notePlaceholder": "What did you work on? (optional)",
+  "log": "Log time",
+  "logged": "Time logged",
+  "manual": "added manually",
+  "delete": "Delete time entry",
+  "someone": "Someone",
+  "duration": {
+    "hm": "{{h}}h {{m}}m",
+    "m": "{{m}}m",
+    "s": "{{s}}s"
+  }
+}

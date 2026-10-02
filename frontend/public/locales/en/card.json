@@ -1,0 +1,137 @@
+{
+  "someone": "Someone",
+  "title": "Task title",
+  "loading": "Loading task…",
+  "notFound": "Task not found",
+  "notFoundHint": "It may have been deleted or you no longer have access.",
+  "copyLink": "Copy link",
+  "linkCopied": "Link copied",
+  "linkFailed": "Couldn’t copy the link",
+  "delete": "Delete task",
+  "deleteTitle": "Delete {{key}}?",
+  "deleteBody": "The task, its comments and attachments will be removed permanently.",
+  "deleted": "{{key}} deleted",
+  "cancel": "Cancel",
+  "save": "Save",
+  "conflict": "Someone else changed this task — showing the latest version.",
+  "tabs": {
+    "label": "Task details",
+    "comments": "Comments ({{count}})",
+    "activity": "Activity"
+  },
+  "fields": {
+    "status": "Status",
+    "priority": "Priority",
+    "assignees": "Assignees",
+    "nobody": "Nobody",
+    "due": "Due date",
+    "noDue": "No due date",
+    "labels": "Labels",
+    "noLabels": "No labels",
+    "project": "Project",
+    "progress": "Progress",
+    "created": "Created {{date}}",
+    "updated": "Updated {{date}}",
+    "completed": "Completed {{date}}"
+  },
+  "progress": {
+    "done": "Task is completed",
+    "checklist": "Based on the checklist",
+    "stage": "Based on the stage"
+  },
+  "description": {
+    "title": "Description",
+    "label": "Description",
+    "mode": "Editor mode",
+    "write": "Write",
+    "preview": "Preview",
+    "empty": "Add a description…",
+    "none": "No description yet.",
+    "nothing": "Nothing to preview.",
+    "placeholder": "Describe the task. Markdown and @mentions are supported.",
+    "hint": "Markdown supported · @ to mention",
+    "tools": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "code": "Code",
+      "link": "Link",
+      "list": "List",
+      "task": "Task list"
+    }
+  },
+  "checklist": {
+    "title": "Checklist",
+    "add": "Add an item",
+    "addButton": "Add",
+    "delete": "Delete “{{text}}”",
+    "edit": "Edit item",
+    "progress": "{{done}} of {{total}} done",
+    "reorder": "Reorder “{{text}}”"
+  },
+  "comments": {
+    "new": "New comment",
+    "placeholder": "Write a comment… @ to mention",
+    "hint": "Ctrl+Enter to post",
+    "post": "Comment",
+    "edit": "Edit",
+    "delete": "Delete",
+    "edited": "edited",
+    "empty": "No comments yet."
+  },
+  "attachments": {
+    "title": "Attachments",
+    "add": "Add files",
+    "hint": "Drop files here or click to browse",
+    "none": "No attachments.",
+    "download": "Download {{name}}",
+    "delete": "Delete {{name}}",
+    "uploaded": "{{name}} uploaded"
+  },
+  "labels": {
+    "new": "New label",
+    "create": "Create",
+    "color": "Colour",
+    "tones": {
+      "teal": "Teal",
+      "amber": "Amber",
+      "purple": "Purple",
+      "red": "Red",
+      "neutral": "Grey"
+    }
+  },
+  "activity": {
+    "empty": "No activity yet.",
+    "more": "Show more",
+    "created": "created the task",
+    "deleted": "deleted the task",
+    "renamed": "renamed the task to “{{to}}”",
+    "description": "updated the description",
+    "priority": "changed the priority from {{from}} to {{to}}",
+    "due": "set the due date to {{to}}",
+    "dueCleared": "cleared the due date",
+    "assigned": "assigned {{names}}",
+    "unassigned": "unassigned {{names}}",
+    "labelled": "added labels {{names}}",
+    "unlabelled": "removed labels {{names}}",
+    "moved": "moved the task from {{from}} to {{to}}",
+    "commented": "commented",
+    "commentDeleted": "deleted a comment",
+    "attached": "attached {{name}}",
+    "detached": "removed attachment {{name}}",
+    "unknown": "made a change",
+    "checklist": {
+      "added": "added “{{text}}” to the checklist",
+      "checked": "checked “{{text}}”",
+      "unchecked": "unchecked “{{text}}”",
+      "changed": "edited “{{text}}”",
+      "removed": "removed “{{text}}”"
+    }
+  },
+  "subtasks": {
+    "title": "Subtasks",
+    "add": "Add a subtask",
+    "addButton": "Add",
+    "progress": "{{done}} of {{total}} subtasks done",
+    "toggle": "Complete “{{title}}”"
+  }
+}

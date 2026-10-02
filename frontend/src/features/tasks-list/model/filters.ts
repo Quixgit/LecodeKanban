@@ -7,12 +7,13 @@ export interface TaskFilters {
   projectId?: string;
   assigneeId?: string;
   priority?: Priority;
+  labelId?: string;
   due?: CardQuery['due'];
   page: number;
   showAll: boolean;
 }
 
-const keys = ['q', 'projectId', 'assigneeId', 'priority', 'due'] as const;
+const keys = ['q', 'projectId', 'assigneeId', 'priority', 'labelId', 'due'] as const;
 
 export function useTaskFilters() {
   const [params, setParams] = useSearchParams();
@@ -22,6 +23,7 @@ export function useTaskFilters() {
       projectId: params.get('projectId') ?? undefined,
       assigneeId: params.get('assigneeId') ?? undefined,
       priority: (params.get('priority') ?? undefined) as Priority | undefined,
+      labelId: params.get('labelId') ?? undefined,
       due: (params.get('due') ?? undefined) as TaskFilters['due'],
       page: Math.max(1, Number(params.get('page')) || 1),
       showAll: params.get('all') === '1',
@@ -59,6 +61,7 @@ export function baseQuery(f: TaskFilters) {
     projectId: f.projectId,
     assigneeId: f.assigneeId,
     priority: f.priority,
+    labelId: f.labelId,
     due: f.due,
   };
 }

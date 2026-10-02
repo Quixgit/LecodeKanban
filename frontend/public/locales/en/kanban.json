@@ -1,0 +1,97 @@
+{
+  "a11y": {
+    "instructions": "Press space to pick up a card, arrow keys to move it, space to drop, Escape to cancel.",
+    "pickedUp": "Picked up {{title}} from {{column}}.",
+    "over": "{{title}} is now in {{column}}.",
+    "dropped": "Dropped {{title}} in {{column}}.",
+    "outside": "{{title}} is outside any column.",
+    "cancelled": "Move of {{title}} cancelled."
+  },
+  "board": {
+    "truncated": "Showing the first cards only — narrow the filters to see the rest."
+  },
+  "card": {
+    "attachments": "Attachments",
+    "checklist": "Checklist",
+    "comments": "Comments",
+    "due": "Due",
+    "labels": "Labels",
+    "overdue": "Overdue",
+    "progress": "Progress {{value}}%",
+    "subtasks": "Subtasks"
+  },
+  "column": {
+    "add": "Add column",
+    "addHint": "Columns are specific to this project board.",
+    "addTitle": "New column",
+    "collapse": "Collapse {{name}}",
+    "expand": "Expand {{name}}",
+    "created": "Column “{{name}}” created",
+    "delete": "Delete column",
+    "deleteBody": "Cards in this column move to the previous one.",
+    "deleteTitle": "Delete this column?",
+    "editTitle": "Edit column",
+    "menu": "{{name}} column actions",
+    "moveLeft": "Move left",
+    "moveRight": "Move right",
+    "name": "Name",
+    "noLimit": "No limit",
+    "rename": "Edit column",
+    "status": "Counts as",
+    "statusHint": "Which task status cards in this column get.",
+    "wip": "WIP limit",
+    "wipFieldHint": "Maximum cards in progress. Leave empty for no limit.",
+    "wipHint": "Limit {{limit}}",
+    "wipInvalid": "Enter a whole number from 1 to 999."
+  },
+  "lane": {
+    "label": "Swimlanes",
+    "prefix": "Lanes:",
+    "none": "None",
+    "project": "Project",
+    "assignee": "Assignee",
+    "priority": "Priority",
+    "unassigned": "Unassigned",
+    "count_one": "{{count}} card",
+    "count_other": "{{count}} cards"
+  },
+  "quickAdd": {
+    "button": "Add card",
+    "cancel": "Cancel",
+    "hint": "Enter to add, Esc to cancel",
+    "placeholder": "Card title…",
+    "project": "Project",
+    "submit": "Add"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "newCard": "New card in the focused column",
+    "search": "Search",
+    "navigate": "Move between cards",
+    "open": "Open card",
+    "drag": "Pick up / drop card",
+    "cancel": "Cancel / close",
+    "help": "Show this help"
+  },
+  "views": {
+    "title": "Saved views",
+    "empty": "No saved views yet.",
+    "name": "View name",
+    "saveCurrent": "Save current view",
+    "saveHint": "Saves the current filters and swimlanes.",
+    "saveTitle": "Save view",
+    "saved": "View “{{name}}” saved",
+    "delete": "Delete view “{{name}}”"
+  },
+  "wip": {
+    "exceeded": "{{column}} is over its WIP limit of {{limit}}."
+  },
+  "live": {
+    "live": "Live",
+    "connecting": "Connecting",
+    "offline": "Offline",
+    "liveHint": "Changes from teammates appear instantly.",
+    "connectingHint": "Connecting to live updates…",
+    "offlineHint": "Live updates are off. Reconnecting…"
+  }
+}

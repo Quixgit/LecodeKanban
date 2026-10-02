@@ -22,6 +22,7 @@ interface Props {
   onSelectionChange: (s: RowSelectionState) => void;
   canEdit: boolean;
   onEdit: (c: Card) => void;
+  onOpen: (c: Card) => void;
   onMove: (c: Card, s: TaskStatus) => void;
   onDelete: (c: Card) => void;
   /** Shown on the grouped overview; hidden on the single-status page. */
@@ -90,6 +91,7 @@ export function StatusGroup(p: Props) {
                   onSelectionChange={p.onSelectionChange}
                   canEdit={p.canEdit}
                   onEdit={p.onEdit}
+                  onOpen={p.onOpen}
                   onMove={p.onMove}
                   onDelete={p.onDelete}
                   virtual={p.virtual}

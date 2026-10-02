@@ -5,6 +5,7 @@ import { AppShell } from './layouts/app-shell/AppShell';
 import type { RouteHandle } from './layouts/app-shell/header/PageTitle';
 import { BootSplash } from './layouts/BootSplash';
 import { AuthLayout } from './layouts/auth/AuthLayout';
+import { RouteError } from './layouts/RouteError';
 
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const ShowcasePage = lazy(() => import('@/pages/ShowcasePage'));
@@ -12,6 +13,7 @@ const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const TeamPage = lazy(() => import('@/pages/TeamPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage'));
+const CalendarPage = lazy(() => import('@/pages/CalendarPage'));
 const TasksPage = lazy(() => import('@/pages/TasksPage'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
@@ -37,6 +39,7 @@ const guest = (el: ReactNode) => <GuestOnly fallback={<BootSplash />}>{el}</Gues
 export const routes: RouteObject[] = [
   {
     element: <AuthLayout />,
+    errorElement: <RouteError />,
     children: [
       { path: 'login', element: guest(<LoginPage />) },
       { path: 'register', element: guest(<RegisterPage />) },
@@ -48,25 +51,32 @@ export const routes: RouteObject[] = [
   },
   {
     path: '/',
+    errorElement: <RouteError />,
     element: (
       <RequireAuth fallback={<BootSplash />}>
         <AppShell />
       </RequireAuth>
     ),
+    // Pathless wrapper: a failing page shows the error inside the shell (sidebar and header stay usable).
     children: [
-      { index: true, handle: page('dashboard'), element: <DashboardPage /> },
-      { path: 'projects', handle: page('projects'), element: <ProjectsPage /> },
-      upcoming('calendar', 'calendar'),
-      { path: 'tasks', handle: page('tasks'), element: <TasksPage /> },
-      { path: 'tasks/:status', handle: page('tasks'), element: <TasksPage /> },
-      upcoming('performance', 'performance'),
-      upcoming('help', 'help'),
-      { path: 'team', handle: page('team'), element: <TeamPage /> },
-      upcoming('integrations', 'integrations'),
-      upcoming('settings', 'settings'),
-      upcoming('settings/profile', 'settings'),
-      { path: 'ui-kit', handle: page('uiKit'), element: <ShowcasePage /> },
-      { path: '*', handle: page('notFound'), element: <NotFoundPage /> },
+      {
+        errorElement: <RouteError />,
+        children: [
+          { index: true, handle: page('dashboard'), element: <DashboardPage /> },
+          { path: 'projects', handle: page('projects'), element: <ProjectsPage /> },
+          { path: 'calendar', handle: page('calendar'), element: <CalendarPage /> },
+          { path: 'tasks', handle: page('tasks'), element: <TasksPage /> },
+          { path: 'tasks/:status', handle: page('tasks'), element: <TasksPage /> },
+          upcoming('performance', 'performance'),
+          upcoming('help', 'help'),
+          { path: 'team', handle: page('team'), element: <TeamPage /> },
+          upcoming('integrations', 'integrations'),
+          upcoming('settings', 'settings'),
+          upcoming('settings/profile', 'settings'),
+          { path: 'ui-kit', handle: page('uiKit'), element: <ShowcasePage /> },
+          { path: '*', handle: page('notFound'), element: <NotFoundPage /> },
+        ],
+      },
     ],
   },
 ];

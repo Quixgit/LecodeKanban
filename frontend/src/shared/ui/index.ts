@@ -15,6 +15,7 @@ export * from './FormAlert';
 export * from './IconButton';
 export * from './Input';
 export * from './Kbd';
+export * from './Markdown';
 export * from './MetricCard';
 export * from './Modal';
 export * from './Pagination';

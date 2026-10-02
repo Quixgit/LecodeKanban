@@ -1,9 +1,9 @@
 import type { RowSelectionState, SortingState } from '@tanstack/react-table';
 import { motion } from 'framer-motion';
 import { ArrowLeft, FolderPlus } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import {
   CardFormDialog,
   STATUSES,
@@ -50,6 +50,7 @@ interface GroupProps {
   onSelection: (s: TaskStatus, sel: RowSelectionState) => void;
   canEdit: boolean;
   onEdit: (c: Card) => void;
+  onOpen: (c: Card) => void;
   onMove: (c: Card, s: TaskStatus) => void;
   onDelete: (c: Card) => void;
   onPage: (page: number) => void;
@@ -84,6 +85,7 @@ function Group(p: GroupProps) {
       onSelectionChange={(sel) => p.onSelection(p.status, sel)}
       canEdit={p.canEdit}
       onEdit={p.onEdit}
+      onOpen={p.onOpen}
       onMove={p.onMove}
       onDelete={p.onDelete}
       showViewAll={!p.single}
@@ -106,7 +108,13 @@ function Group(p: GroupProps) {
 }
 
 /** Tasks list: grouped by status (overview) or a single status (from the sidebar / View All). */
-export function TasksListView({ currentUserId }: { currentUserId: string }) {
+export function TasksListView({
+  currentUserId,
+  viewSwitch,
+}: {
+  currentUserId: string;
+  viewSwitch?: ReactNode;
+}) {
   const { t } = useTranslation(['tasks', 'common']);
   const errorText = useErrorText();
   const { status: slug } = useParams();
@@ -124,6 +132,13 @@ export function TasksListView({ currentUserId }: { currentUserId: string }) {
   const [form, setForm] = useState<{ card: Card | null } | null>(null);
   const [deleting, setDeleting] = useState<Card | null>(null);
   const location = useLocation();
+  const [, setParams] = useSearchParams();
+  const openCard = (c: Card) =>
+    setParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('card', c.id);
+      return next;
+    });
   const backSearch = useMemo(() => {
     const q = new URLSearchParams(location.search);
     q.delete('page');
@@ -212,6 +227,7 @@ export function TasksListView({ currentUserId }: { currentUserId: string }) {
           currentUserId={currentUserId}
           canCreate={canEdit}
           onCreate={() => setForm({ card: null })}
+          extra={viewSwitch}
         />
       </Panel>
 
@@ -243,6 +259,7 @@ export function TasksListView({ currentUserId }: { currentUserId: string }) {
             onSelection={(st, sel) => setSelection((prev) => ({ ...prev, [st]: sel }))}
             canEdit={canEdit}
             onEdit={(c) => setForm({ card: c })}
+            onOpen={openCard}
             onMove={onMove}
             onDelete={setDeleting}
             onPage={(page) => update({ page: page > 1 ? String(page) : undefined })}

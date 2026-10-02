@@ -16,7 +16,8 @@
       "week": "Next 7 days",
       "month": "Next 30 days",
       "none": "No due date"
-    }
+    },
+    "label": "Label"
   },
   "add": "Add Task",
   "viewAll": "View All",
@@ -95,5 +96,11 @@
     "body": "The task will be removed from lists, boards and the dashboard.",
     "confirm": "Delete"
   },
-  "showing": "Showing {{from}}–{{to}} of {{total}}"
+  "showing": "Showing {{from}}–{{to}} of {{total}}",
+  "views": {
+    "label": "Tasks view",
+    "list": "List",
+    "kanban": "Kanban",
+    "calendar": "Calendar"
+  }
 }

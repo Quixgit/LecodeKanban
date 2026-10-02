@@ -1,7 +1,7 @@
 import { Plus, Search, SlidersHorizontal, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PRIORITIES } from '@/features/cards';
+import { PRIORITIES, type Label } from '@/features/cards';
 import type { Member } from '@/shared/api';
 import {
   Button,
@@ -22,10 +22,16 @@ interface Props {
   activeCount: number;
   projects: { id: string; name: string; key: string }[];
   members: Member[];
+  labels?: Label[];
   currentUserId: string;
   canCreate: boolean;
   onCreate: () => void;
+  /** Rendered at the right, before "Add task" (view switcher, board controls). */
+  extra?: ReactNode;
 }
+
+/** DOM id of the search box ("/" shortcut focuses it). */
+export const TASK_SEARCH_ID = 'tasks-search';
 
 export function TasksToolbar({
   filters,
@@ -34,14 +40,29 @@ export function TasksToolbar({
   activeCount,
   projects,
   members,
+  labels = [],
   currentUserId,
   canCreate,
   onCreate,
+  extra,
 }: Props) {
   const { t } = useTranslation(['tasks', 'common']);
   const [q, setQ] = useState(filters.q);
+  /** Last value we wrote to the URL, to tell our own debounced update from an outside change. */
+  const pushed = useRef(filters.q);
+  // "Clear" or a saved view changes the filters from outside: reflect it in the search box.
   useEffect(() => {
-    const id = window.setTimeout(() => q !== filters.q && update({ q }), 250);
+    if (filters.q !== pushed.current) {
+      pushed.current = filters.q;
+      setQ(filters.q);
+    }
+  }, [filters.q]);
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      if (q === filters.q) return;
+      pushed.current = q;
+      update({ q });
+    }, 250);
     return () => window.clearTimeout(id);
   }, [q, filters.q, update]);
   const any = t('filters.any');
@@ -49,6 +70,7 @@ export function TasksToolbar({
   return (
     <div className="flex flex-wrap items-center gap-2.5">
       <Input
+        id={TASK_SEARCH_ID}
         wrapperClassName="w-full sm:w-80"
         leadingIcon={<Search />}
         placeholder={t('search')}
@@ -103,6 +125,17 @@ export function TasksToolbar({
               onChange={(v) => update({ priority: v })}
               options={PRIORITIES.map((p) => ({ value: p, label: t(`common:priority.${p}`) }))}
             />
+            {labels.length > 0 && (
+              <FilterSelect
+                className="w-full justify-between"
+                label={t('filters.label')}
+                placeholder={t('filters.label')}
+                anyLabel={any}
+                value={filters.labelId}
+                onChange={(v) => update({ labelId: v })}
+                options={labels.map((l) => ({ value: l.id, label: l.name }))}
+              />
+            )}
             <FilterSelect
               className="w-full justify-between"
               label={t('filters.due')}
@@ -127,12 +160,15 @@ export function TasksToolbar({
           )}
         </DropdownContent>
       </Dropdown>
-      {canCreate && (
-        <Button className="ml-auto" onClick={onCreate}>
-          <Plus />
-          {t('add')}
-        </Button>
-      )}
+      <div className="ml-auto flex flex-wrap items-center gap-2.5">
+        {extra}
+        {canCreate && (
+          <Button onClick={onCreate}>
+            <Plus />
+            {t('add')}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

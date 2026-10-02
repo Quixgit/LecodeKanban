@@ -7,8 +7,10 @@ import {
 } from '@tanstack/react-query';
 import {
   cardsApi,
+  type BoardQuery,
   type BulkCardAction,
   type Card,
+  type CardBoard,
   type CardCountQuery,
   type CardInput,
   type CardMove,
@@ -21,8 +23,17 @@ export const cardKeys = {
   list: (ws: string, q: CardQuery) => ['cards', ws, 'list', q] as const,
   counts: (ws: string, q: CardCountQuery) => ['cards', ws, 'counts', q] as const,
   stats: (ws: string, days: number) => ['cards', ws, 'stats', days] as const,
+  board: (ws: string, q: BoardQuery) => ['cards', ws, 'board', q] as const,
   one: (id: string) => ['card', id] as const,
 };
+
+export function useCard(id: string | undefined) {
+  return useQuery({
+    queryKey: cardKeys.one(id ?? ''),
+    queryFn: () => cardsApi.get(id!),
+    enabled: !!id,
+  });
+}
 
 export function useCardList(workspaceId: string | undefined, query: CardQuery, enabled = true) {
   return useQuery({
@@ -52,11 +63,15 @@ export function useCardStats(workspaceId: string | undefined, days: number) {
 
 type Page = { items: Card[]; total: number; page: number; pageSize: number };
 
-/** Applies fn to every cached copy of a card (all list pages) — used for optimistic edits. */
-function patchCached(qc: QueryClient, ws: string, id: string, fn: (c: Card) => Card) {
+/** Applies fn to every cached copy of a card (list pages, boards, detail) — for optimistic edits. */
+export function patchCached(qc: QueryClient, ws: string, id: string, fn: (c: Card) => Card) {
   qc.setQueriesData<Page>({ queryKey: [...cardKeys.all(ws), 'list'] }, (page) =>
     page ? { ...page, items: page.items.map((c) => (c.id === id ? fn(c) : c)) } : page,
   );
+  qc.setQueriesData<CardBoard>({ queryKey: [...cardKeys.all(ws), 'board'] }, (b) =>
+    b ? { ...b, items: b.items.map((c) => (c.id === id ? fn(c) : c)) } : b,
+  );
+  qc.setQueryData<Card>(cardKeys.one(id), (c) => (c ? fn(c) : c));
 }
 
 export function useCardMutations(workspaceId: string) {

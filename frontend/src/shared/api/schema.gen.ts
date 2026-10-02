@@ -846,6 +846,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cards/{cardId}/time": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listTimeEntries"];
+        put?: never;
+        /** @description Record time after the fact (1 minute to 24 hours) */
+        post: operations["logTime"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cards/{cardId}/timer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Start a timer on this card; the caller's previous running timer (if any) is stopped */
+        post: operations["startTimer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/timer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getRunningTimer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/time-entries/{entryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entryId: components["parameters"]["TimeEntryId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteTimeEntry"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/time-entries/{entryId}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entryId: components["parameters"]["TimeEntryId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["stopTimer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cards/{cardId}/activity": {
         parameters: {
             query?: never;
@@ -1168,6 +1258,9 @@ export interface components {
             assignees: components["schemas"]["PersonRef"][];
             labels: components["schemas"]["Label"][];
             checklist: components["schemas"]["ChecklistSummary"];
+            /** @description Subtask counts (done = completed subtasks) */
+            subtasks: components["schemas"]["ChecklistSummary"];
+            parent?: components["schemas"]["CardParent"];
             commentCount: number;
             attachmentCount: number;
             position: string;
@@ -1179,6 +1272,13 @@ export interface components {
             updatedAt: string;
             /** Format: date-time */
             completedAt: string | null;
+        };
+        CardParent: {
+            /** Format: uuid */
+            id: string;
+            /** @example LK-12 */
+            key: string;
+            title: string;
         };
         CardInput: {
             /** Format: uuid */
@@ -1193,6 +1293,11 @@ export interface components {
             dueDate?: string;
             assigneeIds?: string[];
             labelIds?: string[];
+            /**
+             * Format: uuid
+             * @description Create as a subtask of this card (same project; one level deep)
+             */
+            parentId?: string;
         };
         /** @description Absent fields are unchanged; dueDate null clears it. */
         CardPatch: {
@@ -1344,6 +1449,39 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        TimeEntry: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            cardId: string;
+            user: components["schemas"]["PersonRef"] | null;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            endedAt: string | null;
+            /** @description Logged duration; for a running timer */
+            seconds: number;
+            running: boolean;
+            note: string;
+            /** @description Entered by hand rather than timed */
+            manual: boolean;
+        };
+        TimeSummary: {
+            entries: components["schemas"]["TimeEntry"][];
+            totalSeconds: number;
+        };
+        TimeLogInput: {
+            seconds: number;
+            note?: string;
+            /**
+             * Format: date-time
+             * @description Defaults to "seconds ago"
+             */
+            startedAt?: string;
+        };
+        RunningTimer: {
+            entry?: components["schemas"]["TimeEntry"];
+        };
         ActivityEntry: {
             /** Format: int64 */
             id: number;
@@ -1475,11 +1613,14 @@ export interface components {
         /** @description Search in title or key (e.g. LK-12) */
         CardQuery: string;
         CardLabelId: string;
+        /** @description Only subtasks of this card */
+        CardParentId: string;
         ColumnId: string;
         ViewId: string;
         LabelId: string;
         ItemId: string;
         CommentId: string;
+        TimeEntryId: string;
         AttachmentId: string;
         CardDue: "overdue" | "today" | "week" | "month" | "none";
     };
@@ -2308,6 +2449,8 @@ export interface operations {
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
                 labelId?: components["parameters"]["CardLabelId"];
+                /** @description Only subtasks of this card */
+                parentId?: components["parameters"]["CardParentId"];
                 /** @description Search in title or key (e.g. LK-12) */
                 q?: components["parameters"]["CardQuery"];
                 due?: components["parameters"]["CardDue"];
@@ -2369,6 +2512,8 @@ export interface operations {
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
                 labelId?: components["parameters"]["CardLabelId"];
+                /** @description Only subtasks of this card */
+                parentId?: components["parameters"]["CardParentId"];
                 /** @description Search in title or key (e.g. LK-12) */
                 q?: components["parameters"]["CardQuery"];
                 due?: components["parameters"]["CardDue"];
@@ -2743,6 +2888,8 @@ export interface operations {
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
                 labelId?: components["parameters"]["CardLabelId"];
+                /** @description Only subtasks of this card */
+                parentId?: components["parameters"]["CardParentId"];
                 /** @description Search in title or key (e.g. LK-12) */
                 q?: components["parameters"]["CardQuery"];
                 due?: components["parameters"]["CardDue"];
@@ -3148,6 +3295,141 @@ export interface operations {
                     "application/octet-stream": string;
                 };
             };
+        };
+    };
+    listTimeEntries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Time log, newest first, with the total (a running timer counts up to now) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeSummary"];
+                };
+            };
+        };
+    };
+    logTime: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeLogInput"];
+            };
+        };
+        responses: {
+            /** @description Logged */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeEntry"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    startTimer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Running entry */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeEntry"];
+                };
+            };
+        };
+    };
+    getRunningTimer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's running timer (entry absent when none) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunningTimer"];
+                };
+            };
+        };
+    };
+    deleteTimeEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entryId: components["parameters"]["TimeEntryId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    stopTimer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entryId: components["parameters"]["TimeEntryId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Stopped entry */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeEntry"];
+                };
+            };
+            409: components["responses"]["Error"];
         };
     };
     cardActivity: {

@@ -3,15 +3,15 @@
 A modular Kanban and project-management app: Go modular-monolith backend and a React/TypeScript
 frontend, with GitHub, Gmail and Google Calendar integrations, in Ukrainian and English.
 
-> **Status: phase 2 of 9.** Done so far:
-> - the design system and app shell;
-> - the backend platform: config, logging, errors, crypto, PostgreSQL, job queue, mail, metrics;
-> - authentication: email + password, Google/GitHub OAuth, rotating sessions, CSRF, verification,
->   password reset, lockout;
-> - users and workspaces, with RBAC and invitations;
-> - the sign-in pages and the Team page, connected to the API.
+> **Status: phases 1–4 of 9, plus subtasks and time tracking.** Done so far:
+> - the design system, app shell, light/dark themes, Ukrainian and English;
+> - the backend platform and authentication (email + password, OAuth, sessions, RBAC, invites);
+> - projects, boards, cards, the Tasks list, Projects and Dashboard pages;
+> - the Kanban view: drag and drop, swimlanes, WIP limits, custom columns, saved views, realtime
+>   updates, and the card drawer (description, checklist, **subtasks**, **time tracking**,
+>   attachments with previews, comments with @mentions, activity).
 >
-> Projects, boards and the Kanban view come next.
+> Next: Calendar and the Google Calendar, GitHub and Gmail integrations (phases 5–7).
 
 ## Requirements
 

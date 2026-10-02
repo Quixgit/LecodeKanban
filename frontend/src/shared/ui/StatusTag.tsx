@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../lib/cn';
 import { statusTone, toneClasses, type TaskStatus } from './tones';
@@ -9,9 +9,14 @@ import { statusTone, toneClasses, type TaskStatus } from './tones';
  */
 export function StatusTag({
   status,
+  label,
   className,
   ...props
-}: { status: TaskStatus } & HTMLAttributes<HTMLSpanElement>) {
+}: {
+  status: TaskStatus;
+  /** Custom column name; defaults to the status name. */
+  label?: ReactNode;
+} & HTMLAttributes<HTMLSpanElement>) {
   const { t } = useTranslation();
   const tone = toneClasses[statusTone[status]];
   return (
@@ -25,7 +30,7 @@ export function StatusTag({
       {...props}
     >
       <span aria-hidden className={cn('h-4 w-[3px] rounded-full', tone.fill)} />
-      {t(`status.${status}`)}
+      <span className="truncate">{label ?? t(`status.${status}`)}</span>
     </span>
   );
 }

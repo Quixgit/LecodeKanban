@@ -55,7 +55,7 @@ interface Props {
   members: Member[];
   card?: Card | null;
   /** Prefills for new cards (e.g. the group's status or the filtered project). */
-  initial?: Partial<Pick<Values, 'projectId' | 'status'>>;
+  initial?: Partial<Pick<Values, 'projectId' | 'status' | 'dueDate'>>;
 }
 
 function defaults(
@@ -70,7 +70,7 @@ function defaults(
     status: card?.status ?? initial?.status ?? 'todo',
     priority: card?.priority ?? 'medium',
     assigneeIds: card?.assignees.map((a) => a.id) ?? [],
-    dueDate: card?.dueDate ?? '',
+    dueDate: card?.dueDate ?? initial?.dueDate ?? '',
   };
 }
 

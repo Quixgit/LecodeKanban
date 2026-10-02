@@ -39,6 +39,7 @@ interface Props {
   onSelectionChange: (s: RowSelectionState) => void;
   canEdit: boolean;
   onEdit: (c: Card) => void;
+  onOpen: (c: Card) => void;
   onMove: (c: Card, s: TaskStatus) => void;
   onDelete: (c: Card) => void;
   /** Virtualise rows (large "show all" lists). */
@@ -90,9 +91,14 @@ export const TaskTable = memo(function TaskTable(props: Props) {
         cell: ({ row }) => (
           <button
             type="button"
-            onClick={() => props.onEdit(row.original)}
+            onClick={() => props.onOpen(row.original)}
             className="max-w-[320px] truncate text-left text-text hover:text-primary-ink"
           >
+            {row.original.parent && (
+              <span className="tabular mr-1.5 text-xs text-text-muted">
+                {row.original.parent.key} ›
+              </span>
+            )}
             {row.original.title}
           </button>
         ),

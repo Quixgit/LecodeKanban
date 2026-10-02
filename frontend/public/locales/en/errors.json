@@ -86,5 +86,10 @@
     "too_many": "A task can have at most {{max}} files.",
     "no_file": "Choose a file to upload.",
     "forbidden": "Only the uploader or an admin can delete this file."
+  },
+  "time": {
+    "not_found": "Time entry not found.",
+    "forbidden": "Only the author or an admin can delete this time entry.",
+    "not_running": "This timer is already stopped."
   }
 }
