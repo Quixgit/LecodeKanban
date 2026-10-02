@@ -75,7 +75,7 @@ export function TH({
               : undefined
       }
       className={cn(
-        'h-11 whitespace-nowrap border-r border-border-subtle px-4 font-normal last:border-r-0',
+        'h-11 whitespace-nowrap border-r border-border-subtle px-3 font-normal last:border-r-0',
         className,
       )}
       {...props}
@@ -110,7 +110,7 @@ export function TD({
   return (
     <td
       className={cn(
-        'h-row border-r border-border-subtle px-4 text-text-secondary last:border-r-0',
+        'h-row border-r border-border-subtle px-3 text-text-secondary last:border-r-0',
         align === 'right' && 'tabular text-right',
         align === 'center' && 'text-center',
         className,

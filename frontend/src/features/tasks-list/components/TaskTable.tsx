@@ -48,6 +48,18 @@ interface Props {
 
 const ROW_HEIGHT = 48;
 
+/** Fixed widths (the title column takes the rest and truncates), so every group lines up. */
+const COLUMN_WIDTH: Record<string, string> = {
+  select: 'w-12',
+  key: 'w-24',
+  assignee: 'w-40',
+  project: 'w-40',
+  progress: 'w-20',
+  deadline: 'w-40',
+  priority: 'w-24',
+  action: 'w-16',
+};
+
 /** Task table (TanStack Table): server-side sorting, row selection, optional virtualisation. */
 export const TaskTable = memo(function TaskTable(props: Props) {
   const { t } = useTranslation(['tasks', 'common']);
@@ -92,7 +104,7 @@ export const TaskTable = memo(function TaskTable(props: Props) {
           <button
             type="button"
             onClick={() => props.onOpen(row.original)}
-            className="max-w-[320px] truncate text-left text-text hover:text-primary-ink"
+            className="block w-full truncate text-left text-text hover:text-primary-ink"
           >
             {row.original.parent && (
               <span className="tabular mr-1.5 text-xs text-text-muted">
@@ -111,7 +123,11 @@ export const TaskTable = memo(function TaskTable(props: Props) {
       {
         id: 'project',
         header: t('columns.project'),
-        cell: ({ row }) => <span className="truncate">{row.original.project.name}</span>,
+        cell: ({ row }) => (
+          <span className="block truncate" title={row.original.project.name}>
+            {row.original.project.name}
+          </span>
+        ),
       },
       {
         id: 'progress',
@@ -196,19 +212,14 @@ export const TaskTable = memo(function TaskTable(props: Props) {
   };
 
   const body = (
-    <Table>
+    <Table className="min-w-[64rem] table-fixed">
       <THead className="sticky top-0 z-[1]">
         {table.getHeaderGroups().map((hg) => (
           <TR key={hg.id}>
             {hg.headers.map((h) => (
               <TH
                 key={h.id}
-                className={cn(
-                  h.id === 'select' && 'w-12',
-                  h.id === 'action' && 'w-20',
-                  h.id === 'key' && 'w-28',
-                  h.id === 'progress' && 'w-28',
-                )}
+                className={COLUMN_WIDTH[h.id]}
                 align={h.id === 'progress' ? 'right' : h.id === 'action' ? 'center' : 'left'}
                 sortable={h.column.getCanSort()}
                 sort={sortDir(h.id)}
