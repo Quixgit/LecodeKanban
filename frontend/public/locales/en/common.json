@@ -4,7 +4,8 @@
     "dismiss": "Dismiss notification",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "retry": "Try again"
+    "retry": "Try again",
+    "save": "Save"
   },
   "priority": {
     "high": "High",
