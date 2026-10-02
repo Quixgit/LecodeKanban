@@ -75,6 +75,9 @@ type Card struct {
 	ChecklistDone   int32
 	CommentCount    int32
 	AttachmentCount int32
+	ParentID        uuid.NullUUID
+	SubtaskTotal    int32
+	SubtaskDone     int32
 }
 
 type CardAssignee struct {
@@ -206,6 +209,19 @@ type SavedView struct {
 	Config      []byte
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+type TimeEntry struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	CardID      uuid.UUID
+	UserID      uuid.UUID
+	StartedAt   time.Time
+	EndedAt     *time.Time
+	Seconds     int32
+	Note        string
+	Manual      bool
+	CreatedAt   time.Time
 }
 
 type User struct {

@@ -109,6 +109,17 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewC
 	if err != nil || project.WorkspaceID != ws {
 		v.Add("projectId", validation.NotFound, nil)
 	}
+	if in.ParentID != nil {
+		parent, err := s.repo.Get(ctx, *in.ParentID)
+		switch {
+		case err != nil && !apperr.IsCode(err, domain.ErrNotFound):
+			return View{}, err
+		case err != nil || parent.WorkspaceID != ws || parent.ProjectID != in.ProjectID:
+			v.Add("parentId", validation.NotFound, nil)
+		case parent.ParentID != nil:
+			v.Add("parentId", validation.NotFound, nil) // subtasks are one level deep: a subtask cannot be a parent
+		}
+	}
 	assignees, err := s.checkAssignees(ctx, ws, in.AssigneeIDs, &v)
 	if err != nil {
 		return View{}, err
@@ -146,9 +157,15 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewC
 			WorkspaceID: ws, ProjectID: in.ProjectID, BoardID: col.BoardID, ColumnID: col.ID, Number: n,
 			Title: in.Title, Description: in.Description, Status: status, Priority: in.Priority,
 			Progress: domain.DeriveProgress(status, 0, 0), DueDate: in.DueDate, Position: pos, CreatedBy: user,
+			ParentID: in.ParentID,
 		})
 		if err != nil {
 			return err
+		}
+		if in.ParentID != nil {
+			if _, err := r.RefreshSubtasks(ctx, *in.ParentID); err != nil {
+				return err
+			}
 		}
 		if err := r.SetAssignees(ctx, card.ID, assignees); err != nil {
 			return err
@@ -287,6 +304,22 @@ func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
 	if _, err := s.repo.Archive(ctx, id); err != nil {
 		return err
 	}
+	if err := s.afterRemoved(ctx, c); err != nil {
+		return err
+	}
 	_ = s.bus.Publish(ctx, events.CardDeleted{Card: evCard(c, user)})
+	return nil
+}
+
+// afterRemoved keeps subtask bookkeeping in step: a deleted parent takes its subtasks along, a
+// deleted subtask updates its parent's counters and progress.
+func (s *Service) afterRemoved(ctx context.Context, c domain.Card) error {
+	if err := s.repo.ArchiveChildren(ctx, c.ID); err != nil {
+		return err
+	}
+	if c.ParentID != nil {
+		_, err := s.repo.RefreshSubtasks(ctx, *c.ParentID)
+		return err
+	}
 	return nil
 }

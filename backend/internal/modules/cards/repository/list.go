@@ -43,6 +43,9 @@ func where(ws uuid.UUID, f domain.Filter, today time.Time) (string, []any) {
 	if f.LabelID != nil {
 		conds = append(conds, "EXISTS (SELECT 1 FROM card_labels l WHERE l.card_id = c.id AND l.label_id = "+arg(*f.LabelID)+")")
 	}
+	if f.ParentID != nil {
+		conds = append(conds, "c.parent_id = "+arg(*f.ParentID))
+	}
 	if q := strings.TrimSpace(f.Query); q != "" {
 		if m := keyQuery.FindStringSubmatch(q); m != nil {
 			n, _ := strconv.Atoi(m[2])
@@ -73,12 +76,13 @@ const from = "cards c JOIN project_directory pd ON pd.id = c.project_id"
 // cardCols / cardDest keep hand-written queries in step with store.Card.
 const cardCols = `c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.number, c.title, c.description,
 	c.status, c.priority, c.progress, c.due_date, c.position, c.version, c.created_by, c.completed_at, c.created_at,
-	c.updated_at, c.archived_at, c.checklist_total, c.checklist_done, c.comment_count, c.attachment_count`
+	c.updated_at, c.archived_at, c.checklist_total, c.checklist_done, c.comment_count, c.attachment_count, c.parent_id, c.subtask_total,
+	c.subtask_done`
 
 func cardDest(c *store.Card) []any {
 	return []any{&c.ID, &c.WorkspaceID, &c.ProjectID, &c.BoardID, &c.ColumnID, &c.Number, &c.Title, &c.Description,
 		&c.Status, &c.Priority, &c.Progress, &c.DueDate, &c.Position, &c.Version, &c.CreatedBy, &c.CompletedAt,
-		&c.CreatedAt, &c.UpdatedAt, &c.ArchivedAt, &c.ChecklistTotal, &c.ChecklistDone, &c.CommentCount, &c.AttachmentCount}
+		&c.CreatedAt, &c.UpdatedAt, &c.ArchivedAt, &c.ChecklistTotal, &c.ChecklistDone, &c.CommentCount, &c.AttachmentCount, &c.ParentID, &c.SubtaskTotal, &c.SubtaskDone}
 }
 
 // BoardLimit caps one board load; the response reports truncation.

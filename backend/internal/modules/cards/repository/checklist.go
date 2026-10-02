@@ -94,8 +94,20 @@ func (r *Repo) RefreshChecklist(ctx context.Context, card uuid.UUID) (domain.Car
 	if err != nil {
 		return domain.Card{}, notFound(err)
 	}
-	d := toDomain(c)
-	if p := domain.DeriveProgress(d.Status, d.ChecklistTotal, d.ChecklistDone); p != d.Progress {
+	return r.syncProgress(ctx, card, toDomain(c))
+}
+
+// RefreshSubtasks recounts a parent's subtasks and stores the derived progress.
+func (r *Repo) RefreshSubtasks(ctx context.Context, parent uuid.UUID) (domain.Card, error) {
+	c, err := r.q.RefreshSubtaskCounts(ctx, parent)
+	if err != nil {
+		return domain.Card{}, notFound(err)
+	}
+	return r.syncProgress(ctx, parent, toDomain(c))
+}
+
+func (r *Repo) syncProgress(ctx context.Context, card uuid.UUID, d domain.Card) (domain.Card, error) {
+	if p := domain.DeriveProgress(d.Status, d.ChecklistTotal+d.SubtaskTotal, d.ChecklistDone+d.SubtaskDone); p != d.Progress {
 		if err := r.SetProgress(ctx, card, p); err != nil {
 			return domain.Card{}, err
 		}

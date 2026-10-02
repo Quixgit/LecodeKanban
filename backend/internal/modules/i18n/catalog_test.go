@@ -14,6 +14,7 @@ import (
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/comments/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/domain"
+	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/timetracking/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	_ "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"

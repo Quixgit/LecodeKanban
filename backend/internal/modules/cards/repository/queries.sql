@@ -5,9 +5,9 @@ RETURNING (next - 1)::int;
 
 -- name: CreateCard :one
 INSERT INTO cards (workspace_id, project_id, board_id, column_id, number, title, description, status, priority,
-                   progress, due_date, position, created_by, completed_at)
+                   progress, due_date, position, created_by, completed_at, parent_id)
 VALUES (@workspace_id, @project_id, @board_id, @column_id, @number, @title, @description, @status, @priority,
-        @progress, sqlc.narg(due_date), @position, @created_by, sqlc.narg(completed_at))
+        @progress, sqlc.narg(due_date), @position, @created_by, sqlc.narg(completed_at), sqlc.narg(parent_id))
 RETURNING *;
 
 -- name: GetCard :one
@@ -34,6 +34,9 @@ UPDATE cards SET
     version      = version + 1
 WHERE id = @id AND version = @version AND archived_at IS NULL
 RETURNING *;
+
+-- name: ArchiveChildren :exec
+UPDATE cards SET archived_at = now(), version = version + 1 WHERE parent_id = $1 AND archived_at IS NULL;
 
 -- name: ArchiveCard :execrows
 UPDATE cards SET archived_at = now(), version = version + 1 WHERE id = $1 AND archived_at IS NULL;
@@ -99,6 +102,14 @@ SELECT count(*)::int FROM cards WHERE column_id = $1 AND archived_at IS NULL;
 UPDATE cards SET
     checklist_total = (SELECT count(*) FROM checklist_items i WHERE i.card_id = cards.id),
     checklist_done  = (SELECT count(*) FROM checklist_items i WHERE i.card_id = cards.id AND i.done)
+WHERE cards.id = $1
+RETURNING *;
+
+-- name: RefreshSubtaskCounts :one
+UPDATE cards SET
+    subtask_total = (SELECT count(*) FROM cards s WHERE s.parent_id = cards.id AND s.archived_at IS NULL),
+    subtask_done  = (SELECT count(*) FROM cards s WHERE s.parent_id = cards.id AND s.archived_at IS NULL
+                     AND s.status = 'done')
 WHERE cards.id = $1
 RETURNING *;
 

@@ -14,6 +14,7 @@ type Querier interface {
 	AddAssignees(ctx context.Context, arg AddAssigneesParams) error
 	AddCardLabels(ctx context.Context, arg AddCardLabelsParams) error
 	ArchiveCard(ctx context.Context, id uuid.UUID) (int64, error)
+	ArchiveChildren(ctx context.Context, parentID uuid.NullUUID) error
 	AssigneesForCards(ctx context.Context, ids []uuid.UUID) ([]CardAssignee, error)
 	CardKPIs(ctx context.Context, arg CardKPIsParams) (CardKPIsRow, error)
 	ClearAssignees(ctx context.Context, cardID uuid.UUID) error
@@ -53,6 +54,7 @@ type Querier interface {
 	RecentTransitions(ctx context.Context, arg RecentTransitionsParams) ([]RecentTransitionsRow, error)
 	// Derived data (not user edits: no version bump).
 	RefreshChecklistCounts(ctx context.Context, id uuid.UUID) (Card, error)
+	RefreshSubtaskCounts(ctx context.Context, id uuid.UUID) (Card, error)
 	RelocateArchivedCards(ctx context.Context, arg RelocateArchivedCardsParams) error
 	SetAttachmentCount(ctx context.Context, arg SetAttachmentCountParams) error
 	SetCommentCount(ctx context.Context, arg SetCommentCountParams) error

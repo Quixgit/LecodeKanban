@@ -50,6 +50,9 @@ func (s *Service) Bulk(ctx context.Context, user, ws uuid.UUID, a BulkAction) (i
 				return changed, err
 			}
 			if ok {
+				if err := s.afterRemoved(ctx, c); err != nil {
+					return changed, err
+				}
 				_ = s.bus.Publish(ctx, events.CardDeleted{Card: evCard(c, user)})
 				changed++
 			}

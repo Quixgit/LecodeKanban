@@ -43,7 +43,15 @@ func toDomain(c store.Card) domain.Card {
 		CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt,
 		ChecklistTotal: int(c.ChecklistTotal), ChecklistDone: int(c.ChecklistDone),
 		CommentCount: int(c.CommentCount), AttachmentCount: int(c.AttachmentCount),
+		ParentID: uuidPtr(c.ParentID), SubtaskTotal: int(c.SubtaskTotal), SubtaskDone: int(c.SubtaskDone),
 	}
+}
+
+func nullUUID(id *uuid.UUID) uuid.NullUUID {
+	if id == nil {
+		return uuid.NullUUID{}
+	}
+	return uuid.NullUUID{UUID: *id, Valid: true}
 }
 
 func notFound(err error) error {
@@ -68,6 +76,7 @@ type Insert struct {
 	DueDate                                   *time.Time
 	Position                                  string
 	CreatedBy                                 uuid.UUID
+	ParentID                                  *uuid.UUID
 }
 
 func (r *Repo) Insert(ctx context.Context, in Insert) (domain.Card, error) {
@@ -81,6 +90,7 @@ func (r *Repo) Insert(ctx context.Context, in Insert) (domain.Card, error) {
 		Number: int32(in.Number), Title: in.Title, Description: in.Description, Status: string(in.Status), //nolint:gosec // G115: per-project counter
 		Priority: string(in.Priority), Progress: int16(in.Progress), DueDate: in.DueDate, Position: in.Position, //nolint:gosec // G115: 0–100
 		CreatedBy: uuid.NullUUID{UUID: in.CreatedBy, Valid: true}, CompletedAt: completed,
+		ParentID: nullUUID(in.ParentID),
 	})
 	if err != nil {
 		return domain.Card{}, err

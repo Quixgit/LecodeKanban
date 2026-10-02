@@ -19,6 +19,7 @@ src/
 │   ├── auth/                 session query, login/register/forgot/reset/verify, guards, banner
 │   ├── workspaces/           current workspace, Team page, invites, RBAC mirror, switcher
 │   ├── command-palette/      ⌘K palette (commands injected by the shell)
+│   ├── kanban/ card-drawer/ tasks-list/ time-tracking/ realtime/   Tasks page views, drawer, live updates
 │   └── ui-showcase/          living style guide at /ui-kit
 ├── shared/
 │   ├── api/                  openapi-fetch client (CSRF, single-flight refresh + replay), ApiError
@@ -69,6 +70,9 @@ internal/
     ├── users/       profiles, credentials storage, lockout counters
     ├── auth/        register/login, rotating refresh sessions, CSRF, verification, reset, OAuth
     ├── workspaces/  workspaces, members, RBAC, invitations
+    ├── projects/ boards/ cards/   projects, columns, cards (+ checklists, labels, subtasks)
+    ├── comments/ attachments/ activity/   per-card discussion, files, audit feed
+    ├── timetracking/  timers and manual time entries per card (ADR 0013)
     └── i18n/        error-code catalog endpoint (+ translation coverage test)
 ```
 

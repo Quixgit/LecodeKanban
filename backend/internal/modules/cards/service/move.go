@@ -47,9 +47,14 @@ func (s *Service) Move(ctx context.Context, user, id uuid.UUID, m domain.Move) (
 			return invalid
 		}
 		card, err = r.Move(ctx, repository.MoveTo{ID: id, ColumnID: col.ID, BoardID: col.BoardID, Status: status,
-			Position: pos, Progress: domain.DeriveProgress(status, cur.ChecklistTotal, cur.ChecklistDone), Version: m.Version})
+			Position: pos, Progress: domain.DeriveProgress(status, cur.ChecklistTotal+cur.SubtaskTotal, cur.ChecklistDone+cur.SubtaskDone), Version: m.Version})
 		if err != nil {
 			return err
+		}
+		if card.ParentID != nil {
+			if _, err := r.RefreshSubtasks(ctx, *card.ParentID); err != nil {
+				return err
+			}
 		}
 		if card.Status != cur.Status {
 			from := cur.Status

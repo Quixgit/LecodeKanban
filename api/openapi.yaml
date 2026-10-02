@@ -22,6 +22,7 @@ tags:
   - name: cards
   - name: comments
   - name: attachments
+  - name: time
   - name: activity
   - name: realtime
   - name: system
@@ -486,6 +487,7 @@ paths:
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
         - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardParentId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
         - { name: sort, in: query, schema: { type: string, enum: [key, title, assignee, project, progress, deadline, priority, position, updated] } }
@@ -523,6 +525,7 @@ paths:
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
         - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardParentId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
       responses:
@@ -727,6 +730,7 @@ paths:
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
         - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardParentId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
       responses:
@@ -928,6 +932,75 @@ paths:
           content:
             application/octet-stream:
               schema: { type: string, format: binary }
+  /cards/{cardId}/time:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    get:
+      tags: [time]
+      operationId: listTimeEntries
+      responses:
+        "200":
+          description: Time log, newest first, with the total (a running timer counts up to now)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TimeSummary" }
+    post:
+      tags: [time]
+      operationId: logTime
+      description: Record time after the fact (1 minute to 24 hours)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TimeLogInput" }
+      responses:
+        "201":
+          description: Logged
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TimeEntry" }
+        "422": { $ref: "#/components/responses/Error" }
+  /cards/{cardId}/timer:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    post:
+      tags: [time]
+      operationId: startTimer
+      description: Start a timer on this card; the caller's previous running timer (if any) is stopped
+      responses:
+        "201":
+          description: Running entry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TimeEntry" }
+  /timer:
+    get:
+      tags: [time]
+      operationId: getRunningTimer
+      responses:
+        "200":
+          description: The caller's running timer (entry absent when none)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RunningTimer" }
+  /time-entries/{entryId}:
+    parameters: [{ $ref: "#/components/parameters/TimeEntryId" }]
+    delete:
+      tags: [time]
+      operationId: deleteTimeEntry
+      responses:
+        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Error" }
+  /time-entries/{entryId}/stop:
+    parameters: [{ $ref: "#/components/parameters/TimeEntryId" }]
+    post:
+      tags: [time]
+      operationId: stopTimer
+      responses:
+        "200":
+          description: Stopped entry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TimeEntry" }
+        "409": { $ref: "#/components/responses/Error" }
   /cards/{cardId}/activity:
     parameters: [{ $ref: "#/components/parameters/CardId" }]
     get:
@@ -1009,11 +1082,13 @@ components:
     CardPriority: { name: priority, in: query, schema: { $ref: "#/components/schemas/Priority" } }
     CardQuery: { name: q, in: query, schema: { type: string }, description: Search in title or key (e.g. LK-12) }
     CardLabelId: { name: labelId, in: query, schema: { type: string, format: uuid } }
+    CardParentId: { name: parentId, in: query, description: Only subtasks of this card, schema: { type: string, format: uuid } }
     ColumnId: { name: columnId, in: path, required: true, schema: { type: string, format: uuid } }
     ViewId: { name: viewId, in: path, required: true, schema: { type: string, format: uuid } }
     LabelId: { name: labelId, in: path, required: true, schema: { type: string, format: uuid } }
     ItemId: { name: itemId, in: path, required: true, schema: { type: string, format: uuid } }
     CommentId: { name: commentId, in: path, required: true, schema: { type: string, format: uuid } }
+    TimeEntryId: { name: entryId, in: path, required: true, schema: { type: string, format: uuid } }
     AttachmentId: { name: attachmentId, in: path, required: true, schema: { type: string, format: uuid } }
     CardDue: { name: due, in: query, schema: { type: string, enum: [overdue, today, week, month, none] } }
   responses:
@@ -1313,7 +1388,7 @@ components:
         columns: { type: array, items: { $ref: "#/components/schemas/BoardColumn" } }
     Card:
       type: object
-      required: [id, key, number, title, description, status, columnId, priority, progress, dueDate, project, assignees, labels, checklist, commentCount, attachmentCount, position, version, createdAt, updatedAt, completedAt]
+      required: [id, key, number, title, description, status, columnId, priority, progress, dueDate, project, assignees, labels, checklist, subtasks, commentCount, attachmentCount, position, version, createdAt, updatedAt, completedAt]
       properties:
         id: { type: string, format: uuid }
         key: { type: string, example: LK-12 }
@@ -1329,6 +1404,8 @@ components:
         assignees: { type: array, items: { $ref: "#/components/schemas/PersonRef" } }
         labels: { type: array, items: { $ref: "#/components/schemas/Label" } }
         checklist: { $ref: "#/components/schemas/ChecklistSummary" }
+        subtasks: { $ref: "#/components/schemas/ChecklistSummary", description: Subtask counts (done = completed subtasks) }
+        parent: { $ref: "#/components/schemas/CardParent" }
         commentCount: { type: integer }
         attachmentCount: { type: integer }
         position: { type: string }
@@ -1336,6 +1413,13 @@ components:
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
         completedAt: { type: string, format: date-time, nullable: true }
+    CardParent:
+      type: object
+      required: [id, key, title]
+      properties:
+        id: { type: string, format: uuid }
+        key: { type: string, example: LK-12 }
+        title: { type: string }
     CardInput:
       type: object
       required: [projectId, title]
@@ -1349,6 +1433,7 @@ components:
         dueDate: { type: string, format: date }
         assigneeIds: { type: array, items: { type: string, format: uuid } }
         labelIds: { type: array, items: { type: string, format: uuid }, maxItems: 10 }
+        parentId: { type: string, format: uuid, description: "Create as a subtask of this card (same project; one level deep)" }
     CardPatch:
       type: object
       required: [version]
@@ -1490,6 +1575,36 @@ components:
         previewable: { type: boolean, description: Image the browser may display inline }
         uploadedBy: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
         createdAt: { type: string, format: date-time }
+    TimeEntry:
+      type: object
+      required: [id, cardId, user, startedAt, endedAt, seconds, running, note, manual]
+      properties:
+        id: { type: string, format: uuid }
+        cardId: { type: string, format: uuid }
+        user: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
+        startedAt: { type: string, format: date-time }
+        endedAt: { type: string, format: date-time, nullable: true }
+        seconds: { type: integer, description: Logged duration; for a running timer, elapsed so far }
+        running: { type: boolean }
+        note: { type: string }
+        manual: { type: boolean, description: Entered by hand rather than timed }
+    TimeSummary:
+      type: object
+      required: [entries, totalSeconds]
+      properties:
+        entries: { type: array, items: { $ref: "#/components/schemas/TimeEntry" } }
+        totalSeconds: { type: integer }
+    TimeLogInput:
+      type: object
+      required: [seconds]
+      properties:
+        seconds: { type: integer, minimum: 60, maximum: 86400 }
+        note: { type: string, maxLength: 500 }
+        startedAt: { type: string, format: date-time, description: Defaults to "seconds ago" }
+    RunningTimer:
+      type: object
+      properties:
+        entry: { $ref: "#/components/schemas/TimeEntry" }
     ActivityEntry:
       type: object
       required: [id, kind, data, actor, at]

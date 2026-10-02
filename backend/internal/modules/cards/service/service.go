@@ -65,6 +65,14 @@ type View struct {
 	Project   projectsdomain.Ref
 	Assignees []usersdomain.User
 	LabelList []domain.Label
+	Parent    *ParentRef
+}
+
+// ParentRef identifies the parent of a subtask.
+type ParentRef struct {
+	ID    uuid.UUID
+	Key   string
+	Title string
 }
 
 func (s *Service) present(ctx context.Context, cards []domain.Card) ([]View, error) {
@@ -110,11 +118,26 @@ func (s *Service) present(ctx context.Context, cards []domain.Card) ([]View, err
 			people[u.ID] = u
 		}
 	}
+	parentIDs := []uuid.UUID{}
+	for _, c := range cards {
+		if c.ParentID != nil && !slices.Contains(parentIDs, *c.ParentID) {
+			parentIDs = append(parentIDs, *c.ParentID)
+		}
+	}
+	parents, err := s.repo.Parents(ctx, parentIDs)
+	if err != nil {
+		return nil, err
+	}
 	out := make([]View, len(cards))
 	for i, c := range cards {
 		ref := refs[c.ProjectID]
 		v := View{Card: c, Project: ref, Key: ref.Key + "-" + strconv.Itoa(c.Number), Assignees: []usersdomain.User{},
 			LabelList: []domain.Label{}}
+		if c.ParentID != nil {
+			if p, ok := parents[*c.ParentID]; ok {
+				v.Parent = &ParentRef{ID: p.ID, Key: ref.Key + "-" + strconv.Itoa(p.Number), Title: p.Title}
+			}
+		}
 		for _, lid := range cardLabels[c.ID] {
 			v.Labels = append(v.Labels, lid)
 			if l, ok := labels[lid]; ok {

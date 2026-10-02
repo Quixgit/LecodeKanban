@@ -24,6 +24,8 @@ import (
 	commentssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/comments/service"
 	projectsrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/repository"
 	projectssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/service"
+	timerepo "github.com/reliabilix/lecodekanban/backend/internal/modules/timetracking/repository"
+	timesvc "github.com/reliabilix/lecodekanban/backend/internal/modules/timetracking/service"
 	usersdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	usersrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/users/repository"
 	userssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/users/service"
@@ -47,6 +49,7 @@ type Env struct {
 	Comments    *commentssvc.Service
 	Attachments *attachsvc.Service
 	Activity    *activitysvc.Service
+	Time        *timesvc.Service
 	Hints       *Hints
 }
 
@@ -93,10 +96,11 @@ func New(t testing.TB, pool *pgxpool.Pool) *Env {
 	}
 	attachments := attachsvc.New(attachrepo.New(pool), disk, cards, ws, users, bus, AttachmentMaxBytes)
 	activity := activitysvc.New(activityrepo.New(pool), cards, users)
+	timeTracking := timesvc.New(timerepo.New(pool), cards, ws, users)
 	hints := &Hints{}
 	reactions.Register(bus, reactions.Deps{Projects: projects, Cards: cards, Activity: activity, Realtime: hints})
 	return &Env{T: t, Bus: bus, Users: users, Workspaces: ws, Boards: boards, Projects: projects, Cards: cards,
-		Comments: comments, Attachments: attachments, Activity: activity, Hints: hints}
+		Comments: comments, Attachments: attachments, Activity: activity, Time: timeTracking, Hints: hints}
 }
 
 // User creates a user.

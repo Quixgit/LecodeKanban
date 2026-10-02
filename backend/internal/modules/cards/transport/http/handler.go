@@ -81,7 +81,11 @@ func ToAPI(v service.View) api.Card {
 		CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt, CompletedAt: v.CompletedAt,
 		Labels:       make([]api.Label, len(v.LabelList)),
 		Checklist:    api.ChecklistSummary{Total: v.ChecklistTotal, Done: v.ChecklistDone},
+		Subtasks:     api.ChecklistSummary{Total: v.SubtaskTotal, Done: v.SubtaskDone},
 		CommentCount: v.CommentCount, AttachmentCount: v.AttachmentCount,
+	}
+	if v.Parent != nil {
+		out.Parent = &api.CardParent{Id: v.Parent.ID, Key: v.Parent.Key, Title: v.Parent.Title}
 	}
 	for i, l := range v.LabelList {
 		out.Labels[i] = labelToAPI(l)
@@ -112,6 +116,9 @@ func filterFrom(r *http.Request) domain.Filter {
 	}
 	if id, err := uuid.Parse(q.Get("labelId")); err == nil {
 		f.LabelID = &id
+	}
+	if id, err := uuid.Parse(q.Get("parentId")); err == nil {
+		f.ParentID = &id
 	}
 	return f
 }
@@ -159,6 +166,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) error {
 	if in.LabelIds != nil {
 		nc.LabelIDs = *in.LabelIds
 	}
+	nc.ParentID = in.ParentId
 	v, err := h.svc.Create(r.Context(), userID(r), ws, nc)
 	if err != nil {
 		return err

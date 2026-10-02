@@ -61,7 +61,10 @@ type Card struct {
 	UpdatedAt   time.Time
 	Assignees   []uuid.UUID
 	Labels      []uuid.UUID
+	ParentID    *uuid.UUID
 
+	SubtaskTotal    int
+	SubtaskDone     int
 	ChecklistTotal  int
 	ChecklistDone   int
 	CommentCount    int
@@ -79,7 +82,7 @@ type Ref struct {
 var stageProgress = map[Status]int{Todo: 0, InProgress: 40, InReview: 80, Done: 100}
 
 // DeriveProgress computes a card's progress: completed cards are 100%; otherwise the share of
-// checked checklist items (capped at 99% so 100% always means "done"), or the stage weight.
+// checked checklist items and subtasks (callers pass their sums) (capped at 99% so 100% always means "done"), or the stage weight.
 func DeriveProgress(s Status, checklistTotal, checklistDone int) int {
 	if s == Done {
 		return 100
@@ -121,6 +124,7 @@ type Filter struct {
 	AssigneeID *uuid.UUID
 	Priority   *Priority
 	LabelID    *uuid.UUID
+	ParentID   *uuid.UUID
 	Query      string
 	Due        string // overdue | today | week | month | none
 	Sort       string // key | title | assignee | project | progress | deadline | priority | position | updated
@@ -137,6 +141,7 @@ type NewCard struct {
 	DueDate     *time.Time
 	AssigneeIDs []uuid.UUID
 	LabelIDs    []uuid.UUID
+	ParentID    *uuid.UUID // makes the card a subtask of this card
 }
 
 type Patch struct {

@@ -664,18 +664,20 @@ type Card struct {
 	Id              openapi_types.UUID  `json:"id"`
 
 	// Key Example: LK-12
-	Key      string   `json:"key"`
-	Labels   []Label  `json:"labels"`
-	Number   int      `json:"number"`
-	Position string   `json:"position"`
-	Priority Priority `json:"priority"`
+	Key      string      `json:"key"`
+	Labels   []Label     `json:"labels"`
+	Number   int         `json:"number"`
+	Parent   *CardParent `json:"parent,omitempty"`
+	Position string      `json:"position"`
+	Priority Priority    `json:"priority"`
 
 	// Progress Derived: checklist share, else workflow stage; 100 only when done (ADR 0010)
-	Progress  int        `json:"progress"`
-	Project   ProjectRef `json:"project"`
-	Status    TaskStatus `json:"status"`
-	Title     string     `json:"title"`
-	UpdatedAt time.Time  `json:"updatedAt"`
+	Progress  int              `json:"progress"`
+	Project   ProjectRef       `json:"project"`
+	Status    TaskStatus       `json:"status"`
+	Subtasks  ChecklistSummary `json:"subtasks"`
+	Title     string           `json:"title"`
+	UpdatedAt time.Time        `json:"updatedAt"`
 
 	// Version Optimistic concurrency token; send it back on update/move
 	Version int `json:"version"`
@@ -696,10 +698,13 @@ type CardInput struct {
 	Description *string               `json:"description,omitempty"`
 	DueDate     *openapi_types.Date   `json:"dueDate,omitempty"`
 	LabelIds    *[]openapi_types.UUID `json:"labelIds,omitempty"`
-	Priority    *Priority             `json:"priority,omitempty"`
-	ProjectId   openapi_types.UUID    `json:"projectId"`
-	Status      *TaskStatus           `json:"status,omitempty"`
-	Title       string                `json:"title"`
+
+	// ParentId Create as a subtask of this card (same project; one level deep)
+	ParentId  *openapi_types.UUID `json:"parentId,omitempty"`
+	Priority  *Priority           `json:"priority,omitempty"`
+	ProjectId openapi_types.UUID  `json:"projectId"`
+	Status    *TaskStatus         `json:"status,omitempty"`
+	Title     string              `json:"title"`
 }
 
 // CardMove Target column (project board: neighbours must be in that column) or status only
@@ -722,6 +727,15 @@ type CardPage struct {
 	Page     int    `json:"page"`
 	PageSize int    `json:"pageSize"`
 	Total    int    `json:"total"`
+}
+
+// CardParent defines model for CardParent.
+type CardParent struct {
+	Id openapi_types.UUID `json:"id"`
+
+	// Key Example: LK-12
+	Key   string `json:"key"`
+	Title string `json:"title"`
 }
 
 // CardPatch Absent fields are unchanged; dueDate null clears it.
@@ -1059,6 +1073,11 @@ type ResetPasswordRequest struct {
 // Role defines model for Role.
 type Role string
 
+// RunningTimer defines model for RunningTimer.
+type RunningTimer struct {
+	Entry *TimeEntry `json:"entry,omitempty"`
+}
+
 // SavedView defines model for SavedView.
 type SavedView struct {
 	// Config Opaque view configuration (filters, swimlanes, project)
@@ -1096,6 +1115,38 @@ type StatusCounts struct {
 
 // TaskStatus defines model for TaskStatus.
 type TaskStatus string
+
+// TimeEntry defines model for TimeEntry.
+type TimeEntry struct {
+	CardId  openapi_types.UUID `json:"cardId"`
+	EndedAt *time.Time         `json:"endedAt"`
+	Id      openapi_types.UUID `json:"id"`
+
+	// Manual Entered by hand rather than timed
+	Manual  bool   `json:"manual"`
+	Note    string `json:"note"`
+	Running bool   `json:"running"`
+
+	// Seconds Logged duration; for a running timer
+	Seconds   int        `json:"seconds"`
+	StartedAt time.Time  `json:"startedAt"`
+	User      *PersonRef `json:"user"`
+}
+
+// TimeLogInput defines model for TimeLogInput.
+type TimeLogInput struct {
+	Note    *string `json:"note,omitempty"`
+	Seconds int     `json:"seconds"`
+
+	// StartedAt Defaults to "seconds ago"
+	StartedAt *time.Time `json:"startedAt,omitempty"`
+}
+
+// TimeSummary defines model for TimeSummary.
+type TimeSummary struct {
+	Entries      []TimeEntry `json:"entries"`
+	TotalSeconds int         `json:"totalSeconds"`
+}
 
 // TokenRequest defines model for TokenRequest.
 type TokenRequest struct {
@@ -1172,6 +1223,9 @@ type CardId = openapi_types.UUID
 // CardLabelId defines model for CardLabelId.
 type CardLabelId = openapi_types.UUID
 
+// CardParentId defines model for CardParentId.
+type CardParentId = openapi_types.UUID
+
 // CardPriority defines model for CardPriority.
 type CardPriority = Priority
 
@@ -1207,6 +1261,9 @@ type ProjectId = openapi_types.UUID
 
 // Provider defines model for Provider.
 type Provider string
+
+// TimeEntryId defines model for TimeEntryId.
+type TimeEntryId = openapi_types.UUID
 
 // ViewId defines model for ViewId.
 type ViewId = openapi_types.UUID
@@ -1261,6 +1318,9 @@ type ListCardsParams struct {
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
 	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
+	// ParentId Only subtasks of this card
+	ParentId *CardParentId `form:"parentId,omitempty" json:"parentId,omitempty"`
+
 	// Q Search in title or key (e.g. LK-12)
 	Q        *CardQuery            `form:"q,omitempty" json:"q,omitempty"`
 	Due      *ListCardsParamsDue   `form:"due,omitempty" json:"due,omitempty"`
@@ -1286,6 +1346,9 @@ type BoardCardsParams struct {
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
 	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
+	// ParentId Only subtasks of this card
+	ParentId *CardParentId `form:"parentId,omitempty" json:"parentId,omitempty"`
+
 	// Q Search in title or key (e.g. LK-12)
 	Q   *CardQuery           `form:"q,omitempty" json:"q,omitempty"`
 	Due *BoardCardsParamsDue `form:"due,omitempty" json:"due,omitempty"`
@@ -1305,6 +1368,9 @@ type CardStatusCountsParams struct {
 	AssigneeId *CardAssigneeId `form:"assigneeId,omitempty" json:"assigneeId,omitempty"`
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
 	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
+
+	// ParentId Only subtasks of this card
+	ParentId *CardParentId `form:"parentId,omitempty" json:"parentId,omitempty"`
 
 	// Q Search in title or key (e.g. LK-12)
 	Q   *CardQuery                 `form:"q,omitempty" json:"q,omitempty"`
@@ -1370,6 +1436,9 @@ type CreateCommentJSONRequestBody = CommentInput
 
 // MoveCardJSONRequestBody defines body for MoveCard for application/json ContentType.
 type MoveCardJSONRequestBody = CardMove
+
+// LogTimeJSONRequestBody defines body for LogTime for application/json ContentType.
+type LogTimeJSONRequestBody = TimeLogInput
 
 // UpdateChecklistItemJSONRequestBody defines body for UpdateChecklistItem for application/json ContentType.
 type UpdateChecklistItemJSONRequestBody = ChecklistItemPatch

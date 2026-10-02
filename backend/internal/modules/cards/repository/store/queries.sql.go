@@ -57,6 +57,15 @@ func (q *Queries) ArchiveCard(ctx context.Context, id uuid.UUID) (int64, error) 
 	return result.RowsAffected(), nil
 }
 
+const archiveChildren = `-- name: ArchiveChildren :exec
+UPDATE cards SET archived_at = now(), version = version + 1 WHERE parent_id = $1 AND archived_at IS NULL
+`
+
+func (q *Queries) ArchiveChildren(ctx context.Context, parentID uuid.NullUUID) error {
+	_, err := q.db.Exec(ctx, archiveChildren, parentID)
+	return err
+}
+
 const assigneesForCards = `-- name: AssigneesForCards :many
 SELECT card_id, user_id FROM card_assignees WHERE card_id = ANY($1::uuid[])
 `
@@ -210,10 +219,10 @@ func (q *Queries) CountLabelsInWorkspace(ctx context.Context, arg CountLabelsInW
 
 const createCard = `-- name: CreateCard :one
 INSERT INTO cards (workspace_id, project_id, board_id, column_id, number, title, description, status, priority,
-                   progress, due_date, position, created_by, completed_at)
+                   progress, due_date, position, created_by, completed_at, parent_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-        $10, $11, $12, $13, $14)
-RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count
+        $10, $11, $12, $13, $14, $15)
+RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count, parent_id, subtask_total, subtask_done
 `
 
 type CreateCardParams struct {
@@ -231,6 +240,7 @@ type CreateCardParams struct {
 	Position    string
 	CreatedBy   uuid.NullUUID
 	CompletedAt *time.Time
+	ParentID    uuid.NullUUID
 }
 
 func (q *Queries) CreateCard(ctx context.Context, arg CreateCardParams) (Card, error) {
@@ -249,6 +259,7 @@ func (q *Queries) CreateCard(ctx context.Context, arg CreateCardParams) (Card, e
 		arg.Position,
 		arg.CreatedBy,
 		arg.CompletedAt,
+		arg.ParentID,
 	)
 	var i Card
 	err := row.Scan(
@@ -275,6 +286,9 @@ func (q *Queries) CreateCard(ctx context.Context, arg CreateCardParams) (Card, e
 		&i.ChecklistDone,
 		&i.CommentCount,
 		&i.AttachmentCount,
+		&i.ParentID,
+		&i.SubtaskTotal,
+		&i.SubtaskDone,
 	)
 	return i, err
 }
@@ -346,7 +360,7 @@ func (q *Queries) DeleteLabel(ctx context.Context, id uuid.UUID) error {
 }
 
 const getCard = `-- name: GetCard :one
-SELECT id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count FROM cards WHERE id = $1 AND archived_at IS NULL
+SELECT id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count, parent_id, subtask_total, subtask_done FROM cards WHERE id = $1 AND archived_at IS NULL
 `
 
 func (q *Queries) GetCard(ctx context.Context, id uuid.UUID) (Card, error) {
@@ -376,6 +390,9 @@ func (q *Queries) GetCard(ctx context.Context, id uuid.UUID) (Card, error) {
 		&i.ChecklistDone,
 		&i.CommentCount,
 		&i.AttachmentCount,
+		&i.ParentID,
+		&i.SubtaskTotal,
+		&i.SubtaskDone,
 	)
 	return i, err
 }
@@ -583,7 +600,7 @@ UPDATE cards SET
     completed_at = CASE WHEN $3 = 'done' THEN COALESCE(completed_at, now()) ELSE NULL END,
     version      = version + 1
 WHERE id = $6 AND version = $7 AND archived_at IS NULL
-RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count
+RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count, parent_id, subtask_total, subtask_done
 `
 
 type MoveCardParams struct {
@@ -631,6 +648,9 @@ func (q *Queries) MoveCard(ctx context.Context, arg MoveCardParams) (Card, error
 		&i.ChecklistDone,
 		&i.CommentCount,
 		&i.AttachmentCount,
+		&i.ParentID,
+		&i.SubtaskTotal,
+		&i.SubtaskDone,
 	)
 	return i, err
 }
@@ -847,7 +867,7 @@ UPDATE cards SET
     checklist_total = (SELECT count(*) FROM checklist_items i WHERE i.card_id = cards.id),
     checklist_done  = (SELECT count(*) FROM checklist_items i WHERE i.card_id = cards.id AND i.done)
 WHERE cards.id = $1
-RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count
+RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count, parent_id, subtask_total, subtask_done
 `
 
 // Derived data (not user edits: no version bump).
@@ -878,6 +898,52 @@ func (q *Queries) RefreshChecklistCounts(ctx context.Context, id uuid.UUID) (Car
 		&i.ChecklistDone,
 		&i.CommentCount,
 		&i.AttachmentCount,
+		&i.ParentID,
+		&i.SubtaskTotal,
+		&i.SubtaskDone,
+	)
+	return i, err
+}
+
+const refreshSubtaskCounts = `-- name: RefreshSubtaskCounts :one
+UPDATE cards SET
+    subtask_total = (SELECT count(*) FROM cards s WHERE s.parent_id = cards.id AND s.archived_at IS NULL),
+    subtask_done  = (SELECT count(*) FROM cards s WHERE s.parent_id = cards.id AND s.archived_at IS NULL
+                     AND s.status = 'done')
+WHERE cards.id = $1
+RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count, parent_id, subtask_total, subtask_done
+`
+
+func (q *Queries) RefreshSubtaskCounts(ctx context.Context, id uuid.UUID) (Card, error) {
+	row := q.db.QueryRow(ctx, refreshSubtaskCounts, id)
+	var i Card
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.ProjectID,
+		&i.BoardID,
+		&i.ColumnID,
+		&i.Number,
+		&i.Title,
+		&i.Description,
+		&i.Status,
+		&i.Priority,
+		&i.Progress,
+		&i.DueDate,
+		&i.Position,
+		&i.Version,
+		&i.CreatedBy,
+		&i.CompletedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+		&i.ChecklistTotal,
+		&i.ChecklistDone,
+		&i.CommentCount,
+		&i.AttachmentCount,
+		&i.ParentID,
+		&i.SubtaskTotal,
+		&i.SubtaskDone,
 	)
 	return i, err
 }
@@ -985,7 +1051,7 @@ UPDATE cards SET
     due_date    = CASE WHEN $4::bool THEN $5 ELSE due_date END,
     version     = version + 1
 WHERE id = $6 AND version = $7 AND archived_at IS NULL
-RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count
+RETURNING id, workspace_id, project_id, board_id, column_id, number, title, description, status, priority, progress, due_date, position, version, created_by, completed_at, created_at, updated_at, archived_at, checklist_total, checklist_done, comment_count, attachment_count, parent_id, subtask_total, subtask_done
 `
 
 type UpdateCardParams struct {
@@ -1033,6 +1099,9 @@ func (q *Queries) UpdateCard(ctx context.Context, arg UpdateCardParams) (Card, e
 		&i.ChecklistDone,
 		&i.CommentCount,
 		&i.AttachmentCount,
+		&i.ParentID,
+		&i.SubtaskTotal,
+		&i.SubtaskDone,
 	)
 	return i, err
 }

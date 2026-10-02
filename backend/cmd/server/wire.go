@@ -23,6 +23,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/comments"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/i18n"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/projects"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/timetracking"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users"
 	usershttp "github.com/reliabilix/lecodekanban/backend/internal/modules/users/transport/http"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces"
@@ -91,6 +92,8 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	}
 	attachmentsMod := attachments.New(attachments.Deps{Pool: pool, Bus: bus, Storage: storage,
 		MaxBytes: cfg.AttachmentMaxBytes(), Cards: cardsMod.Service, Workspaces: wsMod.Service, Users: usersMod.Service})
+	timeMod := timetracking.New(timetracking.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service,
+		Users: usersMod.Service})
 	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
 	hub := realtime.NewHub(cfg.DatabaseURL, log)
 
@@ -149,6 +152,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			cardsMod.HTTP.PrivateRoutes(r)
 			commentsMod.HTTP.PrivateRoutes(r)
 			attachmentsMod.HTTP.PrivateRoutes(r)
+			timeMod.HTTP.PrivateRoutes(r)
 			activityMod.HTTP.PrivateRoutes(r)
 			r.Get("/workspaces/{workspaceId}/events", hub.Handler(
 				func(r *http.Request) (uuid.UUID, error) {

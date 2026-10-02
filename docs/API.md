@@ -123,6 +123,17 @@ Base URL: `/api/v1`
 | DELETE | `/attachments/{attachmentId}` | session |  | 204, 403 Error |  |
 | GET | `/attachments/{attachmentId}/content` | session |  | 200 |  |
 
+## time
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/cards/{cardId}/time` | session |  | 200 |  |
+| POST | `/cards/{cardId}/time` | session | TimeLogInput | 201, 422 Error |  |
+| POST | `/cards/{cardId}/timer` | session |  | 201 |  |
+| GET | `/timer` | session |  | 200 |  |
+| DELETE | `/time-entries/{entryId}` | session |  | 204, 403 Error |  |
+| POST | `/time-entries/{entryId}/stop` | session |  | 200, 409 Error |  |
+
 ## activity
 
 | Method | Path | Auth | Request | Responses | Summary |
@@ -181,8 +192,9 @@ Base URL: `/api/v1`
 - **ProjectSummary** — `total`: integer, `completed`: integer, `inProgress`: integer, `pending`: integer, `overdue`: integer, `teams`: array
 - **BoardColumn** — `id`: string, `name`: string, `status`: TaskStatus, `position`: string, `wipLimit`: integer \| null
 - **Board** — `id`: string, `projectId`: string, `name`: string, `columns`: array
-- **Card** — `id`: string, `key`: string, `number`: integer, `title`: string, `description`: string, `status`: TaskStatus, `columnId`: string, `priority`: Priority, `progress`: integer, `dueDate`: string \| null, `project`: ProjectRef, `assignees`: array, `labels`: array, `checklist`: ChecklistSummary, `commentCount`: integer, `attachmentCount`: integer, `position`: string, `version`: integer, `createdAt`: string, `updatedAt`: string, `completedAt`: string \| null
-- **CardInput** — `projectId`: string, `title`: string, `description?`: string, `status?`: TaskStatus, `columnId?`: string, `priority?`: Priority, `dueDate?`: string, `assigneeIds?`: array, `labelIds?`: array
+- **Card** — `id`: string, `key`: string, `number`: integer, `title`: string, `description`: string, `status`: TaskStatus, `columnId`: string, `priority`: Priority, `progress`: integer, `dueDate`: string \| null, `project`: ProjectRef, `assignees`: array, `labels`: array, `checklist`: ChecklistSummary, `subtasks`: ChecklistSummary, `parent?`: CardParent, `commentCount`: integer, `attachmentCount`: integer, `position`: string, `version`: integer, `createdAt`: string, `updatedAt`: string, `completedAt`: string \| null
+- **CardParent** — `id`: string, `key`: string, `title`: string
+- **CardInput** — `projectId`: string, `title`: string, `description?`: string, `status?`: TaskStatus, `columnId?`: string, `priority?`: Priority, `dueDate?`: string, `assigneeIds?`: array, `labelIds?`: array, `parentId?`: string
 - **CardPatch** — `version`: integer, `title?`: string, `description?`: string, `priority?`: Priority, `dueDate?`: string \| null, `assigneeIds?`: array, `labelIds?`: array
 - **CardMove** — `version`: integer, `columnId?`: string, `status?`: TaskStatus, `afterId?`: string \| null, `beforeId?`: string \| null
 - **CardBoard** — `items`: array, `truncated`: boolean
@@ -202,6 +214,10 @@ Base URL: `/api/v1`
 - **Comment** — `id`: string, `cardId`: string, `author`: object \| null, `body`: string, `mentions`: array, `createdAt`: string, `editedAt`: string \| null
 - **CommentInput** — `body`: string
 - **Attachment** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `previewable`: boolean, `uploadedBy`: object \| null, `createdAt`: string
+- **TimeEntry** — `id`: string, `cardId`: string, `user`: object \| null, `startedAt`: string, `endedAt`: string \| null, `seconds`: integer, `running`: boolean, `note`: string, `manual`: boolean
+- **TimeSummary** — `entries`: array, `totalSeconds`: integer
+- **TimeLogInput** — `seconds`: integer, `note?`: string, `startedAt?`: string
+- **RunningTimer** — `entry?`: TimeEntry
 - **ActivityEntry** — `id`: integer, `kind`: string, `data`: object, `actor`: object \| null, `at`: string
 - **ActivityPage** — `items`: array, `nextBefore`: integer \| null
 - **RealtimeMessage** — `type`: string, `workspaceId`: string, `projectId?`: string, `cardId?`: string, `actorId?`: string
