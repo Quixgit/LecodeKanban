@@ -8,7 +8,11 @@
     "cancelled": "Move of {{title}} cancelled."
   },
   "board": {
-    "truncated": "Showing the first cards only — narrow the filters to see the rest."
+    "truncated": "Showing the first cards only — narrow the filters to see the rest.",
+    "errorTitle": "Couldn’t load the board",
+    "retry": "Try again",
+    "emptyTitle": "No tasks yet",
+    "emptyHint": "Create the first task to start planning. You can also drag tasks between columns once there are some."
   },
   "card": {
     "attachments": "Attachments",
@@ -42,7 +46,9 @@
     "wip": "WIP limit",
     "wipFieldHint": "Maximum cards in progress. Leave empty for no limit.",
     "wipHint": "Limit {{limit}}",
-    "wipInvalid": "Enter a whole number from 1 to 999."
+    "wipInvalid": "Enter a whole number from 1 to 999.",
+    "dropHere": "Drop a task here",
+    "wipExceeded": "Work-in-progress limit exceeded"
   },
   "lane": {
     "label": "Swimlanes",
@@ -53,7 +59,9 @@
     "priority": "Priority",
     "unassigned": "Unassigned",
     "count_one": "{{count}} card",
-    "count_other": "{{count}} cards"
+    "count_other": "{{count}} cards",
+    "collapse": "Collapse lane {{name}}",
+    "expand": "Expand lane {{name}}"
   },
   "quickAdd": {
     "button": "Add card",

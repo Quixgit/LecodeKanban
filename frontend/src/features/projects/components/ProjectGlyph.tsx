@@ -22,7 +22,7 @@ export function ProjectGlyph({
     <span
       aria-hidden
       className={cn(
-        'flex shrink-0 items-center justify-center rounded-full text-white shadow-[inset_0_0_0_3px_rgb(255_255_255/0.25)] [&_svg]:stroke-[1.9]',
+        'flex shrink-0 items-center justify-center rounded-full text-white shadow-glyph [&_svg]:stroke-[1.9]',
         toneClasses[tone].fill,
         sizes[size],
         className,

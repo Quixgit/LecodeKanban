@@ -47,7 +47,9 @@ export function AnnouncementCard({
         </span>
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-text">{announcement.title}</p>
-          <p className="truncate text-xs text-text-secondary">{announcement.message}</p>
+          <p className="line-clamp-2 text-xs text-text-secondary" title={announcement.message}>
+            {announcement.message}
+          </p>
         </div>
       </div>
       {announcement.members.length > 0 && (

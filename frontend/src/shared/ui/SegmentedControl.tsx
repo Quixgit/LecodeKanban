@@ -45,7 +45,7 @@ export function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={label}
       className={cn(
-        'inline-flex h-control items-center rounded-lg bg-surface-muted p-1',
+        'inline-flex h-control items-center rounded-lg bg-surface-sunken p-1',
         className,
       )}
     >
@@ -64,7 +64,7 @@ export function SegmentedControl<T extends string>({
             onClick={() => onChange(opt.value)}
             onKeyDown={(e) => onKeyDown(e, i)}
             className={cn(
-              'relative flex h-full items-center gap-2 rounded-md px-3 text-base transition-colors duration-micro',
+              'relative flex h-full items-center gap-2 rounded-md px-2.5 text-base transition-colors duration-micro',
               '[&_svg]:size-4 [&_svg]:stroke-[1.6]',
               active ? 'text-text' : 'text-text-muted hover:text-text',
             )}
@@ -73,7 +73,7 @@ export function SegmentedControl<T extends string>({
               <motion.span
                 layoutId={layoutId}
                 transition={transition.spring}
-                className="absolute inset-0 rounded-md bg-surface shadow-sm"
+                className="absolute inset-0 rounded-md border border-border bg-surface shadow-sm"
               />
             )}
             <span className="relative z-10 flex items-center gap-2">

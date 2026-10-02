@@ -13,7 +13,11 @@ export function LiveIndicator({ className }: { className?: string }) {
     <Tooltip content={t(`live.${state}Hint`)}>
       <span
         role="status"
-        className={cn('inline-flex items-center gap-1.5 text-xs text-text-muted', className)}
+        aria-label={t(`live.${state}`)}
+        className={cn(
+          'inline-flex h-control items-center gap-1.5 px-1 text-xs text-text-muted',
+          className,
+        )}
       >
         <span className="relative flex size-2">
           {state === 'live' && (
@@ -21,7 +25,7 @@ export function LiveIndicator({ className }: { className?: string }) {
           )}
           <span className={cn('relative inline-flex size-2 rounded-full', dot[state])} />
         </span>
-        {t(`live.${state}`)}
+        <span className="hidden xl:inline">{t(`live.${state}`)}</span>
       </span>
     </Tooltip>
   );

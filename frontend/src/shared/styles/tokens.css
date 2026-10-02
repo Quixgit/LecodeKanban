@@ -22,6 +22,7 @@
   --c-surface: 255 255 255; /* cards, sidebar, header */
   --c-surface-muted: 249 249 249; /* table head, segmented track */
   --c-surface-sunken: 244 244 244; /* #f4f4f4 – kbd, disabled */
+  --c-surface-column: 243 246 246; /* #f3f6f6 – kanban column / lane cell */
   --c-overlay: 17 24 23; /* backdrop base */
 
   /* ---------- Borders ---------- */
@@ -32,7 +33,7 @@
   /* ---------- Text ---------- */
   --c-text: 28 28 28; /* #1c1c1c – headings, strong cells */
   --c-text-secondary: 82 82 82; /* #525252 – body cells */
-  --c-text-muted: 115 115 115; /* #737373 – labels, subtitles (AA) */
+  --c-text-muted: 107 107 107; /* #6b6b6b – labels, subtitles (AA on white and on #f4f4f4) */
   --c-text-faint: 161 161 161; /* #a1a1a1 – placeholders, "/ 96" totals */
 
   /* ---------- Status (fill = bars/dots, soft = pill bg, ink = text) ---------- */
@@ -90,6 +91,10 @@
   --sh-sm: 0 1px 2px rgb(16 24 40 / 0.03), 0 4px 12px -6px rgb(16 24 40 / 0.06);
   --sh-md: 0 2px 4px rgb(16 24 40 / 0.03), 0 12px 32px -12px rgb(16 24 40 / 0.1);
   --sh-lg: 0 4px 8px rgb(16 24 40 / 0.04), 0 24px 48px -16px rgb(16 24 40 / 0.16);
+  --sh-card: 0 1px 2px rgb(16 24 40 / 0.05), 0 6px 16px -8px rgb(16 24 40 / 0.1);
+  --sh-card-hover: 0 2px 4px rgb(16 24 40 / 0.05), 0 14px 28px -10px rgb(16 24 40 / 0.16);
+  --sh-stuck: 0 10px 12px -12px rgb(16 24 40 / 0.22);
+  --sh-glyph: inset 0 0 0 3px rgb(255 255 255 / 0.25);
   --sh-drag: 0 8px 16px rgb(16 24 40 / 0.06), 0 28px 56px -12px rgb(16 24 40 / 0.24);
   --sh-primary: 0 6px 16px -6px rgb(var(--c-primary) / 0.55);
   --sh-focus: 0 0 0 3px rgb(var(--c-primary) / 0.28);
@@ -132,6 +137,7 @@
   --c-surface: 21 25 25;
   --c-surface-muted: 26 31 31;
   --c-surface-sunken: 32 38 38;
+  --c-surface-column: 24 29 29;
   --c-overlay: 0 0 0;
 
   --c-border: 38 45 45;

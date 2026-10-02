@@ -1,8 +1,14 @@
-import { FolderPlus, Keyboard } from 'lucide-react';
+import { FolderPlus, Keyboard, KanbanSquare, Plus, TriangleAlert } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router-dom';
-import { useCardMutations, useLabels, type CardInput, type Priority } from '@/features/cards';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import {
+  slugToStatus,
+  useCardMutations,
+  useLabels,
+  type CardInput,
+  type Priority,
+} from '@/features/cards';
 import { useAllProjects } from '@/features/projects';
 import { LiveIndicator } from '@/features/realtime';
 import { TASK_SEARCH_ID, TasksToolbar, baseQuery, useTaskFilters } from '@/features/tasks-list';
@@ -16,6 +22,7 @@ import {
   IconButton,
   Select,
   Skeleton,
+  Tooltip,
   toast,
 } from '@/shared/ui';
 import type { DropResult } from '../hooks/useBoardDnd';
@@ -60,9 +67,19 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
     () => (filters.projectId ? { kind: 'project', projectId: filters.projectId } : { kind: 'all' }),
     [filters.projectId],
   );
-  const query = useMemo(() => baseQuery(filters), [filters]);
+  // /tasks/<status> (sidebar sub-items) narrows the board to that status.
+  const { status: statusSlug } = useParams();
+  const only = slugToStatus(statusSlug);
+  const query = useMemo(
+    () => ({ ...baseQuery(filters), ...(only ? { status: only } : {}) }),
+    [filters, only],
+  );
   const board = useBoardCards(workspace?.id, query);
-  const { columns } = useBoardColumns(mode);
+  const allColumns = useBoardColumns(mode).columns;
+  const columns = useMemo(
+    () => (only ? allColumns?.filter((c) => c.status === only) : allColumns),
+    [allColumns, only],
+  );
   const cards = useMemo(() => board.data?.items ?? [], [board.data]);
   const swimlane =
     mode.kind === 'project' && store.swimlane === 'project' ? 'none' : store.swimlane;
@@ -203,9 +220,11 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
           }}
         />
       )}
-      <IconButton label={t('shortcuts.title')} onClick={() => setShortcuts(true)}>
-        <Keyboard />
-      </IconButton>
+      <Tooltip content={`${t('shortcuts.title')} (?)`}>
+        <IconButton label={t('shortcuts.title')} onClick={() => setShortcuts(true)}>
+          <Keyboard />
+        </IconButton>
+      </Tooltip>
       {viewSwitch}
     </>
   );
@@ -232,16 +251,31 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
     return (
       <div className="flex flex-col gap-5" aria-busy>
         {toolbar}
-        <div className="flex gap-3 overflow-hidden">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-3 overflow-hidden">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="flex w-[296px] shrink-0 flex-col gap-2.5">
-              <Skeleton className="h-8 w-40 rounded-lg" />
+            <div key={i} className="flex flex-col gap-2.5 rounded-2xl bg-surface-column p-2">
+              <Skeleton className="h-8 w-40 rounded-full" />
               {[0, 1, 2].map((j) => (
-                <Skeleton key={j} className="h-32 rounded-lg" />
+                <Skeleton key={j} className="h-32 rounded-xl" />
               ))}
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+  if (board.isError) {
+    return (
+      <div className="flex flex-col gap-5">
+        {toolbar}
+        <Panel>
+          <EmptyState
+            icon={<TriangleAlert />}
+            title={t('board.errorTitle')}
+            description={errorText(board.error)}
+            action={<Button onClick={() => void board.refetch()}>{t('board.retry')}</Button>}
+          />
+        </Panel>
       </div>
     );
   }
@@ -272,6 +306,23 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
           {t('board.truncated')}
         </p>
       )}
+      {cards.length === 0 && activeCount === 0 && !filters.q && (
+        <Panel>
+          <EmptyState
+            icon={<KanbanSquare />}
+            title={t('board.emptyTitle')}
+            description={t('board.emptyHint')}
+            action={
+              canEdit ? (
+                <Button onClick={onCreate}>
+                  <Plus />
+                  {t('tasks:add')}
+                </Button>
+              ) : undefined
+            }
+          />
+        </Panel>
+      )}
       <Board
         ref={boardRef}
         cards={cards}
@@ -280,6 +331,8 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
         containers={containers}
         swimlane={swimlane}
         collapsed={store.collapsed}
+        collapsedLanes={store.collapsedLanes}
+        onToggleLane={store.toggleLane}
         canEdit={canEdit}
         canManageColumns={canEdit && mode.kind === 'project'}
         onToggleColumn={store.toggleColumn}

@@ -9,11 +9,14 @@ interface BoardState {
   swimlane: Swimlane;
   /** Collapsed column keys (column ids or statuses). */
   collapsed: string[];
+  /** Collapsed swimlane keys. */
+  collapsedLanes: string[];
   /** Project preselected by quick-add on the all-projects board. */
   quickAddProjectId?: string;
   setView: (v: TasksView) => void;
   setSwimlane: (s: Swimlane) => void;
   toggleColumn: (key: string) => void;
+  toggleLane: (key: string) => void;
   setQuickAddProject: (id: string) => void;
 }
 
@@ -24,6 +27,7 @@ export const useBoardStore = create<BoardState>()(
       view: 'list',
       swimlane: 'none',
       collapsed: [],
+      collapsedLanes: [],
       setView: (view) => set({ view }),
       setSwimlane: (swimlane) => set({ swimlane }),
       toggleColumn: (key) =>
@@ -31,6 +35,12 @@ export const useBoardStore = create<BoardState>()(
           collapsed: s.collapsed.includes(key)
             ? s.collapsed.filter((k) => k !== key)
             : [...s.collapsed, key],
+        })),
+      toggleLane: (key) =>
+        set((s) => ({
+          collapsedLanes: s.collapsedLanes.includes(key)
+            ? s.collapsedLanes.filter((k) => k !== key)
+            : [...s.collapsedLanes, key],
         })),
       setQuickAddProject: (quickAddProjectId) => set({ quickAddProjectId }),
     }),

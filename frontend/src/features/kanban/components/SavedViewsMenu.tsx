@@ -14,6 +14,7 @@ import {
   IconButton,
   Input,
   Modal,
+  Tooltip,
   toast,
 } from '@/shared/ui';
 import { useSavedViews } from '../hooks/useSavedViews';
@@ -67,11 +68,13 @@ export function SavedViewsMenu({ workspaceId, current, onApply }: Props) {
   return (
     <>
       <Dropdown>
-        <DropdownTrigger asChild>
-          <IconButton label={t('views.title')}>
-            <Bookmark />
-          </IconButton>
-        </DropdownTrigger>
+        <Tooltip content={t('views.title')}>
+          <DropdownTrigger asChild>
+            <IconButton label={t('views.title')}>
+              <Bookmark />
+            </IconButton>
+          </DropdownTrigger>
+        </Tooltip>
         <DropdownContent align="end" className="w-64">
           <DropdownLabel>{t('views.title')}</DropdownLabel>
           {(list.data ?? []).length === 0 && (

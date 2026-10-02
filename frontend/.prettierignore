@@ -3,3 +3,4 @@ coverage
 node_modules
 public/locales
 src/shared/api/schema.gen.ts
+test-results

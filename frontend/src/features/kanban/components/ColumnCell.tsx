@@ -2,9 +2,11 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { AnimatePresence } from 'framer-motion';
-import { useContext, useRef, type ReactNode } from 'react';
+import { useContext, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Card } from '@/features/cards';
 import { cn } from '@/shared/lib/cn';
+import { STATUS_VAR } from '../model/board';
 import { DragContext } from './dragContext';
 import { SortableCard } from './SortableCard';
 
@@ -20,8 +22,8 @@ interface Props {
   overLimit: boolean;
   onOpen: (id: string) => void;
   footer?: ReactNode;
-  /** Max height of the scrollable list (lanes keep rows compact). */
-  maxHeight: string;
+  /** Status of the column: tints the cell while a card is dragged over it. */
+  status: keyof typeof STATUS_VAR;
 }
 
 function CardList({
@@ -50,13 +52,14 @@ function VirtualList({
   cards,
   canEdit,
   onOpen,
-  scrollRef,
+  scrollEl,
 }: Pick<Props, 'id' | 'ids' | 'cards' | 'canEdit' | 'onOpen'> & {
-  scrollRef: React.RefObject<HTMLDivElement>;
+  /** The scrolling element, as state: a plain ref is still empty when the virtualizer first runs. */
+  scrollEl: HTMLDivElement | null;
 }) {
   const v = useVirtualizer({
     count: ids.length,
-    getScrollElement: () => scrollRef.current,
+    getScrollElement: () => scrollEl,
     estimateSize: () => 132,
     overscan: 8,
     getItemKey: (i) => ids[i]!,
@@ -88,30 +91,37 @@ function VirtualList({
 
 /** One column inside one swimlane: a droppable, sortable, optionally virtualized card list. */
 export function ColumnCell(p: Props) {
+  const { t } = useTranslation('kanban');
   const { setNodeRef, isOver } = useDroppable({ id: p.id, data: { container: p.id } });
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
   const virtual = p.ids.length > VIRTUAL_THRESHOLD;
   return (
     <div
       ref={setNodeRef}
+      style={isOver ? { backgroundColor: `rgb(var(${STATUS_VAR[p.status]}) / 0.08)` } : undefined}
       className={cn(
-        'flex min-h-24 flex-col rounded-xl p-2 transition-colors duration-micro',
-        isOver ? 'bg-primary-subtle' : 'bg-surface-muted/60',
+        'group/cell flex min-h-28 min-w-0 snap-start flex-col rounded-2xl bg-surface-column p-2 transition-colors duration-micro',
         p.overLimit && 'ring-1 ring-inset ring-danger/40',
       )}
     >
-      <div
-        ref={scrollRef}
-        className="-mr-1 overflow-y-auto pr-1"
-        style={{ maxHeight: p.maxHeight }}
-      >
-        <SortableContext id={p.id} items={p.ids} strategy={verticalListSortingStrategy}>
-          <ul role="list" className="flex flex-col">
-            {virtual ? <VirtualList {...p} scrollRef={scrollRef} /> : <CardList {...p} />}
-          </ul>
-        </SortableContext>
-      </div>
-      {p.footer}
+      <SortableContext id={p.id} items={p.ids} strategy={verticalListSortingStrategy}>
+        {p.ids.length === 0 ? (
+          <div className="flex min-h-16 flex-1 items-center justify-center rounded-xl border border-dashed border-border-strong px-2 text-center text-xs text-text-muted">
+            {t('column.dropHere')}
+          </div>
+        ) : (
+          // Only very long lists scroll inside the cell (virtualized); otherwise the board scrolls.
+          <div
+            ref={setScrollEl}
+            className={cn(virtual && '-mr-1 max-h-[70dvh] overflow-y-auto pr-1')}
+          >
+            <ul role="list" className="flex flex-col">
+              {virtual ? <VirtualList {...p} scrollEl={scrollEl} /> : <CardList {...p} />}
+            </ul>
+          </div>
+        )}
+      </SortableContext>
+      <div className="mt-auto">{p.footer}</div>
     </div>
   );
 }

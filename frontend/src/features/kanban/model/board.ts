@@ -26,6 +26,14 @@ export interface LaneDef {
   tone?: string;
 }
 
+/** CSS variable of each status colour (tokens.css) — used to tint a column on drag-over. */
+export const STATUS_VAR = {
+  todo: '--c-todo',
+  in_progress: '--c-progress',
+  in_review: '--c-review',
+  done: '--c-done',
+} as const;
+
 export const NO_LANE = '_';
 export const UNASSIGNED = 'unassigned';
 const PRIORITY_ORDER: Priority[] = ['high', 'medium', 'low'];

@@ -60,7 +60,7 @@ export const QuickAdd = forwardRef<QuickAddHandle, Props>(function QuickAdd(
         variant="ghost"
         size="sm"
         block
-        className="mt-1 justify-start text-text-muted"
+        className="mt-1 justify-start text-text-muted opacity-0 transition-opacity duration-micro focus-visible:opacity-100 group-focus-within/cell:opacity-100 group-hover/cell:opacity-100 [@media(hover:none)]:opacity-100"
         onClick={() => {
           setOpen(true);
           requestAnimationFrame(() => input.current?.focus());

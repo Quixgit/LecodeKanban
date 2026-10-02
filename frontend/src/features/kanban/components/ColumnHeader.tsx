@@ -1,11 +1,12 @@
 import {
   ArrowLeft,
   ArrowRight,
-  ChevronsLeftRight,
-  ChevronsRightLeft,
   Gauge,
   MoreHorizontal,
+  PanelLeftClose,
+  PanelLeftOpen,
   Pencil,
+  Plus,
   Trash2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +19,7 @@ import {
   DropdownTrigger,
   IconButton,
   StatusTag,
+  Tooltip,
 } from '@/shared/ui';
 import type { ColumnDef } from '../model/board';
 
@@ -28,28 +30,35 @@ interface Props {
   count: number;
   collapsed: boolean;
   onToggle: () => void;
+  /** Persistent "+": opens quick-add in this column. Absent for viewers. */
+  onAdd?: () => void;
   /** Column management (project boards, editors only). */
   manage?: { first: boolean; last: boolean; onAction: (a: ColumnAction) => void };
 }
 
-export function ColumnHeader({ column, count, collapsed, onToggle, manage }: Props) {
+export function ColumnHeader({ column, count, collapsed, onToggle, onAdd, manage }: Props) {
   const { t } = useTranslation('kanban');
   const over = column.wipLimit !== null && count > column.wipLimit;
-  const countLabel = column.wipLimit !== null ? `${count}/${column.wipLimit}` : String(count);
+  const countLabel = column.wipLimit !== null ? `${count} / ${column.wipLimit}` : String(count);
+  const toggleLabel = collapsed
+    ? t('column.expand', { name: column.name })
+    : t('column.collapse', { name: column.name });
   const toggle = (
-    <IconButton
-      variant="ghost"
-      size="sm"
-      label={
-        collapsed
-          ? t('column.expand', { name: column.name })
-          : t('column.collapse', { name: column.name })
-      }
-      aria-expanded={!collapsed}
-      onClick={onToggle}
-    >
-      {collapsed ? <ChevronsLeftRight /> : <ChevronsRightLeft />}
-    </IconButton>
+    <Tooltip content={toggleLabel}>
+      <IconButton
+        variant="ghost"
+        size="sm"
+        label={toggleLabel}
+        aria-expanded={!collapsed}
+        onClick={onToggle}
+        className={cn(
+          !collapsed &&
+            'opacity-0 transition-opacity duration-micro focus-visible:opacity-100 group-focus-within/head:opacity-100 group-hover/head:opacity-100 [@media(hover:none)]:opacity-100',
+        )}
+      >
+        {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+      </IconButton>
+    </Tooltip>
   );
 
   if (collapsed) {
@@ -72,11 +81,11 @@ export function ColumnHeader({ column, count, collapsed, onToggle, manage }: Pro
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="group/head flex items-center gap-2 px-2">
       <StatusTag status={column.status} label={column.name} className="h-8 min-w-0 text-base" />
       <span
         className={cn(
-          'tabular flex h-8 min-w-8 items-center justify-center rounded-lg border px-2 text-sm',
+          'tabular flex h-8 min-w-8 items-center justify-center rounded-full border px-2.5 text-sm',
           over
             ? 'border-danger/40 bg-danger-soft font-medium text-danger-ink'
             : 'border-border text-text-secondary',
@@ -87,8 +96,16 @@ export function ColumnHeader({ column, count, collapsed, onToggle, manage }: Pro
       >
         {countLabel}
       </span>
+      {over && <span className="sr-only">{t('column.wipExceeded')}</span>}
       <div className="ml-auto flex items-center">
         {toggle}
+        {onAdd && (
+          <Tooltip content={t('quickAdd.button')}>
+            <IconButton variant="ghost" size="sm" label={t('quickAdd.button')} onClick={onAdd}>
+              <Plus />
+            </IconButton>
+          </Tooltip>
+        )}
         {manage && (
           <Dropdown>
             <DropdownTrigger asChild>

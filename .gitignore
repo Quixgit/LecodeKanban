@@ -22,3 +22,5 @@ backend/coverage.out
 
 # local uploads (dev)
 backend/data/
+.env.e2e
+test-results

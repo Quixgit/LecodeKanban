@@ -51,6 +51,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
     coverage: { provider: 'v8', include: ['src/**/*.{ts,tsx}'] },
   },
 });

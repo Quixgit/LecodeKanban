@@ -13,7 +13,7 @@ ENV := set -a; [ -f .env ] && . ./.env; set +a;
 
 .PHONY: help install deps-up deps-down dev dev-api dev-web migrate-up migrate-down migrate-status \
         migrate-create seed gen gen-check build test test-backend test-frontend cover lint lint-backend \
-        lint-frontend fmt check clean deploy deploy-ps deploy-logs deploy-down
+        lint-frontend fmt check clean deploy deploy-ps deploy-logs deploy-down e2e e2e-up e2e-down
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -32,6 +32,21 @@ deploy-ps: ## Status of the production containers
 
 deploy-logs: ## Follow API, worker and web logs
 	docker compose logs -f --tail 100 api worker web
+
+E2E := docker compose -p lke2e --env-file .env.e2e
+
+e2e-up: ## Isolated test stack on localhost:48100 (own database) with demo data
+	./scripts/e2e-env.sh
+	$(E2E) up -d --build --wait
+	set -a; . ./.env.e2e; set +a; cd $(BE) && LK_ENV=development \
+	  LK_DATABASE_URL="postgres://lecodekanban:$$LK_POSTGRES_PASSWORD@127.0.0.1:$$LK_POSTGRES_PORT/lecodekanban?sslmode=disable" \
+	  go run ./cmd/seed
+
+e2e: e2e-up ## Playwright end-to-end tests against the isolated stack (set PW_CHROMIUM to reuse a browser)
+	cd $(FE) && E2E_PASSWORD="$${LK_SEED_PASSWORD:-Demo-Kanban-2026}" npx playwright test
+
+e2e-down: ## Remove the isolated test stack and its data
+	$(E2E) down -v
 
 deploy-down: ## Stop the production stack (data volume is kept)
 	docker compose down
