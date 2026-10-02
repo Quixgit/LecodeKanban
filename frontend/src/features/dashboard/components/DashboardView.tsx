@@ -12,16 +12,16 @@ import { ThroughputChart } from './ThroughputChart';
 
 function DashboardSkeleton() {
   return (
-    <div className="grid gap-6 xl:grid-cols-2" aria-busy>
-      <div className="grid gap-6">
-        <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2" aria-busy>
+      <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }, (_, i) => (
             <Skeleton key={i} className="h-40 rounded-xl" />
           ))}
         </div>
         <Skeleton className="h-80 rounded-xl" />
       </div>
-      <div className="grid gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <Skeleton className="h-80 rounded-xl" />
         <Skeleton className="h-64 rounded-xl" />
       </div>
@@ -49,9 +49,9 @@ export function DashboardView() {
   const s = stats.data;
   const label = t('kpi.vsLastWeek');
   return (
-    <div className="grid gap-6 xl:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
       <div className="flex flex-col gap-6">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <MetricCard
             title={t('kpi.active')}
             value={<CountUp value={s.active} />}

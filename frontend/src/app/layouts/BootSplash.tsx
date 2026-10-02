@@ -4,7 +4,7 @@ import { transition } from '@/shared/motion';
 /** Shown while the session is resolved on first load (one short request). */
 export function BootSplash() {
   return (
-    <div className="grid min-h-dvh place-items-center bg-bg" aria-busy>
+    <div className="grid min-h-dvh grid-cols-1 place-items-center bg-bg" aria-busy>
       <motion.svg
         viewBox="0 0 32 32"
         className="size-11 drop-shadow-[0_6px_14px_rgb(76_181_174/0.35)]"

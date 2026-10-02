@@ -66,7 +66,7 @@ export function DataDisplaySection() {
         <AvatarGroup people={demoPeople.map((name) => ({ name }))} total={45} size="sm" />
       </Row>
       <Row label={t('data.progress')}>
-        <div className="grid w-full gap-4 sm:grid-cols-3">
+        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
           <ProgressBar value={42} label="42%" />
           <ProgressBar value={100} label="100%" />
           <ProgressBar value={10} tone="purple" label="10%" />
@@ -77,7 +77,7 @@ export function DataDisplaySection() {
         <TrendChip value={-10.5} format={(v) => pct(v)} />
       </Row>
       <Row label={t('data.kpis')}>
-        <div className="grid w-full gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <StatCard icon={<Package />} label={t('data.kpi.total')} value={<CountUp value={42} />} />
           <StatCard
             icon={<Check />}
@@ -106,7 +106,7 @@ export function DataDisplaySection() {
         </div>
       </Row>
       <Row label={t('data.metrics')}>
-        <div className="grid w-full gap-4 md:grid-cols-2">
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
           <MetricCard
             title={t('data.metric.activeTasks')}
             value={<CountUp value={81} />}

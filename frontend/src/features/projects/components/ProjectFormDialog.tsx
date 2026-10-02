@@ -214,7 +214,7 @@ export function ProjectFormDialog({
           id="project-form"
           onSubmit={onSubmit}
           noValidate
-          className="grid gap-4 sm:grid-cols-2"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2"
         >
           <div className="sm:col-span-2">
             <FormAlert>{generalError}</FormAlert>

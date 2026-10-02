@@ -25,7 +25,9 @@
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar",
     "collapseGroup": "Collapse {{name}}",
-    "expandGroup": "Expand {{name}}"
+    "expandGroup": "Expand {{name}}",
+    "close": "Close menu",
+    "open": "Open menu"
   },
   "announcement": {
     "label": "Team announcement",

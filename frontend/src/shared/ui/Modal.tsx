@@ -52,7 +52,7 @@ export function Modal({
         {open && (
           <Dialog.Portal forceMount>
             <Overlay />
-            <div className="fixed inset-0 z-50 grid place-items-center p-4">
+            <div className="fixed inset-0 z-50 grid grid-cols-1 place-items-center p-4">
               <Dialog.Content
                 onCloseAutoFocus={restoreFocus}
                 forceMount

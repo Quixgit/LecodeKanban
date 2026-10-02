@@ -116,7 +116,7 @@ export function CalendarGrid({
         screenReaderInstructions: { draggable: t('a11y.instructions') },
       }}
     >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
         <div className="overflow-x-auto rounded-xl border border-border-subtle bg-surface">
           <div role="grid" className="min-w-[44rem]">
             {mode !== 'day' && (

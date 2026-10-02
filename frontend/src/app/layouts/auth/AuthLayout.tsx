@@ -26,7 +26,7 @@ export function AuthLayout() {
   const location = useLocation();
   const changeLanguage = useChangeLanguage();
   return (
-    <div className="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+    <div className="grid min-h-dvh grid-cols-1 bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <div className="flex flex-col px-6 py-6 sm:px-10">
         <header className="flex items-center justify-between">
           <Link to="/" className="rounded-lg">

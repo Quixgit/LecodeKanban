@@ -5,6 +5,9 @@ interface SidebarState {
   collapsed: boolean;
   /** Keys of expanded nav groups (e.g. "tasks"). */
   expanded: string[];
+  /** Off-canvas navigation below the lg breakpoint (never persisted). */
+  mobileOpen: boolean;
+  setMobileOpen: (v: boolean) => void;
   toggleCollapsed: () => void;
   setCollapsed: (v: boolean) => void;
   toggleGroup: (key: string) => void;
@@ -16,6 +19,8 @@ export const useSidebarStore = create<SidebarState>()(
     (set) => ({
       collapsed: false,
       expanded: ['tasks'],
+      mobileOpen: false,
+      setMobileOpen: (mobileOpen) => set({ mobileOpen }),
       toggleCollapsed: () => set((s) => ({ collapsed: !s.collapsed })),
       setCollapsed: (collapsed) => set({ collapsed }),
       toggleGroup: (key) =>
@@ -27,6 +32,9 @@ export const useSidebarStore = create<SidebarState>()(
       expandGroup: (key) =>
         set((s) => (s.expanded.includes(key) ? s : { expanded: [...s.expanded, key] })),
     }),
-    { name: 'lk-sidebar' },
+    {
+      name: 'lk-sidebar',
+      partialize: (s) => ({ collapsed: s.collapsed, expanded: s.expanded }),
+    },
   ),
 );

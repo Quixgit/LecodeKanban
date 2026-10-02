@@ -1,10 +1,11 @@
-import { Info, Mail, Settings } from 'lucide-react';
+import { Info, Mail, Menu, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useChangeLanguage } from '@/features/auth';
 import { TimerIndicator } from '@/features/time-tracking';
 import { env } from '@/shared/config/env';
 import { IconButton, Tooltip } from '@/shared/ui';
+import { useSidebarStore } from '../sidebarStore';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { NotificationsMenu } from './NotificationsMenu';
 import { PageTitle } from './PageTitle';
@@ -15,8 +16,17 @@ import { UserMenu, type Viewer } from './UserMenu';
 export function Header({ viewer }: { viewer: Viewer }) {
   const { t } = useTranslation();
   const changeLanguage = useChangeLanguage();
+  const openMenu = useSidebarStore((s) => s.setMobileOpen);
   return (
-    <header className="sticky top-0 z-20 flex h-header shrink-0 items-center gap-4 border-b border-border-subtle bg-surface/85 px-6 backdrop-blur-md">
+    <header className="sticky top-0 z-20 flex h-header shrink-0 items-center gap-4 border-b border-border-subtle bg-surface/85 px-4 backdrop-blur-md sm:px-6">
+      <IconButton
+        label={t('nav:sidebar.open')}
+        variant="ghost"
+        className="-ml-2 lg:hidden"
+        onClick={() => openMenu(true)}
+      >
+        <Menu />
+      </IconButton>
       <div className="min-w-0 flex-1">
         <PageTitle />
       </div>

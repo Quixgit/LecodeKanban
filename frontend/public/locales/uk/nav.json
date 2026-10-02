@@ -25,7 +25,9 @@
     "collapse": "Згорнути бічну панель",
     "expand": "Розгорнути бічну панель",
     "collapseGroup": "Згорнути «{{name}}»",
-    "expandGroup": "Розгорнути «{{name}}»"
+    "expandGroup": "Розгорнути «{{name}}»",
+    "close": "Закрити меню",
+    "open": "Відкрити меню"
   },
   "announcement": {
     "label": "Оголошення команди",

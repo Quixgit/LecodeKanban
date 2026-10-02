@@ -23,7 +23,7 @@ import { PendingInvites } from './PendingInvites';
 function TeamSkeleton() {
   return (
     <div className="flex flex-col gap-6" aria-busy>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
           <Skeleton key={i} className="h-[78px] rounded-xl" />
         ))}
@@ -68,7 +68,7 @@ export function TeamView({ currentUserId }: { currentUserId: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={<UsersRound />}
           label={t('kpi.members')}

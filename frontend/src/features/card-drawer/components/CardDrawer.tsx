@@ -138,7 +138,7 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
         ) : !card ? (
           <EmptyState icon={<SearchX />} title={t('notFound')} description={t('notFoundHint')} />
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_15rem]">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_15rem]">
             <div className="flex min-w-0 flex-col gap-7">
               {card.parent && (
                 <button

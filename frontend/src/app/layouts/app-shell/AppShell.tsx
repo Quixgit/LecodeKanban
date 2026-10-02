@@ -14,6 +14,7 @@ import { useCurrentWorkspace } from '@/features/workspaces';
 import { pageTransition } from '@/shared/motion';
 import { Header } from './header/Header';
 import { PageSkeleton } from './PageSkeleton';
+import { MobileNav } from './sidebar/MobileNav';
 import { Sidebar } from './sidebar/Sidebar';
 import { useShellCommands } from './useShellCommands';
 import { useViewer } from './useViewer';
@@ -38,9 +39,10 @@ export function AppShell() {
         {t('a11y.skipToContent')}
       </a>
       <Sidebar />
+      <MobileNav />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header viewer={viewer} />
-        <main id="main" tabIndex={-1} className="flex-1 p-6 outline-none">
+        <main id="main" tabIndex={-1} className="flex-1 p-4 outline-none sm:p-6">
           <VerificationBanner />
           {/* Enter-only: an exit phase around lazy routes can stall and leave a blank, inert page. */}
           <motion.div

@@ -61,7 +61,7 @@ export function OAuthButtons({ next }: { next: string }) {
   ];
 
   return (
-    <div className="grid gap-2.5 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
       {providers.map((p) => {
         const button = p.enabled ? (
           <Button asChild variant="secondary" size="lg" block>

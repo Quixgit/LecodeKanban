@@ -99,7 +99,7 @@ export function ProjectCardsSection() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-40px' }}
-        className="grid gap-5 md:grid-cols-2 xl:grid-cols-3"
+        className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"
       >
         {demoProjects.map((p, i) => (
           <ProjectCard key={p.name} project={p} index={i} />

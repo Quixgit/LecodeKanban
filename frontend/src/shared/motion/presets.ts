@@ -58,6 +58,12 @@ export const drawerRight: Variants = {
   exit: { x: '100%', opacity: 0.6, transition: transition.ui },
 };
 
+export const drawerLeft: Variants = {
+  hidden: { x: '-100%', opacity: 0.6 },
+  visible: { x: 0, opacity: 1, transition: transition.large },
+  exit: { x: '-100%', opacity: 0.6, transition: transition.ui },
+};
+
 export const backdrop: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: transition.ui },

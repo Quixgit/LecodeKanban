@@ -16,7 +16,7 @@ import { ProjectsToolbar } from './ProjectsToolbar';
 
 function CardsSkeleton() {
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-busy>
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3" aria-busy>
       {Array.from({ length: 6 }, (_, i) => (
         <div key={i} className="rounded-xl border border-border-subtle p-5">
           <div className="flex items-center gap-3 pb-4">
@@ -67,7 +67,7 @@ export function ProjectsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {kpis.map((k) =>
           s ? (
             <StatCard
@@ -120,7 +120,7 @@ export function ProjectsView() {
             variants={listContainer}
             initial="hidden"
             animate="visible"
-            className="grid gap-5 md:grid-cols-2 xl:grid-cols-3"
+            className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"
           >
             {items.map((p) => (
               <ProjectCard key={p.id} project={p} canEdit={canEdit} onEdit={setEditing} />
