@@ -9,6 +9,7 @@ import {
   VerificationBanner,
 } from '@/features/auth';
 import { CommandPalette } from '@/features/command-palette';
+import { useNotificationSounds } from '@/features/notification-sounds';
 import { usePresenceHeartbeat } from '@/features/chat';
 import { useWorkspaceEvents } from '@/features/realtime';
 import { useCurrentWorkspace } from '@/features/workspaces';
@@ -33,6 +34,7 @@ export function AppShell() {
   const { workspace } = useCurrentWorkspace();
   useSessionExpiryListener();
   useWorkspaceEvents(workspace?.id); // live updates from teammates, for every page
+  useNotificationSounds(user?.id, workspace?.id); // a soft signal for new messages and tasks
   usePresenceHeartbeat(workspace?.id); // "online" in chat
   useApplyProfileLanguage(user);
 

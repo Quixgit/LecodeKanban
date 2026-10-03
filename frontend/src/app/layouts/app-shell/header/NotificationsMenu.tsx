@@ -1,5 +1,6 @@
 import { Bell, BellOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { SoundSettings } from '@/features/notification-sounds';
 import { Dropdown, DropdownContent, DropdownTrigger, EmptyState, IconButton } from '@/shared/ui';
 
 /** Bell with the notification inbox. Populated by the notifications module. */
@@ -22,6 +23,7 @@ export function NotificationsMenu({ unread = 0 }: { unread?: number }) {
           title={t('notifications.emptyTitle')}
           description={t('notifications.emptyDescription')}
         />
+        <SoundSettings />
       </DropdownContent>
     </Dropdown>
   );

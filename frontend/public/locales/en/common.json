@@ -39,7 +39,19 @@
   "notifications": {
     "title": "Notifications",
     "emptyTitle": "You're all caught up",
-    "emptyDescription": "Mentions, assignments and due-date reminders will appear here."
+    "emptyDescription": "Mentions, assignments and due-date reminders will appear here.",
+    "sound": {
+      "title": "Sounds",
+      "volume": "Volume",
+      "preview": "Play a preview",
+      "previewNamed": "Preview: {{name}}",
+      "kinds": {
+        "message": "New chat message",
+        "mention": "Mention",
+        "task": "New task",
+        "notify": "Other updates"
+      }
+    }
   },
   "language": {
     "label": "Language",
