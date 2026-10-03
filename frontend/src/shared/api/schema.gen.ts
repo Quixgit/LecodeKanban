@@ -1951,7 +1951,7 @@ export interface paths {
             header?: never;
             path: {
                 messageId: components["parameters"]["ChatMessageId"];
-                key: "thumbs-up" | "heart" | "check" | "party-popper" | "eyes" | "laugh" | "flame" | "lightbulb";
+                key: string;
             };
             cookie?: never;
         };
@@ -5869,8 +5869,21 @@ export interface operations {
     };
     searchChat: {
         parameters: {
-            query: {
-                q: string;
+            query?: {
+                /** @description Text to find; two characters at least unless a filter is set */
+                q?: string;
+                /** @description Only this conversation */
+                channelId?: string;
+                /** @description Only messages by this person */
+                fromId?: string;
+                /** @description Only messages that mention the caller (or @channel) */
+                mentionsMe?: boolean;
+                hasLink?: boolean;
+                hasFile?: boolean;
+                /** @description Only replies and messages that have replies */
+                threadsOnly?: boolean;
+                after?: string;
+                before?: string;
             };
             header?: never;
             path: {
@@ -6528,7 +6541,7 @@ export interface operations {
             header?: never;
             path: {
                 messageId: components["parameters"]["ChatMessageId"];
-                key: "thumbs-up" | "heart" | "check" | "party-popper" | "eyes" | "laugh" | "flame" | "lightbulb";
+                key: string;
             };
             cookie?: never;
         };
@@ -6551,7 +6564,7 @@ export interface operations {
             header?: never;
             path: {
                 messageId: components["parameters"]["ChatMessageId"];
-                key: "thumbs-up" | "heart" | "check" | "party-popper" | "eyes" | "laugh" | "flame" | "lightbulb";
+                key: string;
             };
             cookie?: never;
         };

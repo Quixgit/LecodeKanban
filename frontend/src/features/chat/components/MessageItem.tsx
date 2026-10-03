@@ -123,9 +123,7 @@ export const MessageItem = memo(function MessageItem({
           label={t('reactions.names.thumbs-up')}
           variant="ghost"
           size="sm"
-          onClick={() =>
-            actions.react(m, 'thumbs-up', !m.reactions.find((r) => r.key === 'thumbs-up')?.mine)
-          }
+          onClick={() => actions.react(m, '👍', !m.reactions.find((r) => r.key === '👍')?.mine)}
         >
           <ThumbsUp />
         </IconButton>
@@ -266,7 +264,7 @@ export const MessageItem = memo(function MessageItem({
               aria-label={t('message.editLabel')}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={onEditKey}
-              className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-base text-text focus:border-primary focus:shadow-focus focus:outline-none"
+              className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-base text-text focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/10 focus-visible:shadow-none"
             />
             <div className="mt-2 flex items-center gap-2">
               <Button size="sm" onClick={() => void save()} disabled={saving || !draft.trim()}>

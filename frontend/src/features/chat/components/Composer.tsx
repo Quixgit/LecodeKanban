@@ -6,6 +6,7 @@ import {
   Loader2,
   Paperclip,
   SendHorizontal,
+  Smile,
   TriangleAlert,
   Users,
   X,
@@ -23,10 +24,19 @@ import { useTranslation } from 'react-i18next';
 import type { Member } from '@/shared/api';
 import { cn } from '@/shared/lib/cn';
 import { activeMention, mentionToken } from '@/shared/lib/mentions';
-import { Avatar, IconButton, Kbd, Tooltip } from '@/shared/ui';
+import {
+  Avatar,
+  IconButton,
+  Kbd,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Tooltip,
+} from '@/shared/ui';
 import { chatApi, type ChatFile } from '../api/chatApi';
 import { useChatUiStore } from '../store/chatUiStore';
 import { formatBytes, iconFor, isImage } from '../model/files';
+import { EmojiPicker } from './EmojiPicker';
 
 const MAX_LEN = 8000;
 const MAX_HEIGHT = 240;
@@ -95,6 +105,7 @@ export function Composer({
   const [sending, setSending] = useState(false);
   const [pending, setPending] = useState<Pending[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
 
   // Switching channel swaps the draft; typing never writes to storage more than ~3 times a second.
   useEffect(() => {
@@ -170,6 +181,14 @@ export function Composer({
       `${text.slice(0, pos)}${needsSpace ? ' ' : ''}@${text.slice(pos)}`,
       pos + (needsSpace ? 2 : 1),
     );
+  };
+
+  /** Inserts an emoji where the caret was and puts the caret after it. */
+  const insertEmoji = (emoji: string) => {
+    const el = area.current;
+    const a = el?.selectionStart ?? text.length;
+    const b = el?.selectionEnd ?? text.length;
+    place(text.slice(0, a) + emoji + text.slice(b), a + emoji.length);
   };
 
   const addFiles = (list: FileList | File[]) => {
@@ -278,7 +297,7 @@ export function Composer({
         onDrop={onDrop}
         className={cn(
           'rounded-xl border bg-surface shadow-xs transition-[border-color,box-shadow] duration-micro',
-          'focus-within:border-primary focus-within:shadow-focus',
+          'focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10',
           dragging ? 'border-primary bg-primary-subtle' : 'border-border',
           disabled && 'opacity-60',
         )}
@@ -313,7 +332,7 @@ export function Composer({
           onSelect={(e) => setCaret(e.currentTarget.selectionStart)}
           onKeyDown={onKeyDown}
           onPaste={onPaste}
-          className="block max-h-60 w-full resize-none bg-transparent px-3.5 pb-1 pt-3 text-base text-text placeholder:text-text-faint focus:outline-none"
+          className="block max-h-60 w-full resize-none bg-transparent px-3.5 pb-1 pt-3 text-base text-text placeholder:text-text-faint focus:outline-none focus-visible:shadow-none"
         />
         <div className="flex items-center gap-0.5 px-2 pb-2">
           {uploadTo && (
@@ -379,6 +398,31 @@ export function Composer({
               <AtSign />
             </IconButton>
           </Tooltip>
+          <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
+            <Tooltip content={t('composer.emoji')}>
+              <PopoverTrigger asChild>
+                <IconButton label={t('composer.emoji')} variant="ghost" size="sm">
+                  <Smile />
+                </IconButton>
+              </PopoverTrigger>
+            </Tooltip>
+            <PopoverContent
+              side="top"
+              align="start"
+              className="w-auto overflow-hidden p-0"
+              onCloseAutoFocus={(e) => {
+                e.preventDefault();
+                area.current?.focus();
+              }}
+            >
+              <EmojiPicker
+                onPick={(emoji) => {
+                  insertEmoji(emoji);
+                  setEmojiOpen(false);
+                }}
+              />
+            </PopoverContent>
+          </Popover>
           {hint && (
             <span className="ml-auto hidden items-center gap-1 whitespace-nowrap pr-2 text-2xs text-text-muted sm:flex">
               <Kbd>Enter</Kbd> {t('composer.send')} <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd>{' '}

@@ -20,7 +20,8 @@
     "broadcast": {
       "channel": "Notify everyone in this channel",
       "here": "Notify everyone in this channel"
-    }
+    },
+    "emoji": "Add an emoji"
   },
   "reactions": {
     "label": "Reactions",
@@ -242,5 +243,26 @@
     "title": "Saved",
     "emptyTitle": "Nothing saved",
     "emptyDescription": "Save a message for later with the bookmark button and find it here."
+  },
+  "emoji": {
+    "label": "Emoji",
+    "search": "Search emoji",
+    "none": "No emoji match “{{q}}”.",
+    "recent": "Frequently used",
+    "hint": "Pick an emoji",
+    "skinTone": "Skin tone",
+    "tone": "Skin tone {{n}}",
+    "quick": "Quick reactions",
+    "groups": {
+      "0": "Smileys & emotion",
+      "1": "People & body",
+      "3": "Animals & nature",
+      "4": "Food & drink",
+      "5": "Travel & places",
+      "6": "Activities",
+      "7": "Objects",
+      "8": "Symbols",
+      "9": "Flags"
+    }
   }
 }

@@ -80,7 +80,7 @@ export function ChannelList({
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder={t('sidebar.filter')}
-            className="h-9 w-full rounded-lg border border-border bg-surface pl-8 pr-2 text-sm text-text placeholder:text-text-faint focus:border-primary focus:shadow-focus focus:outline-none"
+            className="h-9 w-full rounded-lg border border-border bg-surface pl-8 pr-2 text-sm text-text placeholder:text-text-faint focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/10 focus-visible:shadow-none"
           />
         </label>
         <Tooltip content={t('search.open')}>
