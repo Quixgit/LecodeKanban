@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Activity struct {
@@ -239,6 +240,48 @@ type Comment struct {
 type CommentMention struct {
 	CommentID uuid.UUID
 	UserID    uuid.UUID
+}
+
+type GithubConnection struct {
+	WorkspaceID      uuid.UUID
+	ConnectedBy      uuid.UUID
+	AccountLogin     string
+	TokenEnc         []byte
+	WebhookSecretEnc []byte
+	Enabled          bool
+	PrOpenedToReview bool
+	PrMergedToDone   bool
+	SyncIssues       bool
+	CommentOnPr      bool
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+type GithubDelivery struct {
+	DeliveryID string
+	ReceivedAt time.Time
+}
+
+type GithubLink struct {
+	ID        uuid.UUID
+	CardID    uuid.UUID
+	RepoID    uuid.UUID
+	Kind      string
+	Number    int32
+	Title     string
+	State     string
+	Url       string
+	Author    string
+	UpdatedAt time.Time
+}
+
+type GithubRepo struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	ProjectID   uuid.UUID
+	FullName    string
+	HookID      pgtype.Int8
+	CreatedAt   time.Time
 }
 
 type Integration struct {

@@ -47,6 +47,9 @@ export function keysFor(m: RealtimeMessage): QueryKeyPrefix[] {
     case 'integration':
       // Sync results and reminders concern one person: only their cache refetches.
       return m.userId ? [['integrations', ws, m.userId]] : [];
+    case 'github':
+      // Links changed (a pull request, an issue, a rule move): the card panels and the settings refetch.
+      return [['github', ws], ...(m.cardId ? [['github', 'card', m.cardId] as const] : [])];
     case 'columns':
       return [['boardColumns'], ['cards', ws]];
     default:

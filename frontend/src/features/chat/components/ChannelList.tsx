@@ -299,7 +299,7 @@ function Row({
             className={cn(
               'grid h-5 min-w-5 shrink-0 place-items-center rounded-full px-1.5 text-2xs font-semibold tabular-nums',
               c.mentions > 0 || c.feed
-                ? 'bg-danger text-white'
+                ? 'bg-danger-ink text-white'
                 : 'bg-primary-solid text-on-primary',
             )}
             aria-label={t('sidebar.unread', { count: c.unread })}

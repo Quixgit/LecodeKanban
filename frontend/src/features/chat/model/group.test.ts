@@ -8,21 +8,23 @@ const msg = (
   author: string,
   at: string,
   over: Partial<ChatMessage> = {},
-): ChatMessage => ({
-  id,
-  channelId: 'c',
-  parentId: null,
-  author: person(author),
-  body: id,
-  deleted: false,
-  mentions: [],
-  reactions: [],
-  replyCount: 0,
-  lastReplyAt: null,
-  createdAt: at,
-  editedAt: null,
-  ...over,
-});
+): ChatMessage =>
+  ({
+    id,
+    channelId: 'c',
+    parentId: null,
+    author: person(author),
+    body: id,
+    deleted: false,
+    mentions: [],
+    reactions: [],
+    replyCount: 0,
+    lastReplyAt: null,
+    createdAt: at,
+    editedAt: null,
+    meeting: null,
+    ...over,
+  }) as ChatMessage;
 
 describe('buildFeed', () => {
   it('adds a divider per day and groups an author run', () => {

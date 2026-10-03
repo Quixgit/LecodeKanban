@@ -111,3 +111,23 @@ Facts about what was checked, with how. Update on every phase.
 - Not covered yet: Google's own consent screen and verification (the app must be added to a Google Cloud
   project; calendar scopes need app verification for public use), only the primary calendar is read,
   no per-event muting, no email or push for offline people, other providers (Slack, GitHub, Gmail).
+
+## GitHub integration
+
+- Go: `github/domain` (task keys in titles, branches and bodies; branch suggestions; the marker hidden in
+  issues the app creates) and `github/service` (TestConnectAndLinkRepos: administrators only, rejected tokens,
+  webhook registered with the secret and address, one repository per project, reconnecting keeps the
+  secret, unlink/disconnect remove hooks; TestWebhookIsAuthenticated: forged and unknown deliveries refused,
+  paused connection ignored; TestPullRequestsMoveTasks: draft, ready for review, branch and body keys,
+  several tasks per pull request, merge, close without merge, rules off, no echo to GitHub;
+  TestIssuesAndCardsFollowEachOther: issue becomes a card once, close/reopen move it, issues created from
+  a task do not duplicate, Done closes and reopens the issue, sync off is silent;
+  TestMovingATaskCommentsOnItsPullRequest; TestCardPanel).
+- Browser (needs the stand-in GitHub, `E2E_FAKE_GITHUB=1`): rejected and accepted tokens, linking a project,
+  rule switches, forged webhook refused, a signed pull request links and moves a task, a merge finishes it,
+  branch name and issue creation, Done closes and reopens the issue, an issue becomes a task, disconnecting
+  removes the webhook.
+- Found while testing: the webhook path was behind the CSRF check, which would have rejected every real
+  GitHub delivery; it is now exempt and verified by signature only.
+- Not covered yet: several repositories per project, GitHub Enterprise hosts beyond `LK_GITHUB_API_URL`,
+  comments and labels sync, actions attributed to a system user rather than the person who connected.

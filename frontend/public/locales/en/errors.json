@@ -126,5 +126,14 @@
     "not_connected": "Google Calendar isn't connected.",
     "not_configured": "Google isn't set up on this server.",
     "bad_state": "That sign-in link expired. Start again from Integrations."
+  },
+  "github": {
+    "not_connected": "GitHub isn't connected for this workspace.",
+    "bad_token": "GitHub didn't accept that token. Check it and its scopes.",
+    "repo_not_found": "That repository isn't visible to the token, or isn't linked here.",
+    "repo_linked": "That repository or project is already linked.",
+    "project_not_linked": "This task's project has no GitHub repository yet.",
+    "upstream": "GitHub didn't respond as expected. Please try again.",
+    "bad_signature": "The delivery could not be verified."
   }
 }

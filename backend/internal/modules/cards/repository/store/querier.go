@@ -29,6 +29,7 @@ type Querier interface {
 	DeleteChecklistItem(ctx context.Context, id uuid.UUID) error
 	DeleteLabel(ctx context.Context, id uuid.UUID) error
 	GetCard(ctx context.Context, id uuid.UUID) (Card, error)
+	GetCardByKey(ctx context.Context, arg GetCardByKeyParams) (Card, error)
 	GetChecklistItem(ctx context.Context, id uuid.UUID) (ChecklistItem, error)
 	GetLabel(ctx context.Context, id uuid.UUID) (Label, error)
 	InsertTransition(ctx context.Context, arg InsertTransitionParams) error

@@ -23,7 +23,6 @@ interface Props {
   canWrite: boolean;
   online: ReadonlySet<string>;
   projects: readonly FeedProject[];
-  online: ReadonlySet<string>;
   /** Called after the user leaves or the channel is archived. */
   onGone: () => void;
 }

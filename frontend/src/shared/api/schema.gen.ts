@@ -1806,6 +1806,159 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/github": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** The workspace's GitHub connection, rules and linked repositories */
+        get: operations["getGithub"];
+        put?: never;
+        post?: never;
+        /** Remove the webhooks, the token, the repositories and the links (administrators) */
+        delete: operations["disconnectGithub"];
+        options?: never;
+        head?: never;
+        /** Switch the connection on or off and change its rules (administrators) */
+        patch: operations["updateGithub"];
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/github/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Connect with an access token (administrators); the token is checked and stored sealed */
+        put: operations["connectGithub"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/github/repos/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** Repositories the token can reach that are not linked yet (administrators) */
+        get: operations["listGithubRepos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/github/repos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link a project to a repository and register the webhook (administrators) */
+        post: operations["linkGithubRepo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/github/repos/{repoId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                repoId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unlink a repository and remove its webhook (administrators) */
+        delete: operations["unlinkGithubRepo"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cards/{cardId}/github": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        /** Pull requests and issues linked to a card, with a suggested branch name */
+        get: operations["getCardGithub"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cards/{cardId}/github/issue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open a GitHub issue for the card in its project's repository */
+        post: operations["createCardGithubIssue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/github/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Where GitHub delivers pull request and issue events (signed with the workspace secret) */
+        post: operations["githubWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/notifications": {
         parameters: {
             query?: never;
@@ -3047,6 +3200,75 @@ export interface components {
              * @description Cursor for the next page; null at the end
              */
             next: number | null;
+        };
+        GithubRules: {
+            /** @description An opened pull request moves its tasks to In review */
+            prOpenedToReview: boolean;
+            /** @description A merged pull request moves its tasks to Done */
+            prMergedToDone: boolean;
+            /** @description Issues and tasks follow each other */
+            syncIssues: boolean;
+            /** @description Moving a task comments on its pull requests */
+            commentOnPr: boolean;
+        };
+        GithubRepo: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            /** Format: uuid */
+            projectId: string;
+        };
+        GithubSummary: {
+            connected: boolean;
+            enabled: boolean;
+            account: string;
+            /** @description Where GitHub delivers events; it must be reachable from the internet */
+            webhookUrl: string;
+            /** @description The caller is an owner or administrator */
+            canManage: boolean;
+            rules: components["schemas"]["GithubRules"];
+            repos: components["schemas"]["GithubRepo"][];
+        };
+        GithubPatch: {
+            enabled?: boolean;
+            prOpenedToReview?: boolean;
+            prMergedToDone?: boolean;
+            syncIssues?: boolean;
+            commentOnPr?: boolean;
+        };
+        GithubTokenInput: {
+            token: string;
+        };
+        GithubRepoInput: {
+            /** Format: uuid */
+            projectId: string;
+            /** @description owner/name */
+            repo: string;
+        };
+        GithubRepoNames: {
+            items: string[];
+        };
+        GithubLink: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "pr" | "issue";
+            number: number;
+            title: string;
+            /** @enum {string} */
+            state: "open" | "draft" | "merged" | "closed";
+            url: string;
+            repo: string;
+            author: string;
+        };
+        GithubPanel: {
+            /** @description GitHub is connected and the card's project has a repository */
+            active: boolean;
+            repo: string;
+            /** @description A suggested branch name */
+            branch: string;
+            canCreateIssue: boolean;
+            links: components["schemas"]["GithubLink"][];
         };
         IntegrationEntry: {
             /** @enum {string} */
@@ -6624,6 +6846,236 @@ export interface operations {
                 };
                 content?: never;
             };
+        };
+    };
+    getGithub: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The connection */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GithubSummary"];
+                };
+            };
+        };
+    };
+    disconnectGithub: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Disconnected */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateGithub: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GithubPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GithubSummary"];
+                };
+            };
+        };
+    };
+    connectGithub: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GithubTokenInput"];
+            };
+        };
+        responses: {
+            /** @description Connected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GithubSummary"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    listGithubRepos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Names */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GithubRepoNames"];
+                };
+            };
+        };
+    };
+    linkGithubRepo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GithubRepoInput"];
+            };
+        };
+        responses: {
+            /** @description Linked */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GithubRepo"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    unlinkGithubRepo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                repoId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unlinked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getCardGithub: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The card's GitHub panel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GithubPanel"];
+                };
+            };
+        };
+    };
+    createCardGithubIssue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The linked issue */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GithubLink"];
+                };
+            };
+            409: components["responses"]["Error"];
+        };
+    };
+    githubWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Error"];
         };
     };
     listNotifications: {

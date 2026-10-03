@@ -250,6 +250,21 @@ Base URL: `/api/v1`
 | POST | `/workspaces/{workspaceId}/integrations/{provider}/sync` | session |  | 200 | Refresh the connection now |
 | GET | `/integrations/{provider}/callback` | public |  | 302 | Where the provider sends the browser back (redirects to the Integrations page) |
 
+## github
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/github` | session |  | 200 | The workspace's GitHub connection, rules and linked repositories |
+| PATCH | `/workspaces/{workspaceId}/github` | session | GithubPatch | 200 | Switch the connection on or off and change its rules (administrators) |
+| DELETE | `/workspaces/{workspaceId}/github` | session |  | 204 | Remove the webhooks, the token, the repositories and the links (administrators) |
+| PUT | `/workspaces/{workspaceId}/github/token` | session | GithubTokenInput | 200, 422 Error | Connect with an access token (administrators); the token is checked and stored sealed |
+| GET | `/workspaces/{workspaceId}/github/repos/available` | session |  | 200 | Repositories the token can reach that are not linked yet (administrators) |
+| POST | `/workspaces/{workspaceId}/github/repos` | session | GithubRepoInput | 201, 409 Error, 422 Error | Link a project to a repository and register the webhook (administrators) |
+| DELETE | `/workspaces/{workspaceId}/github/repos/{repoId}` | session |  | 204 | Unlink a repository and remove its webhook (administrators) |
+| GET | `/cards/{cardId}/github` | session |  | 200 | Pull requests and issues linked to a card, with a suggested branch name |
+| POST | `/cards/{cardId}/github/issue` | session |  | 201, 409 Error | Open a GitHub issue for the card in its project's repository |
+| POST | `/integrations/github/webhook` | public |  | 204, 401 Error | Where GitHub delivers pull request and issue events (signed with the workspace secret) |
+
 ## notifications
 
 | Method | Path | Auth | Request | Responses | Summary |
@@ -361,6 +376,15 @@ Base URL: `/api/v1`
 - **WikiFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string
 - **WikiAuditEvent** — `id`: integer, `kind`: string, `actorId`: string \| null, `nodeId`: string \| null, `data`: object, `at`: string
 - **WikiAuditPage** — `events`: array, `next`: integer \| null
+- **GithubRules** — `prOpenedToReview`: boolean, `prMergedToDone`: boolean, `syncIssues`: boolean, `commentOnPr`: boolean
+- **GithubRepo** — `id`: string, `fullName`: string, `projectId`: string
+- **GithubSummary** — `connected`: boolean, `enabled`: boolean, `account`: string, `webhookUrl`: string, `canManage`: boolean, `rules`: GithubRules, `repos`: array
+- **GithubPatch** — `enabled?`: boolean, `prOpenedToReview?`: boolean, `prMergedToDone?`: boolean, `syncIssues?`: boolean, `commentOnPr?`: boolean
+- **GithubTokenInput** — `token`: string
+- **GithubRepoInput** — `projectId`: string, `repo`: string
+- **GithubRepoNames** — `items`: array
+- **GithubLink** — `id`: string, `kind`: string, `number`: integer, `title`: string, `state`: string, `url`: string, `repo`: string, `author`: string
+- **GithubPanel** — `active`: boolean, `repo`: string, `branch`: string, `canCreateIssue`: boolean, `links`: array
 - **IntegrationEntry** — `provider`: string, `configured`: boolean, `redirectUri`: string, `connected`: boolean, `enabled`: boolean, `accountEmail`: string, `leadMinutes`: integer, `notifyBell`: boolean, `channelId`: string \| null, `status`: string, `lastError`: string, `lastSyncAt`: string \| null
 - **IntegrationList** — `items`: array, `leadChoices`: array
 - **IntegrationPatch** — `enabled?`: boolean, `leadMinutes?`: integer, `notifyBell?`: boolean, `channelId?`: string, `clearChannel?`: boolean

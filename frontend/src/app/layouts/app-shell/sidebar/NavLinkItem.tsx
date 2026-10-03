@@ -20,7 +20,7 @@ function ChatBadge({ collapsed }: { collapsed: boolean }) {
   const { workspace } = useCurrentWorkspace();
   const { total, urgent } = useChatUnread(workspace?.id);
   if (total === 0) return null;
-  const tone = urgent > 0 ? 'bg-danger text-white' : 'bg-primary-solid text-on-primary';
+  const tone = urgent > 0 ? 'bg-danger-ink text-white' : 'bg-primary-solid text-on-primary';
   if (collapsed) {
     return (
       <span

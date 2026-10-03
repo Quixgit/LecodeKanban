@@ -14,6 +14,7 @@ import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useCard } from '@/features/cards';
+import { GithubCardPanel } from '@/features/integrations';
 import { TimeTracker } from '@/features/time-tracking';
 import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import {
@@ -200,6 +201,7 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
               <Section icon={<CheckSquare />} title={t('checklist.title')}>
                 <Checklist cardId={card.id} workspaceId={ws} editable={editable} />
               </Section>
+              <GithubCardPanel cardId={card.id} />
               <Section icon={<Paperclip />} title={t('attachments.title')}>
                 <Attachments
                   cardId={card.id}

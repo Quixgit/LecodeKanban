@@ -66,6 +66,9 @@ type Config struct {
 	// IntegrationsTick is how often the calendar loop checks for stale syncs and due reminders.
 	IntegrationsTick time.Duration `env:"LK_INTEGRATIONS_TICK" envDefault:"30s"`
 
+	// GitHubAPIURL points the GitHub integration at a stand-in server (tests); empty is api.github.com.
+	GitHubAPIURL string `env:"LK_GITHUB_API_URL"`
+
 	GitHubClientID     string `env:"LK_GITHUB_CLIENT_ID"`
 	GitHubClientSecret string `env:"LK_GITHUB_CLIENT_SECRET"`
 
