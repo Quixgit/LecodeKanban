@@ -7,6 +7,8 @@ export type ChatChannelPatch = components['schemas']['ChatChannelPatch'];
 export type ChatMessage = components['schemas']['ChatMessage'];
 export type ChatMessagePage = components['schemas']['ChatMessagePage'];
 export type ChatReaction = components['schemas']['ChatReaction'];
+export type ChatFile = components['schemas']['ChatFile'];
+export type ChatHit = components['schemas']['ChatHit'];
 
 const channel = (channelId: string) => ({ params: { path: { channelId } } });
 const message = (messageId: string) => ({ params: { path: { messageId } } });
@@ -51,12 +53,65 @@ export const chatApi = {
         params: { path: { channelId: id }, query: { before } },
       }),
     ),
-  post: (id: string, body: string, parentId?: string) =>
+  post: (id: string, body: string, parentId?: string, fileIds?: string[]) =>
     unwrap(
       api.POST('/chat/channels/{channelId}/messages', {
         ...channel(id),
-        body: { body, parentId: parentId ?? null },
+        body: { body, parentId: parentId ?? null, fileIds },
       }),
+    ),
+  search: (workspaceId: string, q: string) =>
+    unwrap(
+      api.GET('/workspaces/{workspaceId}/chat/search', {
+        params: { path: { workspaceId }, query: { q } },
+      }),
+    ),
+  saved: (workspaceId: string) =>
+    unwrap(api.GET('/workspaces/{workspaceId}/chat/saved', { params: { path: { workspaceId } } })),
+  threads: (workspaceId: string) =>
+    unwrap(
+      api.GET('/workspaces/{workspaceId}/chat/threads', { params: { path: { workspaceId } } }),
+    ),
+  presence: (workspaceId: string) =>
+    unwrap(
+      api.GET('/workspaces/{workspaceId}/chat/presence', { params: { path: { workspaceId } } }),
+    ),
+  heartbeat: (workspaceId: string) =>
+    unwrap(
+      api.POST('/workspaces/{workspaceId}/chat/presence', { params: { path: { workspaceId } } }),
+    ),
+  typing: (id: string) => unwrap(api.POST('/chat/channels/{channelId}/typing', channel(id))),
+  star: (id: string, on: boolean) =>
+    unwrap(
+      on
+        ? api.PUT('/chat/channels/{channelId}/star', channel(id))
+        : api.DELETE('/chat/channels/{channelId}/star', channel(id)),
+    ),
+  pins: (id: string) => unwrap(api.GET('/chat/channels/{channelId}/pins', channel(id))),
+  files: (id: string) => unwrap(api.GET('/chat/channels/{channelId}/files', channel(id))),
+  uploadFile: (channelId: string, file: File): Promise<ChatFile> => {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return unwrap(
+      api.POST('/chat/channels/{channelId}/files', {
+        params: { path: { channelId } },
+        // The schema describes the multipart part; the browser sets the boundary header.
+        body: { file: file as unknown as string },
+        bodySerializer: () => form,
+      }),
+    );
+  },
+  save: (id: string, on: boolean) =>
+    unwrap(
+      on
+        ? api.PUT('/chat/messages/{messageId}/save', message(id))
+        : api.DELETE('/chat/messages/{messageId}/save', message(id)),
+    ),
+  pin: (id: string, on: boolean) =>
+    unwrap(
+      on
+        ? api.PUT('/chat/messages/{messageId}/pin', message(id))
+        : api.DELETE('/chat/messages/{messageId}/pin', message(id)),
     ),
   edit: (id: string, body: string) =>
     unwrap(api.PATCH('/chat/messages/{messageId}', { ...message(id), body: { body } })),

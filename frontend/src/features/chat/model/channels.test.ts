@@ -11,6 +11,7 @@ const ch = (over: Partial<ChatChannel>): ChatChannel => ({
   topic: '',
   joined: true,
   muted: false,
+  starred: false,
   unread: 0,
   mentions: 0,
   memberCount: 1,
@@ -54,5 +55,19 @@ describe('groupChannels', () => {
 describe('normalizeChannelName', () => {
   it('mirrors the server rule', () => {
     expect(normalizeChannelName('  #Release Planning ')).toBe('release-planning');
+  });
+});
+
+describe('groupChannels starred', () => {
+  it('moves starred conversations into their own group', () => {
+    const g = groupChannels([
+      ch({ id: '1', name: 'alpha', starred: true }),
+      ch({ id: '2', name: 'beta' }),
+      ch({ id: '3', kind: 'dm', name: null, starred: true }),
+      ch({ id: '4', name: 'gamma', joined: false, starred: true }),
+    ]);
+    expect(g.starred.map((c) => c.id)).toEqual(['1', '3']);
+    expect(g.channels.map((c) => c.id)).toEqual(['2']);
+    expect(g.direct).toEqual([]);
   });
 });

@@ -4,9 +4,14 @@ import remarkGfm from 'remark-gfm';
 import { cn } from '../lib/cn';
 import { MENTION_RE } from '../lib/mentions';
 
+/** @channel, @here and @everyone address the whole conversation. */
+const BROADCAST_RE = /(^|[\s(])@(channel|here|everyone)\b/g;
+
 /** Mentions are stored as @[Name](user-id); render them through a private link scheme. */
 function withMentionLinks(src: string) {
-  return src.replace(MENTION_RE, (_m, name: string, id: string) => `[@${name}](mention:${id})`);
+  return src
+    .replace(MENTION_RE, (_m, name: string, id: string) => `[@${name}](mention:${id})`)
+    .replace(BROADCAST_RE, (_m, lead: string, word: string) => `${lead}[@${word}](mention:all)`);
 }
 
 const urlTransform = (url: string) => (url.startsWith('mention:') ? url : defaultUrlTransform(url));

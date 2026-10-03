@@ -10,7 +10,17 @@
     "viewer": "Viewers can read this conversation but not post.",
     "preview": "You're previewing {{name}}. Join to post.",
     "label": "Message {{name}}",
-    "placeholder": "Message {{name}}"
+    "placeholder": "Message {{name}}",
+    "attachments": "Attachments",
+    "drop": "Drop files to attach",
+    "attach": "Attach files",
+    "uploading": "Uploading…",
+    "uploadFailed": "Upload failed",
+    "removeFile": "Remove {{name}}",
+    "broadcast": {
+      "channel": "Notify everyone in this channel",
+      "here": "Notify everyone in this channel"
+    }
   },
   "reactions": {
     "label": "Reactions",
@@ -47,7 +57,15 @@
     "aria": "{{author}}, {{time}}",
     "linkCopied": "Link copied",
     "deleteTitle": "Delete this message?",
-    "deleteBody": "It will be removed for everyone. Replies in the thread stay."
+    "deleteBody": "It will be removed for everyone. Replies in the thread stay.",
+    "save_later": "Save for later",
+    "unsave": "Remove from saved",
+    "pin": "Pin to channel",
+    "unpin": "Unpin from channel",
+    "pinned": "Pinned",
+    "savedBadge": "Saved",
+    "pinnedToast": "Message pinned",
+    "unpinnedToast": "Message unpinned"
   },
   "list": {
     "label": "Messages",
@@ -84,7 +102,10 @@
     "noDirect": "No conversations yet. Start one with the pencil button.",
     "muted": "Muted",
     "unread_one": "{{count}} unread message",
-    "unread_other": "{{count}} unread messages"
+    "unread_other": "{{count}} unread messages",
+    "threads": "Threads",
+    "saved": "Saved",
+    "starred": "Starred"
   },
   "create": {
     "title": "Create a channel",
@@ -145,7 +166,9 @@
   },
   "header": {
     "members": "Show members",
-    "details": "Channel details"
+    "details": "Channel details",
+    "star": "Star this conversation",
+    "unstar": "Remove star"
   },
   "feed": {
     "emptyTitle": "This is the start of {{name}}",
@@ -172,5 +195,52 @@
     "composerLabel": "Write a message",
     "retry": "Try again",
     "cardTab": "Chat"
+  },
+  "presence": {
+    "online": "Online"
+  },
+  "files": {
+    "open": "Open {{name}}",
+    "download": "Download",
+    "downloadNamed": "Download {{name}}",
+    "emptyTitle": "No files yet",
+    "emptyDescription": "Files and images shared in this conversation will collect here.",
+    "images": "Images",
+    "documents": "Files"
+  },
+  "typing": {
+    "one": "{{name}} is typing…",
+    "two": "{{a}} and {{b}} are typing…",
+    "many": "Several people are typing…"
+  },
+  "search": {
+    "title": "Search messages",
+    "description": "Look through every conversation you can see.",
+    "placeholder": "Search messages",
+    "hint": "Type at least two characters.",
+    "none": "Nothing found for “{{q}}”.",
+    "open": "Search messages (Ctrl+Shift+F)"
+  },
+  "tabs": {
+    "label": "Conversation sections",
+    "messages": "Messages",
+    "pins": "Pins",
+    "pinsCount": "Pins ({{count}})",
+    "files": "Files"
+  },
+  "pins": {
+    "emptyTitle": "Nothing pinned yet",
+    "emptyDescription": "Pin important messages from the “More actions” menu so everyone can find them."
+  },
+  "threads": {
+    "title": "Threads",
+    "emptyTitle": "No threads yet",
+    "emptyDescription": "Threads you start or reply to appear here, most recently active first.",
+    "attachment": "Attachment"
+  },
+  "saved": {
+    "title": "Saved",
+    "emptyTitle": "Nothing saved",
+    "emptyDescription": "Save a message for later with the bookmark button and find it here."
   }
 }

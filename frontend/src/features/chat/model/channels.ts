@@ -9,19 +9,24 @@ export function channelTitle(c: ChatChannel, me: string, you: string): string {
 }
 
 export interface ChannelGroups {
+  starred: ChatChannel[];
   channels: ChatChannel[];
   direct: ChatChannel[];
   browsable: ChatChannel[];
 }
 
-/** Splits the channel list for the sidebar: joined channels, conversations, and public channels to join. */
+/** Splits the channel list for the sidebar: starred, joined channels, conversations, and public channels to join. */
 export function groupChannels(all: readonly ChatChannel[]): ChannelGroups {
   const byName = (a: ChatChannel, b: ChatChannel) => (a.name ?? '').localeCompare(b.name ?? '');
   const recent = (a: ChatChannel, b: ChatChannel) =>
     (b.lastMessageAt ?? '').localeCompare(a.lastMessageAt ?? '');
+  const mine = (c: ChatChannel) => c.kind === 'dm' || c.joined;
   return {
-    channels: all.filter((c) => c.kind !== 'dm' && c.joined).sort(byName),
-    direct: all.filter((c) => c.kind === 'dm').sort(recent),
+    starred: all
+      .filter((c) => c.starred && mine(c))
+      .sort((a, b) => Number(a.kind === 'dm') - Number(b.kind === 'dm') || byName(a, b)),
+    channels: all.filter((c) => c.kind !== 'dm' && c.joined && !c.starred).sort(byName),
+    direct: all.filter((c) => c.kind === 'dm' && !c.starred).sort(recent),
     browsable: all.filter((c) => c.kind === 'public').sort(byName),
   };
 }

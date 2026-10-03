@@ -42,6 +42,12 @@
 - **Email through Mailgun** (ADR 0017): `LK_MAIL_PROVIDER=mailgun` sends invitations and the
   email-confirmation message through the Mailgun HTTP API (SMTP stays the default for development).
 
+- **Chat, second round**: attachments (file picker, drag and drop, paste; image previews with a viewer,
+  file cards), @channel / @here mentions that count as a mention for every member, starred
+  conversations, pinned messages, saved ("Later") messages, a Threads page, message search across
+  conversations (Ctrl+Shift+F), channel tabs (Messages, Pins, Files), online dots, "is typing…",
+  reply avatars on thread summaries. Migration `00015_chat_extras`.
+
 ### Fixed
 
 - Segmented controls (card tabs, view switcher) no longer keep a closed drawer or dialog mounted after a

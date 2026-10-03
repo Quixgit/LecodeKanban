@@ -3,20 +3,11 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Member } from '@/shared/api';
 import { useErrorText } from '@/shared/hooks/useErrorText';
-import {
-  Avatar,
-  Button,
-  ConfirmDialog,
-  Field,
-  Input,
-  Modal,
-  Select,
-  Switch,
-  toast,
-} from '@/shared/ui';
+import { Button, ConfirmDialog, Field, Input, Modal, Select, Switch, toast } from '@/shared/ui';
 import type { ChatChannel } from '../api/chatApi';
 import { useChannelMembers, useChatMutations } from '../hooks/useChat';
 import { channelTitle } from '../model/channels';
+import { PersonAvatar } from './PresenceDot';
 
 interface Props {
   open: boolean;
@@ -27,6 +18,8 @@ interface Props {
   members: readonly Member[];
   isAdmin: boolean;
   canWrite: boolean;
+  online: ReadonlySet<string>;
+  online: ReadonlySet<string>;
   /** Called after the user leaves or the channel is archived. */
   onGone: () => void;
 }
@@ -45,6 +38,7 @@ function Details({
   members,
   isAdmin,
   canWrite,
+  online,
   onGone,
 }: Props) {
   const { t } = useTranslation('chat');
@@ -150,7 +144,12 @@ function Details({
             <ul className="max-h-44 space-y-1 overflow-y-auto">
               {(people.data ?? []).map((p) => (
                 <li key={p.id} className="flex items-center gap-3 px-1 py-1">
-                  <Avatar name={p.name} src={p.avatarUrl} size="sm" />
+                  <PersonAvatar
+                    name={p.name}
+                    src={p.avatarUrl}
+                    online={online.has(p.id)}
+                    size="sm"
+                  />
                   <span className="truncate text-base text-text">
                     {p.name}
                     {p.id === me && <span className="text-text-muted"> ({t('list.you')})</span>}

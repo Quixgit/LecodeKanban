@@ -110,11 +110,15 @@ export function ThreadPanel({
             label={t('thread.composerLabel')}
             placeholder={t('thread.placeholder')}
             members={members}
-            onSend={(body) =>
-              m.post.mutateAsync({ channel: channel.id, body, parentId: rootId }).catch((e) => {
-                onError(e);
-                throw e;
-              })
+            uploadTo={channel.id}
+            broadcast={false}
+            onSend={(body, fileIds) =>
+              m.post
+                .mutateAsync({ channel: channel.id, body, parentId: rootId, fileIds })
+                .catch((e) => {
+                  onError(e);
+                  throw e;
+                })
             }
           />
         </div>

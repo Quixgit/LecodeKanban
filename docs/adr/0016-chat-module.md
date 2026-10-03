@@ -31,3 +31,17 @@ Teams need quick conversation next to their tasks and docs, in the same design l
 
 No typing indicators, presence, attachments or search yet; they fit the same hint channel and the
 message table (`plain` text search can follow the wiki's approach).
+
+## Addendum: attachments, presence, search
+
+- **Files** are uploaded to a channel first (content type sniffed from the bytes, name sanitised, stored
+  through the shared `Storage` port) and bound to a message when it is sent. Unsent uploads are readable
+  only by the uploader; a file can only be attached to a message in the same channel by its uploader.
+  Downloads follow the channel's access and are served with a sandbox CSP; only known image types are
+  shown inline.
+- **@channel / @here / @everyone** set `mention_all` on the message; every member's mention count includes it.
+- **Presence** is a heartbeat table (seen in the last two minutes = online), polled by clients.
+  **Typing** is an ephemeral realtime hint that is never stored.
+- **Search** is a case-insensitive substring match over messages of conversations the caller can see
+  (public channels and the caller's private channels and DMs), backed by a trigram index.
+- **Stars, saved and pins** are small join tables: stars and saved are per person, pins are per channel.

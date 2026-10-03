@@ -5,13 +5,15 @@ import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces'
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { Button, ConfirmDialog, EmptyState, Skeleton, toast } from '@/shared/ui';
 import { MessagesSquare } from 'lucide-react';
-import type { ChatMessage } from '../api/chatApi';
+import { chatApi, type ChatMessage } from '../api/chatApi';
 import { useChatMutations, useMessages } from '../hooks/useChat';
 import { useScopeChannel, type ScopeKind } from '../hooks/useScope';
 import { Composer } from './Composer';
 import { MessageList } from './MessageList';
 import type { MessageActions } from './MessageItem';
+import { useTypingListener } from '../store/typingStore';
 import { ThreadPanel } from './ThreadPanel';
+import { TypingIndicator } from './TypingIndicator';
 
 /** An embeddable chat (board drawer, card drawer): same feed, composer and threads as /chat. */
 export function ScopeChat({ kind, refId }: { kind: ScopeKind; refId: string }) {
@@ -32,6 +34,7 @@ export function ScopeChat({ kind, refId }: { kind: ScopeKind; refId: string }) {
   const isAdmin = role === 'owner' || role === 'admin';
   const readOnly = role === 'viewer';
   const onError = (e: unknown) => toast.error(errorText(e));
+  useTypingListener(me);
 
   // New messages arriving while this panel is open count as read.
   const unread = channel?.unread ?? 0;
@@ -73,6 +76,8 @@ export function ScopeChat({ kind, refId }: { kind: ScopeKind; refId: string }) {
         throw e;
       }),
     remove: (message) => setRemoving(message),
+    save: (message, on) => m.save.mutate({ message, on }, { onError }),
+    pin: (message, on) => m.pin.mutate({ message, on }, { onError }),
   };
   const actions: MessageActions = {
     ...base,
@@ -119,7 +124,8 @@ export function ScopeChat({ kind, refId }: { kind: ScopeKind; refId: string }) {
           />
         }
       />
-      <div className="shrink-0 px-4 pb-4 pt-1">
+      <TypingIndicator channelId={channel.id} people={members.data?.map((x) => x.user) ?? []} />
+      <div className="shrink-0 px-4 pb-4">
         {readOnly ? (
           <p className="rounded-lg bg-surface-muted px-4 py-3 text-center text-sm text-text-muted">
             {t('composer.viewer')}
@@ -133,8 +139,10 @@ export function ScopeChat({ kind, refId }: { kind: ScopeKind; refId: string }) {
             )}
             members={members.data ?? []}
             hint={false}
-            onSend={(body) =>
-              m.post.mutateAsync({ channel: channel.id, body }).catch((e) => {
+            uploadTo={channel.id}
+            onTyping={() => void chatApi.typing(channel.id).catch(() => undefined)}
+            onSend={(body, fileIds) =>
+              m.post.mutateAsync({ channel: channel.id, body, fileIds }).catch((e) => {
                 onError(e);
                 throw e;
               })

@@ -26,11 +26,18 @@ export function keysFor(m: RealtimeMessage): QueryKeyPrefix[] {
         ['cards', ws],
       ];
     case 'chat':
+      // Typing is ephemeral: it never changes cached data.
+      if (m.type === 'chat.typing') return [];
       return [
         ['chat', 'channels', ws],
         ...(m.channelId ? [['chat', 'messages', m.channelId] as const] : []),
         ['chat', 'thread'],
         ['chat', 'scope'],
+        ['chat', 'saved'],
+        ['chat', 'threads'],
+        ...(m.channelId
+          ? [['chat', 'pins', m.channelId] as const, ['chat', 'files', m.channelId] as const]
+          : []),
         ...(m.channelId ? [['chat', 'members', m.channelId] as const] : []),
       ];
     case 'columns':

@@ -9,6 +9,7 @@ import {
   VerificationBanner,
 } from '@/features/auth';
 import { CommandPalette } from '@/features/command-palette';
+import { usePresenceHeartbeat } from '@/features/chat';
 import { useWorkspaceEvents } from '@/features/realtime';
 import { useCurrentWorkspace } from '@/features/workspaces';
 import { pageTransition } from '@/shared/motion';
@@ -32,6 +33,7 @@ export function AppShell() {
   const { workspace } = useCurrentWorkspace();
   useSessionExpiryListener();
   useWorkspaceEvents(workspace?.id); // live updates from teammates, for every page
+  usePresenceHeartbeat(workspace?.id); // "online" in chat
   useApplyProfileLanguage(user);
 
   return (

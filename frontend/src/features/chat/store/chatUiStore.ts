@@ -5,12 +5,12 @@ const MAX_DRAFTS = 40;
 
 interface ChatUiState {
   /** Sections collapsed in the channel list. */
-  collapsed: { channels: boolean; direct: boolean };
+  collapsed: { starred: boolean; channels: boolean; direct: boolean };
   /** Last open channel per user, to reopen where they left off. */
   lastChannel: Record<string, string>;
   /** Unsent text per channel or thread (keyed "c:<id>" / "t:<id>"). */
   drafts: Record<string, string>;
-  toggleSection: (key: 'channels' | 'direct') => void;
+  toggleSection: (key: 'starred' | 'channels' | 'direct') => void;
   setLastChannel: (user: string, channel: string) => void;
   setDraft: (key: string, text: string) => void;
 }
@@ -18,7 +18,7 @@ interface ChatUiState {
 export const useChatUiStore = create<ChatUiState>()(
   persist(
     (set) => ({
-      collapsed: { channels: false, direct: false },
+      collapsed: { starred: false, channels: false, direct: false },
       lastChannel: {},
       drafts: {},
       toggleSection: (key) =>
@@ -37,6 +37,17 @@ export const useChatUiStore = create<ChatUiState>()(
           return { drafts: Object.fromEntries(next.slice(-MAX_DRAFTS)) };
         }),
     }),
-    { name: 'lk.chat.ui', version: 1 },
+    {
+      name: 'lk.chat.ui',
+      version: 2,
+      // v1 had no "starred" section.
+      migrate: (state) => {
+        const s = state as { collapsed?: Record<string, boolean> };
+        return {
+          ...s,
+          collapsed: { starred: false, channels: false, direct: false, ...s.collapsed },
+        } as never;
+      },
+    },
   ),
 );
