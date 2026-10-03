@@ -92,40 +92,40 @@ func (e Priority) Valid() bool {
 
 // Defines values for ProjectIcon.
 const (
-	Code      ProjectIcon = "code"
-	Flask     ProjectIcon = "flask"
-	Folder    ProjectIcon = "folder"
-	Globe     ProjectIcon = "globe"
-	Layers    ProjectIcon = "layers"
-	Megaphone ProjectIcon = "megaphone"
-	Rocket    ProjectIcon = "rocket"
-	Shield    ProjectIcon = "shield"
-	Sparkles  ProjectIcon = "sparkles"
-	Target    ProjectIcon = "target"
+	ProjectIconCode      ProjectIcon = "code"
+	ProjectIconFlask     ProjectIcon = "flask"
+	ProjectIconFolder    ProjectIcon = "folder"
+	ProjectIconGlobe     ProjectIcon = "globe"
+	ProjectIconLayers    ProjectIcon = "layers"
+	ProjectIconMegaphone ProjectIcon = "megaphone"
+	ProjectIconRocket    ProjectIcon = "rocket"
+	ProjectIconShield    ProjectIcon = "shield"
+	ProjectIconSparkles  ProjectIcon = "sparkles"
+	ProjectIconTarget    ProjectIcon = "target"
 )
 
 // Valid indicates whether the value is a known member of the ProjectIcon enum.
 func (e ProjectIcon) Valid() bool {
 	switch e {
-	case Code:
+	case ProjectIconCode:
 		return true
-	case Flask:
+	case ProjectIconFlask:
 		return true
-	case Folder:
+	case ProjectIconFolder:
 		return true
-	case Globe:
+	case ProjectIconGlobe:
 		return true
-	case Layers:
+	case ProjectIconLayers:
 		return true
-	case Megaphone:
+	case ProjectIconMegaphone:
 		return true
-	case Rocket:
+	case ProjectIconRocket:
 		return true
-	case Shield:
+	case ProjectIconShield:
 		return true
-	case Sparkles:
+	case ProjectIconSparkles:
 		return true
-	case Target:
+	case ProjectIconTarget:
 		return true
 	default:
 		return false
@@ -240,6 +240,228 @@ func (e UserProviders) Valid() bool {
 	case UserProvidersGithub:
 		return true
 	case UserProvidersGoogle:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiAccessVia.
+const (
+	WikiAccessViaGrant     WikiAccessVia = "grant"
+	WikiAccessViaNone      WikiAccessVia = "none"
+	WikiAccessViaOwner     WikiAccessVia = "owner"
+	WikiAccessViaWorkspace WikiAccessVia = "workspace"
+)
+
+// Valid indicates whether the value is a known member of the WikiAccessVia enum.
+func (e WikiAccessVia) Valid() bool {
+	switch e {
+	case WikiAccessViaGrant:
+		return true
+	case WikiAccessViaNone:
+		return true
+	case WikiAccessViaOwner:
+		return true
+	case WikiAccessViaWorkspace:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiAccessSummarySource.
+const (
+	WikiAccessSummarySourceNode  WikiAccessSummarySource = "node"
+	WikiAccessSummarySourceSpace WikiAccessSummarySource = "space"
+)
+
+// Valid indicates whether the value is a known member of the WikiAccessSummarySource enum.
+func (e WikiAccessSummarySource) Valid() bool {
+	switch e {
+	case WikiAccessSummarySourceNode:
+		return true
+	case WikiAccessSummarySourceSpace:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiAccessSummaryVia.
+const (
+	WikiAccessSummaryViaGrant     WikiAccessSummaryVia = "grant"
+	WikiAccessSummaryViaNone      WikiAccessSummaryVia = "none"
+	WikiAccessSummaryViaOwner     WikiAccessSummaryVia = "owner"
+	WikiAccessSummaryViaWorkspace WikiAccessSummaryVia = "workspace"
+)
+
+// Valid indicates whether the value is a known member of the WikiAccessSummaryVia enum.
+func (e WikiAccessSummaryVia) Valid() bool {
+	switch e {
+	case WikiAccessSummaryViaGrant:
+		return true
+	case WikiAccessSummaryViaNone:
+		return true
+	case WikiAccessSummaryViaOwner:
+		return true
+	case WikiAccessSummaryViaWorkspace:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiGrantSource.
+const (
+	WikiGrantSourceNode  WikiGrantSource = "node"
+	WikiGrantSourceSpace WikiGrantSource = "space"
+)
+
+// Valid indicates whether the value is a known member of the WikiGrantSource enum.
+func (e WikiGrantSource) Valid() bool {
+	switch e {
+	case WikiGrantSourceNode:
+		return true
+	case WikiGrantSourceSpace:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiNodeKind.
+const (
+	WikiNodeKindFolder WikiNodeKind = "folder"
+	WikiNodeKindPage   WikiNodeKind = "page"
+)
+
+// Valid indicates whether the value is a known member of the WikiNodeKind enum.
+func (e WikiNodeKind) Valid() bool {
+	switch e {
+	case WikiNodeKindFolder:
+		return true
+	case WikiNodeKindPage:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiNodeInputKind.
+const (
+	WikiNodeInputKindFolder WikiNodeInputKind = "folder"
+	WikiNodeInputKindPage   WikiNodeInputKind = "page"
+)
+
+// Valid indicates whether the value is a known member of the WikiNodeInputKind enum.
+func (e WikiNodeInputKind) Valid() bool {
+	switch e {
+	case WikiNodeInputKindFolder:
+		return true
+	case WikiNodeInputKindPage:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiPrincipalKind.
+const (
+	WikiPrincipalKindTeam WikiPrincipalKind = "team"
+	WikiPrincipalKindUser WikiPrincipalKind = "user"
+)
+
+// Valid indicates whether the value is a known member of the WikiPrincipalKind enum.
+func (e WikiPrincipalKind) Valid() bool {
+	switch e {
+	case WikiPrincipalKindTeam:
+		return true
+	case WikiPrincipalKindUser:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiRole.
+const (
+	WikiRoleCommenter WikiRole = "commenter"
+	WikiRoleEditor    WikiRole = "editor"
+	WikiRoleOwner     WikiRole = "owner"
+	WikiRoleViewer    WikiRole = "viewer"
+)
+
+// Valid indicates whether the value is a known member of the WikiRole enum.
+func (e WikiRole) Valid() bool {
+	switch e {
+	case WikiRoleCommenter:
+		return true
+	case WikiRoleEditor:
+		return true
+	case WikiRoleOwner:
+		return true
+	case WikiRoleViewer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiTreeNodeKind.
+const (
+	WikiTreeNodeKindFolder WikiTreeNodeKind = "folder"
+	WikiTreeNodeKindPage   WikiTreeNodeKind = "page"
+)
+
+// Valid indicates whether the value is a known member of the WikiTreeNodeKind enum.
+func (e WikiTreeNodeKind) Valid() bool {
+	switch e {
+	case WikiTreeNodeKindFolder:
+		return true
+	case WikiTreeNodeKindPage:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiVisibility.
+const (
+	WikiVisibilityPrivate   WikiVisibility = "private"
+	WikiVisibilityShared    WikiVisibility = "shared"
+	WikiVisibilityWorkspace WikiVisibility = "workspace"
+)
+
+// Valid indicates whether the value is a known member of the WikiVisibility enum.
+func (e WikiVisibility) Valid() bool {
+	switch e {
+	case WikiVisibilityPrivate:
+		return true
+	case WikiVisibilityShared:
+		return true
+	case WikiVisibilityWorkspace:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiWorkspaceRole.
+const (
+	WikiWorkspaceRoleCommenter WikiWorkspaceRole = "commenter"
+	WikiWorkspaceRoleEditor    WikiWorkspaceRole = "editor"
+	WikiWorkspaceRoleViewer    WikiWorkspaceRole = "viewer"
+)
+
+// Valid indicates whether the value is a known member of the WikiWorkspaceRole enum.
+func (e WikiWorkspaceRole) Valid() bool {
+	switch e {
+	case WikiWorkspaceRoleCommenter:
+		return true
+	case WikiWorkspaceRoleEditor:
+		return true
+	case WikiWorkspaceRoleViewer:
 		return true
 	default:
 		return false
@@ -1193,6 +1415,248 @@ type User struct {
 // UserProviders defines model for User.Providers.
 type UserProviders string
 
+// WikiAccess The caller's effective access to an element
+type WikiAccess struct {
+	// Role Null when the caller has no access
+	Role       *WikiRole      `json:"role"`
+	Via        WikiAccessVia  `json:"via"`
+	Visibility WikiVisibility `json:"visibility"`
+
+	// VisibilitySourceId The space or node that sets the effective visibility
+	VisibilitySourceId openapi_types.UUID `json:"visibilitySourceId"`
+}
+
+// WikiAccessVia defines model for WikiAccess.Via.
+type WikiAccessVia string
+
+// WikiAccessSummary defines model for WikiAccessSummary.
+type WikiAccessSummary struct {
+	CanManage bool        `json:"canManage"`
+	Grants    []WikiGrant `json:"grants"`
+
+	// Inherited The effective visibility is set by an ancestor
+	Inherited bool `json:"inherited"`
+
+	// Own Explicit visibility on this element; null = inherits
+	Own         *WikiVisibility         `json:"own,omitempty"`
+	OwnerId     openapi_types.UUID      `json:"ownerId"`
+	Role        *WikiRole               `json:"role"`
+	Source      WikiAccessSummarySource `json:"source"`
+	SourceId    openapi_types.UUID      `json:"sourceId"`
+	SourceTitle string                  `json:"sourceTitle"`
+	Via         WikiAccessSummaryVia    `json:"via"`
+	Visibility  WikiVisibility          `json:"visibility"`
+
+	// WorkspaceRole What workspace visibility lets every member do
+	WorkspaceRole WikiWorkspaceRole `json:"workspaceRole"`
+}
+
+// WikiAccessSummarySource defines model for WikiAccessSummary.Source.
+type WikiAccessSummarySource string
+
+// WikiAccessSummaryVia defines model for WikiAccessSummary.Via.
+type WikiAccessSummaryVia string
+
+// WikiAuditEvent defines model for WikiAuditEvent.
+type WikiAuditEvent struct {
+	ActorId *openapi_types.UUID    `json:"actorId"`
+	At      time.Time              `json:"at"`
+	Data    map[string]interface{} `json:"data"`
+	Id      int64                  `json:"id"`
+	Kind    string                 `json:"kind"`
+	NodeId  *openapi_types.UUID    `json:"nodeId"`
+}
+
+// WikiAuditPage defines model for WikiAuditPage.
+type WikiAuditPage struct {
+	Events []WikiAuditEvent `json:"events"`
+
+	// Next Cursor for the next page; null at the end
+	Next *int64 `json:"next"`
+}
+
+// WikiGrant defines model for WikiGrant.
+type WikiGrant struct {
+	Inherited   bool               `json:"inherited"`
+	Kind        WikiPrincipalKind  `json:"kind"`
+	PrincipalId openapi_types.UUID `json:"principalId"`
+	Role        WikiRole           `json:"role"`
+	Source      WikiGrantSource    `json:"source"`
+	SourceId    openapi_types.UUID `json:"sourceId"`
+	SourceTitle string             `json:"sourceTitle"`
+}
+
+// WikiGrantSource defines model for WikiGrant.Source.
+type WikiGrantSource string
+
+// WikiGrantInput defines model for WikiGrantInput.
+type WikiGrantInput struct {
+	Role WikiRole `json:"role"`
+}
+
+// WikiMoveInput defines model for WikiMoveInput.
+type WikiMoveInput struct {
+	AfterId      *openapi_types.UUID `json:"afterId,omitempty"`
+	BeforeId     *openapi_types.UUID `json:"beforeId,omitempty"`
+	ConfirmWiden *bool               `json:"confirmWiden,omitempty"`
+
+	// ParentId Destination parent; null = space root
+	ParentId *openapi_types.UUID `json:"parentId,omitempty"`
+
+	// SpaceId Destination space (default current)
+	SpaceId *openapi_types.UUID `json:"spaceId,omitempty"`
+}
+
+// WikiNode defines model for WikiNode.
+type WikiNode struct {
+	// Access The caller's effective access to an element
+	Access    WikiAccess          `json:"access"`
+	Cover     string              `json:"cover"`
+	CreatedAt time.Time           `json:"createdAt"`
+	DeletedAt *time.Time          `json:"deletedAt,omitempty"`
+	Depth     int                 `json:"depth"`
+	Favorite  bool                `json:"favorite"`
+	Icon      string              `json:"icon"`
+	Id        openapi_types.UUID  `json:"id"`
+	Kind      WikiNodeKind        `json:"kind"`
+	OwnerId   openapi_types.UUID  `json:"ownerId"`
+	ParentId  *openapi_types.UUID `json:"parentId"`
+	Rank      string              `json:"rank"`
+	SpaceId   openapi_types.UUID  `json:"spaceId"`
+	Title     string              `json:"title"`
+	UpdatedAt time.Time           `json:"updatedAt"`
+
+	// Visibility Explicit visibility of this node; null = inherits
+	Visibility *WikiVisibility `json:"visibility"`
+}
+
+// WikiNodeKind defines model for WikiNode.Kind.
+type WikiNodeKind string
+
+// WikiNodeInput defines model for WikiNodeInput.
+type WikiNodeInput struct {
+	// AfterId Sibling to place the node after (default last)
+	AfterId  *openapi_types.UUID `json:"afterId,omitempty"`
+	Icon     *string             `json:"icon,omitempty"`
+	Kind     WikiNodeInputKind   `json:"kind"`
+	ParentId *openapi_types.UUID `json:"parentId,omitempty"`
+	Title    string              `json:"title"`
+}
+
+// WikiNodeInputKind defines model for WikiNodeInput.Kind.
+type WikiNodeInputKind string
+
+// WikiNodePatch defines model for WikiNodePatch.
+type WikiNodePatch struct {
+	Cover *string `json:"cover,omitempty"`
+	Icon  *string `json:"icon,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+// WikiPrincipalKind defines model for WikiPrincipalKind.
+type WikiPrincipalKind string
+
+// WikiRole defines model for WikiRole.
+type WikiRole string
+
+// WikiSpace defines model for WikiSpace.
+type WikiSpace struct {
+	// Access The caller's effective access to an element
+	Access      WikiAccess         `json:"access"`
+	Color       string             `json:"color"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	Description string             `json:"description"`
+	Icon        string             `json:"icon"`
+	Id          openapi_types.UUID `json:"id"`
+	MaxDepth    int                `json:"maxDepth"`
+	Name        string             `json:"name"`
+	OwnerId     openapi_types.UUID `json:"ownerId"`
+	UpdatedAt   time.Time          `json:"updatedAt"`
+	Visibility  WikiVisibility     `json:"visibility"`
+	WorkspaceId openapi_types.UUID `json:"workspaceId"`
+
+	// WorkspaceRole What workspace visibility lets every member do
+	WorkspaceRole WikiWorkspaceRole `json:"workspaceRole"`
+}
+
+// WikiSpaceInput defines model for WikiSpaceInput.
+type WikiSpaceInput struct {
+	Color       *string         `json:"color,omitempty"`
+	Description *string         `json:"description,omitempty"`
+	Icon        *string         `json:"icon,omitempty"`
+	MaxDepth    *int            `json:"maxDepth,omitempty"`
+	Name        string          `json:"name"`
+	Visibility  *WikiVisibility `json:"visibility,omitempty"`
+
+	// WorkspaceRole What workspace visibility lets every member do
+	WorkspaceRole *WikiWorkspaceRole `json:"workspaceRole,omitempty"`
+}
+
+// WikiSpacePatch defines model for WikiSpacePatch.
+type WikiSpacePatch struct {
+	Color       *string `json:"color,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Icon        *string `json:"icon,omitempty"`
+	MaxDepth    *int    `json:"maxDepth,omitempty"`
+	Name        *string `json:"name,omitempty"`
+}
+
+// WikiTrashItem defines model for WikiTrashItem.
+type WikiTrashItem struct {
+	ExpiresAt time.Time `json:"expiresAt"`
+	Node      WikiNode  `json:"node"`
+}
+
+// WikiTree defines model for WikiTree.
+type WikiTree struct {
+	Nodes []WikiTreeNode `json:"nodes"`
+	Space WikiSpace      `json:"space"`
+}
+
+// WikiTreeNode defines model for WikiTreeNode.
+type WikiTreeNode struct {
+	// Access The caller's effective access to an element
+	Access    WikiAccess `json:"access"`
+	Cover     string     `json:"cover"`
+	CreatedAt time.Time  `json:"createdAt"`
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
+	Depth     int        `json:"depth"`
+
+	// Detached Visible although the parent is hidden; show under "Shared with me"
+	Detached  bool                `json:"detached"`
+	Favorite  bool                `json:"favorite"`
+	Icon      string              `json:"icon"`
+	Id        openapi_types.UUID  `json:"id"`
+	Kind      WikiTreeNodeKind    `json:"kind"`
+	OwnerId   openapi_types.UUID  `json:"ownerId"`
+	ParentId  *openapi_types.UUID `json:"parentId"`
+	Rank      string              `json:"rank"`
+	SpaceId   openapi_types.UUID  `json:"spaceId"`
+	Title     string              `json:"title"`
+	UpdatedAt time.Time           `json:"updatedAt"`
+
+	// Visibility Explicit visibility of this node; null = inherits
+	Visibility *WikiVisibility `json:"visibility"`
+}
+
+// WikiTreeNodeKind defines model for WikiTreeNode.Kind.
+type WikiTreeNodeKind string
+
+// WikiVisibility defines model for WikiVisibility.
+type WikiVisibility string
+
+// WikiVisibilityInput defines model for WikiVisibilityInput.
+type WikiVisibilityInput struct {
+	// Visibility Null = inherit (nodes only)
+	Visibility *WikiVisibility `json:"visibility"`
+
+	// WorkspaceRole What workspace visibility lets every member do
+	WorkspaceRole *WikiWorkspaceRole `json:"workspaceRole,omitempty"`
+}
+
+// WikiWorkspaceRole What workspace visibility lets every member do
+type WikiWorkspaceRole string
+
 // Workspace defines model for Workspace.
 type Workspace struct {
 	CreatedAt   time.Time          `json:"createdAt"`
@@ -1268,6 +1732,15 @@ type TimeEntryId = openapi_types.UUID
 // ViewId defines model for ViewId.
 type ViewId = openapi_types.UUID
 
+// WikiNodeId defines model for WikiNodeId.
+type WikiNodeId = openapi_types.UUID
+
+// WikiPrincipalId defines model for WikiPrincipalId.
+type WikiPrincipalId = openapi_types.UUID
+
+// WikiSpaceId defines model for WikiSpaceId.
+type WikiSpaceId = openapi_types.UUID
+
 // WorkspaceId defines model for WorkspaceId.
 type WorkspaceId = openapi_types.UUID
 
@@ -1308,6 +1781,13 @@ type CardActivityParams struct {
 // UploadAttachmentMultipartBody defines parameters for UploadAttachment.
 type UploadAttachmentMultipartBody struct {
 	File openapi_types.File `json:"file"`
+}
+
+// ListWikiAuditParams defines parameters for ListWikiAudit.
+type ListWikiAuditParams struct {
+	// Before Cursor from the previous page
+	Before *int64 `form:"before,omitempty" json:"before,omitempty"`
+	Limit  *int   `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // ListCardsParams defines parameters for ListCards.
@@ -1470,6 +1950,30 @@ type ChangePasswordJSONRequestBody = ChangePasswordRequest
 // UpdateSavedViewJSONRequestBody defines body for UpdateSavedView for application/json ContentType.
 type UpdateSavedViewJSONRequestBody = SavedViewPatch
 
+// UpdateWikiNodeJSONRequestBody defines body for UpdateWikiNode for application/json ContentType.
+type UpdateWikiNodeJSONRequestBody = WikiNodePatch
+
+// MoveWikiNodeJSONRequestBody defines body for MoveWikiNode for application/json ContentType.
+type MoveWikiNodeJSONRequestBody = WikiMoveInput
+
+// SetWikiNodeGrantJSONRequestBody defines body for SetWikiNodeGrant for application/json ContentType.
+type SetWikiNodeGrantJSONRequestBody = WikiGrantInput
+
+// SetWikiNodeVisibilityJSONRequestBody defines body for SetWikiNodeVisibility for application/json ContentType.
+type SetWikiNodeVisibilityJSONRequestBody = WikiVisibilityInput
+
+// UpdateWikiSpaceJSONRequestBody defines body for UpdateWikiSpace for application/json ContentType.
+type UpdateWikiSpaceJSONRequestBody = WikiSpacePatch
+
+// CreateWikiNodeJSONRequestBody defines body for CreateWikiNode for application/json ContentType.
+type CreateWikiNodeJSONRequestBody = WikiNodeInput
+
+// SetWikiSpaceGrantJSONRequestBody defines body for SetWikiSpaceGrant for application/json ContentType.
+type SetWikiSpaceGrantJSONRequestBody = WikiGrantInput
+
+// SetWikiSpaceVisibilityJSONRequestBody defines body for SetWikiSpaceVisibility for application/json ContentType.
+type SetWikiSpaceVisibilityJSONRequestBody = WikiVisibilityInput
+
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = WorkspaceInput
 
@@ -1496,3 +2000,6 @@ type CreateProjectJSONRequestBody = ProjectInput
 
 // CreateSavedViewJSONRequestBody defines body for CreateSavedView for application/json ContentType.
 type CreateSavedViewJSONRequestBody = SavedViewInput
+
+// CreateWikiSpaceJSONRequestBody defines body for CreateWikiSpace for application/json ContentType.
+type CreateWikiSpaceJSONRequestBody = WikiSpaceInput

@@ -264,6 +264,79 @@ type UserToken struct {
 	CreatedAt time.Time
 }
 
+type WikiAudit struct {
+	ID          int64
+	WorkspaceID uuid.UUID
+	SpaceID     uuid.NullUUID
+	NodeID      uuid.NullUUID
+	ActorID     uuid.NullUUID
+	Kind        string
+	Data        []byte
+	At          time.Time
+}
+
+type WikiFavorite struct {
+	UserID    uuid.UUID
+	NodeID    uuid.UUID
+	CreatedAt time.Time
+}
+
+type WikiNode struct {
+	ID            uuid.UUID
+	WorkspaceID   uuid.UUID
+	SpaceID       uuid.UUID
+	ParentID      uuid.NullUUID
+	Kind          string
+	Title         string
+	Icon          string
+	Cover         string
+	Rank          string
+	Depth         int16
+	Path          string
+	Visibility    *string
+	WorkspaceRole string
+	OwnerID       uuid.UUID
+	CreatedBy     uuid.UUID
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeletedAt     *time.Time
+	DeletedBy     uuid.NullUUID
+	TrashRootID   uuid.NullUUID
+}
+
+type WikiPermission struct {
+	ID            uuid.UUID
+	WorkspaceID   uuid.UUID
+	SpaceID       uuid.UUID
+	NodeID        uuid.NullUUID
+	PrincipalKind string
+	PrincipalID   uuid.UUID
+	Role          string
+	CreatedBy     uuid.NullUUID
+	CreatedAt     time.Time
+}
+
+type WikiRecent struct {
+	UserID   uuid.UUID
+	NodeID   uuid.UUID
+	ViewedAt time.Time
+}
+
+type WikiSpace struct {
+	ID            uuid.UUID
+	WorkspaceID   uuid.UUID
+	OwnerID       uuid.UUID
+	Name          string
+	Icon          string
+	Color         string
+	Description   string
+	Visibility    string
+	WorkspaceRole string
+	MaxDepth      int16
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
 type Workspace struct {
 	ID        uuid.UUID
 	Name      string

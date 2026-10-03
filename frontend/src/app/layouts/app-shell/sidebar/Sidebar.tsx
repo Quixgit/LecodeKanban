@@ -5,7 +5,7 @@ import { useSidebarStore } from '../sidebarStore';
 import { SidebarContent } from './SidebarContent';
 
 const EXPANDED_W = 248;
-const COLLAPSED_W = 76;
+const COLLAPSED_W = 77; // 76px inside the 1px border: 44px items with 16px gutters
 
 /** Desktop navigation rail (lg and up); smaller screens use MobileNav. */
 export function Sidebar() {

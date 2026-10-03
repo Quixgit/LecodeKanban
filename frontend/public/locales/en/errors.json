@@ -91,5 +91,14 @@
     "not_found": "Time entry not found.",
     "forbidden": "Only the author or an admin can delete this time entry.",
     "not_running": "This timer is already stopped."
+  },
+  "wiki": {
+    "not_found": "This page or space doesn't exist, or you don't have access to it.",
+    "forbidden": "Your role doesn't allow this in Docs.",
+    "max_depth": "Pages can be nested at most {{max}} levels deep here.",
+    "move_into_self": "You can't move something into itself or its own contents.",
+    "confirm_widening": "After this move more people will be able to see it. Confirm to continue.",
+    "not_in_trash": "This item isn't in the trash.",
+    "bad_placement": "That position is no longer valid. Refresh and try again."
   }
 }

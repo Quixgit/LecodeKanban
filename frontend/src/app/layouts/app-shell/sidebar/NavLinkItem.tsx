@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, useLocation } from 'react-router-dom';
+import { matchPath, NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/shared/lib/cn';
 import { collapse, fade, transition } from '@/shared/motion';
 import { Tooltip } from '@/shared/ui';
@@ -34,6 +34,9 @@ export function NavLinkItem({ item, collapsed }: { item: NavItem; collapsed: boo
   const Icon = item.icon;
   const hasChildren = !!item.children?.length;
   const groupActive = hasChildren && pathname.startsWith(item.to);
+  // Computed here, not via NavLink's className function: Tooltip's Radix Slot would stringify a
+  // function className and the link would lose every class while collapsed.
+  const isActive = !!matchPath({ path: item.to, end: item.end ?? false }, pathname);
 
   if (collapsed && hasChildren) {
     return (
@@ -51,42 +54,38 @@ export function NavLinkItem({ item, collapsed }: { item: NavItem; collapsed: boo
             to={item.to}
             end={item.end}
             onClick={() => hasChildren && expandGroup(item.key)}
-            className={({ isActive }) =>
-              cn(
-                'group relative flex h-11 w-full items-center rounded-lg text-md outline-none transition-colors duration-micro',
-                collapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3',
-                'focus-visible:shadow-focus',
-                isActive
-                  ? 'font-medium text-primary-ink'
-                  : 'text-text-secondary hover:bg-surface-muted hover:text-text',
-                hasChildren && !collapsed && 'pr-10',
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && (!hasChildren || collapsed || !expanded || pathname === item.to) && (
-                  <ActiveHighlight />
-                )}
-                {/* Fixed 20px slot: the icon keeps its x while the rail collapses and expands. */}
-                <span className="relative grid size-5 shrink-0 place-items-center">
-                  <Icon className="size-5 stroke-[1.6]" aria-hidden />
-                </span>
-                <AnimatePresence initial={false}>
-                  {!collapsed && (
-                    <motion.span
-                      variants={fade}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      className="relative flex-1 truncate"
-                    >
-                      {label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </>
+            className={cn(
+              'group relative flex h-11 w-full items-center rounded-lg text-md outline-none transition-colors duration-micro',
+              collapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3',
+              'focus-visible:shadow-focus',
+              isActive
+                ? 'font-medium text-primary-ink'
+                : 'text-text-secondary hover:bg-surface-muted hover:text-text',
+              hasChildren && !collapsed && 'pr-10',
             )}
+          >
+            <>
+              {isActive && (!hasChildren || collapsed || !expanded || pathname === item.to) && (
+                <ActiveHighlight />
+              )}
+              {/* Fixed 20px slot: the icon keeps its x while the rail collapses and expands. */}
+              <span className="relative grid size-5 shrink-0 place-items-center">
+                <Icon className="size-5 stroke-[1.6]" aria-hidden />
+              </span>
+              <AnimatePresence initial={false}>
+                {!collapsed && (
+                  <motion.span
+                    variants={fade}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="relative flex-1 truncate"
+                  >
+                    {label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </>
           </NavLink>
         </Tooltip>
         {hasChildren && !collapsed && (
