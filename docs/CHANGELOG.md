@@ -20,6 +20,20 @@
 
 ### Added
 
+- **GitHub integration** (ADR 0020, `docs/INTEGRATIONS.md`): connect GitHub once per workspace with an
+  access token, link projects to repositories (the webhook is registered for you), and the two sides follow
+  each other. Pull requests and issues that mention a task key such as `PLT-12` appear on the task, an
+  opened pull request moves it to In review and a merge to Done; a new issue becomes a task; moving a task
+  to Done closes its issue and moving it out reopens it; moving a task comments on its pull requests; a task
+  can open a GitHub issue and suggests a branch name. Every rule is a switch.
+
+### Fixed
+
+- **Type checking was not running.** `tsc --noEmit` at the root checks nothing in this project (it uses
+  project references; the right command is `npm run typecheck`). Running it found real errors that are now
+  fixed: a duplicated prop in the channel details dialog, a missing export, stale test fixtures, and a
+  required field missing from the sidebar card.
+
 - **Integrations module with Google Calendar** (ADR 0019): the Integrations page now lists connectable
   services as cards that can be connected, paused (Active switch), re-connected and disconnected. Google
   Calendar connects through OAuth (read-only access to events), syncs the next week every few minutes, and

@@ -20,9 +20,14 @@ import (
 	authevents "github.com/reliabilix/lecodekanban/backend/internal/modules/auth/events"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/cards"
+	carddomain "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
+	cardssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat"
 	chatservice "github.com/reliabilix/lecodekanban/backend/internal/modules/chat/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/comments"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/github"
+	githubclient "github.com/reliabilix/lecodekanban/backend/internal/modules/github/client"
+	githubsvc "github.com/reliabilix/lecodekanban/backend/internal/modules/github/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/i18n"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/integrations"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/integrations/google"
@@ -122,6 +127,10 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 		Sealer: sealer, Notices: notificationsMod.Service, Channels: chatChannels{chatMod.Service},
 		Hints: realtime.NewPublisher(pool, log), PublicURL: cfg.PublicURL, Log: log})
 	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
+	githubMod := github.New(github.Deps{Pool: pool, Workspaces: wsMod.Service, GitHub: githubclient.New(cfg.GitHubAPIURL),
+		Cards: githubCards{cardsMod.Service}, Projects: projectsMod.Service, Sealer: sealer,
+		Hints: realtime.NewPublisher(pool, log), PublicURL: cfg.PublicURL, Log: log})
+	github.Register(bus, githubMod.Service)
 	hub := realtime.NewHub(cfg.DatabaseURL, log)
 
 	// Cross-module reactions.
@@ -163,11 +172,12 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 				AllowedHeaders: []string{"Content-Type", middleware.CSRFHeader, middleware.RequestIDHeader},
 			}))
 		}
-		r.Use(middleware.CSRF(origins), middleware.Authenticate(tokens))
+		r.Use(middleware.CSRF(origins, githubWebhookPath), middleware.Authenticate(tokens))
 
 		authMod.HTTP.PublicRoutes(r)
 		wsMod.HTTP.PublicRoutes(r)
 		integrationsMod.HTTP.PublicRoutes(r)
+		githubMod.HTTP.PublicRoutes(r)
 		i18nMod.PublicRoutes(r)
 
 		r.Group(func(r chi.Router) {
@@ -185,6 +195,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			chatMod.HTTP.PrivateRoutes(r)
 			notificationsMod.HTTP.PrivateRoutes(r)
 			integrationsMod.HTTP.PrivateRoutes(r)
+			githubMod.HTTP.PrivateRoutes(r)
 			activityMod.HTTP.PrivateRoutes(r)
 			r.Get("/workspaces/{workspaceId}/events", hub.Handler(
 				func(r *http.Request) (uuid.UUID, error) {
@@ -213,6 +224,9 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	return &App{Router: r, Metrics: m, Realtime: hub, Integrations: integrationsMod.Service}, nil
 }
 
+// githubWebhookPath is signature-verified (HMAC), not cookie-authenticated, so it skips the CSRF check.
+const githubWebhookPath = "/api/v1/integrations/github/webhook"
+
 // allowedOrigins are the browser origins permitted to send state-changing requests.
 func allowedOrigins(cfg *config.Config) []string {
 	out := append([]string{}, cfg.CORSOrigins...)
@@ -239,4 +253,45 @@ func (c chatChannels) CanPost(ctx context.Context, user, channel uuid.UUID) (uui
 func (c chatChannels) PostMeeting(ctx context.Context, ws, channel uuid.UUID, m integrationsvc.MeetingPost) error {
 	return c.chat.PostMeeting(ctx, ws, channel, chatservice.MeetingNotice{Title: m.Title, StartsAt: m.StartsAt, EndsAt: m.EndsAt,
 		Location: m.Location, Link: m.Link, LeadMinutes: m.LeadMinutes, Attendees: m.Attendees})
+}
+
+// githubCards lets the GitHub module work with cards without knowing the cards module's types.
+type githubCards struct{ cards *cardssvc.Service }
+
+func githubInfo(v cardssvc.View) githubsvc.CardInfo {
+	return githubsvc.CardInfo{ID: v.ID, WorkspaceID: v.WorkspaceID, ProjectID: v.ProjectID, Number: v.Number, Key: v.Key,
+		Title: v.Title, Description: v.Description, Status: string(v.Status)}
+}
+
+func (g githubCards) FindByKey(ctx context.Context, ws uuid.UUID, key string, number int) (githubsvc.CardInfo, error) {
+	ref, err := g.cards.FindByKey(ctx, ws, key, number)
+	if err != nil {
+		return githubsvc.CardInfo{}, err
+	}
+	return g.Info(ctx, ref.ID)
+}
+
+func (g githubCards) Get(ctx context.Context, user, id uuid.UUID) (githubsvc.CardInfo, error) {
+	v, err := g.cards.Get(ctx, user, id)
+	return githubInfo(v), err
+}
+
+func (g githubCards) Info(ctx context.Context, id uuid.UUID) (githubsvc.CardInfo, error) {
+	v, err := g.cards.Snapshot(ctx, id)
+	return githubInfo(v), err
+}
+
+func (g githubCards) MoveTo(ctx context.Context, actor, id uuid.UUID, status string) error {
+	v, err := g.cards.Get(ctx, actor, id)
+	if err != nil {
+		return err
+	}
+	st := carddomain.Status(status)
+	_, err = g.cards.Move(ctx, actor, id, carddomain.Move{Version: v.Version, Status: &st})
+	return err
+}
+
+func (g githubCards) Create(ctx context.Context, actor, ws, project uuid.UUID, title, description string) (githubsvc.CardInfo, error) {
+	v, err := g.cards.Create(ctx, actor, ws, carddomain.NewCard{ProjectID: project, Title: title, Description: description})
+	return githubInfo(v), err
 }

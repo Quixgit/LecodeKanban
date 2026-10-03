@@ -2,22 +2,24 @@ import { describe, expect, it } from 'vitest';
 import type { ChatChannel } from '../api/chatApi';
 import { hasAnyFilter, parseQuery, rangeStart, suggest } from './searchQuery';
 
-const ch = (id: string, name: string, over: Partial<ChatChannel> = {}): ChatChannel => ({
-  id,
-  workspaceId: 'w',
-  kind: 'public',
-  name,
-  topic: '',
-  joined: true,
-  muted: false,
-  starred: false,
-  unread: 0,
-  mentions: 0,
-  memberCount: 1,
-  lastMessageAt: null,
-  people: [],
-  ...over,
-});
+const ch = (id: string, name: string, over: Partial<ChatChannel> = {}): ChatChannel =>
+  ({
+    id,
+    workspaceId: 'w',
+    kind: 'public',
+    name,
+    topic: '',
+    joined: true,
+    muted: false,
+    starred: false,
+    unread: 0,
+    mentions: 0,
+    memberCount: 1,
+    lastMessageAt: null,
+    people: [],
+    feedEvents: [],
+    ...over,
+  }) as ChatChannel;
 const channels = [ch('c1', 'dev-ops'), ch('c2', 'design')];
 const people = [
   { id: 'p1', name: 'Anna Sarkisian' },

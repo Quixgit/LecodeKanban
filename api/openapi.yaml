@@ -27,6 +27,7 @@ tags:
   - name: chat
   - name: notifications
   - name: integrations
+  - name: github
   - name: activity
   - name: realtime
   - name: system
@@ -1779,6 +1780,132 @@ paths:
         - { name: error, in: query, required: false, schema: { type: string } }
       responses:
         "302": { description: Redirect }
+  /workspaces/{workspaceId}/github:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [github]
+      operationId: getGithub
+      summary: The workspace's GitHub connection, rules and linked repositories
+      responses:
+        "200":
+          description: The connection
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GithubSummary" }
+    patch:
+      tags: [github]
+      operationId: updateGithub
+      summary: Switch the connection on or off and change its rules (administrators)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GithubPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GithubSummary" }
+    delete:
+      tags: [github]
+      operationId: disconnectGithub
+      summary: Remove the webhooks, the token, the repositories and the links (administrators)
+      responses:
+        "204": { description: Disconnected }
+  /workspaces/{workspaceId}/github/token:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    put:
+      tags: [github]
+      operationId: connectGithub
+      summary: Connect with an access token (administrators); the token is checked and stored sealed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GithubTokenInput" }
+      responses:
+        "200":
+          description: Connected
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GithubSummary" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/github/repos/available:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [github]
+      operationId: listGithubRepos
+      summary: Repositories the token can reach that are not linked yet (administrators)
+      responses:
+        "200":
+          description: Names
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GithubRepoNames" }
+  /workspaces/{workspaceId}/github/repos:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    post:
+      tags: [github]
+      operationId: linkGithubRepo
+      summary: Link a project to a repository and register the webhook (administrators)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GithubRepoInput" }
+      responses:
+        "201":
+          description: Linked
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GithubRepo" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/github/repos/{repoId}:
+    parameters:
+      - { $ref: "#/components/parameters/WorkspaceId" }
+      - { name: repoId, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [github]
+      operationId: unlinkGithubRepo
+      summary: Unlink a repository and remove its webhook (administrators)
+      responses:
+        "204": { description: Unlinked }
+  /cards/{cardId}/github:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    get:
+      tags: [github]
+      operationId: getCardGithub
+      summary: Pull requests and issues linked to a card, with a suggested branch name
+      responses:
+        "200":
+          description: The card's GitHub panel
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GithubPanel" }
+  /cards/{cardId}/github/issue:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    post:
+      tags: [github]
+      operationId: createCardGithubIssue
+      summary: Open a GitHub issue for the card in its project's repository
+      responses:
+        "201":
+          description: The linked issue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GithubLink" }
+        "409": { $ref: "#/components/responses/Error" }
+  /integrations/github/webhook:
+    post:
+      tags: [github]
+      operationId: githubWebhook
+      summary: Where GitHub delivers pull request and issue events (signed with the workspace secret)
+      security: []
+      responses:
+        "204": { description: Accepted }
+        "401": { $ref: "#/components/responses/Error" }
   /workspaces/{workspaceId}/notifications:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -3020,6 +3147,77 @@ components:
       properties:
         events: { type: array, items: { $ref: "#/components/schemas/WikiAuditEvent" } }
         next: { type: integer, format: int64, nullable: true, description: Cursor for the next page; null at the end }
+    GithubRules:
+      type: object
+      required: [prOpenedToReview, prMergedToDone, syncIssues, commentOnPr]
+      properties:
+        prOpenedToReview: { type: boolean, description: An opened pull request moves its tasks to In review }
+        prMergedToDone: { type: boolean, description: A merged pull request moves its tasks to Done }
+        syncIssues: { type: boolean, description: Issues and tasks follow each other }
+        commentOnPr: { type: boolean, description: Moving a task comments on its pull requests }
+    GithubRepo:
+      type: object
+      required: [id, fullName, projectId]
+      properties:
+        id: { type: string, format: uuid }
+        fullName: { type: string }
+        projectId: { type: string, format: uuid }
+    GithubSummary:
+      type: object
+      required: [connected, enabled, account, webhookUrl, canManage, rules, repos]
+      properties:
+        connected: { type: boolean }
+        enabled: { type: boolean }
+        account: { type: string }
+        webhookUrl: { type: string, description: Where GitHub delivers events; it must be reachable from the internet }
+        canManage: { type: boolean, description: The caller is an owner or administrator }
+        rules: { $ref: "#/components/schemas/GithubRules" }
+        repos: { type: array, items: { $ref: "#/components/schemas/GithubRepo" } }
+    GithubPatch:
+      type: object
+      properties:
+        enabled: { type: boolean }
+        prOpenedToReview: { type: boolean }
+        prMergedToDone: { type: boolean }
+        syncIssues: { type: boolean }
+        commentOnPr: { type: boolean }
+    GithubTokenInput:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, minLength: 20, maxLength: 255 }
+    GithubRepoInput:
+      type: object
+      required: [projectId, repo]
+      properties:
+        projectId: { type: string, format: uuid }
+        repo: { type: string, description: "owner/name" }
+    GithubRepoNames:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { type: string } }
+    GithubLink:
+      type: object
+      required: [id, kind, number, title, state, url, repo, author]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [pr, issue] }
+        number: { type: integer }
+        title: { type: string }
+        state: { type: string, enum: [open, draft, merged, closed] }
+        url: { type: string }
+        repo: { type: string }
+        author: { type: string }
+    GithubPanel:
+      type: object
+      required: [active, repo, branch, canCreateIssue, links]
+      properties:
+        active: { type: boolean, description: GitHub is connected and the card's project has a repository }
+        repo: { type: string }
+        branch: { type: string, description: A suggested branch name }
+        canCreateIssue: { type: boolean }
+        links: { type: array, items: { $ref: "#/components/schemas/GithubLink" } }
     IntegrationEntry:
       type: object
       required: [provider, configured, redirectUri, connected, enabled, accountEmail, leadMinutes, notifyBell, channelId, status, lastError, lastSyncAt]

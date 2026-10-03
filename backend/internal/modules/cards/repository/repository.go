@@ -106,6 +106,15 @@ func (r *Repo) Get(ctx context.Context, id uuid.UUID) (domain.Card, error) {
 	return toDomain(c), nil
 }
 
+// ByKey finds a card by its project key and number ("PLT", 12) inside a workspace.
+func (r *Repo) ByKey(ctx context.Context, ws uuid.UUID, key string, number int) (domain.Card, error) {
+	c, err := r.q.GetCardByKey(ctx, store.GetCardByKeyParams{WorkspaceID: ws, Upper: key, Number: int32(number)})
+	if err != nil {
+		return domain.Card{}, notFound(err)
+	}
+	return toDomain(c), nil
+}
+
 // conflictOrMissing decides why a versioned update matched no row.
 func (r *Repo) conflictOrMissing(ctx context.Context, id uuid.UUID) error {
 	c, err := r.q.GetCard(ctx, id)
