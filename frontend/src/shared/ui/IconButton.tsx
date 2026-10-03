@@ -60,7 +60,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         {count !== undefined && count > 0 && (
           <span
             aria-hidden
-            className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-1 text-2xs font-semibold tabular-nums leading-none text-white ring-2 ring-surface motion-safe:animate-[lk-pop-in_var(--dur-micro)_var(--ease-out)]"
+            className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger-ink px-1 text-2xs font-semibold tabular-nums leading-none text-white ring-2 ring-surface motion-safe:animate-[lk-pop-in_var(--dur-micro)_var(--ease-out)]"
           >
             {count > 99 ? '99+' : count}
           </span>

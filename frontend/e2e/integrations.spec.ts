@@ -47,6 +47,7 @@ test.describe('Google Calendar integration', () => {
     const channel = `cal-${stamp().replace(/\W/g, '').toLowerCase()}`;
     await page.setViewportSize({ width: 1440, height: 900 });
     await signIn(page);
+    const google = page.locator('[data-provider="google_calendar"]');
     await page.goto('/integrations');
     const ws = (await api<{ id: string }[]>(page, 'GET', '/workspaces'))[0]!.id;
     // Start clean: an earlier run may have left the connection behind.
@@ -64,13 +65,13 @@ test.describe('Google Calendar integration', () => {
     expect(axe.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
 
     // Connect: Google approves at once and sends the browser back.
-    await page.getByRole('button', { name: 'Connect', exact: true }).click();
+    await google.getByRole('button', { name: 'Connect', exact: true }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Connect Google Calendar' }).click();
     await expect(page.getByText('Google Calendar connected')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText('Connected as peter@gmail.test')).toBeVisible();
     const active = page.getByRole('switch', { name: 'Google Calendar active' });
     await expect(active).toBeChecked();
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await google.getByRole('button', { name: 'Settings' }).click();
     await expect(page.getByRole('dialog').getByText('Sprint planning')).toBeVisible();
     await page.keyboard.press('Escape');
 
@@ -87,7 +88,7 @@ test.describe('Google Calendar integration', () => {
     // A meeting comes within the lead time while the app is open: pop-up, bell count, and a channel post.
     await api(page, 'POST', `/workspaces/${ws}/chat/channels`, { name: channel });
     await page.reload();
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await google.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('combobox', { name: 'Also post in a channel' }).click();
     await page.getByRole('option', { name: channel }).click();
     await calendar(page, [
@@ -133,7 +134,7 @@ test.describe('Google Calendar integration', () => {
     await expect(page.getByRole('region', { name: 'Next meeting' })).toBeVisible();
 
     // The lead time is a choice, in the settings panel.
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await google.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('combobox', { name: 'Remind me' }).click();
     await page.getByRole('option', { name: '10 min before' }).click();
     await expect(page.getByRole('combobox', { name: 'Remind me' })).toContainText('10 min before');
