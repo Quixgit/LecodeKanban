@@ -54,7 +54,8 @@ func toNode(n store.WikiNode) domain.Node {
 		Kind: domain.Kind(n.Kind), Title: n.Title, Icon: n.Icon, Cover: n.Cover, Rank: n.Rank, Depth: int(n.Depth),
 		Path: n.Path, WorkspaceRole: domain.Role(n.WorkspaceRole), OwnerID: n.OwnerID, CreatedBy: n.CreatedBy,
 		CreatedAt: n.CreatedAt, UpdatedAt: n.UpdatedAt, DeletedAt: n.DeletedAt, DeletedBy: ptrID(n.DeletedBy),
-		TrashRootID: ptrID(n.TrashRootID)}
+		TrashRootID: ptrID(n.TrashRootID), Status: domain.Status(n.Status), Tags: n.Tags,
+		LastVerifiedAt: n.LastVerifiedAt, ReviewDays: int(n.ReviewDays), FullWidth: n.FullWidth}
 	if n.Visibility != nil {
 		out.Visibility = domain.Visibility(*n.Visibility)
 	}
@@ -356,4 +357,149 @@ func (r *Repo) AuditLog(ctx context.Context, space uuid.UUID, before int64, limi
 		out[i] = ev
 	}
 	return out, nil
+}
+
+// ---- content
+
+func toContent(c store.WikiContent) domain.Content {
+	return domain.Content{NodeID: c.NodeID, Doc: c.Doc, Plain: c.Plain, Version: int(c.Version),
+		UpdatedBy: ptrID(c.UpdatedBy), UpdatedAt: c.UpdatedAt}
+}
+
+// Content returns a page's document; ok is false while nothing has been written.
+func (r *Repo) Content(ctx context.Context, node uuid.UUID) (domain.Content, bool, error) {
+	c, err := r.q.GetContent(ctx, node)
+	if db.IsNoRows(err) {
+		return domain.Content{}, false, nil
+	}
+	return toContent(c), err == nil, err
+}
+
+// SaveContent writes a document against the version the caller last saw (0 = first write).
+// ok is false when somebody else saved in between.
+func (r *Repo) SaveContent(ctx context.Context, node uuid.UUID, doc []byte, plain string, by uuid.UUID, base int) (domain.Content, bool, error) {
+	var (
+		c   store.WikiContent
+		err error
+	)
+	updatedBy := uuid.NullUUID{UUID: by, Valid: true}
+	if base == 0 {
+		c, err = r.q.InsertContent(ctx, store.InsertContentParams{NodeID: node, Doc: doc, Plain: plain, UpdatedBy: updatedBy})
+	} else {
+		c, err = r.q.UpdateContent(ctx, store.UpdateContentParams{NodeID: node, Doc: doc, Plain: plain,
+			UpdatedBy: updatedBy, Version: int32(base)}) //nolint:gosec // versions stay small
+	}
+	if db.IsNoRows(err) {
+		return domain.Content{}, false, nil
+	}
+	return toContent(c), err == nil, err
+}
+
+func (r *Repo) TouchNode(ctx context.Context, id uuid.UUID) error { return r.q.TouchNode(ctx, id) }
+
+// ---- properties
+
+type Properties struct {
+	Status         domain.Status
+	Tags           []string
+	ReviewDays     int
+	FullWidth      bool
+	LastVerifiedAt *time.Time
+}
+
+func (r *Repo) SetProperties(ctx context.Context, id uuid.UUID, p Properties) (domain.Node, error) {
+	tags := p.Tags
+	if tags == nil {
+		tags = []string{}
+	}
+	n, err := r.q.SetNodeProperties(ctx, store.SetNodePropertiesParams{ID: id, Status: string(p.Status), Tags: tags,
+		ReviewDays: int32(p.ReviewDays), FullWidth: p.FullWidth, LastVerifiedAt: p.LastVerifiedAt}) //nolint:gosec // validated 0..730
+	return toNode(n), notFound(err)
+}
+
+func (r *Repo) SetIcon(ctx context.Context, id uuid.UUID, icon string) (domain.Node, error) {
+	n, err := r.q.SetNodeIcon(ctx, store.SetNodeIconParams{ID: id, Icon: icon})
+	return toNode(n), notFound(err)
+}
+
+func (r *Repo) SetProjects(ctx context.Context, node uuid.UUID, projects []uuid.UUID) error {
+	if err := r.q.ClearNodeProjects(ctx, node); err != nil {
+		return err
+	}
+	for _, p := range projects {
+		if err := r.q.AddNodeProject(ctx, store.AddNodeProjectParams{NodeID: node, ProjectID: p}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *Repo) Projects(ctx context.Context, node uuid.UUID) ([]uuid.UUID, error) {
+	return r.q.ListNodeProjects(ctx, node)
+}
+
+func (r *Repo) ReviewDue(ctx context.Context, now time.Time) ([]domain.Node, error) {
+	rows, err := r.q.ListReviewDue(ctx, &now)
+	return toNodes(rows), err
+}
+
+// ---- templates
+
+func toTemplate(t store.WikiTemplate) domain.Template {
+	return domain.Template{ID: t.ID, WorkspaceID: t.WorkspaceID, Name: t.Name, Description: t.Description, Icon: t.Icon,
+		Doc: t.Doc, CreatedBy: ptrID(t.CreatedBy), CreatedAt: t.CreatedAt}
+}
+
+func (r *Repo) CreateTemplate(ctx context.Context, t domain.Template) (domain.Template, error) {
+	row, err := r.q.CreateTemplate(ctx, store.CreateTemplateParams{WorkspaceID: t.WorkspaceID, Name: t.Name,
+		Description: t.Description, Icon: t.Icon, Doc: t.Doc, CreatedBy: nullID(t.CreatedBy)})
+	return toTemplate(row), err
+}
+
+func (r *Repo) Templates(ctx context.Context, ws uuid.UUID) ([]domain.Template, error) {
+	rows, err := r.q.ListTemplates(ctx, ws)
+	out := make([]domain.Template, len(rows))
+	for i, t := range rows {
+		out[i] = toTemplate(t)
+	}
+	return out, err
+}
+
+func (r *Repo) Template(ctx context.Context, id uuid.UUID) (domain.Template, error) {
+	t, err := r.q.GetTemplate(ctx, id)
+	if err != nil {
+		return domain.Template{}, notFound(err)
+	}
+	return toTemplate(t), nil
+}
+
+func (r *Repo) DeleteTemplate(ctx context.Context, ws, id uuid.UUID) (bool, error) {
+	n, err := r.q.DeleteTemplate(ctx, store.DeleteTemplateParams{ID: id, WorkspaceID: ws})
+	return n > 0, err
+}
+
+// ---- files
+
+func toFile(f store.WikiFile) domain.File {
+	return domain.File{ID: f.ID, WorkspaceID: f.WorkspaceID, NodeID: f.NodeID, Name: f.Name, ContentType: f.ContentType,
+		Size: f.Size, StorageKey: f.StorageKey, UploadedBy: ptrID(f.UploadedBy), CreatedAt: f.CreatedAt}
+}
+
+func (r *Repo) CreateFile(ctx context.Context, f domain.File) (domain.File, error) {
+	row, err := r.q.CreateFile(ctx, store.CreateFileParams{WorkspaceID: f.WorkspaceID, NodeID: f.NodeID, Name: f.Name,
+		ContentType: f.ContentType, Size: f.Size, StorageKey: f.StorageKey, UploadedBy: nullID(f.UploadedBy)})
+	return toFile(row), err
+}
+
+func (r *Repo) File(ctx context.Context, id uuid.UUID) (domain.File, error) {
+	f, err := r.q.GetFile(ctx, id)
+	if err != nil {
+		return domain.File{}, notFound(err)
+	}
+	return toFile(f), nil
+}
+
+func (r *Repo) CountFiles(ctx context.Context, node uuid.UUID) (int, error) {
+	n, err := r.q.CountNodeFiles(ctx, node)
+	return int(n), err
 }

@@ -13,7 +13,7 @@ import {
   type DropAnimation,
 } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
-import { FilePlus2, FolderPlus, Settings2, Trash2 } from 'lucide-react';
+import { FilePlus2, FolderPlus, LayoutTemplate, Settings2, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
@@ -43,6 +43,7 @@ import { ShareDialog } from './ShareDialog';
 import { SpaceDialog } from './SpaceDialog';
 import { SpaceStrip } from './SpaceStrip';
 import { TreeSkeleton } from './Skeletons';
+import { TemplateDialog } from './TemplateDialog';
 
 interface Props {
   workspaceId: string;
@@ -70,7 +71,7 @@ function zoneOf(y: number, top: number, height: number): DropPosition {
 }
 
 export function TreePanel({ workspaceId, spaces, spaceId, selectedId, onNavigate }: Props) {
-  const { t } = useTranslation('wiki');
+  const { t, i18n } = useTranslation('wiki');
   const errorText = useErrorText();
   const navigate = useNavigate();
   const { user } = useSession();
@@ -118,6 +119,7 @@ export function TreePanel({ workspaceId, spaces, spaceId, selectedId, onNavigate
   const [spaceDialog, setSpaceDialog] = useState<'create' | 'edit' | null>(null);
   const [widen, setWiden] = useState<{ vars: MoveVars; destination: string } | null>(null);
   const [live, setLive] = useState('');
+  const [templateOpen, setTemplateOpen] = useState(false);
 
   const placeOf = useCallback(
     (placement: Placement, toSpaceId?: string) => {
@@ -183,6 +185,24 @@ export function TreePanel({ workspaceId, spaces, spaceId, selectedId, onNavigate
     },
     [spaceId, m.createNode, t, toggle, navigate, errorText],
   );
+
+  const createFromTemplate = (templateId: string, name: string) => {
+    if (!spaceId) return;
+    m.createNode.mutate(
+      {
+        spaceId,
+        body: { kind: 'page', title: name, templateId, lang: i18n.language === 'uk' ? 'uk' : 'en' },
+      },
+      {
+        onSuccess: (node) => {
+          setTemplateOpen(false);
+          navigate(`/docs/p/${node.id}`);
+          onNavigate?.();
+        },
+        onError: (e) => toast.error(errorText(e)),
+      },
+    );
+  };
 
   const actions: NodeActions = {
     onOpen: (node) => {
@@ -358,6 +378,16 @@ export function TreePanel({ workspaceId, spaces, spaceId, selectedId, onNavigate
                       <FilePlus2 />
                     </IconButton>
                   </Tooltip>
+                  <Tooltip content={t('templates.fromTemplate')}>
+                    <IconButton
+                      label={t('templates.fromTemplate')}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setTemplateOpen(true)}
+                    >
+                      <LayoutTemplate />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip content={t('tree.newFolder')}>
                     <IconButton
                       label={t('tree.newFolder')}
@@ -474,6 +504,14 @@ export function TreePanel({ workspaceId, spaces, spaceId, selectedId, onNavigate
           const node = index.byId.get(widen.vars.id);
           if (node) move(node, widen.vars.placement, widen.vars.toSpaceId, true);
         }}
+      />
+
+      <TemplateDialog
+        open={templateOpen}
+        onOpenChange={setTemplateOpen}
+        workspaceId={workspaceId}
+        busy={m.createNode.isPending}
+        onPick={createFromTemplate}
       />
 
       <SpaceDialog

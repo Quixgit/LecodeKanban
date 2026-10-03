@@ -275,33 +275,64 @@ type WikiAudit struct {
 	At          time.Time
 }
 
+type WikiContent struct {
+	NodeID    uuid.UUID
+	Doc       []byte
+	Plain     string
+	Version   int32
+	UpdatedBy uuid.NullUUID
+	UpdatedAt time.Time
+}
+
 type WikiFavorite struct {
 	UserID    uuid.UUID
 	NodeID    uuid.UUID
 	CreatedAt time.Time
 }
 
+type WikiFile struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	NodeID      uuid.UUID
+	Name        string
+	ContentType string
+	Size        int64
+	StorageKey  string
+	UploadedBy  uuid.NullUUID
+	CreatedAt   time.Time
+}
+
 type WikiNode struct {
-	ID            uuid.UUID
-	WorkspaceID   uuid.UUID
-	SpaceID       uuid.UUID
-	ParentID      uuid.NullUUID
-	Kind          string
-	Title         string
-	Icon          string
-	Cover         string
-	Rank          string
-	Depth         int16
-	Path          string
-	Visibility    *string
-	WorkspaceRole string
-	OwnerID       uuid.UUID
-	CreatedBy     uuid.UUID
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	DeletedAt     *time.Time
-	DeletedBy     uuid.NullUUID
-	TrashRootID   uuid.NullUUID
+	ID             uuid.UUID
+	WorkspaceID    uuid.UUID
+	SpaceID        uuid.UUID
+	ParentID       uuid.NullUUID
+	Kind           string
+	Title          string
+	Icon           string
+	Cover          string
+	Rank           string
+	Depth          int16
+	Path           string
+	Visibility     *string
+	WorkspaceRole  string
+	OwnerID        uuid.UUID
+	CreatedBy      uuid.UUID
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      *time.Time
+	DeletedBy      uuid.NullUUID
+	TrashRootID    uuid.NullUUID
+	Status         string
+	Tags           []string
+	LastVerifiedAt *time.Time
+	ReviewDays     int32
+	FullWidth      bool
+}
+
+type WikiNodeProject struct {
+	NodeID    uuid.UUID
+	ProjectID uuid.UUID
 }
 
 type WikiPermission struct {
@@ -335,6 +366,17 @@ type WikiSpace struct {
 	MaxDepth      int16
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+}
+
+type WikiTemplate struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Name        string
+	Description string
+	Icon        string
+	Doc         []byte
+	CreatedBy   uuid.NullUUID
+	CreatedAt   time.Time
 }
 
 type Workspace struct {

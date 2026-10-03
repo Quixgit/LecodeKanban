@@ -14,6 +14,10 @@ type Deps struct {
 	Pool       *pgxpool.Pool
 	Workspaces service.Workspaces
 	Teams      service.Teams
+	Projects   service.Projects
+	// Storage and MaxUploadBytes enable image and file uploads in pages.
+	Storage        service.Storage
+	MaxUploadBytes int64
 }
 
 type Module struct {
@@ -22,6 +26,7 @@ type Module struct {
 }
 
 func New(d Deps) *Module {
-	svc := service.New(repository.New(d.Pool), d.Workspaces, d.Teams)
+	svc := service.New(repository.New(d.Pool), d.Workspaces, d.Teams,
+		service.WithProjects(d.Projects), service.WithFiles(d.Storage, d.MaxUploadBytes))
 	return &Module{Service: svc, HTTP: transport.NewHandler(svc)}
 }

@@ -45,7 +45,7 @@ describe('translation keys used in code', () => {
     for (const file of sources(SRC)) {
       const text = readFileSync(file, 'utf8');
       const hook = /useTranslation\(\s*(\[[^\]]*\]|'[^']*')?/.exec(text)?.[1];
-      const defaults = hook ? [...hook.matchAll(/'([a-z]+)'/g)].map((m) => m[1]!) : ['common'];
+      const defaults = hook ? [...hook.matchAll(/'([A-Za-z]+)'/g)].map((m) => m[1]!) : ['common'];
       for (const m of text.matchAll(/\bt\(\s*'([^'$]+)'/g)) {
         const raw = m[1]!;
         const [ns, key] = raw.includes(':')

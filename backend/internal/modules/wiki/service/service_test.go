@@ -1,11 +1,16 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
+	projectsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/domain"
 	usersdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	usersrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/users/repository"
 	userssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/users/service"
@@ -42,18 +47,62 @@ func (f fakeTeams) Exists(_ context.Context, _, team uuid.UUID) (bool, error) {
 	return team == f.team, nil
 }
 
+// memStore is an in-memory file store.
+type memStore struct{ files map[string][]byte }
+
+type readSeekCloser struct{ *bytes.Reader }
+
+func (readSeekCloser) Close() error { return nil }
+
+func (m *memStore) Put(_ context.Context, key string, r io.Reader, max int64) (int64, error) {
+	b, err := io.ReadAll(io.LimitReader(r, max+1))
+	if err != nil {
+		return 0, err
+	}
+	if int64(len(b)) > max {
+		return 0, apperr.New(apperr.TooLarge, "file is too large")
+	}
+	m.files[key] = b
+	return int64(len(b)), nil
+}
+
+func (m *memStore) Open(_ context.Context, key string) (io.ReadSeekCloser, error) {
+	b, ok := m.files[key]
+	if !ok {
+		return nil, apperr.New(domain.ErrNotFound, "file not found")
+	}
+	return readSeekCloser{bytes.NewReader(b)}, nil
+}
+
+func (m *memStore) Delete(_ context.Context, key string) error { delete(m.files, key); return nil }
+
+// fakeProjects knows projects by id and the workspace they belong to.
+type fakeProjects map[uuid.UUID]uuid.UUID
+
+func (f fakeProjects) Refs(_ context.Context, ids []uuid.UUID) (map[uuid.UUID]projectsdomain.Ref, error) {
+	out := map[uuid.UUID]projectsdomain.Ref{}
+	for _, id := range ids {
+		if ws, ok := f[id]; ok {
+			out[id] = projectsdomain.Ref{ID: id, WorkspaceID: ws}
+		}
+	}
+	return out, nil
+}
+
 type env struct {
-	svc   *service.Service
-	users *userssvc.Service
-	wsr   *wsrepo.Repo
-	ws    uuid.UUID
-	alice uuid.UUID // workspace owner and the main author
-	bob   uuid.UUID // member
-	carol uuid.UUID // member
-	admin uuid.UUID // workspace admin
-	view  uuid.UUID // workspace viewer
-	out   uuid.UUID // not a member
-	team  uuid.UUID
+	store    *memStore
+	projects fakeProjects
+	svc      *service.Service
+	users    *userssvc.Service
+	wsr      *wsrepo.Repo
+	ws       uuid.UUID
+	alice    uuid.UUID // workspace owner and the main author
+	bob      uuid.UUID // member
+	carol    uuid.UUID // member
+	admin    uuid.UUID // workspace admin
+	view     uuid.UUID // workspace viewer
+	out      uuid.UUID // not a member
+	team     uuid.UUID
 }
 
 func setup(t *testing.T) *env {
@@ -82,7 +131,10 @@ func setup(t *testing.T) *env {
 			t.Fatal(err)
 		}
 	}
-	e.svc = service.New(repository.New(tdb.Pool), wsSvc, fakeTeams{team: e.team, members: map[uuid.UUID]bool{e.carol: true}})
+	e.store = &memStore{files: map[string][]byte{}}
+	e.projects = fakeProjects{}
+	e.svc = service.New(repository.New(tdb.Pool), wsSvc, fakeTeams{team: e.team, members: map[uuid.UUID]bool{e.carol: true}},
+		service.WithProjects(e.projects), service.WithFiles(e.store, 1<<20))
 	return e
 }
 
@@ -744,4 +796,219 @@ func TestIconsMustBeKeys(t *testing.T) {
 	_, err = e.svc.UpdateNode(ctx, e.alice, n.ID, service.NodePatch{Icon: ptr("📘")})
 	mustCode(t, err, apperr.Validation)
 	must(e.svc.UpdateNode(ctx, e.alice, n.ID, service.NodePatch{Icon: ptr("file-text")}))
+}
+
+const hello = `{"type":"doc","content":[{"type":"heading","attrs":{"level":1},"content":[{"type":"text","text":"Failover"}]},{"type":"paragraph","content":[{"type":"text","text":"Promote the replica."}]}]}`
+
+func TestContentAutosaveAndConflicts(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	sp := e.space(t, e.alice, domain.Workspace, domain.RoleViewer)
+	page := e.node(t, e.alice, sp.ID, nil, domain.KindPage, "Runbook")
+
+	// Nothing saved yet: an empty document at version 0.
+	c := must(e.svc.Content(ctx, e.bob, page.ID))
+	if c.Version != 0 || !strings.Contains(string(c.Doc), "paragraph") {
+		t.Fatalf("empty content: %+v", c)
+	}
+	// A reader can't write, and a stranger can't even read.
+	_, err := e.svc.SaveContent(ctx, e.bob, page.ID, []byte(hello), 0)
+	mustCode(t, err, domain.ErrForbidden)
+	_, err = e.svc.Content(ctx, e.out, page.ID)
+	mustCode(t, err, domain.ErrNotFound)
+
+	// First save at version 0, then each save quotes the last version.
+	c = must(e.svc.SaveContent(ctx, e.alice, page.ID, []byte(hello), 0))
+	if c.Version != 1 || c.Plain != "Failover\nPromote the replica." {
+		t.Fatalf("after first save: %+v", c)
+	}
+	c = must(e.svc.SaveContent(ctx, e.alice, page.ID, []byte(hello), 1))
+	if c.Version != 2 {
+		t.Fatalf("version should advance, got %d", c.Version)
+	}
+	// A stale writer (still at version 1, or "first write" after the page exists) is refused.
+	_, err = e.svc.SaveContent(ctx, e.alice, page.ID, []byte(hello), 1)
+	mustCode(t, err, domain.ErrContentConflict)
+	_, err = e.svc.SaveContent(ctx, e.alice, page.ID, []byte(hello), 0)
+	mustCode(t, err, domain.ErrContentConflict)
+
+	// Unsafe or unknown content never reaches the database.
+	for name, doc := range map[string]string{
+		"javascript link": `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"x","marks":[{"type":"link","attrs":{"href":"javascript:alert(1)"}}]}]}]}`,
+		"script node":     `{"type":"doc","content":[{"type":"script"}]}`,
+		"not a doc":       `{"type":"paragraph"}`,
+	} {
+		_, err = e.svc.SaveContent(ctx, e.alice, page.ID, []byte(doc), 2)
+		if !apperr.IsCode(err, domain.ErrInvalidContent) {
+			t.Fatalf("%s: want invalid_content, got %v", name, err)
+		}
+	}
+	if got := must(e.svc.Content(ctx, e.bob, page.ID)); got.Version != 2 {
+		t.Fatalf("rejected writes must not change anything, version %d", got.Version)
+	}
+
+	// Trashed pages have no content to read or write.
+	ok(t, e.svc.DeleteNode(ctx, e.alice, page.ID))
+	_, err = e.svc.Content(ctx, e.alice, page.ID)
+	mustCode(t, err, domain.ErrNotFound)
+}
+
+func TestPagePropertiesAndReviewDue(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	sp := e.space(t, e.alice, domain.Workspace, domain.RoleEditor)
+	page := e.node(t, e.alice, sp.ID, nil, domain.KindPage, "SOP")
+	proj := uuid.New()
+	if _, err := tdb.Pool.Exec(ctx, `INSERT INTO projects (id, workspace_id, key, name) VALUES ($1, $2, 'OPS', 'Operations')`, proj, e.ws); err != nil {
+		t.Fatal(err)
+	}
+	e.projects[proj] = e.ws
+	foreign := uuid.New()
+	e.projects[foreign] = uuid.New() // another workspace
+
+	st := domain.StatusPublished
+	tags := []string{" ops ", "Ops", "runbook", ""}
+	days := 30
+	v := must(e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{Status: &st, Tags: &tags, ReviewDays: &days,
+		ProjectIDs: &[]uuid.UUID{proj, proj}}))
+	if v.Node.Status != domain.StatusPublished || len(v.Node.Tags) != 2 || v.Node.ReviewDays != 30 {
+		t.Fatalf("properties: %+v", v.Node)
+	}
+	got := must(e.svc.Node(ctx, e.carol, page.ID))
+	if len(got.ProjectIDs) != 1 || got.ProjectIDs[0] != proj {
+		t.Fatalf("project link: %+v", got.ProjectIDs)
+	}
+
+	// Review: fresh pages are fine; one verified long ago is due; verifying resets it.
+	if got.Node.ReviewDue(time.Now()) {
+		t.Fatal("a new page is not due")
+	}
+	if !got.Node.ReviewDue(time.Now().AddDate(0, 0, 31)) {
+		t.Fatal("a page past its review period is due")
+	}
+	out := must(e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{Verify: true}))
+	if out.Node.LastVerifiedAt == nil || out.Node.ReviewDue(time.Now().AddDate(0, 0, 29)) {
+		t.Fatalf("verify: %+v", out.Node)
+	}
+	// An outdated page that is verified is current again.
+	outdated := domain.StatusOutdated
+	must(e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{Status: &outdated}))
+	if v := must(e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{Verify: true})); v.Node.Status != domain.StatusPublished {
+		t.Fatalf("verify should republish an outdated page, got %q", v.Node.Status)
+	}
+
+	// Validation.
+	bad := domain.Status("archived")
+	_, err := e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{Status: &bad})
+	mustCode(t, err, apperr.Validation)
+	neg := -1
+	_, err = e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{ReviewDays: &neg})
+	mustCode(t, err, apperr.Validation)
+	many := []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}
+	_, err = e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{Tags: &many})
+	mustCode(t, err, apperr.Validation)
+	long := []string{strings.Repeat("я", 31)}
+	_, err = e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{Tags: &long})
+	mustCode(t, err, apperr.Validation)
+	_, err = e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{ProjectIDs: &[]uuid.UUID{foreign}})
+	mustCode(t, err, apperr.Validation)
+	_, err = e.svc.UpdateNode(ctx, e.bob, page.ID, service.NodePatch{ProjectIDs: &[]uuid.UUID{uuid.New()}})
+	mustCode(t, err, apperr.Validation)
+	// Viewers can't change properties.
+	_, err = e.svc.UpdateNode(ctx, e.view, page.ID, service.NodePatch{FullWidth: ptr(true)})
+	mustCode(t, err, domain.ErrForbidden)
+}
+
+func TestTemplates(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	sp := e.space(t, e.alice, domain.Workspace, domain.RoleEditor)
+
+	list := must(e.svc.Templates(ctx, e.bob, e.ws, "uk"))
+	if len(list) != 8 || !list[0].Builtin || list[0].Name != "Ранбук" {
+		t.Fatalf("built-ins in Ukrainian: %+v", list)
+	}
+	if en := must(e.svc.Templates(ctx, e.bob, e.ws, "fr")); en[0].Name != "Runbook" {
+		t.Fatalf("unknown languages fall back to English: %q", en[0].Name)
+	}
+	_, err := e.svc.Templates(ctx, e.out, e.ws, "en")
+	mustCode(t, err, domain.ErrNotFound)
+
+	// New page from a built-in template carries its text.
+	v := must(e.svc.CreateNode(ctx, e.bob, sp.ID, service.NodeInput{Kind: domain.KindPage, Title: "Failover", TemplateID: "builtin:postmortem", Lang: "uk"}))
+	c := must(e.svc.Content(ctx, e.bob, v.Node.ID))
+	if c.Version != 1 || !strings.Contains(c.Plain, "Хронологія") {
+		t.Fatalf("template content: version %d", c.Version)
+	}
+	_, err = e.svc.CreateNode(ctx, e.bob, sp.ID, service.NodeInput{Kind: domain.KindPage, Title: "x", TemplateID: "builtin:nope"})
+	mustCode(t, err, domain.ErrNotFound)
+	_, err = e.svc.CreateNode(ctx, e.bob, sp.ID, service.NodeInput{Kind: domain.KindPage, Title: "x", TemplateID: uuid.NewString()})
+	mustCode(t, err, domain.ErrNotFound)
+
+	// Custom templates: admins only, and only from a page they can read.
+	_, err = e.svc.CreateTemplate(ctx, e.bob, e.ws, "Mine", "", v.Node.ID)
+	if err == nil {
+		t.Fatal("members must not create workspace templates")
+	}
+	private := e.node(t, e.bob, sp.ID, nil, domain.KindPage, "Salaries")
+	must(e.svc.SetVisibility(ctx, e.bob, service.Target{SpaceID: sp.ID, NodeID: &private.ID}, domain.Private, ""))
+	must(e.svc.SaveContent(ctx, e.bob, private.ID, []byte(hello), 0))
+	_, err = e.svc.CreateTemplate(ctx, e.admin, e.ws, "Leak", "", private.ID)
+	mustCode(t, err, domain.ErrNotFound)
+
+	tpl := must(e.svc.CreateTemplate(ctx, e.admin, e.ws, "Team runbook", "House style", v.Node.ID))
+	if tpl.Builtin {
+		t.Fatal("custom template flagged built-in")
+	}
+	if all := must(e.svc.Templates(ctx, e.carol, e.ws, "en")); len(all) != 9 || all[8].Name != "Team runbook" {
+		t.Fatalf("custom template should be listed last: %+v", all)
+	}
+	from := must(e.svc.CreateNode(ctx, e.carol, sp.ID, service.NodeInput{Kind: domain.KindPage, Title: "From custom", TemplateID: tpl.ID}))
+	if c := must(e.svc.Content(ctx, e.carol, from.Node.ID)); !strings.Contains(c.Plain, "Chronology") && !strings.Contains(c.Plain, "Хронологія") {
+		t.Fatalf("custom template content: %q", c.Plain)
+	}
+	tid := uuid.MustParse(tpl.ID)
+	if err := e.svc.DeleteTemplate(ctx, e.bob, e.ws, tid); err == nil {
+		t.Fatal("members must not delete templates")
+	}
+	ok(t, e.svc.DeleteTemplate(ctx, e.admin, e.ws, tid))
+	mustCode(t, e.svc.DeleteTemplate(ctx, e.admin, e.ws, tid), domain.ErrNotFound)
+}
+
+func TestFiles(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	sp := e.space(t, e.alice, domain.Workspace, domain.RoleViewer)
+	page := e.node(t, e.alice, sp.ID, nil, domain.KindPage, "Diagram")
+	secret := e.node(t, e.alice, sp.ID, nil, domain.KindPage, "Private")
+	must(e.svc.SetVisibility(ctx, e.alice, service.Target{SpaceID: sp.ID, NodeID: &secret.ID}, domain.Private, ""))
+
+	png := append([]byte("\x89PNG\r\n\x1a\n"), bytes.Repeat([]byte{0}, 64)...)
+	_, err := e.svc.UploadFile(ctx, e.bob, page.ID, "a.png", bytes.NewReader(png))
+	mustCode(t, err, domain.ErrForbidden) // viewers can't upload
+	f := must(e.svc.UploadFile(ctx, e.alice, page.ID, `..\..\evil/"dia.png`, bytes.NewReader(png)))
+	if f.ContentType != "image/png" || f.Name != "dia.png" || f.Size != int64(len(png)) {
+		t.Fatalf("stored file: %+v", f)
+	}
+	// The type comes from the bytes, not the name: HTML named .png is not an inline image.
+	h := must(e.svc.UploadFile(ctx, e.alice, page.ID, "x.png", strings.NewReader("<html><script>alert(1)</script></html>")))
+	if domain.InlineImageTypes[h.ContentType] {
+		t.Fatalf("html must not become an inline image: %s", h.ContentType)
+	}
+	// Anybody who reads the page can fetch it; others get nothing, as for the page itself.
+	_, rc, err := e.svc.OpenFile(ctx, e.bob, f.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = rc.Close()
+	_, _, err = e.svc.OpenFile(ctx, e.out, f.ID)
+	mustCode(t, err, domain.ErrNotFound)
+	hidden := must(e.svc.UploadFile(ctx, e.alice, secret.ID, "s.png", bytes.NewReader(png)))
+	_, _, err = e.svc.OpenFile(ctx, e.bob, hidden.ID)
+	mustCode(t, err, domain.ErrNotFound)
+	_, _, err = e.svc.OpenFile(ctx, e.alice, uuid.New())
+	mustCode(t, err, domain.ErrNotFound)
+	// Size limit.
+	_, err = e.svc.UploadFile(ctx, e.alice, page.ID, "big.bin", bytes.NewReader(make([]byte, 2<<20)))
+	mustCode(t, err, apperr.TooLarge)
 }

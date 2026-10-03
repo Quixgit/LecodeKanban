@@ -13,17 +13,28 @@ import (
 
 type Querier interface {
 	AddFavorite(ctx context.Context, arg AddFavoriteParams) error
+	AddNodeProject(ctx context.Context, arg AddNodeProjectParams) error
+	ClearNodeProjects(ctx context.Context, nodeID uuid.UUID) error
+	CountNodeFiles(ctx context.Context, nodeID uuid.UUID) (int64, error)
+	CreateFile(ctx context.Context, arg CreateFileParams) (WikiFile, error)
 	CreateNode(ctx context.Context, arg CreateNodeParams) (WikiNode, error)
 	// wiki module queries (sqlc). Nodes are always filtered by deleted_at explicitly.
 	CreateSpace(ctx context.Context, arg CreateSpaceParams) (WikiSpace, error)
+	CreateTemplate(ctx context.Context, arg CreateTemplateParams) (WikiTemplate, error)
 	DeletePermission(ctx context.Context, arg DeletePermissionParams) (int64, error)
 	DeleteSpace(ctx context.Context, id uuid.UUID) error
+	DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) (int64, error)
 	FavoriteIDs(ctx context.Context, arg FavoriteIDsParams) ([]uuid.UUID, error)
+	GetContent(ctx context.Context, nodeID uuid.UUID) (WikiContent, error)
+	GetFile(ctx context.Context, id uuid.UUID) (WikiFile, error)
 	GetNode(ctx context.Context, id uuid.UUID) (WikiNode, error)
 	GetNodes(ctx context.Context, ids []uuid.UUID) ([]WikiNode, error)
 	GetPermission(ctx context.Context, arg GetPermissionParams) (WikiPermission, error)
 	GetSpace(ctx context.Context, id uuid.UUID) (WikiSpace, error)
+	GetTemplate(ctx context.Context, id uuid.UUID) (WikiTemplate, error)
 	InsertAudit(ctx context.Context, arg InsertAuditParams) error
+	// Optimistic write: succeeds only against the version the caller last saw (0 = no content yet).
+	InsertContent(ctx context.Context, arg InsertContentParams) (WikiContent, error)
 	ListAudit(ctx context.Context, arg ListAuditParams) ([]WikiAudit, error)
 	// Grants of the space (node_id IS NULL) and of the given nodes: one chain.
 	ListChainPermissions(ctx context.Context, arg ListChainPermissionsParams) ([]WikiPermission, error)
@@ -32,12 +43,16 @@ type Querier interface {
 	ListFavoriteNodes(ctx context.Context, arg ListFavoriteNodesParams) ([]WikiNode, error)
 	// Nodes (live) holding a direct grant for the user or one of their teams, not owned by them.
 	ListGrantedNodes(ctx context.Context, arg ListGrantedNodesParams) ([]WikiNode, error)
+	ListNodeProjects(ctx context.Context, nodeID uuid.UUID) ([]uuid.UUID, error)
 	ListOwnedNodes(ctx context.Context, arg ListOwnedNodesParams) ([]WikiNode, error)
 	ListRecentNodes(ctx context.Context, arg ListRecentNodesParams) ([]WikiNode, error)
+	// Pages published whose review period has run out, for reminders (W5) and the "needs review" flag.
+	ListReviewDue(ctx context.Context, lastVerifiedAt *time.Time) ([]WikiNode, error)
 	ListSiblings(ctx context.Context, arg ListSiblingsParams) ([]WikiNode, error)
 	ListSpaceNodes(ctx context.Context, spaceID uuid.UUID) ([]WikiNode, error)
 	ListSpacePermissions(ctx context.Context, spaceID uuid.UUID) ([]WikiPermission, error)
 	ListSpaces(ctx context.Context, workspaceID uuid.UUID) ([]WikiSpace, error)
+	ListTemplates(ctx context.Context, workspaceID uuid.UUID) ([]WikiTemplate, error)
 	ListTrashRoots(ctx context.Context, arg ListTrashRootsParams) ([]WikiNode, error)
 	MoveGrantsToSpace(ctx context.Context, arg MoveGrantsToSpaceParams) error
 	PlaceNode(ctx context.Context, arg PlaceNodeParams) (WikiNode, error)
@@ -47,11 +62,15 @@ type Querier interface {
 	RebaseDescendants(ctx context.Context, arg RebaseDescendantsParams) error
 	RemoveFavorite(ctx context.Context, arg RemoveFavoriteParams) error
 	RestoreTrashRoot(ctx context.Context, trashRootID uuid.NullUUID) error
+	SetNodeIcon(ctx context.Context, arg SetNodeIconParams) (WikiNode, error)
+	SetNodeProperties(ctx context.Context, arg SetNodePropertiesParams) (WikiNode, error)
 	SetNodeVisibility(ctx context.Context, arg SetNodeVisibilityParams) (WikiNode, error)
 	SetSpaceVisibility(ctx context.Context, arg SetSpaceVisibilityParams) (WikiSpace, error)
 	SubtreeMaxDepth(ctx context.Context, prefix string) (int32, error)
+	TouchNode(ctx context.Context, id uuid.UUID) error
 	TouchRecent(ctx context.Context, arg TouchRecentParams) error
 	TrashSubtree(ctx context.Context, arg TrashSubtreeParams) error
+	UpdateContent(ctx context.Context, arg UpdateContentParams) (WikiContent, error)
 	UpdateNodeMeta(ctx context.Context, arg UpdateNodeMetaParams) (WikiNode, error)
 	UpdateSpace(ctx context.Context, arg UpdateSpaceParams) (WikiSpace, error)
 	UpsertPermission(ctx context.Context, arg UpsertPermissionParams) (WikiPermission, error)

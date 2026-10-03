@@ -92,6 +92,8 @@ type NodeView struct {
 	Node     domain.Node
 	Access   domain.Access
 	Favorite bool
+	// ProjectIDs are the linked projects; filled for single-node reads only.
+	ProjectIDs []uuid.UUID
 }
 
 // filter keeps the nodes the caller can see at min role, resolved against each node's own space.

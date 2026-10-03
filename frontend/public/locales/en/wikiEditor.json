@@ -1,0 +1,277 @@
+{
+  "toolbar": {
+    "label": "Formatting",
+    "undo": "Undo",
+    "redo": "Redo",
+    "textStyle": "Text style",
+    "paragraph": "Text",
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "heading4": "Heading 4",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strikethrough",
+    "code": "Inline code",
+    "highlight": "Highlight",
+    "link": "Link",
+    "bulletList": "Bulleted list",
+    "orderedList": "Numbered list",
+    "taskList": "To-do list",
+    "quote": "Quote",
+    "align": "Alignment",
+    "align_left": "Align left",
+    "align_center": "Align center",
+    "align_right": "Align right",
+    "align_justify": "Justify",
+    "subscript": "Subscript",
+    "superscript": "Superscript",
+    "clearFormat": "Clear formatting",
+    "insert": "Insert",
+    "more": "More actions",
+    "dragBlock": "Drag to move this block"
+  },
+  "bubble": {
+    "label": "Selection formatting"
+  },
+  "slash": {
+    "label": "Insert a block",
+    "empty": "No matching blocks",
+    "groups": {
+      "text": "Text",
+      "lists": "Lists",
+      "blocks": "Blocks",
+      "media": "Media"
+    },
+    "items": {
+      "paragraph": {
+        "title": "Text",
+        "description": "Plain paragraph"
+      },
+      "h1": {
+        "title": "Heading 1",
+        "description": "Large section title"
+      },
+      "h2": {
+        "title": "Heading 2",
+        "description": "Medium section title"
+      },
+      "h3": {
+        "title": "Heading 3",
+        "description": "Small section title"
+      },
+      "h4": {
+        "title": "Heading 4",
+        "description": "Minor title"
+      },
+      "bullet": {
+        "title": "Bulleted list",
+        "description": "Simple list of points"
+      },
+      "ordered": {
+        "title": "Numbered list",
+        "description": "Steps in order"
+      },
+      "task": {
+        "title": "To-do list",
+        "description": "Checklist with checkboxes"
+      },
+      "quote": {
+        "title": "Quote",
+        "description": "Highlight a quotation"
+      },
+      "divider": {
+        "title": "Divider",
+        "description": "Separate sections"
+      },
+      "code": {
+        "title": "Code block",
+        "description": "Highlighted code with copy"
+      },
+      "diagram": {
+        "title": "Diagram",
+        "description": "Mermaid flowchart with live preview"
+      },
+      "info": {
+        "title": "Info callout",
+        "description": "Helpful note"
+      },
+      "warning": {
+        "title": "Warning callout",
+        "description": "Something to watch"
+      },
+      "danger": {
+        "title": "Danger callout",
+        "description": "Critical warning"
+      },
+      "success": {
+        "title": "Success callout",
+        "description": "Positive outcome"
+      },
+      "toggle": {
+        "title": "Toggle",
+        "description": "Collapsible section"
+      },
+      "table": {
+        "title": "Table",
+        "description": "Rows and columns"
+      },
+      "math": {
+        "title": "Formula",
+        "description": "LaTeX math block"
+      },
+      "image": {
+        "title": "Image",
+        "description": "Upload a picture"
+      },
+      "file": {
+        "title": "File",
+        "description": "Attach a document"
+      },
+      "video": {
+        "title": "Video",
+        "description": "Embed a YouTube video"
+      }
+    }
+  },
+  "table": {
+    "menu": "Table",
+    "rowBefore": "Add row above",
+    "rowAfter": "Add row below",
+    "columnBefore": "Add column left",
+    "columnAfter": "Add column right",
+    "headerRow": "Toggle header row",
+    "mergeSplit": "Merge or split cells",
+    "deleteRow": "Delete row",
+    "deleteColumn": "Delete column",
+    "delete": "Delete table"
+  },
+  "callout": {
+    "type": "Callout type",
+    "info": "Info",
+    "warning": "Warning",
+    "danger": "Danger",
+    "success": "Success"
+  },
+  "code": {
+    "language": "Code language",
+    "plain": "Plain text",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyFailed": "Couldn't copy the code"
+  },
+  "mermaid": {
+    "label": "Rendered diagram",
+    "empty": "Write a Mermaid diagram above to see it here.",
+    "error": "Diagram error: {{message}}"
+  },
+  "status": {
+    "saved": "Saved",
+    "saving": "Saving…",
+    "offline": "Offline",
+    "conflict": "Needs attention",
+    "error": "Couldn't save",
+    "offlineHint": "You're offline. Your changes are kept here and will be saved when the connection returns."
+  },
+  "conflict": {
+    "message": "Someone else changed this page while you were editing.",
+    "loadTheirs": "Load their version",
+    "keepMine": "Keep my version"
+  },
+  "mode": {
+    "switchToRead": "Switch to reading",
+    "switchToEdit": "Switch to editing",
+    "readingNote": "Reading mode",
+    "viewOnly": "You can read this page but not edit it"
+  },
+  "outline": {
+    "title": "On this page",
+    "empty": "Headings will appear here.",
+    "toggle": "Show or hide the outline"
+  },
+  "more": {
+    "fullWidth": "Full width",
+    "normalWidth": "Normal width",
+    "copyMarkdown": "Copy as Markdown",
+    "downloadMarkdown": "Download as Markdown",
+    "importMarkdown": "Import Markdown file…",
+    "saveTemplate": "Save as template…",
+    "shortcuts": "Keyboard shortcuts"
+  },
+  "markdown": {
+    "copied": "Markdown copied",
+    "copyFailed": "Couldn't copy",
+    "imported": "Imported {{name}}",
+    "importFailed": "Couldn't read that file"
+  },
+  "link": {
+    "title": "Link",
+    "url": "Address",
+    "unsafe": "Use an http, https, mailto or tel link."
+  },
+  "video": {
+    "title": "Embed a video",
+    "url": "YouTube link",
+    "invalid": "Paste a YouTube link."
+  },
+  "dialog": {
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "remove": "Remove"
+  },
+  "upload": {
+    "uploading_one": "Uploading {{count}} file…",
+    "uploading_other": "Uploading {{count}} files…",
+    "failed": "Couldn't upload {{name}}"
+  },
+  "load": {
+    "failed": "We couldn't load this page",
+    "retry": "Try again"
+  },
+  "editor": {
+    "label": "Page content"
+  },
+  "placeholder": {
+    "block": "Type / for blocks, or just start writing",
+    "heading": "Heading"
+  },
+  "footer": {
+    "words_one": "{{count}} word",
+    "words_other": "{{count}} words"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "description": "Everything works with the keyboard; Markdown shortcuts turn into formatting as you type.",
+    "groups": {
+      "text": "Text",
+      "blocks": "Blocks",
+      "editing": "Editing"
+    },
+    "items": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "strike": "Strikethrough",
+      "code": "Inline code",
+      "highlight": "Highlight",
+      "link": "Link",
+      "paragraph": "Plain text",
+      "heading": "Heading",
+      "slash": "Insert a block",
+      "bullet": "Bulleted list",
+      "ordered": "Numbered list",
+      "task": "To-do list",
+      "quote": "Quote",
+      "codeBlock": "Code block",
+      "indent": "Indent list item",
+      "outdent": "Outdent list item",
+      "undo": "Undo",
+      "redo": "Redo",
+      "plain": "Paste without formatting",
+      "hardBreak": "Line break"
+    },
+    "markdown": "Markdown",
+    "markdownHint": "Type these at the start of a line and press space (or Enter for code fences):"
+  }
+}

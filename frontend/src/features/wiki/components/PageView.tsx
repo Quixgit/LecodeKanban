@@ -1,12 +1,24 @@
 import { motion } from 'framer-motion';
-import { Copy, FileText, MoreHorizontal, Share2, Star, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Copy,
+  FileText,
+  ImagePlus,
+  MoreHorizontal,
+  Settings2,
+  Share2,
+  Star,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { useWorkspaceMembers } from '@/features/workspaces';
+import { PageEditor } from '@/features/wiki-editor';
+import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
+import { cn } from '@/shared/lib/cn';
 import { formatDate } from '@/shared/lib/format';
-import { itemPresence, listContainer, listItem, pageTransition } from '@/shared/motion';
+import { listContainer, listItem, pageTransition } from '@/shared/motion';
 import {
   Button,
   ConfirmDialog,
@@ -17,31 +29,44 @@ import {
   DropdownTrigger,
   EmptyState,
   IconButton,
+  Pill,
+  Skeleton,
   toast,
 } from '@/shared/ui';
+import { wikiApi } from '../api/wikiApi';
 import { useNode, useTree, useWikiMutations } from '../hooks/useWiki';
 import { can } from '../model/permissions';
 import { ancestors, buildIndex, type WikiNode } from '../model/tree';
 import { Breadcrumbs } from './Breadcrumbs';
+import { IconPicker } from './IconPicker';
 import { NodeIcon } from './NodeIcon';
+import { PageProperties } from './PageProperties';
+import { SaveTemplateDialog } from './SaveTemplateDialog';
 import { ShareDialog } from './ShareDialog';
 import { PageSkeleton } from './Skeletons';
 import { VisibilityIcon } from './VisibilityIcon';
 import type { WikiOutletContext } from './WikiLayout';
 
-/** A page or folder: breadcrumbs, title, share/favorite actions and the body. */
+const statusTone = { draft: 'neutral', published: 'teal', outdated: 'amber' } as const;
+
+/** A page or folder: breadcrumbs, title, properties, share/favorite actions and the editor. */
 export function PageView() {
   const { t, i18n } = useTranslation('wiki');
   const errorText = useErrorText();
   const navigate = useNavigate();
   const { nodeId } = useParams();
   const { workspaceId } = useOutletContext<WikiOutletContext>();
+  const { workspace } = useCurrentWorkspace();
   const node = useNode(nodeId);
   const tree = useTree(node.data?.spaceId);
   const members = useWorkspaceMembers(workspaceId);
   const m = useWikiMutations(workspaceId);
   const [share, setShare] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showProps, setShowProps] = useState(false);
+  const [templateDlg, setTemplateDlg] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInput = useRef<HTMLInputElement>(null);
 
   const index = useMemo(() => buildIndex(tree.data?.nodes ?? []), [tree.data]);
   const n = node.data;
@@ -49,6 +74,17 @@ export function PageView() {
   const trail = n ? ancestors(index, n.id) : [];
   const children = n ? (index.children.get(n.id) ?? []) : [];
   const owner = members.data?.find((x) => x.user.id === n?.ownerId)?.user.name;
+  const isAdmin = workspace?.role === 'owner' || workspace?.role === 'admin';
+
+  // The tab title follows the page.
+  useEffect(() => {
+    if (!n) return;
+    const previous = document.title;
+    document.title = `${n.title} · ${t('panel.title')}`;
+    return () => {
+      document.title = previous;
+    };
+  }, [n, t]);
 
   if (node.isPending) return <PageSkeleton />;
   if (node.isError || !n) {
@@ -71,6 +107,9 @@ export function PageView() {
     );
   }
 
+  const patch = (p: Parameters<typeof m.updateNode.mutate>[0]['patch']) =>
+    m.updateNode.mutate({ id: n.id, patch: p }, { onError: (e) => toast.error(errorText(e)) });
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(`${window.location.origin}/docs/p/${n.id}`);
@@ -89,32 +128,82 @@ export function PageView() {
       onError: (e) => toast.error(errorText(e)),
     });
 
+  const uploadCover = async (file: File | undefined) => {
+    if (!file) return;
+    setUploadingCover(true);
+    try {
+      const f = await wikiApi.uploadFile(n.id, file);
+      if (!/^image\//.test(f.contentType)) throw new Error('not an image');
+      patch({ cover: `${f.url}?inline=true` });
+    } catch (e) {
+      toast.error(
+        t('cover.failed'),
+        e instanceof Error && e.message === 'not an image' ? t('cover.notImage') : errorText(e),
+      );
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
   return (
     <motion.article
       key={n.id}
       variants={pageTransition}
       initial="hidden"
       animate="visible"
-      className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-5 py-6 sm:px-8"
+      className={cn(
+        'mx-auto flex w-full flex-col gap-5 px-5 py-6 sm:px-8',
+        n.fullWidth ? 'max-w-none' : 'max-w-5xl',
+      )}
     >
       {tree.data && <Breadcrumbs space={tree.data.space} trail={trail} />}
 
+      {n.cover && (
+        <div className="group relative -mx-1 overflow-hidden rounded-2xl border border-border-subtle bg-surface-muted">
+          <img src={n.cover} alt="" className="h-44 w-full object-cover sm:h-56" />
+          {editable && (
+            <div className="absolute right-3 top-3 flex gap-1.5 opacity-0 transition-opacity duration-ui focus-within:opacity-100 group-hover:opacity-100">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => coverInput.current?.click()}
+                loading={uploadingCover}
+              >
+                <ImagePlus />
+                {t('cover.change')}
+              </Button>
+              <IconButton
+                label={t('cover.remove')}
+                variant="outline"
+                size="sm"
+                onClick={() => patch({ cover: '' })}
+              >
+                <X />
+              </IconButton>
+            </div>
+          )}
+        </div>
+      )}
+
       <header className="flex flex-wrap items-start gap-3">
-        <NodeIcon node={n} className="mt-1.5 !size-8 !text-text-secondary" />
+        <IconPicker node={n} editable={editable} onChange={(icon) => patch({ icon })} />
         <div className="min-w-0 flex-1">
           <TitleField
             key={n.id + n.updatedAt}
             title={n.title}
             editable={editable}
             label={t('page.titleLabel')}
-            onSave={(title) =>
-              m.updateNode.mutate(
-                { id: n.id, patch: { title } },
-                { onError: (e) => toast.error(errorText(e)) },
-              )
-            }
+            onSave={(title) => patch({ title })}
           />
-          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-muted">
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-text-muted">
+            <Pill tone={statusTone[n.status]} size="sm">
+              {t(`properties.statuses.${n.status}`)}
+            </Pill>
+            {n.reviewDue && (
+              <Pill tone="red" size="sm">
+                {t('properties.needsReview')}
+              </Pill>
+            )}
             <span className="inline-flex items-center gap-1.5">
               <VisibilityIcon visibility={n.access.visibility} />
               {t(`visibility.${n.access.visibility}.name`)}
@@ -128,6 +217,16 @@ export function PageView() {
             <Share2 />
             {t('menu.share')}
           </Button>
+          <IconButton
+            label={t('properties.title')}
+            aria-pressed={showProps}
+            className={
+              showProps ? 'border-primary-border bg-primary-subtle text-primary-ink' : undefined
+            }
+            onClick={() => setShowProps((v) => !v)}
+          >
+            <Settings2 />
+          </IconButton>
           <IconButton
             label={n.favorite ? t('menu.unfavorite') : t('menu.favorite')}
             aria-pressed={n.favorite}
@@ -151,6 +250,12 @@ export function PageView() {
                 <Copy />
                 {t('menu.copyLink')}
               </DropdownItem>
+              {editable && !n.cover && (
+                <DropdownItem onSelect={() => setTimeout(() => coverInput.current?.click(), 0)}>
+                  <ImagePlus />
+                  {t('cover.add')}
+                </DropdownItem>
+              )}
               {editable && <DropdownSeparator />}
               {editable && (
                 <DropdownItem danger onSelect={() => setConfirmDelete(true)}>
@@ -163,25 +268,59 @@ export function PageView() {
         </div>
       </header>
 
-      {n.kind === 'folder' ? (
-        <FolderBody children={children} />
-      ) : (
-        <motion.div variants={itemPresence} initial="hidden" animate="visible">
-          <EmptyState
-            icon={<FileText />}
-            title={t('page.emptyTitle')}
-            description={t('page.emptyDescription')}
-            className="rounded-2xl border border-dashed border-border py-16"
-          />
-        </motion.div>
+      {showProps && <PageProperties workspaceId={workspaceId} node={n} projectIds={n.projectIds} />}
+
+      <Suspense
+        fallback={
+          <div className="flex flex-col gap-3" role="status" aria-busy>
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-5 w-2/3" />
+            <Skeleton className="h-5 w-1/2" />
+          </div>
+        }
+      >
+        <PageEditor
+          nodeId={n.id}
+          title={n.title}
+          canEdit={editable}
+          fullWidth={n.fullWidth}
+          onFullWidthChange={editable ? (v) => patch({ fullWidth: v }) : undefined}
+          onSaveAsTemplate={isAdmin ? () => setTemplateDlg(true) : undefined}
+        />
+      </Suspense>
+
+      {n.kind === 'folder' && children.length > 0 && (
+        <section aria-label={t('folder.contents')} className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold text-text">{t('folder.contents')}</h2>
+          <FolderBody children={children} />
+        </section>
       )}
 
+      <input
+        ref={coverInput}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        hidden
+        aria-hidden
+        tabIndex={-1}
+        onChange={(e) => {
+          void uploadCover(e.target.files?.[0]);
+          e.target.value = '';
+        }}
+      />
       <ShareDialog
         open={share}
         onOpenChange={setShare}
         workspaceId={workspaceId}
         target={{ nodeId: n.id }}
         title={n.title}
+      />
+      <SaveTemplateDialog
+        open={templateDlg}
+        onOpenChange={setTemplateDlg}
+        workspaceId={workspaceId}
+        nodeId={n.id}
+        defaultName={n.title}
       />
       <ConfirmDialog
         open={confirmDelete}

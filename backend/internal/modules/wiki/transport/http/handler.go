@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -49,6 +50,13 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Post("/wiki/nodes/{nodeId}/move", httpx.H(h.moveNode))
 	r.Post("/wiki/nodes/{nodeId}/restore", httpx.H(h.restoreNode))
 	r.Delete("/wiki/nodes/{nodeId}/purge", httpx.H(h.purgeNode))
+	r.Get("/wiki/nodes/{nodeId}/content", httpx.H(h.getContent))
+	r.Put("/wiki/nodes/{nodeId}/content", httpx.H(h.saveContent))
+	r.Post("/wiki/nodes/{nodeId}/files", httpx.H(h.uploadFile))
+	r.Get("/wiki/files/{fileId}/content", httpx.H(h.downloadFile))
+	r.Get("/workspaces/{workspaceId}/wiki/templates", httpx.H(h.templates))
+	r.Post("/workspaces/{workspaceId}/wiki/templates", httpx.H(h.createTemplate))
+	r.Delete("/workspaces/{workspaceId}/wiki/templates/{templateId}", httpx.H(h.deleteTemplate))
 	r.Put("/wiki/nodes/{nodeId}/favorite", httpx.H(h.favorite))
 	r.Delete("/wiki/nodes/{nodeId}/favorite", httpx.H(h.unfavorite))
 	r.Get("/wiki/nodes/{nodeId}/access", httpx.H(h.access(nodeTarget)))
@@ -114,10 +122,27 @@ func presentNode(v service.NodeView) api.WikiNode {
 	n := v.Node
 	out := api.WikiNode{Id: n.ID, SpaceId: n.SpaceID, ParentId: n.ParentID, Kind: api.WikiNodeKind(n.Kind), Title: n.Title,
 		Icon: n.Icon, Cover: n.Cover, Rank: n.Rank, Depth: n.Depth, OwnerId: n.OwnerID, Favorite: v.Favorite,
-		Access: presentAccess(v.Access), DeletedAt: n.DeletedAt, CreatedAt: n.CreatedAt, UpdatedAt: n.UpdatedAt}
+		Access: presentAccess(v.Access), DeletedAt: n.DeletedAt, CreatedAt: n.CreatedAt, UpdatedAt: n.UpdatedAt,
+		Status: api.WikiStatus(n.Status), Tags: nonNil(n.Tags), LastVerifiedAt: n.LastVerifiedAt, ReviewDays: n.ReviewDays,
+		ReviewDue: n.ReviewDue(time.Now()), FullWidth: n.FullWidth, ProjectIds: nonNilIDs(v.ProjectIDs)}
 	if n.Visibility != "" {
 		vis := api.WikiVisibility(n.Visibility)
 		out.Visibility = &vis
+	}
+	return out
+}
+
+func nonNil(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
+}
+
+func nonNilIDs(s []uuid.UUID) []openapi_types.UUID {
+	out := make([]openapi_types.UUID, len(s))
+	for i, id := range s {
+		out[i] = id
 	}
 	return out
 }
@@ -135,6 +160,8 @@ func presentTreeNode(t service.TreeNode) api.WikiTreeNode {
 	return api.WikiTreeNode{Id: n.Id, SpaceId: n.SpaceId, Kind: api.WikiTreeNodeKind(n.Kind), Title: n.Title, Icon: n.Icon,
 		Cover: n.Cover, Rank: n.Rank, Depth: n.Depth, OwnerId: n.OwnerId, Favorite: n.Favorite, Access: n.Access,
 		DeletedAt: n.DeletedAt, CreatedAt: n.CreatedAt, UpdatedAt: n.UpdatedAt, Visibility: n.Visibility,
+		Status: n.Status, Tags: n.Tags, LastVerifiedAt: n.LastVerifiedAt, ReviewDays: n.ReviewDays,
+		ReviewDue: n.ReviewDue, FullWidth: n.FullWidth, ProjectIds: n.ProjectIds,
 		// A detached node hides its parent: the caller must not learn that it exists.
 		ParentId: detachedParent(n.ParentId, t.Detached), Detached: t.Detached}
 }
@@ -301,6 +328,12 @@ func (h *Handler) createNode(w http.ResponseWriter, r *http.Request) error {
 	if in.Icon != nil {
 		ni.Icon = *in.Icon
 	}
+	if in.TemplateId != nil {
+		ni.TemplateID = *in.TemplateId
+	}
+	if in.Lang != nil {
+		ni.Lang = string(*in.Lang)
+	}
 	v, err := h.svc.CreateNode(r.Context(), userID(r), space, ni)
 	if err != nil {
 		return err
@@ -331,7 +364,20 @@ func (h *Handler) updateNode(w http.ResponseWriter, r *http.Request) error {
 	if err := httpx.DecodeJSON(w, r, &in); err != nil {
 		return err
 	}
-	v, err := h.svc.UpdateNode(r.Context(), userID(r), id, service.NodePatch{Title: in.Title, Icon: in.Icon, Cover: in.Cover})
+	patch := service.NodePatch{Title: in.Title, Icon: in.Icon, Cover: in.Cover, ReviewDays: in.ReviewDays,
+		FullWidth: in.FullWidth, Verify: in.Verify != nil && *in.Verify, Tags: in.Tags}
+	if in.Status != nil {
+		st := domain.Status(*in.Status)
+		patch.Status = &st
+	}
+	if in.ProjectIds != nil {
+		ids := make([]uuid.UUID, len(*in.ProjectIds))
+		for i, id := range *in.ProjectIds {
+			ids[i] = id
+		}
+		patch.ProjectIDs = &ids
+	}
+	v, err := h.svc.UpdateNode(r.Context(), userID(r), id, patch)
 	if err != nil {
 		return err
 	}

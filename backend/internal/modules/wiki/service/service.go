@@ -5,11 +5,13 @@ package service
 
 import (
 	"context"
+	"io"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 
+	projectsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/wiki/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/wiki/repository"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
@@ -28,16 +30,48 @@ type Teams interface {
 	Exists(ctx context.Context, ws, team uuid.UUID) (bool, error)
 }
 
-type Service struct {
-	repo  *repository.Repo
-	ws    Workspaces
-	teams Teams
-	now   func() time.Time
+// Projects lets pages link to projects (projects.Service satisfies it).
+type Projects interface {
+	Refs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]projectsdomain.Ref, error)
 }
 
-func New(repo *repository.Repo, ws Workspaces, teams Teams) *Service {
-	return &Service{repo: repo, ws: ws, teams: teams, now: time.Now}
+// Storage keeps uploaded bytes (the attachments disk store satisfies it).
+type Storage interface {
+	Put(ctx context.Context, key string, r io.Reader, max int64) (int64, error)
+	Open(ctx context.Context, key string) (io.ReadSeekCloser, error)
+	Delete(ctx context.Context, key string) error
 }
+
+type Service struct {
+	repo     *repository.Repo
+	ws       Workspaces
+	teams    Teams
+	projects Projects
+	storage  Storage
+	maxBytes int64
+	now      func() time.Time
+}
+
+// Option configures optional collaborators; the service works without them (no project links,
+// no uploads) so it stays easy to construct in tests and tools.
+type Option func(*Service)
+
+func WithProjects(p Projects) Option { return func(s *Service) { s.projects = p } }
+
+func WithFiles(st Storage, maxBytes int64) Option {
+	return func(s *Service) { s.storage, s.maxBytes = st, maxBytes }
+}
+
+func New(repo *repository.Repo, ws Workspaces, teams Teams, opts ...Option) *Service {
+	s := &Service{repo: repo, ws: ws, teams: teams, now: time.Now}
+	for _, o := range opts {
+		o(s)
+	}
+	return s
+}
+
+// MaxUploadBytes is the per-file upload limit.
+func (s *Service) MaxUploadBytes() int64 { return s.maxBytes }
 
 // subject describes the caller within a workspace. Non-members get wiki.not_found.
 func (s *Service) subject(ctx context.Context, ws, user uuid.UUID) (domain.Subject, error) {

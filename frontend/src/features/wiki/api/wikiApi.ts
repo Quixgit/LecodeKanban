@@ -15,6 +15,9 @@ export type WikiAuditPage = components['schemas']['WikiAuditPage'];
 export type WikiRoleName = components['schemas']['WikiRole'];
 export type WikiVisibilityName = components['schemas']['WikiVisibility'];
 export type WikiWorkspaceRole = components['schemas']['WikiWorkspaceRole'];
+export type WikiTemplate = components['schemas']['WikiTemplate'];
+export type WikiFile = components['schemas']['WikiFile'];
+export type WikiStatusName = components['schemas']['WikiStatus'];
 
 /** A space or a node: the element a sharing call addresses. */
 export type WikiTarget =
@@ -25,6 +28,32 @@ const space = (spaceId: string) => ({ path: { spaceId } });
 const node = (nodeId: string) => ({ path: { nodeId } });
 
 export const wikiApi = {
+  templates: (ws: string, lang: 'en' | 'uk') =>
+    unwrap(
+      api.GET('/workspaces/{workspaceId}/wiki/templates', {
+        params: { path: { workspaceId: ws }, query: { lang } },
+      }),
+    ),
+  createTemplate: (ws: string, body: components['schemas']['WikiTemplateInput']) =>
+    unwrap(
+      api.POST('/workspaces/{workspaceId}/wiki/templates', {
+        params: { path: { workspaceId: ws } },
+        body,
+      }),
+    ),
+  uploadFile: (nodeId: string, file: File): Promise<WikiFile> => {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return unwrap(
+      api.POST('/wiki/nodes/{nodeId}/files', {
+        params: { path: { nodeId } },
+        // The schema describes the multipart part; the browser sets the boundary header.
+        body: { file: file as unknown as string },
+        bodySerializer: () => form,
+      }),
+    );
+  },
+
   spaces: (ws: string) => unwrap(api.GET('/workspaces/{workspaceId}/wiki/spaces', workspace(ws))),
   createSpace: (ws: string, body: WikiSpaceInput) =>
     unwrap(api.POST('/workspaces/{workspaceId}/wiki/spaces', { ...workspace(ws), body })),

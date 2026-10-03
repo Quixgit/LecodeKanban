@@ -171,3 +171,73 @@ SELECT * FROM wiki_audit
 WHERE space_id = $1 AND ($2::bigint = 0 OR id < $2)
 ORDER BY id DESC
 LIMIT $3;
+
+-- name: GetContent :one
+SELECT * FROM wiki_contents WHERE node_id = $1;
+
+-- Optimistic write: succeeds only against the version the caller last saw (0 = no content yet).
+-- name: InsertContent :one
+INSERT INTO wiki_contents (node_id, doc, plain, version, updated_by)
+VALUES ($1, $2, $3, 1, $4)
+ON CONFLICT (node_id) DO NOTHING
+RETURNING *;
+
+-- name: UpdateContent :one
+UPDATE wiki_contents
+SET doc = $2, plain = $3, version = version + 1, updated_by = $4, updated_at = now()
+WHERE node_id = $1 AND version = $5
+RETURNING *;
+
+-- name: SetNodeProperties :one
+UPDATE wiki_nodes
+SET status = $2, tags = $3, review_days = $4, full_width = $5, last_verified_at = $6, updated_at = now()
+WHERE id = $1
+RETURNING *;
+
+-- name: SetNodeIcon :one
+UPDATE wiki_nodes SET icon = $2, updated_at = now() WHERE id = $1 RETURNING *;
+
+-- name: ClearNodeProjects :exec
+DELETE FROM wiki_node_projects WHERE node_id = $1;
+
+-- name: AddNodeProject :exec
+INSERT INTO wiki_node_projects (node_id, project_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;
+
+-- name: ListNodeProjects :many
+SELECT project_id FROM wiki_node_projects WHERE node_id = $1 ORDER BY project_id;
+
+-- name: CreateTemplate :one
+INSERT INTO wiki_templates (workspace_id, name, description, icon, doc, created_by)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING *;
+
+-- name: ListTemplates :many
+SELECT * FROM wiki_templates WHERE workspace_id = $1 ORDER BY lower(name), id;
+
+-- name: GetTemplate :one
+SELECT * FROM wiki_templates WHERE id = $1;
+
+-- name: DeleteTemplate :execrows
+DELETE FROM wiki_templates WHERE id = $1 AND workspace_id = $2;
+
+-- name: CreateFile :one
+INSERT INTO wiki_files (workspace_id, node_id, name, content_type, size, storage_key, uploaded_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING *;
+
+-- name: GetFile :one
+SELECT * FROM wiki_files WHERE id = $1;
+
+-- name: CountNodeFiles :one
+SELECT count(*) FROM wiki_files WHERE node_id = $1;
+
+-- Pages published whose review period has run out, for reminders (W5) and the "needs review" flag.
+-- name: ListReviewDue :many
+SELECT * FROM wiki_nodes
+WHERE deleted_at IS NULL AND kind = 'page' AND status = 'published' AND review_days > 0
+  AND COALESCE(last_verified_at, created_at) + make_interval(days => review_days) < $1
+ORDER BY COALESCE(last_verified_at, created_at)
+LIMIT 500;
+
+-- name: TouchNode :exec
+UPDATE wiki_nodes SET updated_at = now() WHERE id = $1;

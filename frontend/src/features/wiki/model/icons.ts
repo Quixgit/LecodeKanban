@@ -1,11 +1,16 @@
 import {
   BookOpen,
+  Bookmark,
   Briefcase,
+  Calendar,
   ClipboardList,
   Code,
   Compass,
   Database,
+  FileText,
   FlaskConical,
+  Flag,
+  Folder,
   Globe,
   Handshake,
   Layers,
@@ -51,6 +56,11 @@ export const WIKI_ICONS = {
   'life-buoy': LifeBuoy,
   'clipboard-list': ClipboardList,
   briefcase: Briefcase,
+  'file-text': FileText,
+  folder: Folder,
+  bookmark: Bookmark,
+  calendar: Calendar,
+  flag: Flag,
 } as const satisfies Record<string, LucideIcon>;
 
 export type WikiIconKey = keyof typeof WIKI_ICONS;

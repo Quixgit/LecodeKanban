@@ -101,9 +101,86 @@ type Node struct {
 	DeletedAt     *time.Time
 	DeletedBy     *uuid.UUID
 	TrashRootID   *uuid.UUID
+
+	// Properties (pages).
+	Status         Status
+	Tags           []string
+	LastVerifiedAt *time.Time
+	// ReviewDays is how long a published page stays fresh; 0 switches the reminder off.
+	ReviewDays int
+	FullWidth  bool
 }
 
 func (n Node) Deleted() bool { return n.DeletedAt != nil }
+
+// ReviewDue reports whether a published page has gone unverified for longer than its review period.
+func (n Node) ReviewDue(now time.Time) bool {
+	if n.Kind != KindPage || n.Status != StatusPublished || n.ReviewDays <= 0 {
+		return false
+	}
+	since := n.CreatedAt
+	if n.LastVerifiedAt != nil {
+		since = *n.LastVerifiedAt
+	}
+	return since.AddDate(0, 0, n.ReviewDays).Before(now)
+}
+
+type Status string
+
+const (
+	StatusDraft     Status = "draft"
+	StatusPublished Status = "published"
+	StatusOutdated  Status = "outdated"
+)
+
+func (s Status) Valid() bool {
+	return s == StatusDraft || s == StatusPublished || s == StatusOutdated
+}
+
+const (
+	MaxTags         = 10
+	MaxTagLen       = 30
+	MaxReviewDays   = 730
+	MaxFilesPerPage = 100
+)
+
+// Content is a page's document with its optimistic-locking version.
+type Content struct {
+	NodeID    uuid.UUID
+	Doc       []byte
+	Plain     string
+	Version   int
+	UpdatedBy *uuid.UUID
+	UpdatedAt time.Time
+}
+
+// Template is a custom page layout of a workspace.
+type Template struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Name        string
+	Description string
+	Icon        string
+	Doc         []byte
+	CreatedBy   *uuid.UUID
+	CreatedAt   time.Time
+}
+
+// File is an upload embedded in a page; access follows the page.
+type File struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	NodeID      uuid.UUID
+	Name        string
+	ContentType string
+	Size        int64
+	StorageKey  string
+	UploadedBy  *uuid.UUID
+	CreatedAt   time.Time
+}
+
+// InlineImageTypes may be shown by the browser; every other upload downloads.
+var InlineImageTypes = map[string]bool{"image/png": true, "image/jpeg": true, "image/gif": true, "image/webp": true}
 
 // Permission is a direct grant on a space (NodeID nil) or a node.
 type Permission struct {
@@ -155,4 +232,6 @@ var (
 	ErrConfirmWiden = apperr.Define("wiki.confirm_widening", http.StatusConflict)
 	ErrNotTrashed   = apperr.Define("wiki.not_in_trash", http.StatusConflict)
 	ErrBadPlacement = apperr.Define("wiki.bad_placement", http.StatusUnprocessableEntity)
+	ErrNoFile       = apperr.Define("wiki.no_file", http.StatusBadRequest)
+	ErrTooManyFiles = apperr.Define("wiki.too_many_files", http.StatusUnprocessableEntity)
 )
