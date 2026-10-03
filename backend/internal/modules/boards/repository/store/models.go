@@ -190,6 +190,15 @@ type ChatStar struct {
 	CreatedAt time.Time
 }
 
+type ChatStatus struct {
+	UserID    uuid.UUID
+	Kind      string
+	Icon      *string
+	Text      string
+	Until     *time.Time
+	UpdatedAt time.Time
+}
+
 type ChecklistItem struct {
 	ID          uuid.UUID
 	CardID      uuid.UUID

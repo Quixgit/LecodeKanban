@@ -218,3 +218,37 @@ var (
 	ErrNoFile       = apperr.Define("chat.no_file", http.StatusBadRequest)
 	ErrTooManyFiles = apperr.Define("chat.too_many_files", http.StatusUnprocessableEntity)
 )
+
+// StatusKind says how reachable somebody is.
+type StatusKind string
+
+const (
+	StatusAvailable StatusKind = "available"
+	StatusBusy      StatusKind = "busy"
+	StatusDND       StatusKind = "dnd"
+	StatusAway      StatusKind = "away"
+)
+
+func (k StatusKind) Valid() bool {
+	return k == StatusAvailable || k == StatusBusy || k == StatusDND || k == StatusAway
+}
+
+// StatusIcons are the icon keys a status may carry (outline icons in the UI).
+var StatusIcons = []string{"calendar-clock", "headphones", "coffee", "utensils", "car", "house", "plane", "thermometer"}
+
+const (
+	MaxStatusText = 100
+	// MaxStatusSpan bounds how far in the future a status may end.
+	MaxStatusSpan = 30 * 24 * time.Hour
+)
+
+// Status is a person's chosen status.
+type Status struct {
+	UserID uuid.UUID
+	Kind   StatusKind
+	Icon   string
+	Text   string
+	Until  *time.Time
+}
+
+var ErrBadStatus = apperr.Define("chat.bad_status", http.StatusUnprocessableEntity)

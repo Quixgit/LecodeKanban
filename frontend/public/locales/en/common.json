@@ -77,7 +77,8 @@
     "settings": "Settings",
     "uiKit": "UI kit",
     "guest": "Guest",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "status": "Set a status"
   },
   "header": {
     "help": "Help & Center",

@@ -53,6 +53,8 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	})))
 	r.Get("/workspaces/{workspaceId}/chat/presence", httpx.H(h.online))
 	r.Post("/workspaces/{workspaceId}/chat/presence", httpx.H(h.heartbeat))
+	r.Put("/workspaces/{workspaceId}/chat/status", httpx.H(h.setStatus))
+	r.Delete("/workspaces/{workspaceId}/chat/status", httpx.H(h.clearStatus))
 	r.Post("/chat/channels/{channelId}/typing", httpx.H(h.typing))
 	r.Put("/chat/channels/{channelId}/star", httpx.H(h.star(true)))
 	r.Delete("/chat/channels/{channelId}/star", httpx.H(h.star(false)))
@@ -475,7 +477,54 @@ func (h *Handler) online(w http.ResponseWriter, r *http.Request) error {
 	if ids == nil {
 		ids = []uuid.UUID{}
 	}
-	httpx.WriteJSON(w, http.StatusOK, api.ChatPresence{Online: ids})
+	sts, err := h.svc.Statuses(r.Context(), userID(r), ws)
+	if err != nil {
+		return err
+	}
+	out := api.ChatPresence{Online: ids, Statuses: make([]api.ChatStatus, len(sts))}
+	for i, st := range sts {
+		out.Statuses[i] = api.ChatStatus{UserId: st.UserID, Kind: api.ChatStatusKind(st.Kind), Text: st.Text, Until: st.Until}
+		if st.Icon != "" {
+			icon := api.ChatStatusIcon(st.Icon)
+			out.Statuses[i].Icon = &icon
+		}
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
+	return nil
+}
+
+func (h *Handler) setStatus(w http.ResponseWriter, r *http.Request) error {
+	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	var in api.ChatStatusInput
+	if err := httpx.DecodeJSON(w, r, &in); err != nil {
+		return err
+	}
+	st := domain.Status{Kind: domain.StatusKind(in.Kind), Until: in.Until}
+	if in.Icon != nil {
+		st.Icon = string(*in.Icon)
+	}
+	if in.Text != nil {
+		st.Text = *in.Text
+	}
+	if err := h.svc.SetStatus(r.Context(), userID(r), ws, st); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
+	return nil
+}
+
+func (h *Handler) clearStatus(w http.ResponseWriter, r *http.Request) error {
+	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	if err := h.svc.ClearStatus(r.Context(), userID(r), ws); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
 	return nil
 }
 

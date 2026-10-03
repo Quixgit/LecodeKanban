@@ -84,6 +84,132 @@ func (e ChatEventKind) Valid() bool {
 	}
 }
 
+// Defines values for ChatStatusIcon.
+const (
+	ChatStatusIconCalendarClock ChatStatusIcon = "calendar-clock"
+	ChatStatusIconCar           ChatStatusIcon = "car"
+	ChatStatusIconCoffee        ChatStatusIcon = "coffee"
+	ChatStatusIconHeadphones    ChatStatusIcon = "headphones"
+	ChatStatusIconHouse         ChatStatusIcon = "house"
+	ChatStatusIconLessThannil   ChatStatusIcon = "<nil>"
+	ChatStatusIconPlane         ChatStatusIcon = "plane"
+	ChatStatusIconThermometer   ChatStatusIcon = "thermometer"
+	ChatStatusIconUtensils      ChatStatusIcon = "utensils"
+)
+
+// Valid indicates whether the value is a known member of the ChatStatusIcon enum.
+func (e ChatStatusIcon) Valid() bool {
+	switch e {
+	case ChatStatusIconCalendarClock:
+		return true
+	case ChatStatusIconCar:
+		return true
+	case ChatStatusIconCoffee:
+		return true
+	case ChatStatusIconHeadphones:
+		return true
+	case ChatStatusIconHouse:
+		return true
+	case ChatStatusIconLessThannil:
+		return true
+	case ChatStatusIconPlane:
+		return true
+	case ChatStatusIconThermometer:
+		return true
+	case ChatStatusIconUtensils:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChatStatusKind.
+const (
+	ChatStatusKindAvailable ChatStatusKind = "available"
+	ChatStatusKindAway      ChatStatusKind = "away"
+	ChatStatusKindBusy      ChatStatusKind = "busy"
+	ChatStatusKindDnd       ChatStatusKind = "dnd"
+)
+
+// Valid indicates whether the value is a known member of the ChatStatusKind enum.
+func (e ChatStatusKind) Valid() bool {
+	switch e {
+	case ChatStatusKindAvailable:
+		return true
+	case ChatStatusKindAway:
+		return true
+	case ChatStatusKindBusy:
+		return true
+	case ChatStatusKindDnd:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChatStatusInputIcon.
+const (
+	ChatStatusInputIconCalendarClock ChatStatusInputIcon = "calendar-clock"
+	ChatStatusInputIconCar           ChatStatusInputIcon = "car"
+	ChatStatusInputIconCoffee        ChatStatusInputIcon = "coffee"
+	ChatStatusInputIconHeadphones    ChatStatusInputIcon = "headphones"
+	ChatStatusInputIconHouse         ChatStatusInputIcon = "house"
+	ChatStatusInputIconLessThannil   ChatStatusInputIcon = "<nil>"
+	ChatStatusInputIconPlane         ChatStatusInputIcon = "plane"
+	ChatStatusInputIconThermometer   ChatStatusInputIcon = "thermometer"
+	ChatStatusInputIconUtensils      ChatStatusInputIcon = "utensils"
+)
+
+// Valid indicates whether the value is a known member of the ChatStatusInputIcon enum.
+func (e ChatStatusInputIcon) Valid() bool {
+	switch e {
+	case ChatStatusInputIconCalendarClock:
+		return true
+	case ChatStatusInputIconCar:
+		return true
+	case ChatStatusInputIconCoffee:
+		return true
+	case ChatStatusInputIconHeadphones:
+		return true
+	case ChatStatusInputIconHouse:
+		return true
+	case ChatStatusInputIconLessThannil:
+		return true
+	case ChatStatusInputIconPlane:
+		return true
+	case ChatStatusInputIconThermometer:
+		return true
+	case ChatStatusInputIconUtensils:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChatStatusInputKind.
+const (
+	ChatStatusInputKindAvailable ChatStatusInputKind = "available"
+	ChatStatusInputKindAway      ChatStatusInputKind = "away"
+	ChatStatusInputKindBusy      ChatStatusInputKind = "busy"
+	ChatStatusInputKindDnd       ChatStatusInputKind = "dnd"
+)
+
+// Valid indicates whether the value is a known member of the ChatStatusInputKind enum.
+func (e ChatStatusInputKind) Valid() bool {
+	switch e {
+	case ChatStatusInputKindAvailable:
+		return true
+	case ChatStatusInputKindAway:
+		return true
+	case ChatStatusInputKindBusy:
+		return true
+	case ChatStatusInputKindDnd:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for InviteRole.
 const (
 	InviteRoleAdmin  InviteRole = "admin"
@@ -1299,6 +1425,9 @@ type ChatMuteInput struct {
 // ChatPresence defines model for ChatPresence.
 type ChatPresence struct {
 	Online []openapi_types.UUID `json:"online"`
+
+	// Statuses Statuses in force
+	Statuses []ChatStatus `json:"statuses"`
 }
 
 // ChatReaction defines model for ChatReaction.
@@ -1308,6 +1437,37 @@ type ChatReaction struct {
 	Mine  bool                 `json:"mine"`
 	Users []openapi_types.UUID `json:"users"`
 }
+
+// ChatStatus defines model for ChatStatus.
+type ChatStatus struct {
+	Icon   *ChatStatusIcon    `json:"icon"`
+	Kind   ChatStatusKind     `json:"kind"`
+	Text   string             `json:"text"`
+	Until  *time.Time         `json:"until"`
+	UserId openapi_types.UUID `json:"userId"`
+}
+
+// ChatStatusIcon defines model for ChatStatus.Icon.
+type ChatStatusIcon string
+
+// ChatStatusKind defines model for ChatStatus.Kind.
+type ChatStatusKind string
+
+// ChatStatusInput defines model for ChatStatusInput.
+type ChatStatusInput struct {
+	Icon *ChatStatusInputIcon `json:"icon,omitempty"`
+	Kind ChatStatusInputKind  `json:"kind"`
+	Text *string              `json:"text,omitempty"`
+
+	// Until When the status ends; omit to keep it until changed
+	Until *time.Time `json:"until,omitempty"`
+}
+
+// ChatStatusInputIcon defines model for ChatStatusInput.Icon.
+type ChatStatusInputIcon string
+
+// ChatStatusInputKind defines model for ChatStatusInput.Kind.
+type ChatStatusInputKind string
 
 // ChecklistItem defines model for ChecklistItem.
 type ChecklistItem struct {
@@ -2518,6 +2678,9 @@ type CreateChatChannelJSONRequestBody = ChatChannelInput
 
 // OpenChatDirectJSONRequestBody defines body for OpenChatDirect for application/json ContentType.
 type OpenChatDirectJSONRequestBody = ChatDirectInput
+
+// SetChatStatusJSONRequestBody defines body for SetChatStatus for application/json ContentType.
+type SetChatStatusJSONRequestBody = ChatStatusInput
 
 // CreateInviteJSONRequestBody defines body for CreateInvite for application/json ContentType.
 type CreateInviteJSONRequestBody = CreateInviteRequest

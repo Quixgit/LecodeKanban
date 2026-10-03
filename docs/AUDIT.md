@@ -72,3 +72,13 @@ Facts about what was checked, with how. Update on every phase.
   "is typing…" between two users.
 - Not covered yet: virtual scrolling of very long histories, orphaned unsent uploads are not cleaned up,
   no link previews, no message scheduling or reminders.
+
+## Chat, third round (task feeds, statuses)
+
+- Go (`chat/service`): TestTaskFeeds (feed is read-only for people, project filter, card events become
+  structured messages, delete/comment events) and TestStatuses (presets, custom text and icon, expiry,
+  clear, invalid kind rejected).
+- Browser: creating a feed channel and seeing a card event land with the sidebar highlight; setting a
+  status that a second user sees, and do-not-disturb silencing sounds.
+- Not covered yet: the feed toggle lives only in the chat dialogs (not in the Tasks settings), feeds for
+  scoped project/card chats, bounce webhooks for Mailgun.

@@ -20,6 +20,7 @@ type Querier interface {
 	CreateChannel(ctx context.Context, arg CreateChannelParams) (ChatChannel, error)
 	CreateFile(ctx context.Context, arg CreateFileParams) (ChatFile, error)
 	DeleteMessage(ctx context.Context, id uuid.UUID) (ChatMessage, error)
+	DeleteStatus(ctx context.Context, userID uuid.UUID) error
 	GetChannel(ctx context.Context, id uuid.UUID) (ChatChannel, error)
 	GetChannelState(ctx context.Context, arg GetChannelStateParams) (GetChannelStateRow, error)
 	GetDMChannel(ctx context.Context, arg GetDMChannelParams) (ChatChannel, error)
@@ -44,6 +45,7 @@ type Querier interface {
 	ListReplyAuthors(ctx context.Context, ids []uuid.UUID) ([]ListReplyAuthorsRow, error)
 	ListSavedFlags(ctx context.Context, arg ListSavedFlagsParams) ([]uuid.UUID, error)
 	ListSavedMessages(ctx context.Context, arg ListSavedMessagesParams) ([]ChatMessage, error)
+	ListStatuses(ctx context.Context, workspaceID uuid.UUID) ([]ChatStatus, error)
 	MarkRead(ctx context.Context, arg MarkReadParams) error
 	OnlineMembers(ctx context.Context, workspaceID uuid.UUID) ([]uuid.UUID, error)
 	Pin(ctx context.Context, arg PinParams) error
@@ -62,6 +64,7 @@ type Querier interface {
 	Unstar(ctx context.Context, arg UnstarParams) error
 	UpdateChannel(ctx context.Context, arg UpdateChannelParams) (ChatChannel, error)
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) (ChatMessage, error)
+	UpsertStatus(ctx context.Context, arg UpsertStatusParams) error
 }
 
 var _ Querier = (*Queries)(nil)

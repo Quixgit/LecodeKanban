@@ -209,6 +209,8 @@ Base URL: `/api/v1`
 | GET | `/workspaces/{workspaceId}/chat/threads` | session |  | 200 | Threads the caller started or replied in, most recently active first |
 | GET | `/workspaces/{workspaceId}/chat/presence` | session |  | 200 |  |
 | POST | `/workspaces/{workspaceId}/chat/presence` | session |  | 204 | Tell the server the caller has the app open |
+| PUT | `/workspaces/{workspaceId}/chat/status` | session | ChatStatusInput | 204, 422 Error | Set the caller's status (availability, icon, short text, optional end) |
+| DELETE | `/workspaces/{workspaceId}/chat/status` | session |  | 204 |  |
 | POST | `/chat/channels/{channelId}/typing` | session |  | 204 | Tell the others in the channel the caller is writing (nothing is stored) |
 | PUT | `/chat/channels/{channelId}/star` | session |  | 204 |  |
 | DELETE | `/chat/channels/{channelId}/star` | session |  | 204 |  |
@@ -353,5 +355,7 @@ Base URL: `/api/v1`
 - **ChatFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string, `createdAt`: string
 - **ChatEvent** — `kind`: string, `projectId`: string, `projectKey`: string, `projectName`: string, `cardId`: string, `number`: integer, `title`: string, `from?`: string, `to?`: string, `column?`: string, `excerpt?`: string, `changes?`: array
 - **ChatHit** — `message`: ChatMessage, `channel`: ChatChannel
-- **ChatPresence** — `online`: array
+- **ChatPresence** — `online`: array, `statuses`: array
+- **ChatStatus** — `userId`: string, `kind`: string, `icon`: string \| null, `text`: string, `until`: string \| null
+- **ChatStatusInput** — `kind`: string, `icon?`: string \| null, `text?`: string, `until?`: string \| null
 - **ChatBodyInput** — `body`: string

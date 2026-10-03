@@ -5,13 +5,16 @@ import {
   Monitor,
   Moon,
   Settings,
+  Smile,
   Sun,
   UserRound,
 } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useLogout } from '@/features/auth';
-import { WorkspaceSwitcherItems } from '@/features/workspaces';
+import { useLogout, useSession } from '@/features/auth';
+import { PersonAvatar, StatusDialog, useStatuses } from '@/features/chat';
+import { useCurrentWorkspace, WorkspaceSwitcherItems } from '@/features/workspaces';
 import { useTheme, type ThemePreference } from '@/shared/theme';
 import {
   Avatar,
@@ -38,6 +41,11 @@ export function UserMenu({ viewer }: { viewer: Viewer }) {
   const navigate = useNavigate();
   const { preference, setPreference } = useTheme();
   const logout = useLogout();
+  const { workspace } = useCurrentWorkspace();
+  const { user } = useSession();
+  const statuses = useStatuses(workspace?.id);
+  const [statusOpen, setStatusOpen] = useState(false);
+  const mine = user ? statuses.get(user.id) : undefined;
 
   return (
     <Dropdown>
@@ -47,7 +55,7 @@ export function UserMenu({ viewer }: { viewer: Viewer }) {
           className="flex h-11 items-center gap-2.5 rounded-lg pl-1 pr-2 transition-colors duration-micro hover:bg-surface-muted"
           aria-label={t('userMenu.label')}
         >
-          <Avatar name={viewer.name} src={viewer.avatarUrl} size="md" />
+          <PersonAvatar name={viewer.name} src={viewer.avatarUrl} online status={mine} size="md" />
           <span className="hidden max-w-[160px] truncate text-md font-medium text-text lg:block">
             {viewer.name}
           </span>
@@ -64,6 +72,12 @@ export function UserMenu({ viewer }: { viewer: Viewer }) {
         </div>
         <WorkspaceSwitcherItems />
         <DropdownSeparator />
+        {workspace && (
+          <DropdownItem onSelect={() => setStatusOpen(true)}>
+            <Smile />
+            {t('userMenu.status')}
+          </DropdownItem>
+        )}
         <DropdownItem onSelect={() => navigate('/settings/profile')}>
           <UserRound />
           {t('userMenu.profile')}
@@ -103,6 +117,14 @@ export function UserMenu({ viewer }: { viewer: Viewer }) {
           {t('userMenu.signOut')}
         </DropdownItem>
       </DropdownContent>
+      {workspace && (
+        <StatusDialog
+          open={statusOpen}
+          onOpenChange={setStatusOpen}
+          workspaceId={workspace.id}
+          current={mine}
+        />
+      )}
     </Dropdown>
   );
 }

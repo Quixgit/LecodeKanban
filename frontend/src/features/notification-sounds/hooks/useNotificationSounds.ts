@@ -13,7 +13,7 @@ function counts(list: readonly ChatChannel[]): Map<string, ChannelCounts> {
   return new Map(
     list.map((c) => [
       c.id,
-      { unread: c.unread, mentions: c.mentions, muted: c.muted, joined: c.joined },
+      { unread: c.unread, mentions: c.mentions, muted: c.muted, joined: c.joined, feed: c.feed },
     ]),
   );
 }
@@ -36,6 +36,11 @@ export function useNotificationSounds(me: string | undefined, ws: string | undef
 
   useEffect(() => {
     if (!me || !ws) return;
+    // "Do not disturb" silences everything; the status comes from the cached presence data.
+    const isDnd = () =>
+      qc
+        .getQueryData<{ statuses: { userId: string; kind: string }[] }>(['chat', 'presence', ws])
+        ?.statuses.some((s) => s.userId === me && s.kind === 'dnd') ?? false;
     let queue: SoundKind[] = [];
     let timer: number | undefined;
     let lastPlayed = 0;
@@ -43,7 +48,7 @@ export function useNotificationSounds(me: string | undefined, ws: string | undef
       timer = undefined;
       const kind = strongest(queue);
       queue = [];
-      if (!kind || !soundAllowed(kind) || Date.now() - lastPlayed < MIN_GAP_MS) return;
+      if (!kind || !soundAllowed(kind) || isDnd() || Date.now() - lastPlayed < MIN_GAP_MS) return;
       lastPlayed = Date.now();
       playSound(kind, useSoundStore.getState().volume);
     };

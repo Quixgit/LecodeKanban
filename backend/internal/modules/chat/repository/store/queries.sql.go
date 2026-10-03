@@ -221,6 +221,15 @@ func (q *Queries) DeleteMessage(ctx context.Context, id uuid.UUID) (ChatMessage,
 	return i, err
 }
 
+const deleteStatus = `-- name: DeleteStatus :exec
+DELETE FROM chat_status WHERE user_id = $1
+`
+
+func (q *Queries) DeleteStatus(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteStatus, userID)
+	return err
+}
+
 const getChannel = `-- name: GetChannel :one
 SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id FROM chat_channels WHERE id = $1
 `
@@ -1142,6 +1151,39 @@ func (q *Queries) ListSavedMessages(ctx context.Context, arg ListSavedMessagesPa
 	return items, nil
 }
 
+const listStatuses = `-- name: ListStatuses :many
+SELECT s.user_id, s.kind, s.icon, s.text, s.until, s.updated_at FROM chat_status s
+JOIN workspace_members wm ON wm.user_id = s.user_id AND wm.workspace_id = $1
+WHERE s.until IS NULL OR s.until > now()
+`
+
+func (q *Queries) ListStatuses(ctx context.Context, workspaceID uuid.UUID) ([]ChatStatus, error) {
+	rows, err := q.db.Query(ctx, listStatuses, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ChatStatus{}
+	for rows.Next() {
+		var i ChatStatus
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Kind,
+			&i.Icon,
+			&i.Text,
+			&i.Until,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markRead = `-- name: MarkRead :exec
 UPDATE chat_members SET last_read_at = now() WHERE channel_id = $1 AND user_id = $2
 `
@@ -1517,4 +1559,30 @@ func (q *Queries) UpdateMessage(ctx context.Context, arg UpdateMessageParams) (C
 		&i.Event,
 	)
 	return i, err
+}
+
+const upsertStatus = `-- name: UpsertStatus :exec
+INSERT INTO chat_status (user_id, kind, icon, text, until, updated_at)
+VALUES ($1, $2, $3, $4, $5, now())
+ON CONFLICT (user_id) DO UPDATE
+SET kind = EXCLUDED.kind, icon = EXCLUDED.icon, text = EXCLUDED.text, until = EXCLUDED.until, updated_at = now()
+`
+
+type UpsertStatusParams struct {
+	UserID uuid.UUID
+	Kind   string
+	Icon   *string
+	Text   string
+	Until  *time.Time
+}
+
+func (q *Queries) UpsertStatus(ctx context.Context, arg UpsertStatusParams) error {
+	_, err := q.db.Exec(ctx, upsertStatus,
+		arg.UserID,
+		arg.Kind,
+		arg.Icon,
+		arg.Text,
+		arg.Until,
+	)
+	return err
 }

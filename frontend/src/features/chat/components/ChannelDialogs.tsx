@@ -1,10 +1,10 @@
-import { Check, Hash, Lock, Search, X } from 'lucide-react';
+import { Check, ClipboardList, Hash, Lock, Search, X } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Member } from '@/shared/api';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { cn } from '@/shared/lib/cn';
-import { Avatar, Button, Checkbox, Field, Input, Modal, Switch } from '@/shared/ui';
+import { Avatar, Button, Checkbox, Field, Input, Modal, Select, Switch } from '@/shared/ui';
 import type { ChatChannel } from '../api/chatApi';
 import { useChatMutations } from '../hooks/useChat';
 import { channelTitle, normalizeChannelName } from '../model/channels';
@@ -17,6 +17,7 @@ interface Common {
 
 interface CreateProps extends Common {
   members: readonly Member[];
+  projects: readonly FeedProject[];
   me: string;
   onCreated: (c: ChatChannel) => void;
 }
@@ -25,7 +26,15 @@ export function CreateChannelDialog(props: CreateProps) {
   return props.open ? <CreateForm {...props} /> : null;
 }
 
-function CreateForm({ open, onOpenChange, workspaceId, members, me, onCreated }: CreateProps) {
+function CreateForm({
+  open,
+  onOpenChange,
+  workspaceId,
+  members,
+  projects,
+  me,
+  onCreated,
+}: CreateProps) {
   const { t } = useTranslation('chat');
   const errorText = useErrorText();
   const m = useChatMutations(workspaceId);
@@ -33,6 +42,8 @@ function CreateForm({ open, onOpenChange, workspaceId, members, me, onCreated }:
   const [topic, setTopic] = useState('');
   const [isPrivate, setPrivate] = useState(false);
   const [invited, setInvited] = useState<string[]>([]);
+  const [feed, setFeed] = useState(false);
+  const [feedProject, setFeedProject] = useState('all');
   const [q, setQ] = useState('');
   const [error, setError] = useState<string | null>(null);
   const normalized = normalizeChannelName(name);
@@ -41,7 +52,14 @@ function CreateForm({ open, onOpenChange, workspaceId, members, me, onCreated }:
     e.preventDefault();
     if (!normalized) return;
     m.createChannel.mutate(
-      { name: normalized, topic: topic.trim(), private: isPrivate, memberIds: invited },
+      {
+        name: normalized,
+        topic: topic.trim(),
+        private: isPrivate,
+        memberIds: invited,
+        feed,
+        feedProjectId: feed && feedProject !== 'all' ? feedProject : null,
+      },
       {
         onSuccess: (c) => {
           onOpenChange(false);
@@ -101,6 +119,21 @@ function CreateForm({ open, onOpenChange, workspaceId, members, me, onCreated }:
             aria-label={t('create.private')}
           />
         </label>
+        <div className="rounded-lg border border-border-subtle p-3">
+          <label className="flex cursor-pointer items-start justify-between gap-4">
+            <span>
+              <span className="flex items-center gap-2 text-sm font-medium text-text">
+                <ClipboardList className="size-4 text-primary-ink" aria-hidden />
+                {t('feed.toggle')}
+              </span>
+              <span className="mt-0.5 block text-xs text-text-muted">{t('feed.toggleHint')}</span>
+            </span>
+            <Switch checked={feed} onCheckedChange={setFeed} aria-label={t('feed.toggle')} />
+          </label>
+          {feed && (
+            <FeedProjectSelect value={feedProject} onChange={setFeedProject} projects={projects} />
+          )}
+        </div>
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium text-text">
             {t('create.invite')}{' '}
@@ -403,5 +436,38 @@ export function BrowseChannelsDialog({
         )}
       </div>
     </Modal>
+  );
+}
+
+export interface FeedProject {
+  id: string;
+  key: string;
+  name: string;
+}
+
+/** Which project a task feed follows: all of them or one. */
+export function FeedProjectSelect({
+  value,
+  onChange,
+  projects,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  projects: readonly FeedProject[];
+}) {
+  const { t } = useTranslation('chat');
+  return (
+    <div className="mt-3">
+      <Select
+        label={t('feed.project')}
+        prefix={t('feed.projectPrefix')}
+        value={value}
+        onValueChange={onChange}
+        options={[
+          { value: 'all', label: t('feed.allProjects') },
+          ...projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+        ]}
+      />
+    </div>
   );
 }

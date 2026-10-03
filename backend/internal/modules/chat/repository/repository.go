@@ -562,3 +562,27 @@ func (r *Repo) InsertEvent(ctx context.Context, channel uuid.UUID, actor *uuid.U
 	}
 	return toMessage(row), nil
 }
+
+// --- status
+
+func (r *Repo) SetStatus(ctx context.Context, st domain.Status) error {
+	return r.q.UpsertStatus(ctx, store.UpsertStatusParams{UserID: st.UserID, Kind: string(st.Kind), Icon: optStr(st.Icon),
+		Text: st.Text, Until: st.Until})
+}
+
+func (r *Repo) ClearStatus(ctx context.Context, user uuid.UUID) error {
+	return r.q.DeleteStatus(ctx, user)
+}
+
+// Statuses lists the statuses in force for the members of a workspace.
+func (r *Repo) Statuses(ctx context.Context, ws uuid.UUID) ([]domain.Status, error) {
+	rows, err := r.q.ListStatuses(ctx, ws)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.Status, len(rows))
+	for i, s := range rows {
+		out[i] = domain.Status{UserID: s.UserID, Kind: domain.StatusKind(s.Kind), Icon: str(s.Icon), Text: s.Text, Until: s.Until}
+	}
+	return out, nil
+}

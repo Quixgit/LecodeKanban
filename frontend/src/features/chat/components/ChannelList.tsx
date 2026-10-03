@@ -1,6 +1,7 @@
 import {
   Bookmark,
   BellOff,
+  ClipboardList,
   ChevronDown,
   Hash,
   Lock,
@@ -21,14 +22,13 @@ import {
   DropdownItem,
   DropdownTrigger,
   IconButton,
-  Kbd,
   Skeleton,
   Tooltip,
 } from '@/shared/ui';
-import type { ChatChannel } from '../api/chatApi';
+import type { ChatChannel, ChatStatus } from '../api/chatApi';
 import { channelTitle, groupChannels } from '../model/channels';
 import { useChatUiStore } from '../store/chatUiStore';
-import { PersonAvatar } from './PresenceDot';
+import { PersonAvatar, StatusBadge } from './PresenceDot';
 import { SoundToggle } from './SoundToggle';
 
 interface Props {
@@ -42,11 +42,13 @@ interface Props {
   onNewMessage: () => void;
   onSearch: () => void;
   online: ReadonlySet<string>;
+  statuses: ReadonlyMap<string, ChatStatus>;
 }
 
 /** Left column: joined channels and direct messages, unread ones in bold with a count. */
 export function ChannelList({
   online,
+  statuses,
   onSearch,
   channels,
   loading,
@@ -76,7 +78,6 @@ export function ChannelList({
         >
           <Search className="size-4 shrink-0" aria-hidden />
           <span className="min-w-0 flex-1 truncate">{t('sidebar.filter')}</span>
-          <Kbd className="hidden xl:inline-flex">Ctrl⇧F</Kbd>
         </button>
         <Tooltip content={t('sidebar.newMessage')}>
           <IconButton
@@ -113,7 +114,14 @@ export function ChannelList({
                 onToggle={() => toggle('starred')}
               >
                 {starred.map((c) => (
-                  <Row key={c.id} c={c} me={me} active={c.id === activeId} online={online} />
+                  <Row
+                    key={c.id}
+                    c={c}
+                    me={me}
+                    active={c.id === activeId}
+                    online={online}
+                    statuses={statuses}
+                  />
                 ))}
               </Section>
             )}
@@ -149,7 +157,14 @@ export function ChannelList({
                 <li className="px-3 py-2 text-xs text-text-muted">{t('sidebar.noChannels')}</li>
               ) : (
                 joined.map((c) => (
-                  <Row key={c.id} c={c} me={me} active={c.id === activeId} online={online} />
+                  <Row
+                    key={c.id}
+                    c={c}
+                    me={me}
+                    active={c.id === activeId}
+                    online={online}
+                    statuses={statuses}
+                  />
                 ))
               )}
             </Section>
@@ -162,7 +177,14 @@ export function ChannelList({
                 <li className="px-3 py-2 text-xs text-text-muted">{t('sidebar.noDirect')}</li>
               ) : (
                 direct.map((c) => (
-                  <Row key={c.id} c={c} me={me} active={c.id === activeId} online={online} />
+                  <Row
+                    key={c.id}
+                    c={c}
+                    me={me}
+                    active={c.id === activeId}
+                    online={online}
+                    statuses={statuses}
+                  />
                 ))
               )}
             </Section>
@@ -216,11 +238,13 @@ function Row({
   me,
   active,
   online,
+  statuses,
 }: {
   c: ChatChannel;
   me: string;
   active: boolean;
   online: ReadonlySet<string>;
+  statuses: ReadonlyMap<string, ChatStatus>;
 }) {
   const { t } = useTranslation('chat');
   const title = channelTitle(c, me, t('list.you'));
@@ -236,11 +260,14 @@ function Row({
           active
             ? 'border border-primary-border bg-primary-subtle font-medium text-primary-ink'
             : 'border border-transparent text-text-secondary hover:bg-surface-muted hover:text-text',
-          unread && !active && 'font-semibold text-text',
+          // New activity: a soft tint and bold name, so the channel announces itself.
+          unread && !active && 'border-primary-border/70 bg-primary-subtle font-semibold text-text',
         )}
       >
         <span className="grid size-5 shrink-0 place-items-center text-text-muted [&_svg]:size-4 [&_svg]:stroke-[1.7]">
-          {c.kind === 'public' ? (
+          {c.feed ? (
+            <ClipboardList className={cn(unread && 'text-primary-ink')} aria-hidden />
+          ) : c.kind === 'public' ? (
             <Hash aria-hidden />
           ) : c.kind === 'private' ? (
             <Lock aria-hidden />
@@ -251,13 +278,21 @@ function Row({
               name={others[0]?.name ?? c.people[0]?.name ?? title}
               src={(others[0] ?? c.people[0])?.avatarUrl}
               online={online.has((others[0] ?? c.people[0])?.id ?? '')}
+              status={statuses.get((others[0] ?? c.people[0])?.id ?? '')}
               size="xs"
             />
           )}
         </span>
         <span className="min-w-0 flex-1 truncate">{title}</span>
+        {others.length === 1 && <StatusBadge status={statuses.get(others[0]!.id)} />}
         {c.muted && (
           <BellOff className="size-3.5 shrink-0 text-text-faint" aria-label={t('sidebar.muted')} />
+        )}
+        {unread && c.feed && (
+          <span className="relative flex size-2 shrink-0" aria-hidden>
+            <span className="absolute inline-flex size-full rounded-full bg-primary opacity-60 motion-safe:animate-ping" />
+            <span className="relative inline-flex size-2 rounded-full bg-primary" />
+          </span>
         )}
         {unread && (
           <span

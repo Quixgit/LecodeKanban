@@ -246,3 +246,17 @@ ON CONFLICT (user_id) DO UPDATE SET seen_at = now();
 SELECT p.user_id FROM chat_presence p
 JOIN workspace_members wm ON wm.user_id = p.user_id AND wm.workspace_id = $1
 WHERE p.seen_at > now() - interval '2 minutes';
+
+-- name: UpsertStatus :exec
+INSERT INTO chat_status (user_id, kind, icon, text, until, updated_at)
+VALUES ($1, $2, $3, $4, $5, now())
+ON CONFLICT (user_id) DO UPDATE
+SET kind = EXCLUDED.kind, icon = EXCLUDED.icon, text = EXCLUDED.text, until = EXCLUDED.until, updated_at = now();
+
+-- name: DeleteStatus :exec
+DELETE FROM chat_status WHERE user_id = $1;
+
+-- name: ListStatuses :many
+SELECT s.* FROM chat_status s
+JOIN workspace_members wm ON wm.user_id = s.user_id AND wm.workspace_id = $1
+WHERE s.until IS NULL OR s.until > now();

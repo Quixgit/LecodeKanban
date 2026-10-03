@@ -3,17 +3,24 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useMatch, useNavigate } from 'react-router-dom';
 import { useSession } from '@/features/auth';
+import { useAllProjects } from '@/features/projects';
 import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
 import { EmptyState } from '@/shared/ui';
 import type { Member } from '@/shared/api';
-import type { ChatChannel } from '../api/chatApi';
+import type { ChatChannel, ChatStatus } from '../api/chatApi';
 import { useChannels } from '../hooks/useChat';
-import { useOnline } from '../hooks/usePresence';
+import { useOnline, useStatuses } from '../hooks/usePresence';
+import { MyStatus } from './MyStatus';
 import { useChatUiStore } from '../store/chatUiStore';
 import { useTypingListener } from '../store/typingStore';
 import { SearchDialog } from './SearchDialog';
-import { BrowseChannelsDialog, CreateChannelDialog, NewMessageDialog } from './ChannelDialogs';
+import {
+  BrowseChannelsDialog,
+  CreateChannelDialog,
+  NewMessageDialog,
+  type FeedProject,
+} from './ChannelDialogs';
 import { ChannelList } from './ChannelList';
 
 export interface ChatOutletContext {
@@ -21,10 +28,12 @@ export interface ChatOutletContext {
   channels: readonly ChatChannel[];
   channelsLoading: boolean;
   members: readonly Member[];
+  projects: readonly FeedProject[];
   me: string;
   isAdmin: boolean;
   canWrite: boolean;
   online: ReadonlySet<string>;
+  statuses: ReadonlyMap<string, ChatStatus>;
   openBrowse: () => void;
   openCreate: () => void;
   openSearch: () => void;
@@ -39,12 +48,14 @@ export function ChatLayout() {
   const { user } = useSession();
   const channels = useChannels(ws);
   const members = useWorkspaceMembers(ws);
+  const projects = useAllProjects(ws);
   const desktop = useMediaQuery('(min-width: 1024px)');
   const match = useMatch('/chat/:channelId');
   const activeId = match?.params.channelId;
   const setLast = useChatUiStore((s) => s.setLastChannel);
   const [dialog, setDialog] = useState<'create' | 'browse' | 'direct' | 'search' | null>(null);
   const online = useOnline(ws);
+  const statuses = useStatuses(ws);
 
   const me = user?.id ?? '';
   useTypingListener(me);
@@ -75,10 +86,12 @@ export function ChatLayout() {
     channels: list,
     channelsLoading: channels.isPending,
     members: members.data ?? [],
+    projects: (projects.data?.items ?? []).map((p) => ({ id: p.id, key: p.key, name: p.name })),
     me,
     isAdmin,
     canWrite,
     online,
+    statuses,
     openBrowse: () => setDialog('browse'),
     openCreate: () => setDialog('create'),
     openSearch: () => setDialog('search'),
@@ -97,6 +110,7 @@ export function ChatLayout() {
           <div className="flex h-11 items-center gap-2 px-4 pt-1">
             <MessagesSquare className="size-4 stroke-[1.6] text-primary-ink" aria-hidden />
             <h2 className="text-md font-semibold text-text">{t('sidebar.title')}</h2>
+            <MyStatus workspaceId={workspace.id} className="ml-auto" />
           </div>
           <div className="min-h-0 flex-1">
             <ChannelList
@@ -108,6 +122,7 @@ export function ChatLayout() {
               onCreate={() => setDialog('create')}
               onBrowse={() => setDialog('browse')}
               online={online}
+              statuses={statuses}
               onSearch={() => setDialog('search')}
               onNewMessage={() => setDialog('direct')}
             />
@@ -134,6 +149,7 @@ export function ChatLayout() {
         onOpenChange={(o) => !o && setDialog(null)}
         workspaceId={workspace.id}
         members={context.members}
+        projects={context.projects}
         me={me}
         onCreated={open}
       />

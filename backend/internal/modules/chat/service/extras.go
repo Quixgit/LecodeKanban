@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -296,4 +297,58 @@ func (s *Service) Typing(ctx context.Context, user, channel uuid.UUID) error {
 		s.hints.Publish(ctx, realtime.Message{Type: "chat.typing", WorkspaceID: ch.WorkspaceID, ActorID: &user, ChannelID: &ch.ID})
 	}
 	return nil
+}
+
+// SetStatus sets the caller's status. A status without an end time stays until it is changed.
+func (s *Service) SetStatus(ctx context.Context, user, ws uuid.UUID, st domain.Status) error {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermView); err != nil {
+		return err
+	}
+	st.UserID = user
+	st.Text = strings.TrimSpace(st.Text)
+	if !st.Kind.Valid() || utf8.RuneCountInString(st.Text) > domain.MaxStatusText ||
+		(st.Icon != "" && !slices.Contains(domain.StatusIcons, st.Icon)) {
+		return apperr.New(domain.ErrBadStatus, "invalid status")
+	}
+	if st.Until != nil {
+		now := s.now()
+		if !st.Until.After(now) || st.Until.After(now.Add(domain.MaxStatusSpan)) {
+			return apperr.New(domain.ErrBadStatus, "the end time must be in the next 30 days")
+		}
+	}
+	// Plain "available" with nothing attached is the default: store nothing.
+	if st.Kind == domain.StatusAvailable && st.Icon == "" && st.Text == "" {
+		return s.ClearStatus(ctx, user, ws)
+	}
+	if err := s.repo.SetStatus(ctx, st); err != nil {
+		return err
+	}
+	s.hintWorkspace(ctx, "chat.status", ws, user)
+	return nil
+}
+
+// ClearStatus removes the caller's status.
+func (s *Service) ClearStatus(ctx context.Context, user, ws uuid.UUID) error {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermView); err != nil {
+		return err
+	}
+	if err := s.repo.ClearStatus(ctx, user); err != nil {
+		return err
+	}
+	s.hintWorkspace(ctx, "chat.status", ws, user)
+	return nil
+}
+
+// Statuses lists the statuses in force in the workspace.
+func (s *Service) Statuses(ctx context.Context, user, ws uuid.UUID) ([]domain.Status, error) {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermView); err != nil {
+		return nil, err
+	}
+	return s.repo.Statuses(ctx, ws)
+}
+
+func (s *Service) hintWorkspace(ctx context.Context, typ string, ws, actor uuid.UUID) {
+	if s.hints != nil {
+		s.hints.Publish(ctx, realtime.Message{Type: typ, WorkspaceID: ws, ActorID: &actor})
+	}
 }

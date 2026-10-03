@@ -158,6 +158,9 @@ func (s *Service) Edit(ctx context.Context, user, id uuid.UUID, body string) (Me
 	if m.Deleted() {
 		return MessageView{}, apperr.New(domain.ErrDeleted, "message was deleted")
 	}
+	if m.Event != nil {
+		return MessageView{}, apperr.New(domain.ErrForbidden, "task updates cannot be edited")
+	}
 	files, err := s.repo.FilesByMessages(ctx, []uuid.UUID{id})
 	if err != nil {
 		return MessageView{}, err

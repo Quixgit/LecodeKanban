@@ -721,3 +721,61 @@ func TestTaskFeeds(t *testing.T) {
 }
 
 func ptrUUID(id uuid.UUID) *uuid.UUID { return &id }
+
+func TestStatuses(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	soon := time.Now().Add(2 * time.Hour)
+	if err := c.SetStatus(ctx, w.anna, w.ws, domain.Status{Kind: domain.StatusBusy, Icon: "calendar-clock", Text: "  In a meeting  ", Until: &soon}); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.SetStatus(ctx, w.ben, w.ws, domain.Status{Kind: domain.StatusDND}); err != nil {
+		t.Fatal(err)
+	}
+	list, _ := c.Statuses(ctx, w.owner, w.ws)
+	if len(list) != 2 {
+		t.Fatalf("statuses = %+v", list)
+	}
+	for _, s := range list {
+		if s.UserID == w.anna && (s.Text != "In a meeting" || s.Icon != "calendar-clock" || s.Until == nil || s.Kind != domain.StatusBusy) {
+			t.Fatalf("anna: %+v", s)
+		}
+	}
+
+	past := time.Now().Add(-time.Minute)
+	far := time.Now().Add(90 * 24 * time.Hour)
+	for name, st := range map[string]domain.Status{
+		"kind":    {Kind: "sleeping"},
+		"icon":    {Kind: domain.StatusBusy, Icon: "skull"},
+		"text":    {Kind: domain.StatusBusy, Text: strings.Repeat("x", domain.MaxStatusText+1)},
+		"expired": {Kind: domain.StatusBusy, Until: &past},
+		"far":     {Kind: domain.StatusBusy, Until: &far},
+	} {
+		mustCode(t, c.SetStatus(ctx, w.ben, w.ws, st), domain.ErrBadStatus)
+		_ = name
+	}
+	if err := c.SetStatus(ctx, w.outsider, w.ws, domain.Status{Kind: domain.StatusBusy}); err == nil {
+		t.Fatal("outsiders cannot set a status")
+	}
+
+	// An ended status disappears by itself; plain "available" stores nothing; clearing works.
+	if _, err := tdb.Pool.Exec(ctx, `UPDATE chat_status SET until = now() - interval '1 minute' WHERE user_id = $1`, w.anna); err != nil {
+		t.Fatal(err)
+	}
+	if list, _ = c.Statuses(ctx, w.owner, w.ws); len(list) != 1 || list[0].UserID != w.ben {
+		t.Fatalf("expired status still shown: %+v", list)
+	}
+	if err := c.SetStatus(ctx, w.ben, w.ws, domain.Status{Kind: domain.StatusAvailable}); err != nil {
+		t.Fatal(err)
+	}
+	if list, _ = c.Statuses(ctx, w.owner, w.ws); len(list) != 0 {
+		t.Fatalf("available must clear the status: %+v", list)
+	}
+	_ = w.e.Hints.Types()
+	_ = c.SetStatus(ctx, w.anna, w.ws, domain.Status{Kind: domain.StatusAway})
+	_ = c.ClearStatus(ctx, w.anna, w.ws)
+	if got := strings.Join(w.e.Hints.Types(), ","); got != "chat.status,chat.status" {
+		t.Fatalf("hints = %q", got)
+	}
+}

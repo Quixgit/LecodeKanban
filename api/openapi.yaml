@@ -1684,6 +1684,25 @@ paths:
       summary: Tell the server the caller has the app open
       responses:
         "204": { description: Recorded }
+  /workspaces/{workspaceId}/chat/status:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    put:
+      tags: [chat]
+      operationId: setChatStatus
+      summary: Set the caller's status (availability, icon, short text, optional end)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatStatusInput" }
+      responses:
+        "204": { description: Saved }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [chat]
+      operationId: clearChatStatus
+      responses:
+        "204": { description: Cleared }
   /chat/channels/{channelId}/typing:
     parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
     post:
@@ -3010,9 +3029,27 @@ components:
         channel: { $ref: "#/components/schemas/ChatChannel" }
     ChatPresence:
       type: object
-      required: [online]
+      required: [online, statuses]
       properties:
         online: { type: array, items: { type: string, format: uuid } }
+        statuses: { type: array, items: { $ref: "#/components/schemas/ChatStatus" }, description: Statuses in force }
+    ChatStatus:
+      type: object
+      required: [userId, kind, icon, text, until]
+      properties:
+        userId: { type: string, format: uuid }
+        kind: { type: string, enum: [available, busy, dnd, away] }
+        icon: { type: string, nullable: true, enum: [calendar-clock, headphones, coffee, utensils, car, house, plane, thermometer, null] }
+        text: { type: string, maxLength: 100 }
+        until: { type: string, format: date-time, nullable: true }
+    ChatStatusInput:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [available, busy, dnd, away] }
+        icon: { type: string, nullable: true, enum: [calendar-clock, headphones, coffee, utensils, car, house, plane, thermometer, null] }
+        text: { type: string, maxLength: 100 }
+        until: { type: string, format: date-time, nullable: true, description: When the status ends; omit to keep it until changed }
     ChatBodyInput:
       type: object
       required: [body]

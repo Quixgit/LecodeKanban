@@ -45,3 +45,13 @@ message table (`plain` text search can follow the wiki's approach).
 - **Search** is a case-insensitive substring match over messages of conversations the caller can see
   (public channels and the caller's private channels and DMs), backed by a trigram index.
 - **Stars, saved and pins** are small join tables: stars and saved are per person, pins are per channel.
+
+## Addendum: task feeds, statuses, emoji reactions
+
+- A **feed** channel is an ordinary channel with `feed = true` and an optional `feed_project_id`. A
+  subscriber on the card and comment event bus writes one message per event with a structured `event`
+  payload; the UI renders it as a card. People cannot post (`chat.feed_readonly`); the module reads
+  card/comment events only through the event bus, never the other modules' tables.
+- **Statuses** live in `chat_status` (one row per user, optional `until`); they are returned with
+  presence and a `chat.status` hint refreshes clients. Do-not-disturb is honoured client-side by sounds.
+- **Reactions** accept an icon key or a single emoji grapheme (`IsEmoji`), stored as text.

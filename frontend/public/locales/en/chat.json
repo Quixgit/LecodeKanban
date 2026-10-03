@@ -91,7 +91,7 @@
   "sidebar": {
     "title": "Chat",
     "label": "Channels and direct messages",
-    "filter": "Search messages and conversations",
+    "filter": "Search",
     "newMessage": "New message",
     "channels": "Channels",
     "direct": "Direct messages",
@@ -181,7 +181,39 @@
   "feed": {
     "emptyTitle": "This is the start of {{name}}",
     "emptyDirect": "Send the first message to begin the conversation.",
-    "emptyChannel": "Say hello and set the tone for the channel."
+    "emptyChannel": "Say hello and set the tone for the channel.",
+    "badge": "Task feed",
+    "app": "Tasks",
+    "readonly": "Only task updates appear here. Reply in a thread to discuss one.",
+    "emptyFeedTitle": "No task updates yet",
+    "emptyFeedDescription": "New tasks, status changes, edits and comments will appear here as they happen.",
+    "toggle": "Task feed",
+    "detailsToggle": "Send task updates here",
+    "toggleHint": "Only task updates land in this channel: created, moved, edited, deleted and commented tasks.",
+    "project": "Project",
+    "projectPrefix": "Follow:",
+    "allProjects": "All projects",
+    "open": "Open task",
+    "cleared": "cleared",
+    "kind": {
+      "created": "New task",
+      "moved": "Moved",
+      "updated": "Updated",
+      "deleted": "Deleted",
+      "commented": "New comment"
+    },
+    "field": {
+      "title": "Title",
+      "priority": "Priority",
+      "dueDate": "Due date",
+      "assignees": "Assignee",
+      "labels": "Labels"
+    },
+    "priority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
   },
   "empty": {
     "title": "No channels yet",
@@ -295,6 +327,62 @@
       "7": "Objects",
       "8": "Symbols",
       "9": "Flags"
+    }
+  },
+  "status": {
+    "title": "Set a status",
+    "description": "Tell your team how reachable you are. Others see it next to your name.",
+    "suggestions": "Suggestions",
+    "text": "What’s your status?",
+    "textPlaceholder": "For example: In a meeting",
+    "icon": "Status icon",
+    "availability": "Availability",
+    "clearAfter": "Clear after",
+    "clearPrefix": "Clear after:",
+    "remove": "Clear status",
+    "save": "Save",
+    "set": "Set a status",
+    "setNamed": "Your status: {{status}}. Change it",
+    "kinds": {
+      "available": "Available",
+      "busy": "Busy",
+      "dnd": "Do not disturb",
+      "away": "Away",
+      "online": "Online"
+    },
+    "kindHints": {
+      "available": "Shown as online while you are in the app",
+      "busy": "Others see an amber dot",
+      "dnd": "No notification sounds for you",
+      "away": "A hollow dot: you are not at your desk"
+    },
+    "presets": {
+      "meeting": "In a meeting",
+      "focus": "Focusing",
+      "lunch": "Out for lunch",
+      "break": "Taking a break",
+      "commuting": "Commuting",
+      "remote": "Working remotely",
+      "sick": "Out sick",
+      "vacation": "On vacation"
+    },
+    "icons": {
+      "calendar-clock": "Meeting",
+      "headphones": "Focus",
+      "coffee": "Break",
+      "utensils": "Lunch",
+      "car": "Commuting",
+      "house": "Remote",
+      "plane": "Vacation",
+      "thermometer": "Sick"
+    },
+    "clear": {
+      "never": "Don’t clear",
+      "30m": "30 minutes",
+      "1h": "1 hour",
+      "4h": "4 hours",
+      "today": "Today",
+      "week": "This week"
     }
   }
 }

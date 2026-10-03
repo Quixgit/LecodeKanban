@@ -7,6 +7,9 @@ export type ChatChannelPatch = components['schemas']['ChatChannelPatch'];
 export type ChatMessage = components['schemas']['ChatMessage'];
 export type ChatMessagePage = components['schemas']['ChatMessagePage'];
 export type ChatReaction = components['schemas']['ChatReaction'];
+export type ChatStatus = components['schemas']['ChatStatus'];
+export type ChatStatusInput = components['schemas']['ChatStatusInput'];
+export type ChatEvent = components['schemas']['ChatEvent'];
 export type ChatFile = components['schemas']['ChatFile'];
 export type ChatHit = components['schemas']['ChatHit'];
 
@@ -90,6 +93,14 @@ export const chatApi = {
   heartbeat: (workspaceId: string) =>
     unwrap(
       api.POST('/workspaces/{workspaceId}/chat/presence', { params: { path: { workspaceId } } }),
+    ),
+  setStatus: (workspaceId: string, body: ChatStatusInput) =>
+    unwrap(
+      api.PUT('/workspaces/{workspaceId}/chat/status', { params: { path: { workspaceId } }, body }),
+    ),
+  clearStatus: (workspaceId: string) =>
+    unwrap(
+      api.DELETE('/workspaces/{workspaceId}/chat/status', { params: { path: { workspaceId } } }),
     ),
   typing: (id: string) => unwrap(api.POST('/chat/channels/{channelId}/typing', channel(id))),
   star: (id: string, on: boolean) =>

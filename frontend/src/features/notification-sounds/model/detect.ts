@@ -5,6 +5,8 @@ export interface ChannelCounts {
   mentions: number;
   muted: boolean;
   joined: boolean;
+  /** A task feed: new items ring the task sound instead of the message sound. */
+  feed?: boolean;
 }
 
 /**
@@ -22,7 +24,7 @@ export function detectChatSound(
     const p = prev.get(id);
     if (!p || !n.joined || n.muted || id === watching) continue;
     if (n.mentions > p.mentions) return 'mention';
-    if (n.unread > p.unread) sound = 'message';
+    if (n.unread > p.unread) sound = n.feed ? (sound ?? 'task') : 'message';
   }
   return sound;
 }

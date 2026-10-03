@@ -1688,6 +1688,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/chat/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the caller's status (availability, icon, short text, optional end) */
+        put: operations["setChatStatus"];
+        post?: never;
+        delete: operations["clearChatStatus"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/chat/channels/{channelId}/typing": {
         parameters: {
             query?: never;
@@ -3021,6 +3040,31 @@ export interface components {
         };
         ChatPresence: {
             online: string[];
+            /** @description Statuses in force */
+            statuses: components["schemas"]["ChatStatus"][];
+        };
+        ChatStatus: {
+            /** Format: uuid */
+            userId: string;
+            /** @enum {string} */
+            kind: "available" | "busy" | "dnd" | "away";
+            /** @enum {string|null} */
+            icon: "calendar-clock" | "headphones" | "coffee" | "utensils" | "car" | "house" | "plane" | "thermometer" | null;
+            text: string;
+            /** Format: date-time */
+            until: string | null;
+        };
+        ChatStatusInput: {
+            /** @enum {string} */
+            kind: "available" | "busy" | "dnd" | "away";
+            /** @enum {string|null} */
+            icon?: "calendar-clock" | "headphones" | "coffee" | "utensils" | "car" | "house" | "plane" | "thermometer" | null;
+            text?: string;
+            /**
+             * Format: date-time
+             * @description When the status ends; omit to keep it until changed
+             */
+            until?: string | null;
         };
         ChatBodyInput: {
             body: string;
@@ -6113,6 +6157,51 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Recorded */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    setChatStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatStatusInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    clearChatStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cleared */
             204: {
                 headers: {
                     [name: string]: unknown;
