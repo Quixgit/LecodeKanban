@@ -13,11 +13,12 @@ export function SearchTrigger() {
       type="button"
       onClick={open}
       aria-keyshortcuts="Meta+K Control+K"
-      className="hidden h-10 w-full max-w-[420px] items-center gap-2.5 rounded-lg border border-border bg-surface px-3 text-left text-base text-text-faint shadow-xs transition-[border-color] duration-micro hover:border-border-strong md:flex"
+      aria-label={t('search.placeholder')}
+      className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-left text-base text-text-faint shadow-xs transition-[border-color] duration-micro hover:border-border-strong md:flex 2xl:w-full 2xl:max-w-[420px] 2xl:justify-start 2xl:gap-2.5 2xl:px-3"
     >
       <Search className="size-[18px] stroke-[1.6] text-text-muted" aria-hidden />
-      <span className="flex-1 truncate">{t('search.placeholder')}</span>
-      <Kbd>{modKeyLabel} K</Kbd>
+      <span className="hidden flex-1 truncate 2xl:block">{t('search.placeholder')}</span>
+      <Kbd className="hidden 2xl:inline-flex">{modKeyLabel} K</Kbd>
     </button>
   );
 }

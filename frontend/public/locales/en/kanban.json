@@ -101,5 +101,8 @@
     "liveHint": "Changes from teammates appear instantly.",
     "connectingHint": "Connecting to live updates…",
     "offlineHint": "Live updates are off. Reconnecting…"
+  },
+  "toolbar": {
+    "more": "More options"
   }
 }

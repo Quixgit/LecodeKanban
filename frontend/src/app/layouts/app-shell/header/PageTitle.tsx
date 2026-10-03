@@ -37,9 +37,11 @@ export function PageTitle() {
         exit="exit"
         className="min-w-0"
       >
-        <h1 className="truncate text-md font-semibold text-text">{t(handle.titleKey, { name })}</h1>
+        <h1 className="truncate text-md font-semibold leading-5 text-text">
+          {t(handle.titleKey, { name })}
+        </h1>
         {handle.subtitleKey && (
-          <p className="hidden truncate text-sm text-text-secondary md:block">
+          <p className="line-clamp-2 hidden text-sm leading-4 text-text-secondary md:block">
             {t(handle.subtitleKey)}
           </p>
         )}
