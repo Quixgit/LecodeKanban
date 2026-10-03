@@ -397,6 +397,51 @@ func (q *Queries) GetCard(ctx context.Context, id uuid.UUID) (Card, error) {
 	return i, err
 }
 
+const getCardByKey = `-- name: GetCardByKey :one
+SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.number, c.title, c.description, c.status, c.priority, c.progress, c.due_date, c.position, c.version, c.created_by, c.completed_at, c.created_at, c.updated_at, c.archived_at, c.checklist_total, c.checklist_done, c.comment_count, c.attachment_count, c.parent_id, c.subtask_total, c.subtask_done FROM cards c JOIN projects p ON p.id = c.project_id
+WHERE c.workspace_id = $1 AND upper(p.key) = upper($2) AND c.number = $3
+`
+
+type GetCardByKeyParams struct {
+	WorkspaceID uuid.UUID
+	Upper       interface{}
+	Number      int32
+}
+
+func (q *Queries) GetCardByKey(ctx context.Context, arg GetCardByKeyParams) (Card, error) {
+	row := q.db.QueryRow(ctx, getCardByKey, arg.WorkspaceID, arg.Upper, arg.Number)
+	var i Card
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.ProjectID,
+		&i.BoardID,
+		&i.ColumnID,
+		&i.Number,
+		&i.Title,
+		&i.Description,
+		&i.Status,
+		&i.Priority,
+		&i.Progress,
+		&i.DueDate,
+		&i.Position,
+		&i.Version,
+		&i.CreatedBy,
+		&i.CompletedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+		&i.ChecklistTotal,
+		&i.ChecklistDone,
+		&i.CommentCount,
+		&i.AttachmentCount,
+		&i.ParentID,
+		&i.SubtaskTotal,
+		&i.SubtaskDone,
+	)
+	return i, err
+}
+
 const getChecklistItem = `-- name: GetChecklistItem :one
 SELECT id, card_id, text, done, position, created_at, completed_at FROM checklist_items WHERE id = $1
 `

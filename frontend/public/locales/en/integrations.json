@@ -95,5 +95,67 @@
     "tagline": "See your next meeting in the sidebar and get a reminder before it starts."
   },
   "cancel": "Cancel",
-  "disconnectConfirm": "Yes, disconnect"
+  "disconnectConfirm": "Yes, disconnect",
+  "github": {
+    "name": "GitHub",
+    "tagline": "Link projects to repositories: pull requests and issues show up on tasks, merges move them, and both sides follow each other.",
+    "account": "Connected as @{{login}}",
+    "adminOnly": "Only owners and administrators can connect or change GitHub.",
+    "steps": [
+      "On GitHub open Settings → Developer settings → Personal access tokens and create a token.",
+      "Give it the scopes repo and admin:repo_hook (a fine-grained token also works: read & write for Issues, Pull requests and Webhooks, plus read for Contents and Metadata, on the repositories you will link).",
+      "Paste the token below and press Connect. It is checked, then stored encrypted.",
+      "Link each project to its repository. The webhook is created for you; it must reach this server, so LK_PUBLIC_URL has to be the public address.",
+      "Mention a task key such as PLT-12 in a pull request title, branch name or description to link it to the task."
+    ],
+    "token": "Access token",
+    "tokenHint": "Needs the repo and admin:repo_hook scopes. It is stored encrypted and never shown again.",
+    "connect": "Connect GitHub",
+    "connected": "GitHub connected",
+    "activeHint": "Switch off to pause all syncing without disconnecting.",
+    "activeAria": "GitHub active",
+    "reposTitle": "Repositories",
+    "noRepos": "No repository is linked yet. Link one below to start.",
+    "linkTitle": "Link a project to a repository",
+    "chooseProject": "Project",
+    "chooseRepo": "Repository",
+    "project": "Project",
+    "repo": "Repository",
+    "link": "Link",
+    "linked": "Repository linked",
+    "allLinked": "Every project already has a repository.",
+    "unlink": "Unlink {{repo}}",
+    "unlinkShort": "Unlink",
+    "rulesTitle": "Rules",
+    "rules": {
+      "prOpenedToReview": "Opened pull request → In review",
+      "prOpenedToReviewHint": "A pull request that mentions a task moves it to In review (never backwards from Done).",
+      "prMergedToDone": "Merged pull request → Done",
+      "prMergedToDoneHint": "Merging finishes the tasks it mentions.",
+      "syncIssues": "Sync issues with tasks",
+      "syncIssuesHint": "A new issue becomes a task; closing it finishes the task; moving a task to Done closes its issue, and back out of Done reopens it.",
+      "commentOnPr": "Comment when a task moves",
+      "commentOnPrHint": "Moving a task adds a comment with a link on its open pull requests."
+    },
+    "webhook": "Webhook address",
+    "webhookHint": "Created on each linked repository automatically. It must be reachable from the internet.",
+    "howItWorks": "Changes made by these rules appear as made by the person who connected GitHub. Task keys are matched in pull request titles, branch names and descriptions.",
+    "disconnectTitle": "Disconnect GitHub?",
+    "disconnectBody": "The webhooks are removed, and the token, linked repositories and task links are deleted. Nothing changes on GitHub.",
+    "state": {
+      "open": "Open",
+      "draft": "Draft",
+      "merged": "Merged",
+      "closed": "Closed"
+    },
+    "card": {
+      "title": "GitHub",
+      "empty": "Nothing linked yet. Mention this task's key in a pull request title or branch name in {{repo}}.",
+      "copyBranch": "Copy the suggested branch name",
+      "createIssue": "Create GitHub issue",
+      "issueCreated": "GitHub issue created"
+    },
+    "showToken": "Show the token",
+    "hideToken": "Hide the token"
+  }
 }

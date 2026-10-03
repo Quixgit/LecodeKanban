@@ -220,3 +220,7 @@ FROM cards WHERE workspace_id = @workspace_id AND archived_at IS NULL;
 
 -- name: RelocateArchivedCards :exec
 UPDATE cards SET column_id = @to_column WHERE column_id = @from_column AND archived_at IS NOT NULL;
+
+-- name: GetCardByKey :one
+SELECT c.* FROM cards c JOIN projects p ON p.id = c.project_id
+WHERE c.workspace_id = $1 AND upper(p.key) = upper($2) AND c.number = $3;

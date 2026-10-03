@@ -3,22 +3,24 @@ import type { ChatChannel } from '../api/chatApi';
 import { channelTitle, groupChannels, normalizeChannelName } from './channels';
 
 const p = (id: string, name: string) => ({ id, name, avatarUrl: null });
-const ch = (over: Partial<ChatChannel>): ChatChannel => ({
-  id: 'x',
-  workspaceId: 'w',
-  kind: 'public',
-  name: 'general',
-  topic: '',
-  joined: true,
-  muted: false,
-  starred: false,
-  unread: 0,
-  mentions: 0,
-  memberCount: 1,
-  lastMessageAt: null,
-  people: [],
-  ...over,
-});
+const ch = (over: Partial<ChatChannel>): ChatChannel =>
+  ({
+    id: 'x',
+    workspaceId: 'w',
+    kind: 'public',
+    name: 'general',
+    topic: '',
+    joined: true,
+    muted: false,
+    starred: false,
+    unread: 0,
+    mentions: 0,
+    memberCount: 1,
+    lastMessageAt: null,
+    people: [],
+    feedEvents: [],
+    ...over,
+  }) as ChatChannel;
 
 describe('channelTitle', () => {
   it('uses the channel name, or the other people of a conversation', () => {

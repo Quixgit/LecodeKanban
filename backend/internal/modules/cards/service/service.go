@@ -256,6 +256,24 @@ func (s *Service) Brief(ctx context.Context, id uuid.UUID) (domain.Ref, error) {
 	return domain.Ref{ID: c.ID, WorkspaceID: c.WorkspaceID, ProjectID: c.ProjectID, Number: c.Number, Title: c.Title}, nil
 }
 
+// FindByKey finds a card by project key and number for event consumers (GitHub), without an access check.
+func (s *Service) FindByKey(ctx context.Context, ws uuid.UUID, key string, number int) (domain.Ref, error) {
+	c, err := s.repo.ByKey(ctx, ws, key, number)
+	if err != nil {
+		return domain.Ref{}, err
+	}
+	return domain.Ref{ID: c.ID, WorkspaceID: c.WorkspaceID, ProjectID: c.ProjectID, Number: c.Number, Title: c.Title}, nil
+}
+
+// Snapshot returns a card as it is now for event consumers (GitHub), without an access check.
+func (s *Service) Snapshot(ctx context.Context, id uuid.UUID) (View, error) {
+	c, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return View{}, err
+	}
+	return s.presentOne(ctx, c)
+}
+
 // SetCommentCount / SetAttachmentCount store counters owned by other modules (event-driven).
 func (s *Service) SetCommentCount(ctx context.Context, card uuid.UUID, n int) error {
 	return s.repo.SetCommentCount(ctx, card, n)

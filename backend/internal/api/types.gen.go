@@ -318,6 +318,48 @@ func (e ChatStatusInputKind) Valid() bool {
 	}
 }
 
+// Defines values for GithubLinkKind.
+const (
+	Issue GithubLinkKind = "issue"
+	Pr    GithubLinkKind = "pr"
+)
+
+// Valid indicates whether the value is a known member of the GithubLinkKind enum.
+func (e GithubLinkKind) Valid() bool {
+	switch e {
+	case Issue:
+		return true
+	case Pr:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GithubLinkState.
+const (
+	GithubLinkStateClosed GithubLinkState = "closed"
+	GithubLinkStateDraft  GithubLinkState = "draft"
+	GithubLinkStateMerged GithubLinkState = "merged"
+	GithubLinkStateOpen   GithubLinkState = "open"
+)
+
+// Valid indicates whether the value is a known member of the GithubLinkState enum.
+func (e GithubLinkState) Valid() bool {
+	switch e {
+	case GithubLinkStateClosed:
+		return true
+	case GithubLinkStateDraft:
+		return true
+	case GithubLinkStateMerged:
+		return true
+	case GithubLinkStateOpen:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for IntegrationEntryProvider.
 const (
 	IntegrationEntryProviderGoogleCalendar IntegrationEntryProvider = "google_calendar"
@@ -797,19 +839,19 @@ func (e WikiRole) Valid() bool {
 
 // Defines values for WikiStatus.
 const (
-	Draft     WikiStatus = "draft"
-	Outdated  WikiStatus = "outdated"
-	Published WikiStatus = "published"
+	WikiStatusDraft     WikiStatus = "draft"
+	WikiStatusOutdated  WikiStatus = "outdated"
+	WikiStatusPublished WikiStatus = "published"
 )
 
 // Valid indicates whether the value is a known member of the WikiStatus enum.
 func (e WikiStatus) Valid() bool {
 	switch e {
-	case Draft:
+	case WikiStatusDraft:
 		return true
-	case Outdated:
+	case WikiStatusOutdated:
 		return true
-	case Published:
+	case WikiStatusPublished:
 		return true
 	default:
 		return false
@@ -1831,6 +1873,100 @@ type FieldError struct {
 	Code   string                  `json:"code"`
 	Field  string                  `json:"field"`
 	Params *map[string]interface{} `json:"params,omitempty"`
+}
+
+// GithubLink defines model for GithubLink.
+type GithubLink struct {
+	Author string             `json:"author"`
+	Id     openapi_types.UUID `json:"id"`
+	Kind   GithubLinkKind     `json:"kind"`
+	Number int                `json:"number"`
+	Repo   string             `json:"repo"`
+	State  GithubLinkState    `json:"state"`
+	Title  string             `json:"title"`
+	Url    string             `json:"url"`
+}
+
+// GithubLinkKind defines model for GithubLink.Kind.
+type GithubLinkKind string
+
+// GithubLinkState defines model for GithubLink.State.
+type GithubLinkState string
+
+// GithubPanel defines model for GithubPanel.
+type GithubPanel struct {
+	// Active GitHub is connected and the card's project has a repository
+	Active bool `json:"active"`
+
+	// Branch A suggested branch name
+	Branch         string       `json:"branch"`
+	CanCreateIssue bool         `json:"canCreateIssue"`
+	Links          []GithubLink `json:"links"`
+	Repo           string       `json:"repo"`
+}
+
+// GithubPatch defines model for GithubPatch.
+type GithubPatch struct {
+	CommentOnPr      *bool `json:"commentOnPr,omitempty"`
+	Enabled          *bool `json:"enabled,omitempty"`
+	PrMergedToDone   *bool `json:"prMergedToDone,omitempty"`
+	PrOpenedToReview *bool `json:"prOpenedToReview,omitempty"`
+	SyncIssues       *bool `json:"syncIssues,omitempty"`
+}
+
+// GithubRepo defines model for GithubRepo.
+type GithubRepo struct {
+	FullName  string             `json:"fullName"`
+	Id        openapi_types.UUID `json:"id"`
+	ProjectId openapi_types.UUID `json:"projectId"`
+}
+
+// GithubRepoInput defines model for GithubRepoInput.
+type GithubRepoInput struct {
+	ProjectId openapi_types.UUID `json:"projectId"`
+
+	// Repo owner/name
+	Repo string `json:"repo"`
+}
+
+// GithubRepoNames defines model for GithubRepoNames.
+type GithubRepoNames struct {
+	Items []string `json:"items"`
+}
+
+// GithubRules defines model for GithubRules.
+type GithubRules struct {
+	// CommentOnPr Moving a task comments on its pull requests
+	CommentOnPr bool `json:"commentOnPr"`
+
+	// PrMergedToDone A merged pull request moves its tasks to Done
+	PrMergedToDone bool `json:"prMergedToDone"`
+
+	// PrOpenedToReview An opened pull request moves its tasks to In review
+	PrOpenedToReview bool `json:"prOpenedToReview"`
+
+	// SyncIssues Issues and tasks follow each other
+	SyncIssues bool `json:"syncIssues"`
+}
+
+// GithubSummary defines model for GithubSummary.
+type GithubSummary struct {
+	Account string `json:"account"`
+
+	// CanManage The caller is an owner or administrator
+	CanManage bool         `json:"canManage"`
+	Connected bool         `json:"connected"`
+	Enabled   bool         `json:"enabled"`
+	Repos     []GithubRepo `json:"repos"`
+	Rules     GithubRules  `json:"rules"`
+
+	// WebhookUrl Where GitHub delivers events; it must be reachable from the internet
+	WebhookUrl string `json:"webhookUrl"`
+}
+
+// GithubTokenInput defines model for GithubTokenInput.
+type GithubTokenInput struct {
+	Token string `json:"token"`
 }
 
 // IntegrationConnect defines model for IntegrationConnect.
@@ -3072,6 +3208,15 @@ type OpenChatDirectJSONRequestBody = ChatDirectInput
 
 // SetChatStatusJSONRequestBody defines body for SetChatStatus for application/json ContentType.
 type SetChatStatusJSONRequestBody = ChatStatusInput
+
+// UpdateGithubJSONRequestBody defines body for UpdateGithub for application/json ContentType.
+type UpdateGithubJSONRequestBody = GithubPatch
+
+// LinkGithubRepoJSONRequestBody defines body for LinkGithubRepo for application/json ContentType.
+type LinkGithubRepoJSONRequestBody = GithubRepoInput
+
+// ConnectGithubJSONRequestBody defines body for ConnectGithub for application/json ContentType.
+type ConnectGithubJSONRequestBody = GithubTokenInput
 
 // UpdateIntegrationJSONRequestBody defines body for UpdateIntegration for application/json ContentType.
 type UpdateIntegrationJSONRequestBody = IntegrationPatch

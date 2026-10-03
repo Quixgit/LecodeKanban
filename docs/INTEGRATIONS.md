@@ -31,3 +31,41 @@ One-time server setup (administrator):
 Optional: `LK_INTEGRATIONS_TICK` (default `30s`) is how often meetings are re-synced and reminders checked.
 
 Design notes: ADR 0019.
+
+## GitHub
+
+Connected once per workspace by an owner or administrator, with an access token. Projects are linked to
+repositories; pull requests and issues that mention task keys appear on the tasks, and the two sides
+follow each other.
+
+Setup (administrator):
+
+1. On GitHub create a personal access token: classic with scopes `repo` and `admin:repo_hook`, or
+   fine-grained with read & write for *Issues*, *Pull requests* and *Webhooks* and read for *Contents* and
+   *Metadata*, on the repositories you will link.
+2. Integrations → GitHub → **Connect**, paste the token. It is checked against GitHub and stored
+   encrypted (AES-GCM, with `LK_ENCRYPTION_KEY`).
+3. Link each project to its repository. A webhook is registered on the repository automatically; it
+   delivers to `<LK_PUBLIC_URL>/api/v1/integrations/github/webhook`, so `LK_PUBLIC_URL` must be the
+   address GitHub can reach (not `localhost`). Deliveries are verified with an HMAC secret.
+
+What happens:
+
+| On GitHub | In LecodeKanban |
+| --- | --- |
+| Pull request opened / ready for review that mentions `PLT-12` in its title, branch name or body | the task links the PR and moves to **In review** (never backwards from Done) |
+| Pull request merged | the task moves to **Done** |
+| Issue opened | a new task in the linked project (unless it was created from a task) |
+| Issue closed / reopened | the task moves to **Done** / back to **To Do** |
+
+| In LecodeKanban | On GitHub |
+| --- | --- |
+| Task moved to **Done** / out of Done | its linked issue is closed / reopened |
+| Task moved | a comment with a link on its open pull requests |
+| **Create GitHub issue** on a task | an issue in the project's repository, linked both ways |
+
+Each rule is a switch in Settings. Changes made by the rules show up as made by the person who connected
+GitHub. The task window also suggests a branch name (`plt-12-short-title`) to copy.
+
+Not covered: several repositories per project, GitHub Enterprise on another host (set `LK_GITHUB_API_URL`),
+syncing comments or labels, GitHub Apps / OAuth instead of a token.

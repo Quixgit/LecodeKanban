@@ -29,6 +29,7 @@ export function useAnnouncement(): Announcement | null {
   if (!google.connected) {
     return {
       kind: 'connect',
+      heading: '',
       title: t('card.connectTitle'),
       message: t('card.connectBody'),
       url: '/integrations',
