@@ -20,7 +20,7 @@ export const buttonVariants = cva(
         ghost:
           'text-text-secondary hover:bg-surface-sunken hover:text-text disabled:text-text-faint',
         danger:
-          'bg-danger text-white hover:bg-danger/90 disabled:bg-surface-sunken disabled:text-text-faint',
+          'bg-danger-ink text-white hover:bg-danger-ink/90 disabled:bg-surface-sunken disabled:text-text-faint',
       },
       size: {
         sm: 'h-control-sm rounded-md px-3 text-sm',
