@@ -15,6 +15,19 @@ const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage'));
 const CalendarPage = lazy(() => import('@/pages/CalendarPage'));
 const TasksPage = lazy(() => import('@/pages/TasksPage'));
+const DocsPage = lazy(() => import('@/pages/DocsPage'));
+const DocsHomeRoute = lazy(() =>
+  import('@/pages/docs/DocsRoutes').then((m) => ({ default: m.DocsHomeRoute })),
+);
+const DocsSpaceRoute = lazy(() =>
+  import('@/pages/docs/DocsRoutes').then((m) => ({ default: m.DocsSpaceRoute })),
+);
+const DocsPageRoute = lazy(() =>
+  import('@/pages/docs/DocsRoutes').then((m) => ({ default: m.DocsPageRoute })),
+);
+const DocsTrashRoute = lazy(() =>
+  import('@/pages/docs/DocsRoutes').then((m) => ({ default: m.DocsTrashRoute })),
+);
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
@@ -67,6 +80,17 @@ export const routes: RouteObject[] = [
           { path: 'calendar', handle: page('calendar'), element: <CalendarPage /> },
           { path: 'tasks', handle: page('tasks'), element: <TasksPage /> },
           { path: 'tasks/:status', handle: page('tasks'), element: <TasksPage /> },
+          {
+            path: 'docs',
+            handle: page('docs'),
+            element: <DocsPage />,
+            children: [
+              { index: true, element: <DocsHomeRoute /> },
+              { path: 's/:spaceId', element: <DocsSpaceRoute /> },
+              { path: 'p/:nodeId', element: <DocsPageRoute /> },
+              { path: 'trash', element: <DocsTrashRoute /> },
+            ],
+          },
           upcoming('performance', 'performance'),
           upcoming('help', 'help'),
           { path: 'team', handle: page('team'), element: <TeamPage /> },

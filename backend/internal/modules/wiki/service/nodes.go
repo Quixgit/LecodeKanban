@@ -237,7 +237,7 @@ func (s *Service) UpdateNode(ctx context.Context, user, id uuid.UUID, p NodePatc
 		cover = *p.Cover
 	}
 	var v validation.V
-	v.Length("icon", icon, 0, 40)
+	v.IconKey("icon", icon)
 	v.Length("cover", cover, 0, 200)
 	if err := v.Err(); err != nil {
 		return NodeView{}, err

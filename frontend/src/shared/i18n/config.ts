@@ -16,6 +16,7 @@ export const NAMESPACES = [
   'time',
   'calendar',
   'dashboard',
+  'wiki',
   'showcase',
 ] as const;
 export type Namespace = (typeof NAMESPACES)[number];

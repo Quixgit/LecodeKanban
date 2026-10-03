@@ -22,6 +22,9 @@ import { useViewer } from './useViewer';
 export function AppShell() {
   const { t } = useTranslation();
   const location = useLocation();
+  // Docs keeps one mounted shell (tree panel, scroll, rename state) across its pages; each page
+  // animates itself.
+  const transitionKey = location.pathname.startsWith('/docs') ? '/docs' : location.pathname;
   const commands = useShellCommands();
   const viewer = useViewer();
   const { user } = useSession();
@@ -46,7 +49,7 @@ export function AppShell() {
           <VerificationBanner />
           {/* Enter-only: an exit phase around lazy routes can stall and leave a blank, inert page. */}
           <motion.div
-            key={location.pathname}
+            key={transitionKey}
             variants={pageTransition}
             initial="hidden"
             animate="visible"

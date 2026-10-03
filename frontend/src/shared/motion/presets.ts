@@ -82,3 +82,10 @@ export const collapse: Variants = {
   collapsed: { height: 0, opacity: 0, transition: transition.ui },
   expanded: { height: 'auto', opacity: 1, transition: transition.ui },
 };
+
+/** List entries fade + slide in; removed ones collapse their height (trash rows, tree children). */
+export const itemPresence: Variants = {
+  hidden: { opacity: 0, y: -8 },
+  visible: { opacity: 1, y: 0, height: 'auto', transition: transition.ui },
+  exit: { opacity: 0, height: 0, marginBottom: 0, transition: transition.ui },
+};

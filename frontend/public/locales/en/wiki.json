@@ -1,0 +1,204 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "retry": "Try again"
+  },
+  "panel": {
+    "title": "Docs",
+    "label": "Docs navigation",
+    "collapse": "Collapse panel",
+    "expand": "Show page tree",
+    "resize": "Resize the page tree",
+    "pages": "Pages"
+  },
+  "spaces": {
+    "label": "Spaces",
+    "create": "New space"
+  },
+  "sections": {
+    "favorites": "Favorites",
+    "recent": "Recent",
+    "shared": "Shared with me",
+    "mine": "My private pages",
+    "more": "Show {{count}} more",
+    "less": "Show less"
+  },
+  "tree": {
+    "label": "Pages in {{space}}",
+    "empty": "Nothing here yet.",
+    "expand": "Expand {{title}}",
+    "collapse": "Collapse {{title}}",
+    "newPage": "New page",
+    "newFolder": "New folder",
+    "untitledPage": "Untitled page",
+    "untitledFolder": "New folder",
+    "newChild": "Add a page inside {{title}}",
+    "menu": "Actions for {{title}}",
+    "renameLabel": "Page name",
+    "favorite": "Favorite",
+    "deleteTitle": "Move “{{title}}” to the trash?",
+    "deleteDescription": "The page and everything inside it can be restored from the trash for 30 days.",
+    "deleted": "“{{title}}” moved to the trash"
+  },
+  "menu": {
+    "rename": "Rename",
+    "newPage": "New page inside",
+    "newFolder": "New folder inside",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites",
+    "share": "Share",
+    "copyLink": "Copy link",
+    "delete": "Delete"
+  },
+  "breadcrumbs": {
+    "label": "Breadcrumbs",
+    "more": "Show hidden levels"
+  },
+  "page": {
+    "titleLabel": "Page title",
+    "owner": "Owner: {{name}}",
+    "updated": "Updated {{date}}",
+    "more": "More actions",
+    "emptyTitle": "This page is empty",
+    "emptyDescription": "The editor is coming soon. Until then you can organise, share and find the page.",
+    "errorTitle": "We couldn't open this page",
+    "backToDocs": "Back to Docs"
+  },
+  "folder": {
+    "emptyTitle": "This folder is empty",
+    "emptyDescription": "Add pages to it from the page tree."
+  },
+  "space": {
+    "createTitle": "New space",
+    "createDescription": "A space groups related pages, such as runbooks or client documentation.",
+    "editTitle": "Space settings",
+    "name": "Name",
+    "namePlaceholder": "Runbooks",
+    "icon": "Icon",
+    "color": "Color",
+    "description": "Description",
+    "visibility": "Who can see it",
+    "maxDepth": "Maximum nesting depth",
+    "maxDepthHint": "Between 2 and 32 levels.",
+    "create": "Create space",
+    "settings": "Space settings",
+    "delete": "Delete space",
+    "deleteTitle": "Delete “{{name}}”?",
+    "deleteDescription": "The space and every page in it will be deleted permanently. This can't be undone.",
+    "emptyTitle": "No pages yet",
+    "emptyDescription": "Create the first page or folder in this space.",
+    "emptyReadOnly": "Nobody has added pages here yet.",
+    "tones": {
+      "teal": "Teal",
+      "amber": "Amber",
+      "purple": "Purple",
+      "red": "Red",
+      "neutral": "Neutral"
+    },
+    "icons": {
+      "book-open": "Book",
+      "siren": "Alert",
+      "rocket": "Rocket",
+      "shield-check": "Shield",
+      "lock": "Lock",
+      "handshake": "Handshake",
+      "trending-up": "Growth",
+      "compass": "Compass",
+      "wrench": "Tools",
+      "server": "Server",
+      "database": "Database",
+      "network": "Network",
+      "users": "People",
+      "lightbulb": "Idea",
+      "target": "Target",
+      "flask-conical": "Lab",
+      "layers": "Layers",
+      "globe": "Globe",
+      "code": "Code",
+      "life-buoy": "Support",
+      "clipboard-list": "Checklist",
+      "briefcase": "Briefcase"
+    }
+  },
+  "empty": {
+    "noSpacesTitle": "Start your knowledge base",
+    "noSpacesDescription": "Create a space for runbooks, onboarding or client documentation."
+  },
+  "role": {
+    "owner": "Owner",
+    "editor": "Editor",
+    "commenter": "Commenter",
+    "viewer": "Viewer"
+  },
+  "visibility": {
+    "inherit": {
+      "name": "Same as parent",
+      "description": "Follows the folder or space it lives in."
+    },
+    "private": {
+      "name": "Private",
+      "description": "Only the owner and people invited below."
+    },
+    "shared": {
+      "name": "Shared",
+      "description": "Only the people invited below."
+    },
+    "workspace": {
+      "name": "Workspace",
+      "description": "Everyone in this workspace."
+    }
+  },
+  "share": {
+    "title": "Share “{{title}}”",
+    "description": "Choose who can see it and what they can do.",
+    "done": "Done",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "linkCopyFailed": "Couldn't copy the link",
+    "summary": {
+      "title": "Your access",
+      "you": "Your access: {{role}}",
+      "inherited": "{{visibility}} — set by “{{source}}”",
+      "own": "{{visibility}} — set here"
+    },
+    "visibility": "Visibility",
+    "workspaceCan": "Everyone in the workspace can",
+    "people": "People",
+    "addPerson": "Add a person",
+    "role": "Role",
+    "add": "Add",
+    "roleOf": "Role of {{name}}",
+    "remove": "Remove {{name}}",
+    "inheritedFrom": "From “{{source}}”",
+    "unknownPerson": "Former member",
+    "readOnly": "Only an owner can change who has access."
+  },
+  "trash": {
+    "link": "Trash",
+    "title": "Trash",
+    "description": "Deleted pages stay here for 30 days, then are removed for good.",
+    "emptyTitle": "The trash is empty",
+    "emptyDescription": "Deleted pages and folders show up here.",
+    "meta_one": "Deleted {{when}} · {{count}} day left",
+    "meta_other": "Deleted {{when}} · {{count}} days left",
+    "restore": "Restore",
+    "restored": "“{{title}}” restored",
+    "purge": "Delete forever",
+    "purgeTitle": "Delete “{{title}}” forever?",
+    "purgeDescription": "This can't be undone."
+  },
+  "dnd": {
+    "moved": "Moved {{title}} to {{place}}",
+    "cannotMove": "That move isn't possible here.",
+    "keyboard": {
+      "up": "Moved {{title}} up",
+      "down": "Moved {{title}} down",
+      "indent": "Moved {{title}} into the page above",
+      "outdent": "Moved {{title}} out one level"
+    },
+    "widenTitle": "More people will see this",
+    "widenDescription": "“{{destination}}” is visible to more people than where this page is now. Move it anyway?",
+    "widenConfirm": "Move anyway"
+  }
+}

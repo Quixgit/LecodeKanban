@@ -45,7 +45,7 @@ func validateSpace(name, icon, color, desc string, depth int) (string, error) {
 	if v.Required("name", name) {
 		v.Length("name", name, 1, domain.MaxSpaceName)
 	}
-	v.Length("icon", icon, 0, 40)
+	v.IconKey("icon", icon)
 	v.Length("color", color, 0, 20)
 	v.Length("description", desc, 0, 500)
 	if depth < 2 || depth > 32 {

@@ -3,6 +3,7 @@ package validation
 
 import (
 	"net/mail"
+	"regexp"
 	"slices"
 	"strings"
 	"unicode"
@@ -25,10 +26,11 @@ const (
 	KeyFormat = "project_key" // project key format
 	DateOrder = "date_order"  // end date before start date
 	Count     = "count"       // list length outside {min,max}
+	IconKey   = "icon_key"    // icon is not a lowercase-kebab key such as "book-open"
 )
 
 // All lists every field-error code (used to verify translations).
-var All = []string{Required, Email, MinLength, MaxLength, OneOf, Weak, Range, NotMember, NotFound, KeyFormat, DateOrder, Count}
+var All = []string{Required, Email, MinLength, MaxLength, OneOf, Weak, Range, NotMember, NotFound, KeyFormat, DateOrder, Count, IconKey}
 
 // V collects field errors; the zero value is ready to use.
 type V struct{ fields []apperr.FieldError }
@@ -67,6 +69,15 @@ func (v *V) Length(field, value string, minLen, maxLen int) {
 		v.Add(field, MinLength, map[string]any{"min": minLen})
 	case maxLen > 0 && n > maxLen:
 		v.Add(field, MaxLength, map[string]any{"max": maxLen})
+	}
+}
+
+var iconKeyRE = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
+
+// IconKey accepts an empty value or a lowercase-kebab icon key (no emoji or free text), max 40.
+func (v *V) IconKey(field, value string) {
+	if value != "" && (len(value) > 40 || !iconKeyRE.MatchString(value)) {
+		v.Add(field, IconKey, nil)
 	}
 }
 
