@@ -67,7 +67,8 @@
   },
   "folder": {
     "emptyTitle": "This folder is empty",
-    "emptyDescription": "Add pages to it from the page tree."
+    "emptyDescription": "Add pages to it from the page tree.",
+    "contents": "Inside this folder"
   },
   "space": {
     "createTitle": "New space",
@@ -118,7 +119,12 @@
       "code": "Code",
       "life-buoy": "Support",
       "clipboard-list": "Checklist",
-      "briefcase": "Briefcase"
+      "briefcase": "Briefcase",
+      "file-text": "Document",
+      "folder": "Folder",
+      "bookmark": "Bookmark",
+      "calendar": "Calendar",
+      "flag": "Flag"
     }
   },
   "empty": {
@@ -200,5 +206,56 @@
     "widenTitle": "More people will see this",
     "widenDescription": "“{{destination}}” is visible to more people than where this page is now. Move it anyway?",
     "widenConfirm": "Move anyway"
+  },
+  "icon": {
+    "change": "Change icon",
+    "label": "Page icon",
+    "reset": "Use the default icon"
+  },
+  "cover": {
+    "add": "Add cover",
+    "change": "Change cover",
+    "remove": "Remove cover",
+    "failed": "Couldn't set the cover",
+    "notImage": "Choose an image file."
+  },
+  "properties": {
+    "title": "Page properties",
+    "status": "Status",
+    "statuses": {
+      "draft": "Draft",
+      "published": "Published",
+      "outdated": "Outdated"
+    },
+    "review": "Review reminder",
+    "reviewHint": "A published page is flagged when it hasn't been verified for this long.",
+    "reviewOff": "Off",
+    "reviewEvery_one": "Every {{count}} day",
+    "reviewEvery_other": "Every {{count}} days",
+    "verifiedOn": "Verified {{date}}",
+    "neverVerified": "Not verified yet",
+    "needsReview": "Needs review",
+    "verify": "Mark as verified",
+    "tags": "Tags",
+    "tagPlaceholder": "Add a tag and press Enter",
+    "removeTag": "Remove tag {{tag}}",
+    "projects": "Linked projects",
+    "projectsAdd": "Link a project",
+    "projectsEdit": "Change linked projects",
+    "noProjects": "There are no projects yet.",
+    "created": "Created {{date}}"
+  },
+  "templates": {
+    "fromTemplate": "New from template",
+    "title": "New page from a template",
+    "description": "Start from a ready-made layout.",
+    "use": "Use template",
+    "custom": "Workspace template",
+    "saveTitle": "Save as template",
+    "saveDescription": "Everyone in the workspace will be able to start new pages from this one.",
+    "name": "Template name",
+    "descriptionLabel": "Description",
+    "save": "Save template",
+    "saved": "Template “{{name}}” saved"
   }
 }

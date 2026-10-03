@@ -26,10 +26,85 @@ func (q *Queries) AddFavorite(ctx context.Context, arg AddFavoriteParams) error 
 	return err
 }
 
+const addNodeProject = `-- name: AddNodeProject :exec
+INSERT INTO wiki_node_projects (node_id, project_id) VALUES ($1, $2) ON CONFLICT DO NOTHING
+`
+
+type AddNodeProjectParams struct {
+	NodeID    uuid.UUID
+	ProjectID uuid.UUID
+}
+
+func (q *Queries) AddNodeProject(ctx context.Context, arg AddNodeProjectParams) error {
+	_, err := q.db.Exec(ctx, addNodeProject, arg.NodeID, arg.ProjectID)
+	return err
+}
+
+const clearNodeProjects = `-- name: ClearNodeProjects :exec
+DELETE FROM wiki_node_projects WHERE node_id = $1
+`
+
+func (q *Queries) ClearNodeProjects(ctx context.Context, nodeID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, clearNodeProjects, nodeID)
+	return err
+}
+
+const countNodeFiles = `-- name: CountNodeFiles :one
+SELECT count(*) FROM wiki_files WHERE node_id = $1
+`
+
+func (q *Queries) CountNodeFiles(ctx context.Context, nodeID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countNodeFiles, nodeID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const createFile = `-- name: CreateFile :one
+INSERT INTO wiki_files (workspace_id, node_id, name, content_type, size, storage_key, uploaded_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, workspace_id, node_id, name, content_type, size, storage_key, uploaded_by, created_at
+`
+
+type CreateFileParams struct {
+	WorkspaceID uuid.UUID
+	NodeID      uuid.UUID
+	Name        string
+	ContentType string
+	Size        int64
+	StorageKey  string
+	UploadedBy  uuid.NullUUID
+}
+
+func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (WikiFile, error) {
+	row := q.db.QueryRow(ctx, createFile,
+		arg.WorkspaceID,
+		arg.NodeID,
+		arg.Name,
+		arg.ContentType,
+		arg.Size,
+		arg.StorageKey,
+		arg.UploadedBy,
+	)
+	var i WikiFile
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.NodeID,
+		&i.Name,
+		&i.ContentType,
+		&i.Size,
+		&i.StorageKey,
+		&i.UploadedBy,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createNode = `-- name: CreateNode :one
 INSERT INTO wiki_nodes (id, workspace_id, space_id, parent_id, kind, title, icon, rank, depth, path, owner_id, created_by)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $11)
-RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id
+RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width
 `
 
 type CreateNodeParams struct {
@@ -82,6 +157,11 @@ func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (WikiNod
 		&i.DeletedAt,
 		&i.DeletedBy,
 		&i.TrashRootID,
+		&i.Status,
+		&i.Tags,
+		&i.LastVerifiedAt,
+		&i.ReviewDays,
+		&i.FullWidth,
 	)
 	return i, err
 }
@@ -136,6 +216,44 @@ func (q *Queries) CreateSpace(ctx context.Context, arg CreateSpaceParams) (WikiS
 	return i, err
 }
 
+const createTemplate = `-- name: CreateTemplate :one
+INSERT INTO wiki_templates (workspace_id, name, description, icon, doc, created_by)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, workspace_id, name, description, icon, doc, created_by, created_at
+`
+
+type CreateTemplateParams struct {
+	WorkspaceID uuid.UUID
+	Name        string
+	Description string
+	Icon        string
+	Doc         []byte
+	CreatedBy   uuid.NullUUID
+}
+
+func (q *Queries) CreateTemplate(ctx context.Context, arg CreateTemplateParams) (WikiTemplate, error) {
+	row := q.db.QueryRow(ctx, createTemplate,
+		arg.WorkspaceID,
+		arg.Name,
+		arg.Description,
+		arg.Icon,
+		arg.Doc,
+		arg.CreatedBy,
+	)
+	var i WikiTemplate
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Name,
+		&i.Description,
+		&i.Icon,
+		&i.Doc,
+		&i.CreatedBy,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const deletePermission = `-- name: DeletePermission :execrows
 DELETE FROM wiki_permissions
 WHERE space_id = $1 AND node_id IS NOT DISTINCT FROM $4::uuid
@@ -171,6 +289,23 @@ func (q *Queries) DeleteSpace(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const deleteTemplate = `-- name: DeleteTemplate :execrows
+DELETE FROM wiki_templates WHERE id = $1 AND workspace_id = $2
+`
+
+type DeleteTemplateParams struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+}
+
+func (q *Queries) DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteTemplate, arg.ID, arg.WorkspaceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const favoriteIDs = `-- name: FavoriteIDs :many
 SELECT f.node_id FROM wiki_favorites f
 JOIN wiki_nodes n ON n.id = f.node_id
@@ -202,8 +337,47 @@ func (q *Queries) FavoriteIDs(ctx context.Context, arg FavoriteIDsParams) ([]uui
 	return items, nil
 }
 
+const getContent = `-- name: GetContent :one
+SELECT node_id, doc, plain, version, updated_by, updated_at FROM wiki_contents WHERE node_id = $1
+`
+
+func (q *Queries) GetContent(ctx context.Context, nodeID uuid.UUID) (WikiContent, error) {
+	row := q.db.QueryRow(ctx, getContent, nodeID)
+	var i WikiContent
+	err := row.Scan(
+		&i.NodeID,
+		&i.Doc,
+		&i.Plain,
+		&i.Version,
+		&i.UpdatedBy,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getFile = `-- name: GetFile :one
+SELECT id, workspace_id, node_id, name, content_type, size, storage_key, uploaded_by, created_at FROM wiki_files WHERE id = $1
+`
+
+func (q *Queries) GetFile(ctx context.Context, id uuid.UUID) (WikiFile, error) {
+	row := q.db.QueryRow(ctx, getFile, id)
+	var i WikiFile
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.NodeID,
+		&i.Name,
+		&i.ContentType,
+		&i.Size,
+		&i.StorageKey,
+		&i.UploadedBy,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getNode = `-- name: GetNode :one
-SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id FROM wiki_nodes WHERE id = $1
+SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width FROM wiki_nodes WHERE id = $1
 `
 
 func (q *Queries) GetNode(ctx context.Context, id uuid.UUID) (WikiNode, error) {
@@ -230,12 +404,17 @@ func (q *Queries) GetNode(ctx context.Context, id uuid.UUID) (WikiNode, error) {
 		&i.DeletedAt,
 		&i.DeletedBy,
 		&i.TrashRootID,
+		&i.Status,
+		&i.Tags,
+		&i.LastVerifiedAt,
+		&i.ReviewDays,
+		&i.FullWidth,
 	)
 	return i, err
 }
 
 const getNodes = `-- name: GetNodes :many
-SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id FROM wiki_nodes WHERE id = ANY($1::uuid[])
+SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width FROM wiki_nodes WHERE id = ANY($1::uuid[])
 `
 
 func (q *Queries) GetNodes(ctx context.Context, ids []uuid.UUID) ([]WikiNode, error) {
@@ -268,6 +447,11 @@ func (q *Queries) GetNodes(ctx context.Context, ids []uuid.UUID) ([]WikiNode, er
 			&i.DeletedAt,
 			&i.DeletedBy,
 			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
 		); err != nil {
 			return nil, err
 		}
@@ -338,6 +522,26 @@ func (q *Queries) GetSpace(ctx context.Context, id uuid.UUID) (WikiSpace, error)
 	return i, err
 }
 
+const getTemplate = `-- name: GetTemplate :one
+SELECT id, workspace_id, name, description, icon, doc, created_by, created_at FROM wiki_templates WHERE id = $1
+`
+
+func (q *Queries) GetTemplate(ctx context.Context, id uuid.UUID) (WikiTemplate, error) {
+	row := q.db.QueryRow(ctx, getTemplate, id)
+	var i WikiTemplate
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Name,
+		&i.Description,
+		&i.Icon,
+		&i.Doc,
+		&i.CreatedBy,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const insertAudit = `-- name: InsertAudit :exec
 INSERT INTO wiki_audit (workspace_id, space_id, node_id, actor_id, kind, data)
 VALUES ($1, $2, $3, $4, $5, $6)
@@ -362,6 +566,40 @@ func (q *Queries) InsertAudit(ctx context.Context, arg InsertAuditParams) error 
 		arg.Data,
 	)
 	return err
+}
+
+const insertContent = `-- name: InsertContent :one
+INSERT INTO wiki_contents (node_id, doc, plain, version, updated_by)
+VALUES ($1, $2, $3, 1, $4)
+ON CONFLICT (node_id) DO NOTHING
+RETURNING node_id, doc, plain, version, updated_by, updated_at
+`
+
+type InsertContentParams struct {
+	NodeID    uuid.UUID
+	Doc       []byte
+	Plain     string
+	UpdatedBy uuid.NullUUID
+}
+
+// Optimistic write: succeeds only against the version the caller last saw (0 = no content yet).
+func (q *Queries) InsertContent(ctx context.Context, arg InsertContentParams) (WikiContent, error) {
+	row := q.db.QueryRow(ctx, insertContent,
+		arg.NodeID,
+		arg.Doc,
+		arg.Plain,
+		arg.UpdatedBy,
+	)
+	var i WikiContent
+	err := row.Scan(
+		&i.NodeID,
+		&i.Doc,
+		&i.Plain,
+		&i.Version,
+		&i.UpdatedBy,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const listAudit = `-- name: ListAudit :many
@@ -449,7 +687,7 @@ func (q *Queries) ListChainPermissions(ctx context.Context, arg ListChainPermiss
 }
 
 const listExpiredTrashRoots = `-- name: ListExpiredTrashRoots :many
-SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id FROM wiki_nodes
+SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width FROM wiki_nodes
 WHERE deleted_at IS NOT NULL AND id = trash_root_id AND deleted_at < $1
 ORDER BY deleted_at, id
 `
@@ -485,6 +723,11 @@ func (q *Queries) ListExpiredTrashRoots(ctx context.Context, deletedAt *time.Tim
 			&i.DeletedAt,
 			&i.DeletedBy,
 			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
 		); err != nil {
 			return nil, err
 		}
@@ -497,7 +740,7 @@ func (q *Queries) ListExpiredTrashRoots(ctx context.Context, deletedAt *time.Tim
 }
 
 const listFavoriteNodes = `-- name: ListFavoriteNodes :many
-SELECT n.id, n.workspace_id, n.space_id, n.parent_id, n.kind, n.title, n.icon, n.cover, n.rank, n.depth, n.path, n.visibility, n.workspace_role, n.owner_id, n.created_by, n.created_at, n.updated_at, n.deleted_at, n.deleted_by, n.trash_root_id FROM wiki_favorites f
+SELECT n.id, n.workspace_id, n.space_id, n.parent_id, n.kind, n.title, n.icon, n.cover, n.rank, n.depth, n.path, n.visibility, n.workspace_role, n.owner_id, n.created_by, n.created_at, n.updated_at, n.deleted_at, n.deleted_by, n.trash_root_id, n.status, n.tags, n.last_verified_at, n.review_days, n.full_width FROM wiki_favorites f
 JOIN wiki_nodes n ON n.id = f.node_id
 WHERE f.user_id = $1 AND n.workspace_id = $2 AND n.deleted_at IS NULL
 ORDER BY f.created_at DESC, n.id
@@ -538,6 +781,11 @@ func (q *Queries) ListFavoriteNodes(ctx context.Context, arg ListFavoriteNodesPa
 			&i.DeletedAt,
 			&i.DeletedBy,
 			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
 		); err != nil {
 			return nil, err
 		}
@@ -550,7 +798,7 @@ func (q *Queries) ListFavoriteNodes(ctx context.Context, arg ListFavoriteNodesPa
 }
 
 const listGrantedNodes = `-- name: ListGrantedNodes :many
-SELECT DISTINCT n.id, n.workspace_id, n.space_id, n.parent_id, n.kind, n.title, n.icon, n.cover, n.rank, n.depth, n.path, n.visibility, n.workspace_role, n.owner_id, n.created_by, n.created_at, n.updated_at, n.deleted_at, n.deleted_by, n.trash_root_id FROM wiki_nodes n
+SELECT DISTINCT n.id, n.workspace_id, n.space_id, n.parent_id, n.kind, n.title, n.icon, n.cover, n.rank, n.depth, n.path, n.visibility, n.workspace_role, n.owner_id, n.created_by, n.created_at, n.updated_at, n.deleted_at, n.deleted_by, n.trash_root_id, n.status, n.tags, n.last_verified_at, n.review_days, n.full_width FROM wiki_nodes n
 JOIN wiki_permissions p ON p.node_id = n.id
 WHERE n.workspace_id = $1 AND n.deleted_at IS NULL AND n.owner_id <> $2
   AND ((p.principal_kind = 'user' AND p.principal_id = $2)
@@ -596,6 +844,11 @@ func (q *Queries) ListGrantedNodes(ctx context.Context, arg ListGrantedNodesPara
 			&i.DeletedAt,
 			&i.DeletedBy,
 			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
 		); err != nil {
 			return nil, err
 		}
@@ -607,8 +860,32 @@ func (q *Queries) ListGrantedNodes(ctx context.Context, arg ListGrantedNodesPara
 	return items, nil
 }
 
+const listNodeProjects = `-- name: ListNodeProjects :many
+SELECT project_id FROM wiki_node_projects WHERE node_id = $1 ORDER BY project_id
+`
+
+func (q *Queries) ListNodeProjects(ctx context.Context, nodeID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listNodeProjects, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var project_id uuid.UUID
+		if err := rows.Scan(&project_id); err != nil {
+			return nil, err
+		}
+		items = append(items, project_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listOwnedNodes = `-- name: ListOwnedNodes :many
-SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id FROM wiki_nodes
+SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width FROM wiki_nodes
 WHERE workspace_id = $1 AND owner_id = $2 AND deleted_at IS NULL
 ORDER BY updated_at DESC, id
 LIMIT 1000
@@ -649,6 +926,11 @@ func (q *Queries) ListOwnedNodes(ctx context.Context, arg ListOwnedNodesParams) 
 			&i.DeletedAt,
 			&i.DeletedBy,
 			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
 		); err != nil {
 			return nil, err
 		}
@@ -661,7 +943,7 @@ func (q *Queries) ListOwnedNodes(ctx context.Context, arg ListOwnedNodesParams) 
 }
 
 const listRecentNodes = `-- name: ListRecentNodes :many
-SELECT n.id, n.workspace_id, n.space_id, n.parent_id, n.kind, n.title, n.icon, n.cover, n.rank, n.depth, n.path, n.visibility, n.workspace_role, n.owner_id, n.created_by, n.created_at, n.updated_at, n.deleted_at, n.deleted_by, n.trash_root_id FROM wiki_recents r
+SELECT n.id, n.workspace_id, n.space_id, n.parent_id, n.kind, n.title, n.icon, n.cover, n.rank, n.depth, n.path, n.visibility, n.workspace_role, n.owner_id, n.created_by, n.created_at, n.updated_at, n.deleted_at, n.deleted_by, n.trash_root_id, n.status, n.tags, n.last_verified_at, n.review_days, n.full_width FROM wiki_recents r
 JOIN wiki_nodes n ON n.id = r.node_id
 WHERE r.user_id = $1 AND n.workspace_id = $2 AND n.deleted_at IS NULL
 ORDER BY r.viewed_at DESC, n.id
@@ -704,6 +986,66 @@ func (q *Queries) ListRecentNodes(ctx context.Context, arg ListRecentNodesParams
 			&i.DeletedAt,
 			&i.DeletedBy,
 			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listReviewDue = `-- name: ListReviewDue :many
+SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width FROM wiki_nodes
+WHERE deleted_at IS NULL AND kind = 'page' AND status = 'published' AND review_days > 0
+  AND COALESCE(last_verified_at, created_at) + make_interval(days => review_days) < $1
+ORDER BY COALESCE(last_verified_at, created_at)
+LIMIT 500
+`
+
+// Pages published whose review period has run out, for reminders (W5) and the "needs review" flag.
+func (q *Queries) ListReviewDue(ctx context.Context, lastVerifiedAt *time.Time) ([]WikiNode, error) {
+	rows, err := q.db.Query(ctx, listReviewDue, lastVerifiedAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []WikiNode{}
+	for rows.Next() {
+		var i WikiNode
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.SpaceID,
+			&i.ParentID,
+			&i.Kind,
+			&i.Title,
+			&i.Icon,
+			&i.Cover,
+			&i.Rank,
+			&i.Depth,
+			&i.Path,
+			&i.Visibility,
+			&i.WorkspaceRole,
+			&i.OwnerID,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.DeletedBy,
+			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
 		); err != nil {
 			return nil, err
 		}
@@ -716,7 +1058,7 @@ func (q *Queries) ListRecentNodes(ctx context.Context, arg ListRecentNodesParams
 }
 
 const listSiblings = `-- name: ListSiblings :many
-SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id FROM wiki_nodes
+SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width FROM wiki_nodes
 WHERE space_id = $1 AND parent_id IS NOT DISTINCT FROM $2::uuid AND deleted_at IS NULL
 ORDER BY rank, id
 `
@@ -756,6 +1098,11 @@ func (q *Queries) ListSiblings(ctx context.Context, arg ListSiblingsParams) ([]W
 			&i.DeletedAt,
 			&i.DeletedBy,
 			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
 		); err != nil {
 			return nil, err
 		}
@@ -768,7 +1115,7 @@ func (q *Queries) ListSiblings(ctx context.Context, arg ListSiblingsParams) ([]W
 }
 
 const listSpaceNodes = `-- name: ListSpaceNodes :many
-SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id FROM wiki_nodes WHERE space_id = $1 ORDER BY depth, rank, id
+SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width FROM wiki_nodes WHERE space_id = $1 ORDER BY depth, rank, id
 `
 
 func (q *Queries) ListSpaceNodes(ctx context.Context, spaceID uuid.UUID) ([]WikiNode, error) {
@@ -801,6 +1148,11 @@ func (q *Queries) ListSpaceNodes(ctx context.Context, spaceID uuid.UUID) ([]Wiki
 			&i.DeletedAt,
 			&i.DeletedBy,
 			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
 		); err != nil {
 			return nil, err
 		}
@@ -883,8 +1235,41 @@ func (q *Queries) ListSpaces(ctx context.Context, workspaceID uuid.UUID) ([]Wiki
 	return items, nil
 }
 
+const listTemplates = `-- name: ListTemplates :many
+SELECT id, workspace_id, name, description, icon, doc, created_by, created_at FROM wiki_templates WHERE workspace_id = $1 ORDER BY lower(name), id
+`
+
+func (q *Queries) ListTemplates(ctx context.Context, workspaceID uuid.UUID) ([]WikiTemplate, error) {
+	rows, err := q.db.Query(ctx, listTemplates, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []WikiTemplate{}
+	for rows.Next() {
+		var i WikiTemplate
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.Name,
+			&i.Description,
+			&i.Icon,
+			&i.Doc,
+			&i.CreatedBy,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTrashRoots = `-- name: ListTrashRoots :many
-SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id FROM wiki_nodes
+SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width FROM wiki_nodes
 WHERE workspace_id = $1 AND deleted_at IS NOT NULL AND id = trash_root_id AND deleted_at > $2
 ORDER BY deleted_at DESC, id
 `
@@ -924,6 +1309,11 @@ func (q *Queries) ListTrashRoots(ctx context.Context, arg ListTrashRootsParams) 
 			&i.DeletedAt,
 			&i.DeletedBy,
 			&i.TrashRootID,
+			&i.Status,
+			&i.Tags,
+			&i.LastVerifiedAt,
+			&i.ReviewDays,
+			&i.FullWidth,
 		); err != nil {
 			return nil, err
 		}
@@ -954,7 +1344,7 @@ const placeNode = `-- name: PlaceNode :one
 UPDATE wiki_nodes
 SET space_id = $2, parent_id = $3, rank = $4, depth = $5, path = $6, updated_at = now()
 WHERE id = $1
-RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id
+RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width
 `
 
 type PlaceNodeParams struct {
@@ -997,6 +1387,11 @@ func (q *Queries) PlaceNode(ctx context.Context, arg PlaceNodeParams) (WikiNode,
 		&i.DeletedAt,
 		&i.DeletedBy,
 		&i.TrashRootID,
+		&i.Status,
+		&i.Tags,
+		&i.LastVerifiedAt,
+		&i.ReviewDays,
+		&i.FullWidth,
 	)
 	return i, err
 }
@@ -1062,9 +1457,107 @@ func (q *Queries) RestoreTrashRoot(ctx context.Context, trashRootID uuid.NullUUI
 	return err
 }
 
+const setNodeIcon = `-- name: SetNodeIcon :one
+UPDATE wiki_nodes SET icon = $2, updated_at = now() WHERE id = $1 RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width
+`
+
+type SetNodeIconParams struct {
+	ID   uuid.UUID
+	Icon string
+}
+
+func (q *Queries) SetNodeIcon(ctx context.Context, arg SetNodeIconParams) (WikiNode, error) {
+	row := q.db.QueryRow(ctx, setNodeIcon, arg.ID, arg.Icon)
+	var i WikiNode
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.SpaceID,
+		&i.ParentID,
+		&i.Kind,
+		&i.Title,
+		&i.Icon,
+		&i.Cover,
+		&i.Rank,
+		&i.Depth,
+		&i.Path,
+		&i.Visibility,
+		&i.WorkspaceRole,
+		&i.OwnerID,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.DeletedBy,
+		&i.TrashRootID,
+		&i.Status,
+		&i.Tags,
+		&i.LastVerifiedAt,
+		&i.ReviewDays,
+		&i.FullWidth,
+	)
+	return i, err
+}
+
+const setNodeProperties = `-- name: SetNodeProperties :one
+UPDATE wiki_nodes
+SET status = $2, tags = $3, review_days = $4, full_width = $5, last_verified_at = $6, updated_at = now()
+WHERE id = $1
+RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width
+`
+
+type SetNodePropertiesParams struct {
+	ID             uuid.UUID
+	Status         string
+	Tags           []string
+	ReviewDays     int32
+	FullWidth      bool
+	LastVerifiedAt *time.Time
+}
+
+func (q *Queries) SetNodeProperties(ctx context.Context, arg SetNodePropertiesParams) (WikiNode, error) {
+	row := q.db.QueryRow(ctx, setNodeProperties,
+		arg.ID,
+		arg.Status,
+		arg.Tags,
+		arg.ReviewDays,
+		arg.FullWidth,
+		arg.LastVerifiedAt,
+	)
+	var i WikiNode
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.SpaceID,
+		&i.ParentID,
+		&i.Kind,
+		&i.Title,
+		&i.Icon,
+		&i.Cover,
+		&i.Rank,
+		&i.Depth,
+		&i.Path,
+		&i.Visibility,
+		&i.WorkspaceRole,
+		&i.OwnerID,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.DeletedBy,
+		&i.TrashRootID,
+		&i.Status,
+		&i.Tags,
+		&i.LastVerifiedAt,
+		&i.ReviewDays,
+		&i.FullWidth,
+	)
+	return i, err
+}
+
 const setNodeVisibility = `-- name: SetNodeVisibility :one
 UPDATE wiki_nodes SET visibility = $3, workspace_role = $2, updated_at = now()
-WHERE id = $1 RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id
+WHERE id = $1 RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width
 `
 
 type SetNodeVisibilityParams struct {
@@ -1097,6 +1590,11 @@ func (q *Queries) SetNodeVisibility(ctx context.Context, arg SetNodeVisibilityPa
 		&i.DeletedAt,
 		&i.DeletedBy,
 		&i.TrashRootID,
+		&i.Status,
+		&i.Tags,
+		&i.LastVerifiedAt,
+		&i.ReviewDays,
+		&i.FullWidth,
 	)
 	return i, err
 }
@@ -1142,6 +1640,15 @@ func (q *Queries) SubtreeMaxDepth(ctx context.Context, prefix string) (int32, er
 	return column_1, err
 }
 
+const touchNode = `-- name: TouchNode :exec
+UPDATE wiki_nodes SET updated_at = now() WHERE id = $1
+`
+
+func (q *Queries) TouchNode(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, touchNode, id)
+	return err
+}
+
 const touchRecent = `-- name: TouchRecent :exec
 INSERT INTO wiki_recents (user_id, node_id) VALUES ($1, $2)
 ON CONFLICT (user_id, node_id) DO UPDATE SET viewed_at = now()
@@ -1173,8 +1680,43 @@ func (q *Queries) TrashSubtree(ctx context.Context, arg TrashSubtreeParams) erro
 	return err
 }
 
+const updateContent = `-- name: UpdateContent :one
+UPDATE wiki_contents
+SET doc = $2, plain = $3, version = version + 1, updated_by = $4, updated_at = now()
+WHERE node_id = $1 AND version = $5
+RETURNING node_id, doc, plain, version, updated_by, updated_at
+`
+
+type UpdateContentParams struct {
+	NodeID    uuid.UUID
+	Doc       []byte
+	Plain     string
+	UpdatedBy uuid.NullUUID
+	Version   int32
+}
+
+func (q *Queries) UpdateContent(ctx context.Context, arg UpdateContentParams) (WikiContent, error) {
+	row := q.db.QueryRow(ctx, updateContent,
+		arg.NodeID,
+		arg.Doc,
+		arg.Plain,
+		arg.UpdatedBy,
+		arg.Version,
+	)
+	var i WikiContent
+	err := row.Scan(
+		&i.NodeID,
+		&i.Doc,
+		&i.Plain,
+		&i.Version,
+		&i.UpdatedBy,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateNodeMeta = `-- name: UpdateNodeMeta :one
-UPDATE wiki_nodes SET title = $2, icon = $3, cover = $4, updated_at = now() WHERE id = $1 RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id
+UPDATE wiki_nodes SET title = $2, icon = $3, cover = $4, updated_at = now() WHERE id = $1 RETURNING id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id, status, tags, last_verified_at, review_days, full_width
 `
 
 type UpdateNodeMetaParams struct {
@@ -1213,6 +1755,11 @@ func (q *Queries) UpdateNodeMeta(ctx context.Context, arg UpdateNodeMetaParams) 
 		&i.DeletedAt,
 		&i.DeletedBy,
 		&i.TrashRootID,
+		&i.Status,
+		&i.Tags,
+		&i.LastVerifiedAt,
+		&i.ReviewDays,
+		&i.FullWidth,
 	)
 	return i, err
 }

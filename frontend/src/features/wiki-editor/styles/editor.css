@@ -1,0 +1,405 @@
+/*
+ * Page editor styles. Everything is built from the design tokens through Tailwind utilities
+ * (no raw colours, radii or shadows), so light/dark and future theme changes apply automatically.
+ */
+
+/* ---- frame ------------------------------------------------------------------------------- */
+.lk-editor {
+  @apply flex min-w-0 flex-col gap-3;
+}
+.lk-editor-bar {
+  @apply sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl border border-border-subtle bg-surface/95 px-2 py-1.5 shadow-xs backdrop-blur;
+}
+.lk-toolbar {
+  @apply flex min-w-0 flex-1 flex-wrap items-center gap-0.5;
+}
+.lk-editor-actions {
+  @apply ml-auto flex items-center gap-1.5;
+}
+.lk-editor-readnote {
+  @apply px-2 text-sm text-text-muted;
+}
+.lk-editor-conflict {
+  @apply flex flex-wrap items-center justify-between gap-3 rounded-xl border border-danger/30 bg-danger-soft p-3 text-base text-danger-ink;
+}
+.lk-editor-offline {
+  @apply text-sm text-progress-ink;
+}
+.lk-editor-body {
+  @apply grid grid-cols-1 gap-8;
+}
+.lk-editor-body.has-outline {
+  @apply xl:grid-cols-[minmax(0,1fr)_14rem];
+}
+.lk-editor-page {
+  @apply relative min-w-0;
+}
+.lk-editor-side {
+  @apply hidden xl:block;
+}
+.lk-editor-foot {
+  @apply flex items-center justify-between text-xs text-text-muted;
+}
+.lk-foot-link {
+  @apply inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 hover:bg-surface-sunken hover:text-text focus-visible:shadow-focus focus-visible:outline-none;
+}
+.lk-foot-link svg {
+  @apply size-3.5 stroke-[1.6];
+}
+
+/* ---- toolbar buttons --------------------------------------------------------------------- */
+.lk-tb {
+  @apply inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-md px-1.5 text-text-secondary transition-colors duration-micro hover:bg-surface-sunken hover:text-text focus-visible:shadow-focus focus-visible:outline-none disabled:pointer-events-none disabled:text-text-faint;
+}
+.lk-tb svg {
+  @apply size-4 stroke-[1.6];
+}
+.lk-tb.is-active {
+  @apply bg-primary-soft text-primary-ink;
+}
+.lk-tb-wide {
+  @apply px-2.5 text-sm font-medium;
+}
+.lk-tb-sep {
+  @apply mx-1 h-5 w-px bg-border;
+}
+.lk-bubble {
+  @apply flex items-center gap-0.5 rounded-xl border border-border bg-surface p-1 shadow-lg;
+}
+.lk-draghandle {
+  @apply grid size-6 cursor-grab place-items-center rounded-md text-text-faint transition-colors duration-micro hover:bg-surface-sunken hover:text-text active:cursor-grabbing;
+}
+.lk-draghandle svg {
+  @apply size-4 stroke-[1.6];
+}
+
+/* ---- document ---------------------------------------------------------------------------- */
+.lk-prose {
+  @apply min-h-[16rem] pb-24 pt-2 text-md text-text outline-none;
+}
+.lk-prose:focus-visible {
+  @apply !shadow-none;
+}
+.lk-prose > * + * {
+  @apply mt-0;
+}
+.lk-prose p {
+  @apply my-2 leading-7;
+}
+.lk-prose h1 {
+  @apply mb-3 mt-8 text-3xl font-semibold leading-tight text-text;
+}
+.lk-prose h2 {
+  @apply mb-2 mt-7 text-2xl font-semibold leading-snug text-text;
+}
+.lk-prose h3 {
+  @apply mb-2 mt-6 text-xl font-semibold text-text;
+}
+.lk-prose h4 {
+  @apply mb-1.5 mt-5 text-lg font-semibold text-text;
+}
+.lk-prose ul {
+  @apply my-2 list-disc pl-6;
+}
+.lk-prose ol {
+  @apply my-2 list-decimal pl-6;
+}
+.lk-prose li > p {
+  @apply my-1;
+}
+.lk-prose ul[data-type='taskList'] {
+  @apply list-none pl-1;
+}
+.lk-prose ul[data-type='taskList'] li {
+  @apply flex items-start gap-2;
+}
+.lk-prose ul[data-type='taskList'] li > label {
+  @apply mt-1.5 flex shrink-0 select-none;
+}
+.lk-prose ul[data-type='taskList'] li > label input {
+  @apply size-4 cursor-pointer accent-primary;
+}
+.lk-prose ul[data-type='taskList'] li > div {
+  @apply min-w-0 flex-1;
+}
+.lk-prose ul[data-type='taskList'] li[data-checked='true'] > div {
+  @apply text-text-muted line-through;
+}
+.lk-prose blockquote {
+  @apply my-3 border-l-2 border-primary-border pl-4 text-text-secondary;
+}
+.lk-prose code {
+  @apply rounded-xs bg-surface-sunken px-1 py-0.5 font-mono text-[0.9em] text-text;
+}
+.lk-prose pre code {
+  @apply bg-transparent p-0 text-[inherit];
+}
+.lk-prose hr {
+  @apply my-6 border-border;
+}
+.lk-prose a {
+  @apply cursor-pointer text-primary-ink underline underline-offset-2 hover:text-primary-solid;
+}
+.lk-prose mark {
+  @apply rounded-xs bg-progress-soft px-0.5 text-text;
+}
+.lk-prose img {
+  @apply my-3 h-auto max-w-full rounded-lg;
+}
+.lk-prose iframe {
+  @apply aspect-video h-auto w-full rounded-xl;
+}
+.lk-prose [data-youtube-video] {
+  @apply my-3;
+}
+.lk-prose .ProseMirror-selectednode {
+  @apply rounded-lg ring-2 ring-primary;
+}
+.lk-prose p.is-empty::before,
+.lk-prose h1.is-empty::before,
+.lk-prose h2.is-empty::before,
+.lk-prose h3.is-empty::before,
+.lk-prose h4.is-empty::before {
+  @apply pointer-events-none float-left h-0 text-text-faint;
+  content: attr(data-placeholder);
+}
+.lk-dropcursor {
+  @apply rounded-full bg-primary;
+}
+
+/* ---- tables ------------------------------------------------------------------------------ */
+.lk-prose .tableWrapper {
+  @apply my-4 overflow-x-auto;
+}
+.lk-prose table {
+  @apply w-full table-fixed border-collapse overflow-hidden rounded-lg;
+}
+.lk-prose th,
+.lk-prose td {
+  @apply relative min-w-[6rem] border border-border p-2 align-top;
+}
+.lk-prose th {
+  @apply bg-surface-muted text-left font-semibold;
+}
+.lk-prose td > p,
+.lk-prose th > p {
+  @apply my-0;
+}
+.lk-prose .selectedCell::after {
+  @apply pointer-events-none absolute inset-0 bg-primary/10;
+  content: '';
+}
+.lk-prose .column-resize-handle {
+  @apply pointer-events-none absolute -right-px bottom-0 top-0 w-0.5 bg-primary;
+}
+.lk-prose.resize-cursor {
+  @apply cursor-col-resize;
+}
+
+/* ---- toggle blocks ------------------------------------------------------------------------ */
+.lk-prose [data-type='details'] {
+  @apply my-3 flex gap-2 rounded-lg border border-border bg-surface p-2;
+}
+.lk-prose [data-type='details'] > button {
+  @apply mt-1 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-md bg-transparent text-text-muted hover:bg-surface-sunken;
+}
+.lk-prose [data-type='details'] > button::before {
+  @apply block size-1.5 rotate-[-45deg] border-b-2 border-r-2 border-current transition-transform duration-micro;
+  content: '';
+}
+.lk-prose [data-type='details'].is-open > button::before {
+  @apply rotate-45;
+}
+.lk-prose [data-type='details'] > div {
+  @apply min-w-0 flex-1;
+}
+.lk-prose [data-type='detailsSummary'] {
+  @apply font-medium;
+}
+.lk-prose [data-type='detailsContent'][hidden] {
+  @apply hidden;
+}
+
+/* ---- code blocks and diagrams ------------------------------------------------------------- */
+.lk-codeblock {
+  @apply my-4 overflow-hidden rounded-xl border border-border bg-surface-muted;
+}
+.lk-codeblock-bar {
+  @apply flex items-center justify-between gap-2 border-b border-border-subtle px-3 py-1.5 text-xs text-text-muted;
+}
+.lk-codeblock-bar select {
+  @apply cursor-pointer rounded-md bg-transparent py-0.5 pr-1 text-xs text-text-secondary outline-none hover:bg-surface-sunken focus-visible:shadow-focus disabled:cursor-default disabled:hover:bg-transparent;
+}
+.lk-codeblock-bar button {
+  @apply inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-xs text-text-secondary hover:bg-surface-sunken hover:text-text focus-visible:shadow-focus focus-visible:outline-none;
+}
+.lk-codeblock-bar button svg {
+  @apply size-3.5 stroke-[1.6];
+}
+.lk-codeblock pre {
+  @apply m-0 overflow-x-auto p-3 font-mono text-sm leading-6 text-text;
+}
+.lk-codeblock .hljs-comment,
+.lk-codeblock .hljs-quote {
+  @apply italic text-text-muted;
+}
+.lk-codeblock .hljs-keyword,
+.lk-codeblock .hljs-selector-tag,
+.lk-codeblock .hljs-doctag {
+  @apply text-review-ink;
+}
+.lk-codeblock .hljs-string,
+.lk-codeblock .hljs-regexp,
+.lk-codeblock .hljs-addition {
+  @apply text-done-ink;
+}
+.lk-codeblock .hljs-number,
+.lk-codeblock .hljs-literal,
+.lk-codeblock .hljs-symbol,
+.lk-codeblock .hljs-bullet {
+  @apply text-progress-ink;
+}
+.lk-codeblock .hljs-title,
+.lk-codeblock .hljs-function,
+.lk-codeblock .hljs-built_in,
+.lk-codeblock .hljs-section,
+.lk-codeblock .hljs-name {
+  @apply text-primary-ink;
+}
+.lk-codeblock .hljs-attr,
+.lk-codeblock .hljs-attribute,
+.lk-codeblock .hljs-variable,
+.lk-codeblock .hljs-template-variable,
+.lk-codeblock .hljs-type {
+  @apply text-danger-ink;
+}
+.lk-codeblock .hljs-deletion {
+  @apply text-danger-ink;
+}
+.lk-mermaid {
+  @apply flex flex-col items-center gap-2 overflow-x-auto border-t border-border-subtle bg-surface p-4;
+}
+.lk-mermaid svg {
+  @apply h-auto max-w-full;
+}
+.lk-mermaid-error {
+  @apply self-stretch text-sm text-danger-ink;
+}
+.lk-mermaid-empty {
+  @apply text-sm text-text-muted;
+}
+
+/* ---- callouts and files ------------------------------------------------------------------- */
+.lk-callout {
+  @apply my-3 flex gap-3 rounded-xl border p-3;
+}
+.lk-callout[data-callout='info'] {
+  @apply border-primary-border bg-primary-subtle;
+}
+.lk-callout[data-callout='warning'] {
+  @apply border-progress/40 bg-progress-soft;
+}
+.lk-callout[data-callout='danger'] {
+  @apply border-danger/40 bg-danger-soft;
+}
+.lk-callout[data-callout='success'] {
+  @apply border-done/40 bg-done-soft;
+}
+.lk-callout-icon {
+  @apply flex shrink-0 flex-col items-center gap-1;
+}
+.lk-callout-icon svg {
+  @apply mt-1 size-5 stroke-[1.6];
+}
+.lk-callout[data-callout='info'] .lk-callout-icon {
+  @apply text-primary-ink;
+}
+.lk-callout[data-callout='warning'] .lk-callout-icon {
+  @apply text-progress-ink;
+}
+.lk-callout[data-callout='danger'] .lk-callout-icon {
+  @apply text-danger-ink;
+}
+.lk-callout[data-callout='success'] .lk-callout-icon {
+  @apply text-done-ink;
+}
+.lk-callout-icon select {
+  @apply w-16 cursor-pointer rounded-md bg-transparent text-[10px] opacity-0 outline-none transition-opacity duration-micro focus-visible:opacity-100;
+}
+.lk-callout:hover .lk-callout-icon select {
+  @apply opacity-100;
+}
+.lk-callout-body {
+  @apply min-w-0 flex-1;
+}
+.lk-callout-body > :first-child {
+  @apply mt-0;
+}
+.lk-callout-body > :last-child {
+  @apply mb-0;
+}
+.lk-file {
+  @apply my-2;
+}
+.lk-file a {
+  @apply inline-flex max-w-full items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text no-underline shadow-xs transition-colors duration-micro hover:bg-surface-muted;
+}
+.lk-file a svg {
+  @apply size-4 shrink-0 stroke-[1.6] text-text-muted;
+}
+.lk-file-name {
+  @apply truncate font-medium;
+}
+.lk-file-size {
+  @apply shrink-0 text-xs text-text-muted;
+}
+
+/* ---- slash menu and outline --------------------------------------------------------------- */
+.lk-slash-popup {
+  @apply z-50;
+}
+.lk-slash {
+  @apply max-h-80 w-72 overflow-y-auto rounded-xl border border-border bg-surface p-1.5 shadow-lg;
+}
+.lk-slash-group {
+  @apply px-2.5 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-text-muted;
+}
+.lk-slash-empty {
+  @apply px-2.5 py-2 text-sm text-text-muted;
+}
+.lk-slash-item {
+  @apply flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors duration-micro;
+}
+.lk-slash-item.is-active {
+  @apply bg-surface-muted;
+}
+.lk-slash-icon {
+  @apply flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-secondary;
+}
+.lk-slash-icon svg {
+  @apply size-4 stroke-[1.6];
+}
+.lk-slash-text {
+  @apply flex min-w-0 flex-col;
+}
+.lk-slash-title {
+  @apply text-base text-text;
+}
+.lk-slash-desc {
+  @apply truncate text-xs text-text-muted;
+}
+.lk-outline {
+  @apply sticky top-20 flex max-h-[calc(100dvh-8rem)] flex-col gap-1 overflow-y-auto border-l border-border-subtle pl-3;
+}
+.lk-outline-title {
+  @apply px-2 pb-1 text-xs font-medium uppercase tracking-wide text-text-muted;
+}
+.lk-outline-empty {
+  @apply px-2 text-sm text-text-muted;
+}
+.lk-outline-item {
+  @apply w-full truncate rounded-md py-1 pr-2 text-left text-sm text-text-secondary transition-colors duration-micro hover:bg-surface-muted hover:text-text focus-visible:shadow-focus focus-visible:outline-none;
+}
+.lk-outline-item.is-current {
+  @apply bg-primary-subtle font-medium text-primary-ink;
+}

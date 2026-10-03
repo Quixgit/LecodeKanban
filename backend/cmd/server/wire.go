@@ -95,7 +95,8 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 		MaxBytes: cfg.AttachmentMaxBytes(), Cards: cardsMod.Service, Workspaces: wsMod.Service, Users: usersMod.Service})
 	timeMod := timetracking.New(timetracking.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service,
 		Users: usersMod.Service})
-	wikiMod := wiki.New(wiki.Deps{Pool: pool, Workspaces: wsMod.Service, Teams: noTeams{}})
+	wikiMod := wiki.New(wiki.Deps{Pool: pool, Workspaces: wsMod.Service, Teams: noTeams{}, Projects: projectsMod.Service,
+		Storage: storage, MaxUploadBytes: cfg.AttachmentMaxBytes()})
 	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
 	hub := realtime.NewHub(cfg.DatabaseURL, log)
 

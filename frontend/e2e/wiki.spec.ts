@@ -1,34 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import type { Page } from '@playwright/test';
 import { expect, LISA, signIn, test } from './fixtures';
-
-const stamp = () => Date.now().toString(36);
-
-/** Creates a private space through the UI and returns its name. */
-async function createSpace(page: Page, name: string) {
-  await page.goto('/docs');
-  await page.getByRole('button', { name: 'New space' }).first().click();
-  await page.getByLabel('Name').fill(name);
-  await page.getByRole('button', { name: 'Create space' }).click();
-  await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible();
-  // The dialog hands focus back as it closes; wait for that so it can't steal an inline rename.
-  await expect(page.getByRole('dialog')).toHaveCount(0);
-}
-
-/** Adds a node from the tree header and names it through the inline rename field. */
-async function addNode(page: Page, kind: 'page' | 'folder', title: string) {
-  await page
-    .getByRole('button', { name: kind === 'page' ? 'New page' : 'New folder', exact: true })
-    .first()
-    .click();
-  const input = page.getByRole('textbox', { name: 'Page name' });
-  await input.fill(title);
-  await input.press('Enter');
-  await expect(page.getByRole('treeitem', { name: new RegExp(title) })).toBeVisible();
-}
-
-const level = (page: Page, title: string) =>
-  page.getByRole('treeitem', { name: new RegExp(title) }).getAttribute('aria-level');
+import { addNode, createSpace, level, stamp } from './wikiHelpers';
 
 test.describe('Docs', () => {
   test('folder → nested page → share → other user → move → trash → restore', async ({

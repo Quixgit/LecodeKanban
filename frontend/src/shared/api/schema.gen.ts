@@ -1308,6 +1308,105 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/wiki/nodes/{nodeId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getWikiContent"];
+        /**
+         * @description Autosave. The document is validated against an allow-list of node types, marks, attributes
+         *     and link targets. Answers 409 `wiki.content_conflict` when `version` is stale.
+         */
+        put: operations["saveWikiContent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Multipart upload (field `file`) of an image or attachment for the page. Editors only */
+        post: operations["uploadWikiFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/files/{fileId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        /** @description Bytes of an uploaded file for anybody who can read its page. Only known image types may be shown inline */
+        get: operations["getWikiFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/wiki/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listWikiTemplates"];
+        put?: never;
+        /** @description Saves a page as a custom template. Workspace admins only */
+        post: operations["createWikiTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/wiki/templates/{templateId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Workspace admins only */
+        delete: operations["deleteWikiTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/wiki/nodes/{nodeId}/favorite": {
         parameters: {
             query?: never;
@@ -1988,6 +2087,8 @@ export interface components {
         /** @enum {string} */
         WikiVisibility: "private" | "shared" | "workspace";
         /** @enum {string} */
+        WikiStatus: "draft" | "published" | "outdated";
+        /** @enum {string} */
         WikiRole: "owner" | "editor" | "commenter" | "viewer";
         /**
          * @description What workspace visibility lets every member do
@@ -2065,6 +2166,17 @@ export interface components {
             ownerId: string;
             favorite: boolean;
             access: components["schemas"]["WikiAccess"];
+            status: components["schemas"]["WikiStatus"];
+            tags: string[];
+            /** Format: date-time */
+            lastVerifiedAt: string | null;
+            /** @description Days a published page stays fresh; 0 = no reminder */
+            reviewDays: number;
+            /** @description A published page whose review period has run out */
+            reviewDue: boolean;
+            fullWidth: boolean;
+            /** @description Linked projects; filled when a single page is read */
+            projectIds: string[];
             /** Format: date-time */
             deletedAt?: string | null;
             /** Format: date-time */
@@ -2092,11 +2204,26 @@ export interface components {
              * @description Sibling to place the node after (default last)
              */
             afterId?: string | null;
+            /** @description builtin:<name> or a custom template id; fills a new page */
+            templateId?: string;
+            /**
+             * @description Language of a built-in template
+             * @enum {string}
+             */
+            lang?: "en" | "uk";
         };
         WikiNodePatch: {
             title?: string;
+            /** @description A Lucide icon key such as file-text; emoji are rejected */
             icon?: string;
             cover?: string;
+            status?: components["schemas"]["WikiStatus"];
+            tags?: string[];
+            reviewDays?: number;
+            fullWidth?: boolean;
+            /** @description Mark the page as verified now */
+            verify?: boolean;
+            projectIds?: string[];
         };
         WikiMoveInput: {
             /**
@@ -2159,6 +2286,51 @@ export interface components {
             ownerId: string;
             canManage: boolean;
             grants: components["schemas"]["WikiGrant"][];
+        };
+        WikiContent: {
+            /** @description ProseMirror (TipTap) document */
+            doc: {
+                [key: string]: unknown;
+            };
+            /** @description 0 until the first save; send it back with the next save */
+            version: number;
+            /** Format: uuid */
+            updatedBy: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        WikiContentInput: {
+            doc: {
+                [key: string]: unknown;
+            };
+            /** @description The version last read; a stale one answers 409 wiki.content_conflict */
+            version: number;
+        };
+        WikiTemplate: {
+            id: string;
+            name: string;
+            description: string;
+            icon: string;
+            builtin: boolean;
+        };
+        WikiTemplateInput: {
+            name: string;
+            description?: string;
+            /**
+             * Format: uuid
+             * @description The page whose content becomes the template
+             */
+            nodeId: string;
+        };
+        WikiFile: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            contentType: string;
+            /** Format: int64 */
+            size: number;
+            /** @description Path to the file; images may be shown inline with ?inline=true */
+            url: string;
         };
         WikiAuditEvent: {
             /** Format: int64 */
@@ -4642,6 +4814,185 @@ export interface operations {
                 content?: never;
             };
             409: components["responses"]["Error"];
+        };
+    };
+    getWikiContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The page document (an empty one at version 0 until something is saved) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiContent"];
+                };
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    saveWikiContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiContentInput"];
+            };
+        };
+        responses: {
+            /** @description Saved; the new version is in the response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiContent"];
+                };
+            };
+            403: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            413: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    uploadWikiFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Stored */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiFile"];
+                };
+            };
+            403: components["responses"]["Error"];
+            413: components["responses"]["Error"];
+        };
+    };
+    getWikiFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description File bytes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    listWikiTemplates: {
+        parameters: {
+            query?: {
+                lang?: "en" | "uk";
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Built-in templates (in the requested language) followed by the workspace's own */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiTemplate"][];
+                };
+            };
+        };
+    };
+    createWikiTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiTemplate"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteWikiTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
         };
     };
     favoriteWikiNode: {

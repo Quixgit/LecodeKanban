@@ -53,16 +53,16 @@ func (e InviteRole) Valid() bool {
 
 // Defines values for Locale.
 const (
-	En Locale = "en"
-	Uk Locale = "uk"
+	LocaleEn Locale = "en"
+	LocaleUk Locale = "uk"
 )
 
 // Valid indicates whether the value is a known member of the Locale enum.
 func (e Locale) Valid() bool {
 	switch e {
-	case En:
+	case LocaleEn:
 		return true
-	case Uk:
+	case LocaleUk:
 		return true
 	default:
 		return false
@@ -366,6 +366,24 @@ func (e WikiNodeInputKind) Valid() bool {
 	}
 }
 
+// Defines values for WikiNodeInputLang.
+const (
+	WikiNodeInputLangEn WikiNodeInputLang = "en"
+	WikiNodeInputLangUk WikiNodeInputLang = "uk"
+)
+
+// Valid indicates whether the value is a known member of the WikiNodeInputLang enum.
+func (e WikiNodeInputLang) Valid() bool {
+	switch e {
+	case WikiNodeInputLangEn:
+		return true
+	case WikiNodeInputLangUk:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for WikiPrincipalKind.
 const (
 	WikiPrincipalKindTeam WikiPrincipalKind = "team"
@@ -402,6 +420,27 @@ func (e WikiRole) Valid() bool {
 	case WikiRoleOwner:
 		return true
 	case WikiRoleViewer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WikiStatus.
+const (
+	Draft     WikiStatus = "draft"
+	Outdated  WikiStatus = "outdated"
+	Published WikiStatus = "published"
+)
+
+// Valid indicates whether the value is a known member of the WikiStatus enum.
+func (e WikiStatus) Valid() bool {
+	switch e {
+	case Draft:
+		return true
+	case Outdated:
+		return true
+	case Published:
 		return true
 	default:
 		return false
@@ -780,6 +819,24 @@ func (e ListProjectsParamsOrder) Valid() bool {
 	case ListProjectsParamsOrderAsc:
 		return true
 	case ListProjectsParamsOrderDesc:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListWikiTemplatesParamsLang.
+const (
+	ListWikiTemplatesParamsLangEn ListWikiTemplatesParamsLang = "en"
+	ListWikiTemplatesParamsLangUk ListWikiTemplatesParamsLang = "uk"
+)
+
+// Valid indicates whether the value is a known member of the ListWikiTemplatesParamsLang enum.
+func (e ListWikiTemplatesParamsLang) Valid() bool {
+	switch e {
+	case ListWikiTemplatesParamsLangEn:
+		return true
+	case ListWikiTemplatesParamsLangUk:
 		return true
 	default:
 		return false
@@ -1475,6 +1532,36 @@ type WikiAuditPage struct {
 	Next *int64 `json:"next"`
 }
 
+// WikiContent defines model for WikiContent.
+type WikiContent struct {
+	// Doc ProseMirror (TipTap) document
+	Doc       map[string]interface{} `json:"doc"`
+	UpdatedAt time.Time              `json:"updatedAt"`
+	UpdatedBy *openapi_types.UUID    `json:"updatedBy"`
+
+	// Version 0 until the first save; send it back with the next save
+	Version int `json:"version"`
+}
+
+// WikiContentInput defines model for WikiContentInput.
+type WikiContentInput struct {
+	Doc map[string]interface{} `json:"doc"`
+
+	// Version The version last read; a stale one answers 409 wiki.content_conflict
+	Version int `json:"version"`
+}
+
+// WikiFile defines model for WikiFile.
+type WikiFile struct {
+	ContentType string             `json:"contentType"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
+	Size        int64              `json:"size"`
+
+	// Url Path to the file; images may be shown inline with ?inline=true
+	Url string `json:"url"`
+}
+
 // WikiGrant defines model for WikiGrant.
 type WikiGrant struct {
 	Inherited   bool               `json:"inherited"`
@@ -1510,21 +1597,34 @@ type WikiMoveInput struct {
 // WikiNode defines model for WikiNode.
 type WikiNode struct {
 	// Access The caller's effective access to an element
-	Access    WikiAccess          `json:"access"`
-	Cover     string              `json:"cover"`
-	CreatedAt time.Time           `json:"createdAt"`
-	DeletedAt *time.Time          `json:"deletedAt,omitempty"`
-	Depth     int                 `json:"depth"`
-	Favorite  bool                `json:"favorite"`
-	Icon      string              `json:"icon"`
-	Id        openapi_types.UUID  `json:"id"`
-	Kind      WikiNodeKind        `json:"kind"`
-	OwnerId   openapi_types.UUID  `json:"ownerId"`
-	ParentId  *openapi_types.UUID `json:"parentId"`
-	Rank      string              `json:"rank"`
-	SpaceId   openapi_types.UUID  `json:"spaceId"`
-	Title     string              `json:"title"`
-	UpdatedAt time.Time           `json:"updatedAt"`
+	Access         WikiAccess          `json:"access"`
+	Cover          string              `json:"cover"`
+	CreatedAt      time.Time           `json:"createdAt"`
+	DeletedAt      *time.Time          `json:"deletedAt,omitempty"`
+	Depth          int                 `json:"depth"`
+	Favorite       bool                `json:"favorite"`
+	FullWidth      bool                `json:"fullWidth"`
+	Icon           string              `json:"icon"`
+	Id             openapi_types.UUID  `json:"id"`
+	Kind           WikiNodeKind        `json:"kind"`
+	LastVerifiedAt *time.Time          `json:"lastVerifiedAt"`
+	OwnerId        openapi_types.UUID  `json:"ownerId"`
+	ParentId       *openapi_types.UUID `json:"parentId"`
+
+	// ProjectIds Linked projects; filled when a single page is read
+	ProjectIds []openapi_types.UUID `json:"projectIds"`
+	Rank       string               `json:"rank"`
+
+	// ReviewDays Days a published page stays fresh; 0 = no reminder
+	ReviewDays int `json:"reviewDays"`
+
+	// ReviewDue A published page whose review period has run out
+	ReviewDue bool               `json:"reviewDue"`
+	SpaceId   openapi_types.UUID `json:"spaceId"`
+	Status    WikiStatus         `json:"status"`
+	Tags      []string           `json:"tags"`
+	Title     string             `json:"title"`
+	UpdatedAt time.Time          `json:"updatedAt"`
 
 	// Visibility Explicit visibility of this node; null = inherits
 	Visibility *WikiVisibility `json:"visibility"`
@@ -1536,21 +1636,40 @@ type WikiNodeKind string
 // WikiNodeInput defines model for WikiNodeInput.
 type WikiNodeInput struct {
 	// AfterId Sibling to place the node after (default last)
-	AfterId  *openapi_types.UUID `json:"afterId,omitempty"`
-	Icon     *string             `json:"icon,omitempty"`
-	Kind     WikiNodeInputKind   `json:"kind"`
+	AfterId *openapi_types.UUID `json:"afterId,omitempty"`
+	Icon    *string             `json:"icon,omitempty"`
+	Kind    WikiNodeInputKind   `json:"kind"`
+
+	// Lang Language of a built-in template
+	Lang     *WikiNodeInputLang  `json:"lang,omitempty"`
 	ParentId *openapi_types.UUID `json:"parentId,omitempty"`
-	Title    string              `json:"title"`
+
+	// TemplateId builtin:<name> or a custom template id; fills a new page
+	TemplateId *string `json:"templateId,omitempty"`
+	Title      string  `json:"title"`
 }
 
 // WikiNodeInputKind defines model for WikiNodeInput.Kind.
 type WikiNodeInputKind string
 
+// WikiNodeInputLang Language of a built-in template
+type WikiNodeInputLang string
+
 // WikiNodePatch defines model for WikiNodePatch.
 type WikiNodePatch struct {
-	Cover *string `json:"cover,omitempty"`
-	Icon  *string `json:"icon,omitempty"`
-	Title *string `json:"title,omitempty"`
+	Cover     *string `json:"cover,omitempty"`
+	FullWidth *bool   `json:"fullWidth,omitempty"`
+
+	// Icon A Lucide icon key such as file-text; emoji are rejected
+	Icon       *string               `json:"icon,omitempty"`
+	ProjectIds *[]openapi_types.UUID `json:"projectIds,omitempty"`
+	ReviewDays *int                  `json:"reviewDays,omitempty"`
+	Status     *WikiStatus           `json:"status,omitempty"`
+	Tags       *[]string             `json:"tags,omitempty"`
+	Title      *string               `json:"title,omitempty"`
+
+	// Verify Mark the page as verified now
+	Verify *bool `json:"verify,omitempty"`
 }
 
 // WikiPrincipalKind defines model for WikiPrincipalKind.
@@ -1601,6 +1720,27 @@ type WikiSpacePatch struct {
 	Name        *string `json:"name,omitempty"`
 }
 
+// WikiStatus defines model for WikiStatus.
+type WikiStatus string
+
+// WikiTemplate defines model for WikiTemplate.
+type WikiTemplate struct {
+	Builtin     bool   `json:"builtin"`
+	Description string `json:"description"`
+	Icon        string `json:"icon"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+}
+
+// WikiTemplateInput defines model for WikiTemplateInput.
+type WikiTemplateInput struct {
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
+
+	// NodeId The page whose content becomes the template
+	NodeId openapi_types.UUID `json:"nodeId"`
+}
+
 // WikiTrashItem defines model for WikiTrashItem.
 type WikiTrashItem struct {
 	ExpiresAt time.Time `json:"expiresAt"`
@@ -1623,17 +1763,30 @@ type WikiTreeNode struct {
 	Depth     int        `json:"depth"`
 
 	// Detached Visible although the parent is hidden; show under "Shared with me"
-	Detached  bool                `json:"detached"`
-	Favorite  bool                `json:"favorite"`
-	Icon      string              `json:"icon"`
-	Id        openapi_types.UUID  `json:"id"`
-	Kind      WikiTreeNodeKind    `json:"kind"`
-	OwnerId   openapi_types.UUID  `json:"ownerId"`
-	ParentId  *openapi_types.UUID `json:"parentId"`
-	Rank      string              `json:"rank"`
-	SpaceId   openapi_types.UUID  `json:"spaceId"`
-	Title     string              `json:"title"`
-	UpdatedAt time.Time           `json:"updatedAt"`
+	Detached       bool                `json:"detached"`
+	Favorite       bool                `json:"favorite"`
+	FullWidth      bool                `json:"fullWidth"`
+	Icon           string              `json:"icon"`
+	Id             openapi_types.UUID  `json:"id"`
+	Kind           WikiTreeNodeKind    `json:"kind"`
+	LastVerifiedAt *time.Time          `json:"lastVerifiedAt"`
+	OwnerId        openapi_types.UUID  `json:"ownerId"`
+	ParentId       *openapi_types.UUID `json:"parentId"`
+
+	// ProjectIds Linked projects; filled when a single page is read
+	ProjectIds []openapi_types.UUID `json:"projectIds"`
+	Rank       string               `json:"rank"`
+
+	// ReviewDays Days a published page stays fresh; 0 = no reminder
+	ReviewDays int `json:"reviewDays"`
+
+	// ReviewDue A published page whose review period has run out
+	ReviewDue bool               `json:"reviewDue"`
+	SpaceId   openapi_types.UUID `json:"spaceId"`
+	Status    WikiStatus         `json:"status"`
+	Tags      []string           `json:"tags"`
+	Title     string             `json:"title"`
+	UpdatedAt time.Time          `json:"updatedAt"`
 
 	// Visibility Explicit visibility of this node; null = inherits
 	Visibility *WikiVisibility `json:"visibility"`
@@ -1783,6 +1936,11 @@ type UploadAttachmentMultipartBody struct {
 	File openapi_types.File `json:"file"`
 }
 
+// UploadWikiFileMultipartBody defines parameters for UploadWikiFile.
+type UploadWikiFileMultipartBody struct {
+	File openapi_types.File `json:"file"`
+}
+
 // ListWikiAuditParams defines parameters for ListWikiAudit.
 type ListWikiAuditParams struct {
 	// Before Cursor from the previous page
@@ -1887,6 +2045,14 @@ type ListProjectsParamsSort string
 // ListProjectsParamsOrder defines parameters for ListProjects.
 type ListProjectsParamsOrder string
 
+// ListWikiTemplatesParams defines parameters for ListWikiTemplates.
+type ListWikiTemplatesParams struct {
+	Lang *ListWikiTemplatesParamsLang `form:"lang,omitempty" json:"lang,omitempty"`
+}
+
+// ListWikiTemplatesParamsLang defines parameters for ListWikiTemplates.
+type ListWikiTemplatesParamsLang string
+
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
 
@@ -1953,6 +2119,12 @@ type UpdateSavedViewJSONRequestBody = SavedViewPatch
 // UpdateWikiNodeJSONRequestBody defines body for UpdateWikiNode for application/json ContentType.
 type UpdateWikiNodeJSONRequestBody = WikiNodePatch
 
+// SaveWikiContentJSONRequestBody defines body for SaveWikiContent for application/json ContentType.
+type SaveWikiContentJSONRequestBody = WikiContentInput
+
+// UploadWikiFileMultipartRequestBody defines body for UploadWikiFile for multipart/form-data ContentType.
+type UploadWikiFileMultipartRequestBody UploadWikiFileMultipartBody
+
 // MoveWikiNodeJSONRequestBody defines body for MoveWikiNode for application/json ContentType.
 type MoveWikiNodeJSONRequestBody = WikiMoveInput
 
@@ -2003,3 +2175,6 @@ type CreateSavedViewJSONRequestBody = SavedViewInput
 
 // CreateWikiSpaceJSONRequestBody defines body for CreateWikiSpace for application/json ContentType.
 type CreateWikiSpaceJSONRequestBody = WikiSpaceInput
+
+// CreateWikiTemplateJSONRequestBody defines body for CreateWikiTemplate for application/json ContentType.
+type CreateWikiTemplateJSONRequestBody = WikiTemplateInput

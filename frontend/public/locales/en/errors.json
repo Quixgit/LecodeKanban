@@ -100,6 +100,11 @@
     "move_into_self": "You can't move something into itself or its own contents.",
     "confirm_widening": "After this move more people will be able to see it. Confirm to continue.",
     "not_in_trash": "This item isn't in the trash.",
-    "bad_placement": "That position is no longer valid. Refresh and try again."
+    "bad_placement": "That position is no longer valid. Refresh and try again.",
+    "invalid_content": "This page contains content that can't be saved.",
+    "content_conflict": "Someone else changed this page. Reload to see their changes.",
+    "content_too_large": "This page is too large to save.",
+    "no_file": "Choose a file to upload.",
+    "too_many_files": "A page can hold at most {{max}} files."
   }
 }

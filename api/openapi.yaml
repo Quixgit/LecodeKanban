@@ -1337,6 +1337,113 @@ paths:
       responses:
         "204": { description: Purged }
         "409": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}/content:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    get:
+      tags: [wiki]
+      operationId: getWikiContent
+      responses:
+        "200":
+          description: The page document (an empty one at version 0 until something is saved)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiContent" }
+        "404": { $ref: "#/components/responses/Error" }
+    put:
+      tags: [wiki]
+      operationId: saveWikiContent
+      description: |
+        Autosave. The document is validated against an allow-list of node types, marks, attributes
+        and link targets. Answers 409 `wiki.content_conflict` when `version` is stale.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiContentInput" }
+      responses:
+        "200":
+          description: Saved; the new version is in the response
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiContent" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}/files:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    post:
+      tags: [wiki]
+      operationId: uploadWikiFile
+      description: Multipart upload (field `file`) of an image or attachment for the page. Editors only
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "201":
+          description: Stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiFile" }
+        "403": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+  /wiki/files/{fileId}/content:
+    parameters: [{ name: fileId, in: path, required: true, schema: { type: string, format: uuid } }]
+    get:
+      tags: [wiki]
+      operationId: getWikiFile
+      description: Bytes of an uploaded file for anybody who can read its page. Only known image types may be shown inline
+      responses:
+        "200": { description: File bytes }
+        "404": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/wiki/templates:
+    parameters:
+      - { $ref: "#/components/parameters/WorkspaceId" }
+    get:
+      tags: [wiki]
+      operationId: listWikiTemplates
+      parameters:
+        - { name: lang, in: query, schema: { type: string, enum: [en, uk] } }
+      responses:
+        "200":
+          description: Built-in templates (in the requested language) followed by the workspace's own
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/WikiTemplate" } }
+    post:
+      tags: [wiki]
+      operationId: createWikiTemplate
+      description: Saves a page as a custom template. Workspace admins only
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiTemplateInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiTemplate" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/wiki/templates/{templateId}:
+    parameters:
+      - { $ref: "#/components/parameters/WorkspaceId" }
+      - { name: templateId, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [wiki]
+      operationId: deleteWikiTemplate
+      description: Workspace admins only
+      responses:
+        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Error" }
   /wiki/nodes/{nodeId}/favorite:
     parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
     put:
@@ -2089,6 +2196,7 @@ components:
         daily: { type: array, items: { $ref: "#/components/schemas/DailyActivity" } }
         activity: { type: array, items: { $ref: "#/components/schemas/ActivityItem" } }
     WikiVisibility: { type: string, enum: [private, shared, workspace] }
+    WikiStatus: { type: string, enum: [draft, published, outdated] }
     WikiRole: { type: string, enum: [owner, editor, commenter, viewer] }
     WikiWorkspaceRole: { type: string, enum: [viewer, commenter, editor], description: What workspace visibility lets every member do }
     WikiPrincipalKind: { type: string, enum: [user, team] }
@@ -2139,7 +2247,7 @@ components:
         maxDepth: { type: integer, minimum: 2, maximum: 32 }
     WikiNode:
       type: object
-      required: [id, spaceId, parentId, kind, title, icon, cover, rank, depth, visibility, ownerId, favorite, access, createdAt, updatedAt]
+      required: [id, spaceId, parentId, kind, title, icon, cover, rank, depth, visibility, ownerId, favorite, access, status, tags, lastVerifiedAt, reviewDays, reviewDue, fullWidth, projectIds, createdAt, updatedAt]
       properties:
         id: { type: string, format: uuid }
         spaceId: { type: string, format: uuid }
@@ -2154,6 +2262,13 @@ components:
         ownerId: { type: string, format: uuid }
         favorite: { type: boolean }
         access: { $ref: "#/components/schemas/WikiAccess" }
+        status: { $ref: "#/components/schemas/WikiStatus" }
+        tags: { type: array, items: { type: string } }
+        lastVerifiedAt: { type: string, format: date-time, nullable: true }
+        reviewDays: { type: integer, minimum: 0, maximum: 730, description: Days a published page stays fresh; 0 = no reminder }
+        reviewDue: { type: boolean, description: A published page whose review period has run out }
+        fullWidth: { type: boolean }
+        projectIds: { type: array, items: { type: string, format: uuid }, description: Linked projects; filled when a single page is read }
         deletedAt: { type: string, format: date-time, nullable: true }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
@@ -2179,12 +2294,20 @@ components:
         title: { type: string }
         icon: { type: string }
         afterId: { type: string, format: uuid, nullable: true, description: Sibling to place the node after (default last) }
+        templateId: { type: string, description: "builtin:<name> or a custom template id; fills a new page" }
+        lang: { type: string, enum: [en, uk], description: Language of a built-in template }
     WikiNodePatch:
       type: object
       properties:
         title: { type: string }
-        icon: { type: string }
+        icon: { type: string, description: A Lucide icon key such as file-text; emoji are rejected }
         cover: { type: string }
+        status: { $ref: "#/components/schemas/WikiStatus" }
+        tags: { type: array, items: { type: string }, maxItems: 10 }
+        reviewDays: { type: integer, minimum: 0, maximum: 730 }
+        fullWidth: { type: boolean }
+        verify: { type: boolean, description: Mark the page as verified now }
+        projectIds: { type: array, items: { type: string, format: uuid } }
     WikiMoveInput:
       type: object
       properties:
@@ -2237,6 +2360,45 @@ components:
         ownerId: { type: string, format: uuid }
         canManage: { type: boolean }
         grants: { type: array, items: { $ref: "#/components/schemas/WikiGrant" } }
+    WikiContent:
+      type: object
+      required: [doc, version, updatedBy, updatedAt]
+      properties:
+        doc: { type: object, additionalProperties: true, description: ProseMirror (TipTap) document }
+        version: { type: integer, description: 0 until the first save; send it back with the next save }
+        updatedBy: { type: string, format: uuid, nullable: true }
+        updatedAt: { type: string, format: date-time }
+    WikiContentInput:
+      type: object
+      required: [doc, version]
+      properties:
+        doc: { type: object, additionalProperties: true }
+        version: { type: integer, minimum: 0, description: The version last read; a stale one answers 409 wiki.content_conflict }
+    WikiTemplate:
+      type: object
+      required: [id, name, description, icon, builtin]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        builtin: { type: boolean }
+    WikiTemplateInput:
+      type: object
+      required: [name, nodeId]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        nodeId: { type: string, format: uuid, description: The page whose content becomes the template }
+    WikiFile:
+      type: object
+      required: [id, name, contentType, size, url]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        contentType: { type: string }
+        size: { type: integer, format: int64 }
+        url: { type: string, description: "Path to the file; images may be shown inline with ?inline=true" }
     WikiAuditEvent:
       type: object
       required: [id, kind, actorId, nodeId, data, at]

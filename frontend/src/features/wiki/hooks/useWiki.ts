@@ -71,6 +71,15 @@ export function useTrash(ws: string | undefined) {
   });
 }
 
+export function useTemplates(ws: string | undefined, lang: 'en' | 'uk', enabled = true) {
+  return useQuery({
+    queryKey: ['wiki', 'templates', ws ?? '', lang] as const,
+    queryFn: () => wikiApi.templates(ws!, lang),
+    enabled: !!ws && enabled,
+    staleTime: 60_000,
+  });
+}
+
 export function useAccess(target: WikiTarget | null, enabled = true) {
   return useQuery({
     queryKey: wikiKeys.access(target ?? { spaceId: '' }),
@@ -178,6 +187,11 @@ export function useWikiMutations(ws: string) {
     purgeNode: useMutation({
       mutationFn: (id: string) => wikiApi.purgeNode(id),
       onSuccess: () => refreshAll(qc),
+    }),
+    createTemplate: useMutation({
+      mutationFn: (body: { name: string; description: string; nodeId: string }) =>
+        wikiApi.createTemplate(ws, body),
+      onSuccess: () => qc.invalidateQueries({ queryKey: ['wiki', 'templates'] }),
     }),
     favorite: useMutation({
       mutationFn: (v: { id: string; on: boolean }) => wikiApi.favorite(v.id, v.on),

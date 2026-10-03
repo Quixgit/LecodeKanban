@@ -173,6 +173,13 @@ Base URL: `/api/v1`
 | POST | `/wiki/nodes/{nodeId}/move` | session | WikiMoveInput | 200, 403 Error, 409 Error, 422 Error |  |
 | POST | `/wiki/nodes/{nodeId}/restore` | session |  | 200, 409 Error |  |
 | DELETE | `/wiki/nodes/{nodeId}/purge` | session |  | 204, 409 Error |  |
+| GET | `/wiki/nodes/{nodeId}/content` | session |  | 200, 404 Error |  |
+| PUT | `/wiki/nodes/{nodeId}/content` | session | WikiContentInput | 200, 403 Error, 409 Error, 413 Error, 422 Error |  |
+| POST | `/wiki/nodes/{nodeId}/files` | session |  | 201, 403 Error, 413 Error |  |
+| GET | `/wiki/files/{fileId}/content` | session |  | 200, 404 Error |  |
+| GET | `/workspaces/{workspaceId}/wiki/templates` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/wiki/templates` | session | WikiTemplateInput | 201, 403 Error, 422 Error |  |
+| DELETE | `/workspaces/{workspaceId}/wiki/templates/{templateId}` | session |  | 204, 403 Error |  |
 | PUT | `/wiki/nodes/{nodeId}/favorite` | session |  | 204 |  |
 | DELETE | `/wiki/nodes/{nodeId}/favorite` | session |  | 204 |  |
 | GET | `/wiki/nodes/{nodeId}/access` | session |  | 200 |  |
@@ -264,6 +271,7 @@ Base URL: `/api/v1`
 - **Trend** — `value`: integer, `previous`: integer, `changePct`: number
 - **DashboardStats** — `active`: integer, `total`: integer, `inReview`: integer, `overdue`: integer, `completedThisWeek`: Trend, `createdThisWeek`: Trend, `statusCounts`: StatusCounts, `daily`: array, `activity`: array
 - **WikiVisibility**: `private` | `shared` | `workspace`
+- **WikiStatus**: `draft` | `published` | `outdated`
 - **WikiRole**: `owner` | `editor` | `commenter` | `viewer`
 - **WikiWorkspaceRole**: `viewer` | `commenter` | `editor`
 - **WikiPrincipalKind**: `user` | `team`
@@ -271,16 +279,21 @@ Base URL: `/api/v1`
 - **WikiSpace** — `id`: string, `workspaceId`: string, `ownerId`: string, `name`: string, `icon`: string, `color`: string, `description`: string, `visibility`: WikiVisibility, `workspaceRole`: WikiWorkspaceRole, `maxDepth`: integer, `access`: WikiAccess, `createdAt`: string, `updatedAt`: string
 - **WikiSpaceInput** — `name`: string, `icon?`: string, `color?`: string, `description?`: string, `visibility?`: WikiVisibility, `workspaceRole?`: WikiWorkspaceRole, `maxDepth?`: integer
 - **WikiSpacePatch** — `name?`: string, `icon?`: string, `color?`: string, `description?`: string, `maxDepth?`: integer
-- **WikiNode** — `id`: string, `spaceId`: string, `parentId`: string \| null, `kind`: string, `title`: string, `icon`: string, `cover`: string, `rank`: string, `depth`: integer, `visibility`: object \| null, `ownerId`: string, `favorite`: boolean, `access`: WikiAccess, `deletedAt?`: string \| null, `createdAt`: string, `updatedAt`: string
+- **WikiNode** — `id`: string, `spaceId`: string, `parentId`: string \| null, `kind`: string, `title`: string, `icon`: string, `cover`: string, `rank`: string, `depth`: integer, `visibility`: object \| null, `ownerId`: string, `favorite`: boolean, `access`: WikiAccess, `status`: WikiStatus, `tags`: array, `lastVerifiedAt`: string \| null, `reviewDays`: integer, `reviewDue`: boolean, `fullWidth`: boolean, `projectIds`: array, `deletedAt?`: string \| null, `createdAt`: string, `updatedAt`: string
 - **WikiTreeNode** — 
 - **WikiTree** — `space`: WikiSpace, `nodes`: array
-- **WikiNodeInput** — `parentId?`: string \| null, `kind`: string, `title`: string, `icon?`: string, `afterId?`: string \| null
-- **WikiNodePatch** — `title?`: string, `icon?`: string, `cover?`: string
+- **WikiNodeInput** — `parentId?`: string \| null, `kind`: string, `title`: string, `icon?`: string, `afterId?`: string \| null, `templateId?`: string, `lang?`: string
+- **WikiNodePatch** — `title?`: string, `icon?`: string, `cover?`: string, `status?`: WikiStatus, `tags?`: array, `reviewDays?`: integer, `fullWidth?`: boolean, `verify?`: boolean, `projectIds?`: array
 - **WikiMoveInput** — `spaceId?`: string \| null, `parentId?`: string \| null, `beforeId?`: string \| null, `afterId?`: string \| null, `confirmWiden?`: boolean
 - **WikiTrashItem** — `node`: WikiNode, `expiresAt`: string
 - **WikiVisibilityInput** — `visibility`: object \| null, `workspaceRole?`: WikiWorkspaceRole
 - **WikiGrantInput** — `role`: WikiRole
 - **WikiGrant** — `kind`: WikiPrincipalKind, `principalId`: string, `role`: WikiRole, `inherited`: boolean, `sourceId`: string, `source`: string, `sourceTitle`: string
 - **WikiAccessSummary** — `role`: object \| null, `via`: string, `visibility`: WikiVisibility, `workspaceRole`: WikiWorkspaceRole, `own?`: object \| null, `inherited`: boolean, `sourceId`: string, `source`: string, `sourceTitle`: string, `ownerId`: string, `canManage`: boolean, `grants`: array
+- **WikiContent** — `doc`: object, `version`: integer, `updatedBy`: string \| null, `updatedAt`: string
+- **WikiContentInput** — `doc`: object, `version`: integer
+- **WikiTemplate** — `id`: string, `name`: string, `description`: string, `icon`: string, `builtin`: boolean
+- **WikiTemplateInput** — `name`: string, `description?`: string, `nodeId`: string
+- **WikiFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string
 - **WikiAuditEvent** — `id`: integer, `kind`: string, `actorId`: string \| null, `nodeId`: string \| null, `data`: object, `at`: string
 - **WikiAuditPage** — `events`: array, `next`: integer \| null

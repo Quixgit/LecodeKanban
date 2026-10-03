@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 
@@ -69,6 +70,10 @@ type NodeInput struct {
 	Title    string
 	Icon     string
 	AfterID  *uuid.UUID
+	// TemplateID ("builtin:runbook" or a custom template's UUID) fills a new page; Lang picks the
+	// language of built-in ones.
+	TemplateID string
+	Lang       string
 }
 
 func validateTitle(title string) (string, error) {
@@ -164,6 +169,16 @@ func (s *Service) CreateNode(ctx context.Context, user, spaceID uuid.UUID, in No
 	if depth > sc.space.MaxDepth {
 		return NodeView{}, apperr.New(domain.ErrMaxDepth, "maximum nesting depth reached").WithMeta("max", sc.space.MaxDepth)
 	}
+	var tplDoc []byte
+	var tplText string
+	if in.TemplateID != "" {
+		if tplDoc, err = s.templateDoc(ctx, sc.space.WorkspaceID, in.TemplateID, in.Lang); err != nil {
+			return NodeView{}, err
+		}
+		if tplText, err = domain.ValidateDoc(tplDoc); err != nil {
+			return NodeView{}, err
+		}
+	}
 	var n domain.Node
 	err = s.repo.InTx(ctx, func(r *repository.Repo) error {
 		sibs, err := r.Siblings(ctx, spaceID, in.ParentID)
@@ -179,6 +194,11 @@ func (s *Service) CreateNode(ctx context.Context, user, spaceID uuid.UUID, in No
 			ParentID: in.ParentID, Kind: in.Kind, Title: title, Icon: in.Icon, Rank: rank, Path: parentPath + id.String() + "/",
 			Depth: depth, OwnerID: user}); err != nil {
 			return err
+		}
+		if tplDoc != nil {
+			if _, _, err := r.SaveContent(ctx, n.ID, tplDoc, tplText, user, 0); err != nil {
+				return err
+			}
 		}
 		return s.audit(ctx, r, n.WorkspaceID, &spaceID, &n.ID, user, domain.AuditNodeCreated,
 			map[string]any{"title": n.Title, "kind": string(n.Kind), "parentId": in.ParentID})
@@ -206,12 +226,51 @@ func (s *Service) Node(ctx context.Context, user, id uuid.UUID) (NodeView, error
 	if err != nil {
 		return NodeView{}, err
 	}
-	return NodeView{Node: *sc.node, Access: sc.access, Favorite: favs[id]}, nil
+	projects, err := s.repo.Projects(ctx, id)
+	if err != nil {
+		return NodeView{}, err
+	}
+	return NodeView{Node: *sc.node, Access: sc.access, Favorite: favs[id], ProjectIDs: projects}, nil
 }
 
-// NodePatch updates a node's title, icon or cover; nil leaves a field as is.
+// NodePatch updates a node; nil leaves a field as is.
 type NodePatch struct {
 	Title, Icon, Cover *string
+	// Page properties.
+	Status     *domain.Status
+	Tags       *[]string
+	ReviewDays *int
+	FullWidth  *bool
+	// Verify stamps "last verified now" (resets the review reminder).
+	Verify     bool
+	ProjectIDs *[]uuid.UUID
+}
+
+func (p NodePatch) touchesProperties() bool {
+	return p.Status != nil || p.Tags != nil || p.ReviewDays != nil || p.FullWidth != nil || p.Verify
+}
+
+// normalizeTags trims, drops empties and duplicates (case-insensitively) and checks the limits.
+func normalizeTags(in []string, v *validation.V) []string {
+	out := make([]string, 0, len(in))
+	seen := map[string]bool{}
+	for _, t := range in {
+		t = strings.TrimSpace(t)
+		key := strings.ToLower(t)
+		if t == "" || seen[key] {
+			continue
+		}
+		if utf8.RuneCountInString(t) > domain.MaxTagLen {
+			v.Add("tags", validation.MaxLength, map[string]any{"max": domain.MaxTagLen})
+			return out
+		}
+		seen[key] = true
+		out = append(out, t)
+	}
+	if len(out) > domain.MaxTags {
+		v.Add("tags", validation.Count, map[string]any{"min": 0, "max": domain.MaxTags})
+	}
+	return out
 }
 
 func (s *Service) UpdateNode(ctx context.Context, user, id uuid.UUID, p NodePatch) (NodeView, error) {
@@ -239,6 +298,40 @@ func (s *Service) UpdateNode(ctx context.Context, user, id uuid.UUID, p NodePatc
 	var v validation.V
 	v.IconKey("icon", icon)
 	v.Length("cover", cover, 0, 200)
+
+	props := repository.Properties{Status: n.Status, Tags: n.Tags, ReviewDays: n.ReviewDays, FullWidth: n.FullWidth,
+		LastVerifiedAt: n.LastVerifiedAt}
+	if p.Status != nil {
+		if !p.Status.Valid() {
+			v.Add("status", validation.OneOf, map[string]any{"allowed": []string{"draft", "published", "outdated"}})
+		}
+		props.Status = *p.Status
+	}
+	if p.Tags != nil {
+		props.Tags = normalizeTags(*p.Tags, &v)
+	}
+	if p.ReviewDays != nil {
+		if *p.ReviewDays < 0 || *p.ReviewDays > domain.MaxReviewDays {
+			v.Add("reviewDays", validation.Range, map[string]any{"min": 0, "max": domain.MaxReviewDays})
+		}
+		props.ReviewDays = *p.ReviewDays
+	}
+	if p.FullWidth != nil {
+		props.FullWidth = *p.FullWidth
+	}
+	if p.Verify {
+		now := s.now()
+		props.LastVerifiedAt = &now
+		if props.Status == domain.StatusOutdated {
+			props.Status = domain.StatusPublished
+		}
+	}
+	var projects []uuid.UUID
+	if p.ProjectIDs != nil {
+		if projects, err = s.checkProjects(ctx, n.WorkspaceID, *p.ProjectIDs, &v); err != nil {
+			return NodeView{}, err
+		}
+	}
 	if err := v.Err(); err != nil {
 		return NodeView{}, err
 	}
@@ -246,6 +339,16 @@ func (s *Service) UpdateNode(ctx context.Context, user, id uuid.UUID, p NodePatc
 		var err error
 		if n, err = r.UpdateNodeMeta(ctx, id, title, icon, cover); err != nil {
 			return err
+		}
+		if p.touchesProperties() {
+			if n, err = r.SetProperties(ctx, id, props); err != nil {
+				return err
+			}
+		}
+		if p.ProjectIDs != nil {
+			if err := r.SetProjects(ctx, id, projects); err != nil {
+				return err
+			}
 		}
 		if title != sc.node.Title {
 			return s.audit(ctx, r, n.WorkspaceID, &n.SpaceID, &n.ID, user, domain.AuditNodeRenamed,
@@ -257,6 +360,36 @@ func (s *Service) UpdateNode(ctx context.Context, user, id uuid.UUID, p NodePatc
 		return NodeView{}, err
 	}
 	return NodeView{Node: n, Access: sc.access}, nil
+}
+
+// checkProjects keeps only distinct projects of the node's own workspace; others are a field error.
+func (s *Service) checkProjects(ctx context.Context, ws uuid.UUID, ids []uuid.UUID, v *validation.V) ([]uuid.UUID, error) {
+	seen := map[uuid.UUID]bool{}
+	uniq := make([]uuid.UUID, 0, len(ids))
+	for _, id := range ids {
+		if !seen[id] {
+			seen[id] = true
+			uniq = append(uniq, id)
+		}
+	}
+	if len(uniq) == 0 {
+		return uniq, nil
+	}
+	if s.projects == nil {
+		v.Add("projectIds", validation.NotFound, nil)
+		return nil, nil
+	}
+	refs, err := s.projects.Refs(ctx, uniq)
+	if err != nil {
+		return nil, err
+	}
+	for _, id := range uniq {
+		if r, ok := refs[id]; !ok || r.WorkspaceID != ws {
+			v.Add("projectIds", validation.NotFound, nil)
+			break
+		}
+	}
+	return uniq, nil
 }
 
 // MoveInput places a node. ParentID nil means the root of SpaceID (default: the current space).

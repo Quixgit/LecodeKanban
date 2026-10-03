@@ -10,6 +10,7 @@ import enDashboard from '../../public/locales/en/dashboard.json';
 import enShowcase from '../../public/locales/en/showcase.json';
 import enTeam from '../../public/locales/en/team.json';
 import enWiki from '../../public/locales/en/wiki.json';
+import enWikiEditor from '../../public/locales/en/wikiEditor.json';
 import ukAuth from '../../public/locales/uk/auth.json';
 import ukCommon from '../../public/locales/uk/common.json';
 import ukErrors from '../../public/locales/uk/errors.json';
@@ -20,6 +21,7 @@ import ukDashboard from '../../public/locales/uk/dashboard.json';
 import ukShowcase from '../../public/locales/uk/showcase.json';
 import ukTeam from '../../public/locales/uk/team.json';
 import ukWiki from '../../public/locales/uk/wiki.json';
+import ukWikiEditor from '../../public/locales/uk/wikiEditor.json';
 
 export const testResources = {
   en: {
@@ -33,6 +35,7 @@ export const testResources = {
     dashboard: enDashboard,
     showcase: enShowcase,
     wiki: enWiki,
+    wikiEditor: enWikiEditor,
   },
   uk: {
     common: ukCommon,
@@ -45,6 +48,7 @@ export const testResources = {
     dashboard: ukDashboard,
     showcase: ukShowcase,
     wiki: ukWiki,
+    wikiEditor: ukWikiEditor,
   },
 };
 
