@@ -14,6 +14,7 @@ import {
   type ChatChannelPatch,
   type ChatMessage,
   type ChatMessagePage,
+  type SearchParams,
 } from '../api/chatApi';
 import type { ReactionKey } from '../model/reactions';
 
@@ -28,7 +29,7 @@ export const chatKeys = {
   files: (channel: string) => ['chat', 'files', channel] as const,
   saved: (ws: string) => ['chat', 'saved', ws] as const,
   threads: (ws: string) => ['chat', 'threads', ws] as const,
-  search: (ws: string, q: string) => ['chat', 'search', ws, q] as const,
+  search: (ws: string, key: string) => ['chat', 'search', ws, key] as const,
   presence: (ws: string) => ['chat', 'presence', ws] as const,
 };
 
@@ -106,12 +107,13 @@ export function useMyThreads(ws: string | undefined) {
   });
 }
 
-export function useMessageSearch(ws: string | undefined, q: string) {
-  const term = q.trim();
+/** Searches messages; text needs two characters unless a modifier narrows the search. */
+export function useMessageSearch(ws: string | undefined, params: SearchParams, filtered: boolean) {
+  const q = (params.q ?? '').trim();
   return useQuery({
-    queryKey: chatKeys.search(ws ?? '', term),
-    queryFn: () => chatApi.search(ws!, term),
-    enabled: !!ws && term.length >= 2,
+    queryKey: chatKeys.search(ws ?? '', JSON.stringify({ ...params, q })),
+    queryFn: () => chatApi.search(ws!, { ...params, q }),
+    enabled: !!ws && (q.length >= 2 || (q === '' && filtered)),
     staleTime: 15_000,
   });
 }

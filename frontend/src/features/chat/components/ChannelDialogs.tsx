@@ -1,4 +1,4 @@
-import { Check, Hash, Lock, Search } from 'lucide-react';
+import { Check, Hash, Lock, Search, X } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Member } from '@/shared/api';
@@ -15,34 +15,25 @@ interface Common {
   workspaceId: string;
 }
 
-export function CreateChannelDialog({
-  open,
-  onOpenChange,
-  workspaceId,
-  onCreated,
-}: Common & { onCreated: (c: ChatChannel) => void }) {
-  return open ? (
-    <CreateForm
-      open={open}
-      onOpenChange={onOpenChange}
-      workspaceId={workspaceId}
-      onCreated={onCreated}
-    />
-  ) : null;
+interface CreateProps extends Common {
+  members: readonly Member[];
+  me: string;
+  onCreated: (c: ChatChannel) => void;
 }
 
-function CreateForm({
-  open,
-  onOpenChange,
-  workspaceId,
-  onCreated,
-}: Common & { onCreated: (c: ChatChannel) => void }) {
+export function CreateChannelDialog(props: CreateProps) {
+  return props.open ? <CreateForm {...props} /> : null;
+}
+
+function CreateForm({ open, onOpenChange, workspaceId, members, me, onCreated }: CreateProps) {
   const { t } = useTranslation('chat');
   const errorText = useErrorText();
   const m = useChatMutations(workspaceId);
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('');
   const [isPrivate, setPrivate] = useState(false);
+  const [invited, setInvited] = useState<string[]>([]);
+  const [q, setQ] = useState('');
   const [error, setError] = useState<string | null>(null);
   const normalized = normalizeChannelName(name);
 
@@ -50,7 +41,7 @@ function CreateForm({
     e.preventDefault();
     if (!normalized) return;
     m.createChannel.mutate(
-      { name: normalized, topic: topic.trim(), private: isPrivate },
+      { name: normalized, topic: topic.trim(), private: isPrivate, memberIds: invited },
       {
         onSuccess: (c) => {
           onOpenChange(false);
@@ -110,6 +101,80 @@ function CreateForm({
             aria-label={t('create.private')}
           />
         </label>
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-sm font-medium text-text">
+            {t('create.invite')}{' '}
+            <span className="font-normal text-text-muted">{t('create.optional')}</span>
+          </legend>
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            leadingIcon={<Search />}
+            placeholder={t('create.invitePlaceholder')}
+            aria-label={t('create.invitePlaceholder')}
+          />
+          {invited.length > 0 && (
+            <ul className="flex flex-wrap gap-1.5" aria-label={t('create.invited')}>
+              {invited.map((id) => {
+                const p = members.find((x) => x.user.id === id);
+                return p ? (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      onClick={() => setInvited((v) => v.filter((x) => x !== id))}
+                      aria-label={t('create.uninvite', { name: p.user.name })}
+                      className="inline-flex h-7 items-center gap-1.5 rounded-full bg-primary-soft py-0 pl-1 pr-2.5 text-sm font-medium text-primary-ink outline-none transition-colors duration-micro hover:bg-primary-soft/70 focus-visible:ring-2 focus-visible:ring-primary/40"
+                    >
+                      <Avatar
+                        name={p.user.name}
+                        src={p.user.avatarUrl}
+                        size="xs"
+                        className="!size-5"
+                      />
+                      {p.user.name}
+                      <X className="size-3" aria-hidden />
+                    </button>
+                  </li>
+                ) : null;
+              })}
+            </ul>
+          )}
+          <ul className="max-h-40 space-y-0.5 overflow-y-auto" aria-label={t('direct.people')}>
+            {members
+              .filter(
+                (x) =>
+                  x.user.id !== me &&
+                  (!q.trim() || x.user.name.toLowerCase().includes(q.trim().toLowerCase())),
+              )
+              .map((x) => {
+                const on = invited.includes(x.user.id);
+                return (
+                  <li key={x.user.id}>
+                    <label
+                      className={cn(
+                        'flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors duration-micro hover:bg-surface-muted',
+                        on && 'bg-primary-subtle',
+                      )}
+                    >
+                      <Checkbox
+                        checked={on}
+                        onCheckedChange={(v) =>
+                          setInvited((cur) =>
+                            v === true ? [...cur, x.user.id] : cur.filter((id) => id !== x.user.id),
+                          )
+                        }
+                        aria-label={x.user.name}
+                      />
+                      <Avatar name={x.user.name} src={x.user.avatarUrl} size="sm" />
+                      <span className="min-w-0 flex-1 truncate text-base text-text">
+                        {x.user.name}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+          </ul>
+        </fieldset>
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}

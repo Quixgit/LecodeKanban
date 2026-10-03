@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Hash, Info, Lock, Search, Star, UserRound, Users } from 'lucide-react';
+import { Hash, Info, Lock, Star, UserRound, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom';
@@ -193,16 +193,6 @@ export function ChannelView() {
                 />
                 <span className="tabular-nums">{channel.memberCount}</span>
               </button>
-            </Tooltip>
-            <Tooltip content={t('search.open')}>
-              <IconButton
-                label={t('search.open')}
-                variant="ghost"
-                size="sm"
-                onClick={ctx.openSearch}
-              >
-                <Search />
-              </IconButton>
             </Tooltip>
             <Tooltip content={t('header.details')}>
               <IconButton

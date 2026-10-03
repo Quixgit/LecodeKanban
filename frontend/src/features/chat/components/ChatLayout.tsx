@@ -133,6 +133,8 @@ export function ChatLayout() {
         open={dialog === 'create'}
         onOpenChange={(o) => !o && setDialog(null)}
         workspaceId={workspace.id}
+        members={context.members}
+        me={me}
         onCreated={open}
       />
       <NewMessageDialog
@@ -148,6 +150,10 @@ export function ChatLayout() {
         onOpenChange={(o) => !o && setDialog(null)}
         workspaceId={workspace.id}
         me={me}
+        meName={user?.name ?? ''}
+        channels={list}
+        members={context.members}
+        activeId={activeId}
       />
       <BrowseChannelsDialog
         open={dialog === 'browse'}

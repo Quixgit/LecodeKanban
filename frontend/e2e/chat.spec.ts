@@ -58,12 +58,12 @@ test.describe('Chat', () => {
     // Peter reacts; Lisa sees the chip (live).
     await message(page, 'Hello team').hover();
     await page.getByRole('button', { name: 'Add reaction' }).first().click();
-    await page.getByRole('menuitem', { name: 'Celebrate' }).click();
-    await expect(page.getByRole('button', { name: /Celebrate, 1/ })).toHaveAttribute(
+    await page.getByRole('button', { name: '🎉' }).first().click();
+    await expect(page.getByRole('button', { name: /🎉, 1/ })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await expect(lisa.getByRole('button', { name: /Celebrate, 1/ }).first()).toBeVisible({
+    await expect(lisa.getByRole('button', { name: /🎉, 1/ }).first()).toBeVisible({
       timeout: 15_000,
     });
 
@@ -316,5 +316,105 @@ test.describe('Chat live signals', () => {
       timeout: 15_000,
     });
     await lisaCtx.close();
+  });
+});
+
+test.describe('Chat search, emoji and invitations', () => {
+  test('creates a channel with people already in it', async ({ page, browser }) => {
+    const name = slug();
+    await signIn(page);
+    await page.goto('/chat');
+    await page.getByRole('button', { name: 'Add channels' }).click();
+    await page.getByRole('menuitem', { name: 'Create a channel' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('textbox', { name: 'Name' }).fill(name);
+    await dialog.getByRole('checkbox', { name: 'Lisa Kim' }).click();
+    await expect(dialog.getByRole('button', { name: /Don’t add Lisa Kim/ })).toBeVisible();
+    await dialog.getByRole('button', { name: 'Create channel' }).click();
+    await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Show members' })).toContainText('2');
+
+    // Lisa finds it in her list without joining.
+    const lisaCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const lisa = await lisaCtx.newPage();
+    await signIn(lisa, 'en', 'light', LISA);
+    await lisa.goto('/chat');
+    await expect(lisa.getByRole('link', { name })).toBeVisible();
+    await lisaCtx.close();
+  });
+
+  test('inserts emoji from the picker and reacts with any emoji', async ({ page }) => {
+    const name = slug();
+    await signIn(page);
+    await createChannel(page, name);
+    const box = page.getByRole('textbox', { name: /^Message #/ });
+    await box.fill('great job ');
+    await page.getByRole('button', { name: 'Add an emoji' }).click();
+    await page.getByRole('textbox', { name: 'Search emoji' }).fill('rocket');
+    await page.getByRole('button', { name: 'rocket' }).first().click();
+    await expect(box).toHaveValue(/great job .*🚀/);
+    await box.press('Enter');
+    const item = message(page, 'great job');
+    await expect(item).toContainText('🚀');
+
+    await item.hover();
+    await item.getByRole('button', { name: 'Add reaction' }).first().click();
+    await page.getByRole('textbox', { name: 'Search emoji' }).fill('party');
+    await page
+      .getByRole('button', { name: /party popper|partying/i })
+      .first()
+      .click();
+    await expect(item.getByRole('button', { name: /, 1$/ }).first()).toBeVisible();
+    await item.hover();
+    await item.getByRole('button', { name: 'Add reaction' }).first().click();
+    await page.getByRole('button', { name: '👍' }).first().click();
+    await expect(item.getByRole('button', { name: '👍, 1' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  test('one search with modifiers, chips and jump-to', async ({ page }) => {
+    const name = slug();
+    const word = `zebra${stamp().toLowerCase()}`;
+    await signIn(page);
+    await createChannel(page, name);
+    const box = page.getByRole('textbox', { name: /^Message #/ });
+    await box.fill(`${word} first https://example.com/a`);
+    await box.press('Enter');
+    await box.fill(`${word} second`);
+    await box.press('Enter');
+    await expect(message(page, `${word} second`)).toBeVisible();
+
+    // One entry point only: the sidebar button (no second search icon in the header).
+    await expect(page.getByRole('button', { name: /Search messages/ })).toHaveCount(1);
+    await page.getByRole('button', { name: /Search messages/ }).click();
+    const dialog = page.getByRole('dialog');
+    const input = dialog.getByRole('textbox', { name: /Search messages/ });
+    await input.fill(word);
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} first`) })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} second`) })).toBeVisible();
+
+    // The "Has a link" chip narrows to the first message.
+    await dialog.getByRole('button', { name: 'Has a link' }).click();
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} second`) })).toHaveCount(0);
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} first`) })).toBeVisible();
+
+    // Typed modifiers become chips: in:#channel offers suggestions.
+    await dialog.getByRole('button', { name: 'Clear' }).click();
+    await input.fill(`${word} in:${name}`);
+    await dialog.getByRole('option').first().click();
+    await expect(dialog.getByRole('button', { name: /Remove filter in:/ })).toBeVisible();
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} second`) })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Jump-to: the channel itself is offered for its name.
+    await dialog.getByRole('button', { name: 'Clear' }).click();
+    await input.fill(name);
+    await dialog.getByRole('button', { name }).first().click();
+    await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
   });
 });

@@ -91,7 +91,7 @@
   "sidebar": {
     "title": "Chat",
     "label": "Channels and direct messages",
-    "filter": "Find a conversation",
+    "filter": "Search messages and conversations",
     "newMessage": "New message",
     "channels": "Channels",
     "direct": "Direct messages",
@@ -106,7 +106,9 @@
     "unread_other": "{{count}} unread messages",
     "threads": "Threads",
     "saved": "Saved",
-    "starred": "Starred"
+    "starred": "Starred",
+    "soundOn": "Turn notification sounds on",
+    "soundOff": "Mute notification sounds"
   },
   "create": {
     "title": "Create a channel",
@@ -119,7 +121,12 @@
     "topicPlaceholder": "What is this channel for?",
     "private": "Make private",
     "privateHint": "Only people you add can find and read it.",
-    "submit": "Create channel"
+    "submit": "Create channel",
+    "invite": "Add people",
+    "optional": "(optional)",
+    "invitePlaceholder": "Search people to add",
+    "invited": "People to add",
+    "uninvite": "Don’t add {{name}}"
   },
   "common": {
     "cancel": "Cancel"
@@ -215,12 +222,37 @@
     "many": "Several people are typing…"
   },
   "search": {
-    "title": "Search messages",
+    "title": "Search",
     "description": "Look through every conversation you can see.",
-    "placeholder": "Search messages",
-    "hint": "Type at least two characters.",
+    "placeholder": "Search messages, or try from:@name in:#channel",
+    "hint": "Search every conversation you can see. Combine words with filters:",
     "none": "Nothing found for “{{q}}”.",
-    "open": "Search messages (Ctrl+Shift+F)"
+    "open": "Search messages (Ctrl+Shift+F)",
+    "placeholderFiltered": "Add words to narrow the search",
+    "clear": "Clear",
+    "filters": "Search filters",
+    "suggestions": "Suggestions",
+    "in": "in",
+    "from": "from",
+    "inHint": "Search in this channel",
+    "fromHint": "Messages from this person",
+    "inThis": "In this conversation",
+    "fromMe": "From me",
+    "includesMe": "Includes me",
+    "hasLink": "Has a link",
+    "hasFile": "Has a file",
+    "threadsOnly": "Threads only",
+    "removeFilter": "Remove filter {{name}}",
+    "jumpTo": "Jump to",
+    "message": "Message",
+    "messages": "Messages",
+    "noneFiltered": "No messages match these filters.",
+    "range": {
+      "any": "Any time",
+      "day": "Today",
+      "week": "Last 7 days",
+      "month": "Last 30 days"
+    }
   },
   "tabs": {
     "label": "Conversation sections",

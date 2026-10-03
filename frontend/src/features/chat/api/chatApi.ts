@@ -10,6 +10,17 @@ export type ChatReaction = components['schemas']['ChatReaction'];
 export type ChatFile = components['schemas']['ChatFile'];
 export type ChatHit = components['schemas']['ChatHit'];
 
+export interface SearchParams {
+  q?: string;
+  channelId?: string;
+  fromId?: string;
+  mentionsMe?: boolean;
+  hasLink?: boolean;
+  hasFile?: boolean;
+  threadsOnly?: boolean;
+  after?: string;
+}
+
 const channel = (channelId: string) => ({ params: { path: { channelId } } });
 const message = (messageId: string) => ({ params: { path: { messageId } } });
 
@@ -60,10 +71,10 @@ export const chatApi = {
         body: { body, parentId: parentId ?? null, fileIds },
       }),
     ),
-  search: (workspaceId: string, q: string) =>
+  search: (workspaceId: string, query: SearchParams) =>
     unwrap(
       api.GET('/workspaces/{workspaceId}/chat/search', {
-        params: { path: { workspaceId }, query: { q } },
+        params: { path: { workspaceId }, query },
       }),
     ),
   saved: (workspaceId: string) =>
