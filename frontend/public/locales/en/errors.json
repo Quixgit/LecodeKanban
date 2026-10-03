@@ -116,6 +116,8 @@
     "bad_reaction": "That reaction isn't available.",
     "dm_members": "Direct messages need 1 to 7 other people from this workspace.",
     "not_member": "Join the channel first.",
-    "message_deleted": "This message was deleted."
+    "message_deleted": "This message was deleted.",
+    "no_file": "Choose a file to upload, or the attachment is no longer available.",
+    "too_many_files": "A message can have at most {{max}} files."
   }
 }

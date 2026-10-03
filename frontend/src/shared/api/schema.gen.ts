@@ -1574,6 +1574,211 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/chat/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** Find messages containing the text in conversations the caller can see */
+        get: operations["searchChat"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/chat/saved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** The caller's saved (Later) messages, newest saved first */
+        get: operations["listSavedChat"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/chat/threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** Threads the caller started or replied in, most recently active first */
+        get: operations["listChatThreads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/chat/presence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getChatPresence"];
+        put?: never;
+        /** Tell the server the caller has the app open */
+        post: operations["chatHeartbeat"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/typing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tell the others in the channel the caller is writing (nothing is stored) */
+        post: operations["chatTyping"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/star": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["starChatChannel"];
+        post?: never;
+        delete: operations["unstarChatChannel"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/pins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listChatPins"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listChatFiles"];
+        put?: never;
+        /** @description Multipart upload (field `file`). The file is attached by sending its id in a message's `fileIds` */
+        post: operations["uploadChatFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/files/{fileId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        /** @description Bytes of an attachment for anybody who can read its conversation. Only known image types may be shown inline */
+        get: operations["getChatFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/messages/{messageId}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["saveChatMessage"];
+        post?: never;
+        delete: operations["unsaveChatMessage"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/messages/{messageId}/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["pinChatMessage"];
+        post?: never;
+        delete: operations["unpinChatMessage"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/chat/channels/{channelId}": {
         parameters: {
             query?: never;
@@ -2637,6 +2842,7 @@ export interface components {
             topic: string;
             joined: boolean;
             muted: boolean;
+            starred: boolean;
             /** @description Messages from others since the caller last read */
             unread: number;
             /** @description Of those */
@@ -2685,8 +2891,16 @@ export interface components {
             body: string;
             deleted: boolean;
             mentions: components["schemas"]["PersonRef"][];
+            /** @description @channel, @here or @everyone */
+            mentionAll: boolean;
             reactions: components["schemas"]["ChatReaction"][];
+            files: components["schemas"]["ChatFile"][];
+            pinned: boolean;
+            /** @description In the caller's Later list */
+            saved: boolean;
             replyCount: number;
+            /** @description Up to three people who replied */
+            replyPeople: components["schemas"]["PersonRef"][];
             /** Format: date-time */
             lastReplyAt: string | null;
             /** Format: date-time */
@@ -2699,9 +2913,30 @@ export interface components {
             hasMore: boolean;
         };
         ChatMessageInput: {
+            /** @description May be empty when fileIds is not */
             body: string;
             /** Format: uuid */
             parentId?: string | null;
+            /** @description Uploaded files to attach */
+            fileIds?: string[];
+        };
+        ChatFile: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            contentType: string;
+            /** Format: int64 */
+            size: number;
+            url: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ChatHit: {
+            message: components["schemas"]["ChatMessage"];
+            channel: components["schemas"]["ChatChannel"];
+        };
+        ChatPresence: {
+            online: string[];
         };
         ChatBodyInput: {
             body: string;
@@ -5628,6 +5863,359 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatChannel"];
+                };
+            };
+        };
+    };
+    searchChat: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Messages with the conversation each one lives in */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatHit"][];
+                };
+            };
+        };
+    };
+    listSavedChat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Messages with the conversation each one lives in */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatHit"][];
+                };
+            };
+        };
+    };
+    listChatThreads: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thread roots with the conversation each one lives in */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatHit"][];
+                };
+            };
+        };
+    };
+    getChatPresence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Members seen in the last two minutes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPresence"];
+                };
+            };
+        };
+    };
+    chatHeartbeat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recorded */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    chatTyping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sent */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    starChatChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Starred */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unstarChatChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unstarred */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listChatPins: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pinned messages, latest pin first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"][];
+                };
+            };
+        };
+    };
+    listChatFiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Files sent in the channel, newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatFile"][];
+                };
+            };
+        };
+    };
+    uploadChatFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Stored, not yet attached */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatFile"];
+                };
+            };
+            413: components["responses"]["Error"];
+        };
+    };
+    getChatFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description File bytes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    saveChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saved for later */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+        };
+    };
+    unsaveChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed from saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+        };
+    };
+    pinChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pinned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+        };
+    };
+    unpinChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unpinned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
                 };
             };
         };

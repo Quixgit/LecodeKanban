@@ -3,6 +3,7 @@ package repository
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -63,7 +64,7 @@ func toChannel(c store.ChatChannel) domain.Channel {
 
 func toMessage(m store.ChatMessage) domain.Message {
 	return domain.Message{ID: m.ID, ChannelID: m.ChannelID, AuthorID: ptrID(m.AuthorID), ParentID: ptrID(m.ParentID),
-		Body: m.Body, Mentions: m.Mentions, ReplyCount: int(m.ReplyCount), LastReplyAt: m.LastReplyAt,
+		Body: m.Body, Mentions: m.Mentions, MentionAll: m.MentionAll, ReplyCount: int(m.ReplyCount), LastReplyAt: m.LastReplyAt,
 		CreatedAt: m.CreatedAt, EditedAt: m.EditedAt, DeletedAt: m.DeletedAt}
 }
 
@@ -153,7 +154,7 @@ func (r *Repo) ChannelStates(ctx context.Context, ws, user uuid.UUID) ([]domain.
 			Channel: domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
 				Topic: c.Topic, DMKey: str(c.DmKey), CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
 				LastMessageAt: c.LastMessageAt},
-			Joined: c.Joined, Muted: c.Muted, Unread: int(c.Unread), Mentions: int(c.Mentions)}
+			Joined: c.Joined, Muted: c.Muted, Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}
 	}
 	return out, nil
 }
@@ -168,7 +169,7 @@ func (r *Repo) ChannelState(ctx context.Context, id, user uuid.UUID) (domain.Cha
 		Channel: domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
 			Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), CreatedBy: ptrID(c.CreatedBy),
 			CreatedAt: c.CreatedAt, LastMessageAt: c.LastMessageAt},
-		Joined: c.Joined, Muted: c.Muted, Unread: int(c.Unread), Mentions: int(c.Mentions)}, nil
+		Joined: c.Joined, Muted: c.Muted, Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}, nil
 }
 
 // --- members
@@ -230,7 +231,7 @@ func (r *Repo) SetMuted(ctx context.Context, channel, user uuid.UUID, muted bool
 
 func (r *Repo) InsertMessage(ctx context.Context, m domain.Message) (domain.Message, error) {
 	row, err := r.q.InsertMessage(ctx, store.InsertMessageParams{ChannelID: m.ChannelID, AuthorID: nullID(m.AuthorID),
-		ParentID: nullID(m.ParentID), Body: m.Body, Mentions: nonNil(m.Mentions)})
+		ParentID: nullID(m.ParentID), Body: m.Body, Mentions: nonNil(m.Mentions), MentionAll: m.MentionAll})
 	if err != nil {
 		return domain.Message{}, err
 	}
@@ -286,8 +287,8 @@ func (r *Repo) RemoveReply(ctx context.Context, parent uuid.UUID) error {
 	return r.q.RemoveReply(ctx, parent)
 }
 
-func (r *Repo) UpdateMessage(ctx context.Context, id uuid.UUID, body string, mentions []uuid.UUID) (domain.Message, error) {
-	row, err := r.q.UpdateMessage(ctx, store.UpdateMessageParams{ID: id, Body: body, Mentions: nonNil(mentions)})
+func (r *Repo) UpdateMessage(ctx context.Context, id uuid.UUID, body string, mentions []uuid.UUID, all bool) (domain.Message, error) {
+	row, err := r.q.UpdateMessage(ctx, store.UpdateMessageParams{ID: id, Body: body, Mentions: nonNil(mentions), MentionAll: all})
 	if err != nil {
 		return domain.Message{}, notFound(err)
 	}
@@ -343,4 +344,175 @@ func (r *Repo) Reactions(ctx context.Context, messages []uuid.UUID, viewer uuid.
 		out[x.MessageID] = list
 	}
 	return out, nil
+}
+
+// --- files
+
+func toFile(f store.ChatFile) domain.File {
+	return domain.File{ID: f.ID, WorkspaceID: f.WorkspaceID, ChannelID: f.ChannelID, MessageID: ptrID(f.MessageID),
+		UploadedBy: ptrID(f.UploadedBy), Name: f.Name, ContentType: f.ContentType, Size: f.Size,
+		StorageKey: f.StorageKey, CreatedAt: f.CreatedAt}
+}
+
+func (r *Repo) CreateFile(ctx context.Context, f domain.File) (domain.File, error) {
+	row, err := r.q.CreateFile(ctx, store.CreateFileParams{WorkspaceID: f.WorkspaceID, ChannelID: f.ChannelID,
+		UploadedBy: nullID(f.UploadedBy), Name: f.Name, ContentType: f.ContentType, Size: f.Size, StorageKey: f.StorageKey})
+	if err != nil {
+		return domain.File{}, err
+	}
+	return toFile(row), nil
+}
+
+func (r *Repo) File(ctx context.Context, id uuid.UUID) (domain.File, error) {
+	row, err := r.q.GetFile(ctx, id)
+	if err != nil {
+		return domain.File{}, notFound(err)
+	}
+	return toFile(row), nil
+}
+
+// AttachFiles binds the user's own unattached uploads of a channel to a message and returns how many.
+func (r *Repo) AttachFiles(ctx context.Context, ids []uuid.UUID, message, channel, user uuid.UUID) (int, error) {
+	got, err := r.q.AttachFiles(ctx, store.AttachFilesParams{MessageID: uuid.NullUUID{UUID: message, Valid: true},
+		Ids: ids, ChannelID: channel, UserID: nullID(&user)})
+	return len(got), err
+}
+
+func (r *Repo) FilesByMessages(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID][]domain.File, error) {
+	out := map[uuid.UUID][]domain.File{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	rows, err := r.q.ListFilesByMessages(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range rows {
+		if f.MessageID.Valid {
+			out[f.MessageID.UUID] = append(out[f.MessageID.UUID], toFile(f))
+		}
+	}
+	return out, nil
+}
+
+func (r *Repo) ChannelFiles(ctx context.Context, channel uuid.UUID, limit int) ([]domain.File, error) {
+	rows, err := r.q.ListChannelFiles(ctx, store.ListChannelFilesParams{ChannelID: channel, Limit: int32(limit)})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.File, len(rows))
+	for i, f := range rows {
+		out[i] = toFile(f)
+	}
+	return out, nil
+}
+
+// --- stars, saved, pins
+
+func (r *Repo) SetStar(ctx context.Context, user, channel uuid.UUID, on bool) error {
+	if on {
+		return r.q.Star(ctx, store.StarParams{UserID: user, ChannelID: channel})
+	}
+	return r.q.Unstar(ctx, store.UnstarParams{UserID: user, ChannelID: channel})
+}
+
+func (r *Repo) SetSaved(ctx context.Context, user, message uuid.UUID, on bool) error {
+	if on {
+		return r.q.Save(ctx, store.SaveParams{UserID: user, MessageID: message})
+	}
+	return r.q.Unsave(ctx, store.UnsaveParams{UserID: user, MessageID: message})
+}
+
+func (r *Repo) SavedFlags(ctx context.Context, user uuid.UUID, ids []uuid.UUID) (map[uuid.UUID]bool, error) {
+	out := map[uuid.UUID]bool{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	rows, err := r.q.ListSavedFlags(ctx, store.ListSavedFlagsParams{UserID: user, Ids: ids})
+	for _, id := range rows {
+		out[id] = true
+	}
+	return out, err
+}
+
+func (r *Repo) SetPinned(ctx context.Context, message, channel, user uuid.UUID, on bool) error {
+	if on {
+		return r.q.Pin(ctx, store.PinParams{MessageID: message, ChannelID: channel, PinnedBy: nullID(&user)})
+	}
+	return r.q.Unpin(ctx, message)
+}
+
+func (r *Repo) PinnedFlags(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]bool, error) {
+	out := map[uuid.UUID]bool{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	rows, err := r.q.ListPinnedFlags(ctx, ids)
+	for _, id := range rows {
+		out[id] = true
+	}
+	return out, err
+}
+
+func (r *Repo) Pinned(ctx context.Context, channel uuid.UUID) ([]domain.Message, error) {
+	rows, err := r.q.ListPinnedMessages(ctx, channel)
+	if err != nil {
+		return nil, err
+	}
+	return toMessages(rows), nil
+}
+
+func toMessages(rows []store.ChatMessage) []domain.Message {
+	out := make([]domain.Message, len(rows))
+	for i, m := range rows {
+		out[i] = toMessage(m)
+	}
+	return out
+}
+
+// ReplyAuthors lists, per thread root, who replied, most recent first.
+func (r *Repo) ReplyAuthors(ctx context.Context, roots []uuid.UUID) (map[uuid.UUID][]uuid.UUID, error) {
+	out := map[uuid.UUID][]uuid.UUID{}
+	if len(roots) == 0 {
+		return out, nil
+	}
+	rows, err := r.q.ListReplyAuthors(ctx, roots)
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range rows {
+		if x.ParentID.Valid && x.AuthorID.Valid {
+			out[x.ParentID.UUID] = append(out[x.ParentID.UUID], x.AuthorID.UUID)
+		}
+	}
+	return out, nil
+}
+
+// --- lists across channels
+
+func (r *Repo) Saved(ctx context.Context, ws, user uuid.UUID, limit int) ([]domain.Message, error) {
+	rows, err := r.q.ListSavedMessages(ctx, store.ListSavedMessagesParams{WorkspaceID: ws, UserID: user, Lim: int32(limit)})
+	return toMessages(rows), err
+}
+
+func (r *Repo) MyThreads(ctx context.Context, ws, user uuid.UUID, limit int) ([]domain.Message, error) {
+	rows, err := r.q.ListMyThreads(ctx, store.ListMyThreadsParams{WorkspaceID: ws, UserID: user, Lim: int32(limit)})
+	return toMessages(rows), err
+}
+
+// Search finds messages containing q in channels the user can see.
+func (r *Repo) Search(ctx context.Context, ws, user uuid.UUID, q string, limit int) ([]domain.Message, error) {
+	esc := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(q)
+	rows, err := r.q.SearchMessages(ctx, store.SearchMessagesParams{WorkspaceID: ws, UserID: user, Q: esc, Lim: int32(limit)})
+	return toMessages(rows), err
+}
+
+// --- presence
+
+func (r *Repo) TouchPresence(ctx context.Context, user uuid.UUID) error {
+	return r.q.TouchPresence(ctx, user)
+}
+
+func (r *Repo) Online(ctx context.Context, ws uuid.UUID) ([]uuid.UUID, error) {
+	return r.q.OnlineMembers(ctx, ws)
 }

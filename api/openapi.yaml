@@ -1598,6 +1598,172 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ChatChannel" }
+  /workspaces/{workspaceId}/chat/search:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [chat]
+      operationId: searchChat
+      summary: Find messages containing the text in conversations the caller can see
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 100 } }
+      responses:
+        "200":
+          description: Messages with the conversation each one lives in
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ChatHit" } }
+  /workspaces/{workspaceId}/chat/saved:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [chat]
+      operationId: listSavedChat
+      summary: The caller's saved (Later) messages, newest saved first
+      responses:
+        "200":
+          description: Messages with the conversation each one lives in
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ChatHit" } }
+  /workspaces/{workspaceId}/chat/threads:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [chat]
+      operationId: listChatThreads
+      summary: Threads the caller started or replied in, most recently active first
+      responses:
+        "200":
+          description: Thread roots with the conversation each one lives in
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ChatHit" } }
+  /workspaces/{workspaceId}/chat/presence:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [chat]
+      operationId: getChatPresence
+      responses:
+        "200":
+          description: Members seen in the last two minutes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatPresence" }
+    post:
+      tags: [chat]
+      operationId: chatHeartbeat
+      summary: Tell the server the caller has the app open
+      responses:
+        "204": { description: Recorded }
+  /chat/channels/{channelId}/typing:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    post:
+      tags: [chat]
+      operationId: chatTyping
+      summary: Tell the others in the channel the caller is writing (nothing is stored)
+      responses:
+        "204": { description: Sent }
+  /chat/channels/{channelId}/star:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    put:
+      tags: [chat]
+      operationId: starChatChannel
+      responses:
+        "204": { description: Starred }
+    delete:
+      tags: [chat]
+      operationId: unstarChatChannel
+      responses:
+        "204": { description: Unstarred }
+  /chat/channels/{channelId}/pins:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    get:
+      tags: [chat]
+      operationId: listChatPins
+      responses:
+        "200":
+          description: Pinned messages, latest pin first
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ChatMessage" } }
+  /chat/channels/{channelId}/files:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    get:
+      tags: [chat]
+      operationId: listChatFiles
+      responses:
+        "200":
+          description: Files sent in the channel, newest first
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ChatFile" } }
+    post:
+      tags: [chat]
+      operationId: uploadChatFile
+      description: Multipart upload (field `file`). The file is attached by sending its id in a message's `fileIds`
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "201":
+          description: Stored, not yet attached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatFile" }
+        "413": { $ref: "#/components/responses/Error" }
+  /chat/files/{fileId}/content:
+    parameters: [{ name: fileId, in: path, required: true, schema: { type: string, format: uuid } }]
+    get:
+      tags: [chat]
+      operationId: getChatFile
+      description: Bytes of an attachment for anybody who can read its conversation. Only known image types may be shown inline
+      responses:
+        "200": { description: File bytes }
+        "404": { $ref: "#/components/responses/Error" }
+  /chat/messages/{messageId}/save:
+    parameters: [{ $ref: "#/components/parameters/ChatMessageId" }]
+    put:
+      tags: [chat]
+      operationId: saveChatMessage
+      responses:
+        "200":
+          description: Saved for later
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatMessage" }
+    delete:
+      tags: [chat]
+      operationId: unsaveChatMessage
+      responses:
+        "200":
+          description: Removed from saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatMessage" }
+  /chat/messages/{messageId}/pin:
+    parameters: [{ $ref: "#/components/parameters/ChatMessageId" }]
+    put:
+      tags: [chat]
+      operationId: pinChatMessage
+      responses:
+        "200":
+          description: Pinned
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatMessage" }
+    delete:
+      tags: [chat]
+      operationId: unpinChatMessage
+      responses:
+        "200":
+          description: Unpinned
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatMessage" }
   /chat/channels/{channelId}:
     parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
     patch:
@@ -2677,7 +2843,7 @@ components:
         next: { type: integer, format: int64, nullable: true, description: Cursor for the next page; null at the end }
     ChatChannel:
       type: object
-      required: [id, workspaceId, kind, name, topic, joined, muted, unread, mentions, memberCount, lastMessageAt, people]
+      required: [id, workspaceId, kind, name, topic, joined, muted, starred, unread, mentions, memberCount, lastMessageAt, people]
       properties:
         id: { type: string, format: uuid }
         workspaceId: { type: string, format: uuid }
@@ -2686,6 +2852,7 @@ components:
         topic: { type: string }
         joined: { type: boolean }
         muted: { type: boolean }
+        starred: { type: boolean }
         unread: { type: integer, description: Messages from others since the caller last read }
         mentions: { type: integer, description: Of those, how many mention the caller }
         memberCount: { type: integer }
@@ -2729,7 +2896,7 @@ components:
         users: { type: array, items: { type: string, format: uuid } }
     ChatMessage:
       type: object
-      required: [id, channelId, parentId, author, body, deleted, mentions, reactions, replyCount, lastReplyAt, createdAt, editedAt]
+      required: [id, channelId, parentId, author, body, deleted, mentions, mentionAll, reactions, files, pinned, saved, replyCount, replyPeople, lastReplyAt, createdAt, editedAt]
       properties:
         id: { type: string, format: uuid }
         channelId: { type: string, format: uuid }
@@ -2738,8 +2905,13 @@ components:
         body: { type: string, description: "Markdown; mentions are written as @[Name](user-id). Empty when deleted" }
         deleted: { type: boolean }
         mentions: { type: array, items: { $ref: "#/components/schemas/PersonRef" } }
+        mentionAll: { type: boolean, description: "@channel, @here or @everyone" }
         reactions: { type: array, items: { $ref: "#/components/schemas/ChatReaction" } }
+        files: { type: array, items: { $ref: "#/components/schemas/ChatFile" } }
+        pinned: { type: boolean }
+        saved: { type: boolean, description: In the caller's Later list }
         replyCount: { type: integer }
+        replyPeople: { type: array, items: { $ref: "#/components/schemas/PersonRef" }, description: Up to three people who replied, latest first }
         lastReplyAt: { type: string, format: date-time, nullable: true }
         createdAt: { type: string, format: date-time }
         editedAt: { type: string, format: date-time, nullable: true }
@@ -2753,8 +2925,30 @@ components:
       type: object
       required: [body]
       properties:
-        body: { type: string, minLength: 1, maxLength: 8000 }
+        body: { type: string, maxLength: 8000, description: May be empty when fileIds is not }
         parentId: { type: string, format: uuid, nullable: true }
+        fileIds: { type: array, maxItems: 10, items: { type: string, format: uuid }, description: Uploaded files to attach }
+    ChatFile:
+      type: object
+      required: [id, name, contentType, size, url, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        contentType: { type: string }
+        size: { type: integer, format: int64 }
+        url: { type: string }
+        createdAt: { type: string, format: date-time }
+    ChatHit:
+      type: object
+      required: [message, channel]
+      properties:
+        message: { $ref: "#/components/schemas/ChatMessage" }
+        channel: { $ref: "#/components/schemas/ChatChannel" }
+    ChatPresence:
+      type: object
+      required: [online]
+      properties:
+        online: { type: array, items: { type: string, format: uuid } }
     ChatBodyInput:
       type: object
       required: [body]

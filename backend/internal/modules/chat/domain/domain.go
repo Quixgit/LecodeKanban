@@ -67,17 +67,20 @@ type ChannelState struct {
 	Channel
 	Joined   bool
 	Muted    bool
+	Starred  bool
 	Unread   int
 	Mentions int
 }
 
 type Message struct {
-	ID          uuid.UUID
-	ChannelID   uuid.UUID
-	AuthorID    *uuid.UUID
-	ParentID    *uuid.UUID
-	Body        string
-	Mentions    []uuid.UUID
+	ID        uuid.UUID
+	ChannelID uuid.UUID
+	AuthorID  *uuid.UUID
+	ParentID  *uuid.UUID
+	Body      string
+	Mentions  []uuid.UUID
+	// MentionAll is set by @channel, @here or @everyone: every member counts as mentioned.
+	MentionAll  bool
 	ReplyCount  int
 	LastReplyAt *time.Time
 	CreatedAt   time.Time
@@ -140,14 +143,41 @@ func ParseMentions(body string) []uuid.UUID {
 	return out
 }
 
+// File is an attachment: uploaded to a channel first, then bound to the message that carries it.
+type File struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	ChannelID   uuid.UUID
+	MessageID   *uuid.UUID
+	UploadedBy  *uuid.UUID
+	Name        string
+	ContentType string
+	Size        int64
+	StorageKey  string
+	CreatedAt   time.Time
+}
+
+// MaxFilesPerMessage bounds attachments on one message.
+const MaxFilesPerMessage = 10
+
+// InlineImageTypes may be shown inline in the browser; everything else downloads.
+var InlineImageTypes = map[string]bool{"image/png": true, "image/jpeg": true, "image/gif": true, "image/webp": true}
+
+var mentionAllRe = regexp.MustCompile(`(^|[\s(])@(channel|here|everyone)\b`)
+
+// MentionsAll reports whether body addresses the whole channel with @channel, @here or @everyone.
+func MentionsAll(body string) bool { return mentionAllRe.MatchString(body) }
+
 var (
 	// ErrNotFound is also returned for private channels the caller may not know exist.
-	ErrNotFound   = apperr.Define("chat.not_found", http.StatusNotFound)
-	ErrForbidden  = apperr.Define("chat.forbidden", http.StatusForbidden)
-	ErrNameTaken  = apperr.Define("chat.name_taken", http.StatusConflict)
-	ErrThreadDeep = apperr.Define("chat.thread_depth", http.StatusUnprocessableEntity)
-	ErrBadReact   = apperr.Define("chat.bad_reaction", http.StatusUnprocessableEntity)
-	ErrDMMembers  = apperr.Define("chat.dm_members", http.StatusUnprocessableEntity)
-	ErrNotMember  = apperr.Define("chat.not_member", http.StatusForbidden)
-	ErrDeleted    = apperr.Define("chat.message_deleted", http.StatusConflict)
+	ErrNotFound     = apperr.Define("chat.not_found", http.StatusNotFound)
+	ErrForbidden    = apperr.Define("chat.forbidden", http.StatusForbidden)
+	ErrNameTaken    = apperr.Define("chat.name_taken", http.StatusConflict)
+	ErrThreadDeep   = apperr.Define("chat.thread_depth", http.StatusUnprocessableEntity)
+	ErrBadReact     = apperr.Define("chat.bad_reaction", http.StatusUnprocessableEntity)
+	ErrDMMembers    = apperr.Define("chat.dm_members", http.StatusUnprocessableEntity)
+	ErrNotMember    = apperr.Define("chat.not_member", http.StatusForbidden)
+	ErrDeleted      = apperr.Define("chat.message_deleted", http.StatusConflict)
+	ErrNoFile       = apperr.Define("chat.no_file", http.StatusBadRequest)
+	ErrTooManyFiles = apperr.Define("chat.too_many_files", http.StatusUnprocessableEntity)
 )

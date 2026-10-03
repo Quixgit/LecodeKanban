@@ -75,7 +75,7 @@ func TestChannelsAndAccess(t *testing.T) {
 	}
 	_, err = c.Messages(ctx, w.ben, priv.ID, nil, 0)
 	mustCode(t, err, domain.ErrNotFound)
-	_, err = c.Post(ctx, w.ben, priv.ID, nil, "let me in")
+	_, err = c.Post(ctx, w.ben, priv.ID, nil, "let me in", nil)
 	mustCode(t, err, domain.ErrNotFound)
 	_, err = c.Join(ctx, w.ben, priv.ID)
 	mustCode(t, err, domain.ErrNotFound)
@@ -84,7 +84,7 @@ func TestChannelsAndAccess(t *testing.T) {
 	mustCode(t, err, domain.ErrNotFound)
 
 	// Posting in a public channel joins it; viewers can read but not write.
-	if _, err := c.Post(ctx, w.ben, pub.ID, nil, "hello"); err != nil {
+	if _, err := c.Post(ctx, w.ben, pub.ID, nil, "hello", nil); err != nil {
 		t.Fatal(err)
 	}
 	list, _ = c.Channels(ctx, w.ben, w.ws)
@@ -94,7 +94,7 @@ func TestChannelsAndAccess(t *testing.T) {
 	if _, err := c.Messages(ctx, w.viewer, pub.ID, nil, 0); err != nil {
 		t.Fatal(err)
 	}
-	_, err = c.Post(ctx, w.viewer, pub.ID, nil, "nope")
+	_, err = c.Post(ctx, w.viewer, pub.ID, nil, "nope", nil)
 	mustCode(t, err, wsdomain.ErrInsufficientRole)
 
 	// Private channels need an invitation from a member.
@@ -163,13 +163,13 @@ func TestMessagesThreadsReactionsAndUnread(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	first, err := c.Post(ctx, w.anna, ch.ID, nil, "  first with "+mention("Ben", w.ben)+"  ")
+	first, err := c.Post(ctx, w.anna, ch.ID, nil, "  first with "+mention("Ben", w.ben)+"  ", nil)
 	if err != nil || len(first.Mentioned) != 1 || first.Author == nil || strings.HasPrefix(first.Body, " ") {
 		t.Fatalf("post: %+v %v", first, err)
 	}
-	_, err = c.Post(ctx, w.anna, ch.ID, nil, "   ")
+	_, err = c.Post(ctx, w.anna, ch.ID, nil, "   ", nil)
 	mustCode(t, err, apperr.Validation)
-	_, err = c.Post(ctx, w.anna, ch.ID, nil, strings.Repeat("x", domain.MaxBodyLen+1))
+	_, err = c.Post(ctx, w.anna, ch.ID, nil, strings.Repeat("x", domain.MaxBodyLen+1), nil)
 	mustCode(t, err, apperr.Validation)
 
 	// Ben has one unread message that mentions him; Anna's own message never counts for her.
@@ -190,14 +190,14 @@ func TestMessagesThreadsReactionsAndUnread(t *testing.T) {
 	}
 
 	// Threads are one level deep and tracked on the root.
-	r1, err := c.Post(ctx, w.ben, ch.ID, &first.ID, "reply")
+	r1, err := c.Post(ctx, w.ben, ch.ID, &first.ID, "reply", nil)
 	if err != nil || r1.ParentID == nil {
 		t.Fatalf("reply: %+v %v", r1, err)
 	}
-	_, err = c.Post(ctx, w.anna, ch.ID, &r1.ID, "reply to reply")
+	_, err = c.Post(ctx, w.anna, ch.ID, &r1.ID, "reply to reply", nil)
 	mustCode(t, err, domain.ErrThreadDeep)
 	other, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("ops", false))
-	_, err = c.Post(ctx, w.anna, other.ID, &first.ID, "wrong channel")
+	_, err = c.Post(ctx, w.anna, other.ID, &first.ID, "wrong channel", nil)
 	mustCode(t, err, domain.ErrNotFound)
 	page, _ := c.Messages(ctx, w.anna, ch.ID, nil, 0)
 	if len(page.Messages) != 1 || page.Messages[0].ReplyCount != 1 || page.Messages[0].LastReplyAt == nil {
@@ -248,7 +248,7 @@ func TestMessagesThreadsReactionsAndUnread(t *testing.T) {
 	}
 	_, err = c.Edit(ctx, w.anna, first.ID, "again")
 	mustCode(t, err, domain.ErrDeleted)
-	_, err = c.Post(ctx, w.anna, ch.ID, &first.ID, "reply to deleted")
+	_, err = c.Post(ctx, w.anna, ch.ID, &first.ID, "reply to deleted", nil)
 	mustCode(t, err, domain.ErrDeleted)
 }
 
@@ -259,7 +259,7 @@ func TestHistoryPagination(t *testing.T) {
 	ch, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("log", false))
 	var ids []uuid.UUID
 	for i := 0; i < 7; i++ {
-		m, err := c.Post(ctx, w.anna, ch.ID, nil, "m"+string(rune('0'+i)))
+		m, err := c.Post(ctx, w.anna, ch.ID, nil, "m"+string(rune('0'+i)), nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -284,7 +284,7 @@ func TestChangeHints(t *testing.T) {
 	ctx := context.Background()
 	ch, _ := w.e.Chat.CreateChannel(ctx, w.anna, w.ws, chatInput("hints", false))
 	_ = w.e.Hints.Types()
-	m, _ := w.e.Chat.Post(ctx, w.anna, ch.ID, nil, "ping")
+	m, _ := w.e.Chat.Post(ctx, w.anna, ch.ID, nil, "ping", nil)
 	_, _ = w.e.Chat.React(ctx, w.anna, m.ID, "check", true)
 	got := strings.Join(w.e.Hints.Types(), ",")
 	if got != "chat.message,chat.message" {
@@ -323,7 +323,7 @@ func TestProjectAndCardConversations(t *testing.T) {
 	}
 
 	// Talking works for editors; viewers read; outsiders and strangers get nothing.
-	if _, err := c.Post(ctx, w.anna, pc.ID, nil, "kickoff"); err != nil {
+	if _, err := c.Post(ctx, w.anna, pc.ID, nil, "kickoff", nil); err != nil {
 		t.Fatal(err)
 	}
 	st, _ := c.ScopeChannel(ctx, w.ben, domain.Project, project)
@@ -333,7 +333,7 @@ func TestProjectAndCardConversations(t *testing.T) {
 	if _, err := c.Messages(ctx, w.viewer, pc.ID, nil, 0); err != nil {
 		t.Fatal(err)
 	}
-	_, err = c.Post(ctx, w.viewer, pc.ID, nil, "nope")
+	_, err = c.Post(ctx, w.viewer, pc.ID, nil, "nope", nil)
 	mustCode(t, err, wsdomain.ErrInsufficientRole)
 	_, err = c.Messages(ctx, w.outsider, pc.ID, nil, 0)
 	mustCode(t, err, domain.ErrNotFound)
@@ -351,4 +351,193 @@ func TestProjectAndCardConversations(t *testing.T) {
 	mustCode(t, c.Archive(ctx, w.owner, pc.ID), domain.ErrForbidden)
 	_, err = c.Update(ctx, w.anna, pc.ID, nil, nil)
 	mustCode(t, err, domain.ErrForbidden)
+}
+
+func upload(t *testing.T, w world, user, channel uuid.UUID, name, content string) domain.File {
+	t.Helper()
+	f, err := w.e.Chat.UploadFile(context.Background(), user, channel, name, strings.NewReader(content))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return f
+}
+
+func TestAttachments(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	ch, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("files", false))
+	_, _ = c.Join(ctx, w.ben, ch.ID)
+	priv, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("vault", true))
+
+	png := "\x89PNG\r\n\x1a\n" + strings.Repeat("x", 32)
+	f := upload(t, w, w.anna, ch.ID, `..\evil/"report".png`, png)
+	if f.ContentType != "image/png" || strings.ContainsAny(f.Name, `/\"`) {
+		t.Fatalf("sniffed type and clean name expected: %+v", f)
+	}
+	script := upload(t, w, w.anna, ch.ID, "x.png", "<script>alert(1)</script>")
+	if script.ContentType == "image/png" {
+		t.Fatalf("type must come from the bytes, got %s", script.ContentType)
+	}
+
+	// Unsent uploads are private to the uploader; nobody can attach somebody else's file.
+	if _, _, err := c.OpenFile(ctx, w.ben, f.ID); err == nil {
+		t.Fatal("an unsent upload must not be readable by others")
+	}
+	_, err := c.Post(ctx, w.ben, ch.ID, nil, "stolen", []uuid.UUID{f.ID})
+	mustCode(t, err, domain.ErrNoFile)
+
+	// A message may be only files; the file is then readable by channel members and listed.
+	m, err := c.Post(ctx, w.anna, ch.ID, nil, "  ", []uuid.UUID{f.ID})
+	if err != nil || len(m.Files) != 1 || m.Files[0].ID != f.ID || m.Body != "" {
+		t.Fatalf("file-only message: %+v %v", m, err)
+	}
+	if _, rc, err := c.OpenFile(ctx, w.ben, f.ID); err != nil {
+		t.Fatal(err)
+	} else {
+		_ = rc.Close()
+	}
+	files, _ := c.ChannelFiles(ctx, w.ben, ch.ID)
+	if len(files) != 1 {
+		t.Fatalf("channel files = %d", len(files))
+	}
+	_, err = c.Post(ctx, w.anna, ch.ID, nil, "", nil)
+	mustCode(t, err, apperr.Validation)
+	_, err = c.Post(ctx, w.anna, ch.ID, nil, "again", []uuid.UUID{f.ID})
+	mustCode(t, err, domain.ErrNoFile) // already attached
+
+	// Files of a private channel are invisible outside it, and cannot cross channels.
+	pf := upload(t, w, w.anna, priv.ID, "secret.txt", "classified")
+	_, err = c.Post(ctx, w.anna, ch.ID, nil, "wrong place", []uuid.UUID{pf.ID})
+	mustCode(t, err, domain.ErrNoFile)
+	if _, err := c.Post(ctx, w.anna, priv.ID, nil, "see file", []uuid.UUID{pf.ID}); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := c.OpenFile(ctx, w.ben, pf.ID); err == nil {
+		t.Fatal("a private channel's file must stay private")
+	}
+	_, err = c.UploadFile(ctx, w.viewer, ch.ID, "v.txt", strings.NewReader("x"))
+	mustCode(t, err, wsdomain.ErrInsufficientRole)
+}
+
+func TestStarsSavedPinsAndLists(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	ch, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("ideas", false))
+	_, _ = c.Join(ctx, w.ben, ch.ID)
+	other, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("misc", false))
+
+	if err := c.Star(ctx, w.ben, ch.ID, true); err != nil {
+		t.Fatal(err)
+	}
+	list, _ := c.Channels(ctx, w.ben, w.ws)
+	for _, x := range list {
+		if x.Starred != (x.ID == ch.ID) {
+			t.Fatalf("starred flags: %+v", list)
+		}
+	}
+	first, _ := c.Post(ctx, w.anna, ch.ID, nil, "Release plan for the quarter", nil)
+	_, _ = c.Post(ctx, w.anna, other.ID, nil, "lunch plan", nil)
+	reply, _ := c.Post(ctx, w.ben, ch.ID, &first.ID, "looks good", nil)
+
+	// Saved is personal and survives in the list; pins are shared and top-level only.
+	v, err := c.Save(ctx, w.ben, first.ID, true)
+	if err != nil || !v.Saved {
+		t.Fatalf("save: %+v %v", v, err)
+	}
+	saved, _ := c.Saved(ctx, w.ben, w.ws)
+	if len(saved) != 1 || saved[0].ID != first.ID || saved[0].Channel.ID != ch.ID {
+		t.Fatalf("saved list: %+v", saved)
+	}
+	if other, _ := c.Saved(ctx, w.anna, w.ws); len(other) != 0 {
+		t.Fatal("saved items are personal")
+	}
+	pv, err := c.Pin(ctx, w.ben, first.ID, true)
+	if err != nil || !pv.Pinned {
+		t.Fatalf("pin: %+v %v", pv, err)
+	}
+	if _, err := c.Pin(ctx, w.ben, reply.ID, true); err == nil {
+		t.Fatal("replies cannot be pinned")
+	}
+	pins, _ := c.Pins(ctx, w.anna, ch.ID)
+	if len(pins) != 1 || !pins[0].Pinned {
+		t.Fatalf("pins: %+v", pins)
+	}
+	if _, err := c.Pin(ctx, w.ben, first.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	if pins, _ = c.Pins(ctx, w.anna, ch.ID); len(pins) != 0 {
+		t.Fatal("unpin")
+	}
+
+	// Threads: both the author of the root and the replier see it; a bystander does not.
+	for _, u := range []uuid.UUID{w.anna, w.ben} {
+		th, _ := c.Threads(ctx, u, w.ws)
+		if len(th) != 1 || th[0].ID != first.ID || th[0].ReplyCount != 1 || len(th[0].ReplyPeople) != 1 {
+			t.Fatalf("threads for %v: %+v", u, th)
+		}
+	}
+	if th, _ := c.Threads(ctx, w.owner, w.ws); len(th) != 0 {
+		t.Fatal("bystanders have no threads")
+	}
+
+	// Search sees what the caller can see, ignores wildcards, and needs two characters.
+	hits, _ := c.Search(ctx, w.ben, w.ws, "plan")
+	if len(hits) != 2 {
+		t.Fatalf("search plan = %d", len(hits))
+	}
+	if hits, _ = c.Search(ctx, w.ben, w.ws, "%"); len(hits) != 0 {
+		t.Fatal("wildcards must be literal")
+	}
+	if hits, _ = c.Search(ctx, w.ben, w.ws, "p"); len(hits) != 0 {
+		t.Fatal("one character is too short")
+	}
+	priv, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("hidden", true))
+	_, _ = c.Post(ctx, w.anna, priv.ID, nil, "plan for layoffs", nil)
+	if hits, _ = c.Search(ctx, w.ben, w.ws, "layoffs"); len(hits) != 0 {
+		t.Fatal("search must not leak private channels")
+	}
+	if hits, _ = c.Search(ctx, w.anna, w.ws, "layoffs"); len(hits) != 1 {
+		t.Fatal("members find their private messages")
+	}
+}
+
+func TestMentionAllAndPresence(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	ch, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("announce", false))
+	_, _ = c.Join(ctx, w.ben, ch.ID)
+	m, _ := c.Post(ctx, w.anna, ch.ID, nil, "@channel deploy at noon", nil)
+	if !m.MentionAll {
+		t.Fatal("@channel must set mentionAll")
+	}
+	st, _ := c.Channels(ctx, w.ben, w.ws)
+	if st[0].Unread != 1 || st[0].Mentions != 1 {
+		t.Fatalf("@channel counts as a mention: %d/%d", st[0].Unread, st[0].Mentions)
+	}
+	_, _ = c.Post(ctx, w.anna, ch.ID, nil, "mail a@channel.com", nil)
+	st, _ = c.Channels(ctx, w.ben, w.ws)
+	if st[0].Mentions != 1 {
+		t.Fatalf("an email address is not a mention: %d", st[0].Mentions)
+	}
+
+	if err := c.Heartbeat(ctx, w.anna, w.ws); err != nil {
+		t.Fatal(err)
+	}
+	online, _ := c.Online(ctx, w.ben, w.ws)
+	if len(online) != 1 || online[0] != w.anna {
+		t.Fatalf("online = %v", online)
+	}
+	if _, err := c.Online(ctx, w.outsider, w.ws); err == nil {
+		t.Fatal("outsiders cannot see presence")
+	}
+	_ = w.e.Hints.Types()
+	if err := c.Typing(ctx, w.anna, ch.ID); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(w.e.Hints.Types(), ","); got != "chat.typing" {
+		t.Fatalf("typing hint = %q", got)
+	}
 }

@@ -1083,8 +1083,9 @@ type ChatChannel struct {
 	Name *string `json:"name"`
 
 	// People Participants of a direct message
-	People []PersonRef `json:"people"`
-	Topic  string      `json:"topic"`
+	People  []PersonRef `json:"people"`
+	Starred bool        `json:"starred"`
+	Topic   string      `json:"topic"`
 
 	// Unread Messages from others since the caller last read
 	Unread      int                `json:"unread"`
@@ -1114,6 +1115,22 @@ type ChatDirectInput struct {
 	UserIds []openapi_types.UUID `json:"userIds"`
 }
 
+// ChatFile defines model for ChatFile.
+type ChatFile struct {
+	ContentType string             `json:"contentType"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
+	Size        int64              `json:"size"`
+	Url         string             `json:"url"`
+}
+
+// ChatHit defines model for ChatHit.
+type ChatHit struct {
+	Channel ChatChannel `json:"channel"`
+	Message ChatMessage `json:"message"`
+}
+
 // ChatMembersInput defines model for ChatMembersInput.
 type ChatMembersInput struct {
 	UserIds []openapi_types.UUID `json:"userIds"`
@@ -1124,23 +1141,38 @@ type ChatMessage struct {
 	Author *PersonRef `json:"author"`
 
 	// Body Markdown; mentions are written as @[Name](user-id). Empty when deleted
-	Body        string              `json:"body"`
-	ChannelId   openapi_types.UUID  `json:"channelId"`
-	CreatedAt   time.Time           `json:"createdAt"`
-	Deleted     bool                `json:"deleted"`
-	EditedAt    *time.Time          `json:"editedAt"`
-	Id          openapi_types.UUID  `json:"id"`
-	LastReplyAt *time.Time          `json:"lastReplyAt"`
-	Mentions    []PersonRef         `json:"mentions"`
-	ParentId    *openapi_types.UUID `json:"parentId"`
-	Reactions   []ChatReaction      `json:"reactions"`
-	ReplyCount  int                 `json:"replyCount"`
+	Body        string             `json:"body"`
+	ChannelId   openapi_types.UUID `json:"channelId"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	Deleted     bool               `json:"deleted"`
+	EditedAt    *time.Time         `json:"editedAt"`
+	Files       []ChatFile         `json:"files"`
+	Id          openapi_types.UUID `json:"id"`
+	LastReplyAt *time.Time         `json:"lastReplyAt"`
+
+	// MentionAll @channel, @here or @everyone
+	MentionAll bool                `json:"mentionAll"`
+	Mentions   []PersonRef         `json:"mentions"`
+	ParentId   *openapi_types.UUID `json:"parentId"`
+	Pinned     bool                `json:"pinned"`
+	Reactions  []ChatReaction      `json:"reactions"`
+	ReplyCount int                 `json:"replyCount"`
+
+	// ReplyPeople Up to three people who replied
+	ReplyPeople []PersonRef `json:"replyPeople"`
+
+	// Saved In the caller's Later list
+	Saved bool `json:"saved"`
 }
 
 // ChatMessageInput defines model for ChatMessageInput.
 type ChatMessageInput struct {
-	Body     string              `json:"body"`
-	ParentId *openapi_types.UUID `json:"parentId,omitempty"`
+	// Body May be empty when fileIds is not
+	Body string `json:"body"`
+
+	// FileIds Uploaded files to attach
+	FileIds  *[]openapi_types.UUID `json:"fileIds,omitempty"`
+	ParentId *openapi_types.UUID   `json:"parentId,omitempty"`
 }
 
 // ChatMessagePage defines model for ChatMessagePage.
@@ -1152,6 +1184,11 @@ type ChatMessagePage struct {
 // ChatMuteInput defines model for ChatMuteInput.
 type ChatMuteInput struct {
 	Muted bool `json:"muted"`
+}
+
+// ChatPresence defines model for ChatPresence.
+type ChatPresence struct {
+	Online []openapi_types.UUID `json:"online"`
 }
 
 // ChatReaction defines model for ChatReaction.
@@ -2075,6 +2112,11 @@ type UploadAttachmentMultipartBody struct {
 	File openapi_types.File `json:"file"`
 }
 
+// UploadChatFileMultipartBody defines parameters for UploadChatFile.
+type UploadChatFileMultipartBody struct {
+	File openapi_types.File `json:"file"`
+}
+
 // ListChatMessagesParams defines parameters for ListChatMessages.
 type ListChatMessagesParams struct {
 	// Before Id of the oldest message already loaded; returns the page before it
@@ -2164,6 +2206,11 @@ type CardStatusCountsParams struct {
 // CardStatusCountsParamsDue defines parameters for CardStatusCounts.
 type CardStatusCountsParamsDue string
 
+// SearchChatParams defines parameters for SearchChat.
+type SearchChatParams struct {
+	Q string `form:"q" json:"q"`
+}
+
 // ListProjectsParams defines parameters for ListProjects.
 type ListProjectsParams struct {
 	// Q Search in name or key
@@ -2234,6 +2281,9 @@ type LogTimeJSONRequestBody = TimeLogInput
 
 // UpdateChatChannelJSONRequestBody defines body for UpdateChatChannel for application/json ContentType.
 type UpdateChatChannelJSONRequestBody = ChatChannelPatch
+
+// UploadChatFileMultipartRequestBody defines body for UploadChatFile for multipart/form-data ContentType.
+type UploadChatFileMultipartRequestBody UploadChatFileMultipartBody
 
 // AddChatMembersJSONRequestBody defines body for AddChatMembers for application/json ContentType.
 type AddChatMembersJSONRequestBody = ChatMembersInput

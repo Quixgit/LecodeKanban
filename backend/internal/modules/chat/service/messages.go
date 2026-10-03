@@ -64,12 +64,15 @@ func (s *Service) Thread(ctx context.Context, user, root uuid.UUID) ([]MessageVi
 }
 
 // Post sends a message, or a reply when parent is set. Posting in a public channel joins it.
-func (s *Service) Post(ctx context.Context, user, channel uuid.UUID, parent *uuid.UUID, body string) (MessageView, error) {
+func (s *Service) Post(ctx context.Context, user, channel uuid.UUID, parent *uuid.UUID, body string, fileIDs []uuid.UUID) (MessageView, error) {
 	ch, member, err := s.access(ctx, user, channel, true)
 	if err != nil {
 		return MessageView{}, err
 	}
-	if err := validateBody(&body); err != nil {
+	if len(fileIDs) > domain.MaxFilesPerMessage {
+		return MessageView{}, apperr.New(domain.ErrTooManyFiles, "too many files").WithMeta("max", domain.MaxFilesPerMessage)
+	}
+	if err := validateBody(&body, len(fileIDs) > 0); err != nil {
 		return MessageView{}, err
 	}
 	if parent != nil {
@@ -96,11 +99,20 @@ func (s *Service) Post(ctx context.Context, user, channel uuid.UUID, parent *uui
 			}
 		}
 		m, err := r.InsertMessage(ctx, domain.Message{ChannelID: ch.ID, AuthorID: &user, ParentID: parent,
-			Body: body, Mentions: mentions})
+			Body: body, Mentions: mentions, MentionAll: domain.MentionsAll(body)})
 		if err != nil {
 			return err
 		}
 		saved = m
+		if len(fileIDs) > 0 {
+			n, err := r.AttachFiles(ctx, fileIDs, m.ID, ch.ID, user)
+			if err != nil {
+				return err
+			}
+			if n != len(fileIDs) { // somebody else's file, another channel, or already used
+				return apperr.New(domain.ErrNoFile, "unknown attachment")
+			}
+		}
 		if parent != nil {
 			if err := r.AddReply(ctx, *parent, m.CreatedAt); err != nil {
 				return err
@@ -143,14 +155,18 @@ func (s *Service) Edit(ctx context.Context, user, id uuid.UUID, body string) (Me
 	if m.Deleted() {
 		return MessageView{}, apperr.New(domain.ErrDeleted, "message was deleted")
 	}
-	if err := validateBody(&body); err != nil {
+	files, err := s.repo.FilesByMessages(ctx, []uuid.UUID{id})
+	if err != nil {
+		return MessageView{}, err
+	}
+	if err := validateBody(&body, len(files[id]) > 0); err != nil {
 		return MessageView{}, err
 	}
 	mentions, err := s.members(ctx, ch.WorkspaceID, domain.ParseMentions(body))
 	if err != nil {
 		return MessageView{}, err
 	}
-	updated, err := s.repo.UpdateMessage(ctx, id, body, mentions)
+	updated, err := s.repo.UpdateMessage(ctx, id, body, mentions, domain.MentionsAll(body))
 	if err != nil {
 		return MessageView{}, err
 	}

@@ -2,6 +2,10 @@
 package http
 
 import (
+	"context"
+	"errors"
+	"io"
+	"mime"
 	"net/http"
 	"strconv"
 
@@ -38,6 +42,30 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Post("/chat/channels/{channelId}/leave", httpx.H(h.leave))
 	r.Post("/chat/channels/{channelId}/read", httpx.H(h.read))
 	r.Put("/chat/channels/{channelId}/mute", httpx.H(h.mute))
+	r.Get("/workspaces/{workspaceId}/chat/search", httpx.H(h.hitsHandler(h.svc.Search, true)))
+	r.Get("/workspaces/{workspaceId}/chat/saved", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID, _ string) ([]service.Hit, error) {
+		return h.svc.Saved(ctx, u, ws)
+	}, false)))
+	r.Get("/workspaces/{workspaceId}/chat/threads", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID, _ string) ([]service.Hit, error) {
+		return h.svc.Threads(ctx, u, ws)
+	}, false)))
+	r.Get("/workspaces/{workspaceId}/chat/presence", httpx.H(h.online))
+	r.Post("/workspaces/{workspaceId}/chat/presence", httpx.H(h.heartbeat))
+	r.Post("/chat/channels/{channelId}/typing", httpx.H(h.typing))
+	r.Put("/chat/channels/{channelId}/star", httpx.H(h.star(true)))
+	r.Delete("/chat/channels/{channelId}/star", httpx.H(h.star(false)))
+	r.Get("/chat/channels/{channelId}/pins", httpx.H(h.pins))
+	r.Get("/chat/channels/{channelId}/files", httpx.H(h.channelFiles))
+	r.Post("/chat/channels/{channelId}/files", httpx.H(h.uploadFile))
+	r.Get("/chat/files/{fileId}/content", httpx.H(h.downloadFile))
+	r.Put("/chat/messages/{messageId}/save", httpx.H(h.flag(h.svc.Save)))
+	r.Delete("/chat/messages/{messageId}/save", httpx.H(h.flag(func(c context.Context, u, m uuid.UUID, _ bool) (service.MessageView, error) {
+		return h.svc.Save(c, u, m, false)
+	})))
+	r.Put("/chat/messages/{messageId}/pin", httpx.H(h.flag(h.svc.Pin)))
+	r.Delete("/chat/messages/{messageId}/pin", httpx.H(h.flag(func(c context.Context, u, m uuid.UUID, _ bool) (service.MessageView, error) {
+		return h.svc.Pin(c, u, m, false)
+	})))
 	r.Get("/chat/channels/{channelId}/messages", httpx.H(h.messages))
 	r.Post("/chat/channels/{channelId}/messages", httpx.H(h.post))
 	r.Patch("/chat/messages/{messageId}", httpx.H(h.edit))
@@ -74,7 +102,7 @@ func people(us []usersdomain.User) []api.PersonRef {
 
 func toChannel(v service.ChannelView) api.ChatChannel {
 	out := api.ChatChannel{Id: v.ID, WorkspaceId: v.WorkspaceID, Kind: api.ChatChannelKind(v.Kind), Topic: v.Topic,
-		Joined: v.Joined, Muted: v.Muted, Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
+		Joined: v.Joined, Muted: v.Muted, Starred: v.Starred, Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
 		LastMessageAt: v.LastMessageAt, People: people(v.People)}
 	if v.Name != "" {
 		n := v.Name
@@ -85,8 +113,12 @@ func toChannel(v service.ChannelView) api.ChatChannel {
 
 func toMessage(v service.MessageView) api.ChatMessage {
 	out := api.ChatMessage{Id: v.ID, ChannelId: v.ChannelID, ParentId: v.ParentID, Body: v.Body, Deleted: v.Deleted(),
-		Mentions: people(v.Mentioned), ReplyCount: v.ReplyCount, LastReplyAt: v.LastReplyAt, CreatedAt: v.CreatedAt,
-		EditedAt: v.EditedAt, Reactions: make([]api.ChatReaction, len(v.Reactions))}
+		Mentions: people(v.Mentioned), MentionAll: v.MentionAll, ReplyCount: v.ReplyCount, LastReplyAt: v.LastReplyAt,
+		CreatedAt: v.CreatedAt, EditedAt: v.EditedAt, Reactions: make([]api.ChatReaction, len(v.Reactions)),
+		Files: make([]api.ChatFile, len(v.Files)), Pinned: v.Pinned, Saved: v.Saved, ReplyPeople: people(v.ReplyPeople)}
+	for i, f := range v.Files {
+		out.Files[i] = toFile(f)
+	}
 	if v.Author != nil {
 		p := person(*v.Author)
 		out.Author = &p
@@ -304,7 +336,11 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) error {
 	if err := httpx.DecodeJSON(w, r, &in); err != nil {
 		return err
 	}
-	v, err := h.svc.Post(r.Context(), userID(r), id, in.ParentId, in.Body)
+	var files []uuid.UUID
+	if in.FileIds != nil {
+		files = *in.FileIds
+	}
+	v, err := h.svc.Post(r.Context(), userID(r), id, in.ParentId, in.Body, files)
 	if err != nil {
 		return err
 	}
@@ -386,4 +422,202 @@ func (h *Handler) scope(kind domain.Kind, param_ string, notFound apperr.Code) h
 		httpx.WriteJSON(w, http.StatusOK, toChannel(v))
 		return nil
 	}
+}
+
+func toFile(f domain.File) api.ChatFile {
+	return api.ChatFile{Id: f.ID, Name: f.Name, ContentType: f.ContentType, Size: f.Size, CreatedAt: f.CreatedAt,
+		Url: "/api/v1/chat/files/" + f.ID.String() + "/content"}
+}
+
+func (h *Handler) hitsHandler(fn func(context.Context, uuid.UUID, uuid.UUID, string) ([]service.Hit, error), needsQuery bool) httpx.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+		if err != nil {
+			return err
+		}
+		hits, err := fn(r.Context(), userID(r), ws, r.URL.Query().Get("q"))
+		if err != nil {
+			return err
+		}
+		out := make([]api.ChatHit, len(hits))
+		for i, x := range hits {
+			out[i] = api.ChatHit{Message: toMessage(x.MessageView), Channel: toChannel(x.Channel)}
+		}
+		httpx.WriteJSON(w, http.StatusOK, out)
+		return nil
+	}
+}
+
+func (h *Handler) online(w http.ResponseWriter, r *http.Request) error {
+	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	ids, err := h.svc.Online(r.Context(), userID(r), ws)
+	if err != nil {
+		return err
+	}
+	if ids == nil {
+		ids = []uuid.UUID{}
+	}
+	httpx.WriteJSON(w, http.StatusOK, api.ChatPresence{Online: ids})
+	return nil
+}
+
+func (h *Handler) heartbeat(w http.ResponseWriter, r *http.Request) error {
+	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	if err := h.svc.Heartbeat(r.Context(), userID(r), ws); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
+	return nil
+}
+
+func (h *Handler) typing(w http.ResponseWriter, r *http.Request) error {
+	id, err := param(r, "channelId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	if err := h.svc.Typing(r.Context(), userID(r), id); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
+	return nil
+}
+
+func (h *Handler) star(on bool) httpx.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		id, err := param(r, "channelId", domain.ErrNotFound)
+		if err != nil {
+			return err
+		}
+		if err := h.svc.Star(r.Context(), userID(r), id, on); err != nil {
+			return err
+		}
+		httpx.NoContent(w)
+		return nil
+	}
+}
+
+func (h *Handler) pins(w http.ResponseWriter, r *http.Request) error {
+	id, err := param(r, "channelId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	vs, err := h.svc.Pins(r.Context(), userID(r), id)
+	if err != nil {
+		return err
+	}
+	out := make([]api.ChatMessage, len(vs))
+	for i, v := range vs {
+		out[i] = toMessage(v)
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
+	return nil
+}
+
+// flag adapts save and pin (which toggle with PUT and DELETE) to HTTP.
+func (h *Handler) flag(fn func(context.Context, uuid.UUID, uuid.UUID, bool) (service.MessageView, error)) httpx.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		id, err := param(r, "messageId", domain.ErrNotFound)
+		if err != nil {
+			return err
+		}
+		v, err := fn(r.Context(), userID(r), id, true)
+		if err != nil {
+			return err
+		}
+		httpx.WriteJSON(w, http.StatusOK, toMessage(v))
+		return nil
+	}
+}
+
+func (h *Handler) channelFiles(w http.ResponseWriter, r *http.Request) error {
+	id, err := param(r, "channelId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	fs, err := h.svc.ChannelFiles(r.Context(), userID(r), id)
+	if err != nil {
+		return err
+	}
+	out := make([]api.ChatFile, len(fs))
+	for i, f := range fs {
+		out[i] = toFile(f)
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
+	return nil
+}
+
+// uploadFile streams the first "file" part of a multipart body straight to storage.
+func (h *Handler) uploadFile(w http.ResponseWriter, r *http.Request) error {
+	id, err := param(r, "channelId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	max := h.svc.MaxUploadBytes()
+	r.Body = http.MaxBytesReader(w, r.Body, max+1<<20)
+	mr, err := r.MultipartReader()
+	if err != nil {
+		return apperr.New(domain.ErrNoFile, "expected multipart/form-data with a file part")
+	}
+	for {
+		part, err := mr.NextPart()
+		if errors.Is(err, io.EOF) {
+			return apperr.New(domain.ErrNoFile, "no file part")
+		}
+		var tooBig *http.MaxBytesError
+		if errors.As(err, &tooBig) {
+			return apperr.New(apperr.TooLarge, "file is too large").WithMeta("maxBytes", max)
+		}
+		if err != nil {
+			return apperr.New(domain.ErrNoFile, "malformed multipart body")
+		}
+		if part.FormName() != "file" || part.FileName() == "" {
+			_ = part.Close()
+			continue
+		}
+		f, err := h.svc.UploadFile(r.Context(), userID(r), id, part.FileName(), part)
+		_ = part.Close()
+		if errors.As(err, &tooBig) {
+			return apperr.New(apperr.TooLarge, "file is too large").WithMeta("maxBytes", max)
+		}
+		if err != nil {
+			return err
+		}
+		httpx.WriteJSON(w, http.StatusCreated, toFile(f))
+		return nil
+	}
+}
+
+// downloadFile serves bytes as a download by default; only known image types may be shown inline,
+// and a sandbox CSP neutralises anything a browser might try to execute.
+func (h *Handler) downloadFile(w http.ResponseWriter, r *http.Request) error {
+	id, err := param(r, "fileId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	f, rc, err := h.svc.OpenFile(r.Context(), userID(r), id)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = rc.Close() }()
+	disposition, ctype := "attachment", "application/octet-stream"
+	if domain.InlineImageTypes[f.ContentType] {
+		ctype = f.ContentType
+		if r.URL.Query().Get("inline") == "true" {
+			disposition = "inline"
+		}
+	}
+	hd := w.Header()
+	hd.Set("Content-Type", ctype)
+	hd.Set("Content-Disposition", mime.FormatMediaType(disposition, map[string]string{"filename": f.Name}))
+	hd.Set("Content-Security-Policy", "sandbox; default-src 'none'")
+	hd.Set("X-Content-Type-Options", "nosniff")
+	hd.Set("Cache-Control", "private, max-age=3600")
+	http.ServeContent(w, r, "", f.CreatedAt, rc)
+	return nil
 }

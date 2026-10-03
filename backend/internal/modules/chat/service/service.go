@@ -5,6 +5,7 @@ package service
 
 import (
 	"context"
+	"io"
 	"slices"
 	"strings"
 	"time"
@@ -55,7 +56,26 @@ type Service struct {
 
 	projects Projects
 	cards    Cards
+
+	storage  Storage
+	maxBytes int64
 }
+
+// Storage keeps attachment bytes (the local disk adapter satisfies it).
+type Storage interface {
+	Put(ctx context.Context, key string, r io.Reader, max int64) (int64, error)
+	Open(ctx context.Context, key string) (io.ReadSeekCloser, error)
+	Delete(ctx context.Context, key string) error
+}
+
+// WithFiles enables attachments up to maxBytes each.
+func (s *Service) WithFiles(st Storage, maxBytes int64) *Service {
+	s.storage, s.maxBytes = st, maxBytes
+	return s
+}
+
+// MaxUploadBytes is the per-file limit.
+func (s *Service) MaxUploadBytes() int64 { return s.maxBytes }
 
 func New(repo *repository.Repo, ws Workspaces, users Users, hints Hints) *Service {
 	return &Service{repo: repo, ws: ws, users: users, hints: hints, now: time.Now}
@@ -111,6 +131,12 @@ type MessageView struct {
 	Author    *usersdomain.User
 	Mentioned []usersdomain.User
 	Reactions []domain.ReactionCount
+	Files     []domain.File
+	// Pinned and Saved are relative to the viewer for Saved; pins are shared.
+	Pinned bool
+	Saved  bool
+	// ReplyPeople are up to three people who replied in the thread, latest first.
+	ReplyPeople []usersdomain.User
 }
 
 func (s *Service) people(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]usersdomain.User, error) {
@@ -148,13 +174,49 @@ func (s *Service) present(ctx context.Context, viewer uuid.UUID, ms []domain.Mes
 	if err != nil {
 		return nil, err
 	}
+	files, err := s.repo.FilesByMessages(ctx, msgIDs)
+	if err != nil {
+		return nil, err
+	}
+	pins, err := s.repo.PinnedFlags(ctx, msgIDs)
+	if err != nil {
+		return nil, err
+	}
+	saved, err := s.repo.SavedFlags(ctx, viewer, msgIDs)
+	if err != nil {
+		return nil, err
+	}
+	var roots []uuid.UUID
+	for _, m := range ms {
+		if m.ReplyCount > 0 {
+			roots = append(roots, m.ID)
+		}
+	}
+	repliers, err := s.repo.ReplyAuthors(ctx, roots)
+	if err != nil {
+		return nil, err
+	}
+	for _, list := range repliers {
+		for _, id := range list[:min(len(list), 3)] {
+			add(id)
+		}
+	}
 	people, err := s.people(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
 	out := make([]MessageView, len(ms))
 	for i, m := range ms {
-		v := MessageView{Message: m, Mentioned: []usersdomain.User{}, Reactions: reactions[m.ID]}
+		v := MessageView{Message: m, Mentioned: []usersdomain.User{}, Reactions: reactions[m.ID],
+			Files: files[m.ID], Pinned: pins[m.ID], Saved: saved[m.ID], ReplyPeople: []usersdomain.User{}}
+		if v.Files == nil {
+			v.Files = []domain.File{}
+		}
+		for _, id := range repliers[m.ID][:min(len(repliers[m.ID]), 3)] {
+			if u, ok := people[id]; ok {
+				v.ReplyPeople = append(v.ReplyPeople, u)
+			}
+		}
 		if v.Reactions == nil {
 			v.Reactions = []domain.ReactionCount{}
 		}
@@ -183,9 +245,13 @@ func (s *Service) presentOne(ctx context.Context, viewer uuid.UUID, m domain.Mes
 
 // --- validation
 
-func validateBody(body *string) error {
+// validateBody trims the text. A message may be empty only when it carries files.
+func validateBody(body *string, hasFiles bool) error {
 	*body = strings.TrimSpace(*body)
 	var v validation.V
+	if hasFiles && *body == "" {
+		return nil
+	}
 	if v.Required("body", *body) && utf8.RuneCountInString(*body) > domain.MaxBodyLen {
 		v.Add("body", validation.MaxLength, map[string]any{"max": domain.MaxBodyLen})
 	}
