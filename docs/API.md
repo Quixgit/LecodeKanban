@@ -284,7 +284,7 @@ Base URL: `/api/v1`
 - **RunningTimer** — `entry?`: TimeEntry
 - **ActivityEntry** — `id`: integer, `kind`: string, `data`: object, `actor`: object \| null, `at`: string
 - **ActivityPage** — `items`: array, `nextBefore`: integer \| null
-- **RealtimeMessage** — `type`: string, `workspaceId`: string, `projectId?`: string, `cardId?`: string, `actorId?`: string
+- **RealtimeMessage** — `type`: string, `workspaceId`: string, `projectId?`: string, `cardId?`: string, `actorId?`: string, `channelId?`: string, `messageId?`: string
 - **CardPage** — `items`: array, `total`: integer, `page`: integer, `pageSize`: integer
 - **StatusCounts** — `todo`: integer, `in_progress`: integer, `in_review`: integer, `done`: integer
 - **BulkCardAction** — `ids`: array, `action`: string, `status?`: TaskStatus, `priority?`: Priority

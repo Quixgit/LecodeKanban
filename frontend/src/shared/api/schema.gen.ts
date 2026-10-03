@@ -2242,6 +2242,16 @@ export interface components {
             cardId?: string;
             /** Format: uuid */
             actorId?: string;
+            /**
+             * Format: uuid
+             * @description Chat hints only
+             */
+            channelId?: string;
+            /**
+             * Format: uuid
+             * @description Chat hints only
+             */
+            messageId?: string;
         };
         CardPage: {
             items: components["schemas"]["Card"][];

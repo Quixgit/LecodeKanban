@@ -1446,8 +1446,14 @@ type ProjectSummary struct {
 
 // RealtimeMessage defines model for RealtimeMessage.
 type RealtimeMessage struct {
-	ActorId   *openapi_types.UUID `json:"actorId,omitempty"`
-	CardId    *openapi_types.UUID `json:"cardId,omitempty"`
+	ActorId *openapi_types.UUID `json:"actorId,omitempty"`
+	CardId  *openapi_types.UUID `json:"cardId,omitempty"`
+
+	// ChannelId Chat hints only
+	ChannelId *openapi_types.UUID `json:"channelId,omitempty"`
+
+	// MessageId Chat hints only
+	MessageId *openapi_types.UUID `json:"messageId,omitempty"`
 	ProjectId *openapi_types.UUID `json:"projectId,omitempty"`
 
 	// Type Example: card.moved

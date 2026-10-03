@@ -2350,6 +2350,8 @@ components:
         projectId: { type: string, format: uuid }
         cardId: { type: string, format: uuid }
         actorId: { type: string, format: uuid }
+        channelId: { type: string, format: uuid, description: Chat hints only }
+        messageId: { type: string, format: uuid, description: Chat hints only }
     CardPage:
       type: object
       required: [items, total, page, pageSize]

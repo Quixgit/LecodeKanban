@@ -1,0 +1,164 @@
+{
+  "composer": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "code": "Code",
+    "mention": "Mention someone",
+    "send": "to send",
+    "newLine": "for a new line",
+    "sendLabel": "Send message",
+    "viewer": "Viewers can read this conversation but not post.",
+    "preview": "You're previewing {{name}}. Join to post.",
+    "label": "Message {{name}}",
+    "placeholder": "Message {{name}}"
+  },
+  "reactions": {
+    "label": "Reactions",
+    "tooltip": "{{name}} · {{count}}",
+    "toggle": "{{name}}, {{count}}",
+    "add": "Add reaction",
+    "names": {
+      "thumbs-up": "Thumbs up",
+      "heart": "Love",
+      "check": "Done",
+      "party-popper": "Celebrate",
+      "eyes": "Looking",
+      "laugh": "Funny",
+      "flame": "Hot",
+      "lightbulb": "Idea"
+    }
+  },
+  "message": {
+    "unknownAuthor": "Former member",
+    "reply": "Reply in thread",
+    "more": "More actions",
+    "copyLink": "Copy link",
+    "edit": "Edit message",
+    "delete": "Delete message",
+    "deleted": "This message was deleted.",
+    "editLabel": "Edit message",
+    "save": "Save",
+    "cancel": "Cancel",
+    "editHint": "Enter to save, Esc to cancel",
+    "edited": "(edited)",
+    "replies_one": "{{count}} reply",
+    "replies_other": "{{count}} replies",
+    "lastReply": "Last reply {{time}}",
+    "aria": "{{author}}, {{time}}",
+    "linkCopied": "Link copied",
+    "deleteTitle": "Delete this message?",
+    "deleteBody": "It will be removed for everyone. Replies in the thread stay."
+  },
+  "list": {
+    "label": "Messages",
+    "start": "This is the beginning of the conversation.",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "newMessages_one": "{{count}} new message",
+    "newMessages_other": "{{count}} new messages",
+    "you": "you"
+  },
+  "thread": {
+    "label": "Thread",
+    "title": "Thread",
+    "close": "Close thread",
+    "conversation": "Conversation",
+    "error": "This thread could not be loaded.",
+    "replies_one": "{{count}} reply",
+    "replies_other": "{{count}} replies",
+    "composerLabel": "Reply in thread",
+    "placeholder": "Reply…"
+  },
+  "sidebar": {
+    "title": "Chat",
+    "label": "Channels and direct messages",
+    "filter": "Find a conversation",
+    "newMessage": "New message",
+    "channels": "Channels",
+    "direct": "Direct messages",
+    "addChannel": "Add channels",
+    "create": "Create a channel",
+    "browse": "Browse channels",
+    "noMatch": "Nothing matches.",
+    "noChannels": "You haven't joined any channel yet.",
+    "noDirect": "No conversations yet. Start one with the pencil button.",
+    "muted": "Muted",
+    "unread_one": "{{count}} unread message",
+    "unread_other": "{{count}} unread messages"
+  },
+  "create": {
+    "title": "Create a channel",
+    "description": "Channels keep a topic in one place. Anyone in the workspace can join a public channel.",
+    "name": "Name",
+    "nameHint": "Lowercase letters, digits, dashes and underscores.",
+    "willBe": "It will be created as {{name}}",
+    "namePlaceholder": "e.g. release-planning",
+    "topic": "Topic",
+    "topicPlaceholder": "What is this channel for?",
+    "private": "Make private",
+    "privateHint": "Only people you add can find and read it.",
+    "submit": "Create channel"
+  },
+  "common": {
+    "cancel": "Cancel"
+  },
+  "direct": {
+    "title": "New message",
+    "description": "Pick up to {{max}} people. Picking no one opens your own notes.",
+    "search": "Search people",
+    "people": "People",
+    "none": "No one found.",
+    "selected_one": "{{count}} person selected",
+    "selected_other": "{{count}} people selected",
+    "notes": "Open notes",
+    "open": "Start conversation"
+  },
+  "browse": {
+    "title": "Browse channels",
+    "description": "Public channels in this workspace.",
+    "search": "Search channels",
+    "members_one": "{{count}} member",
+    "members_other": "{{count}} members",
+    "open": "Open",
+    "join": "Join",
+    "none": "No channels found."
+  },
+  "details": {
+    "saved": "Channel updated",
+    "directDescription": "Direct conversation",
+    "kind": {
+      "public": "Public channel",
+      "private": "Private channel",
+      "dm": "Direct conversation"
+    },
+    "save": "Save changes",
+    "mute": "Mute unread badge",
+    "members": "Members",
+    "addPeople": "Add people",
+    "add": "Add",
+    "leave": "Leave channel",
+    "archive": "Archive channel",
+    "archiveTitle": "Archive this channel?",
+    "archiveBody": "It disappears for everyone. Its messages are kept.",
+    "leaveTitle": "Leave this channel?",
+    "leaveBody": "You'll stop getting its unread badge. You can rejoin public channels any time."
+  },
+  "header": {
+    "members": "Show members",
+    "details": "Channel details"
+  },
+  "feed": {
+    "emptyTitle": "This is the start of {{name}}",
+    "emptyDirect": "Send the first message to begin the conversation.",
+    "emptyChannel": "Say hello and set the tone for the channel."
+  },
+  "empty": {
+    "title": "No channels yet",
+    "description": "Create a channel for your team or browse the ones that already exist."
+  },
+  "missing": {
+    "title": "Conversation not found",
+    "description": "It may have been archived, or you may not have access to it.",
+    "back": "Back to chat"
+  }
+}
