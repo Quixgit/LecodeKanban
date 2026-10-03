@@ -57,7 +57,7 @@ func optStr(s string) *string {
 
 func toChannel(c store.ChatChannel) domain.Channel {
 	return domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
-		Topic: c.Topic, DMKey: str(c.DmKey), CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
+		Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
 		LastMessageAt: c.LastMessageAt}
 }
 
@@ -83,10 +83,13 @@ func notFound(err error) error {
 
 func (r *Repo) CreateChannel(ctx context.Context, c domain.Channel) (domain.Channel, error) {
 	row, err := r.q.CreateChannel(ctx, store.CreateChannelParams{WorkspaceID: c.WorkspaceID, Kind: string(c.Kind),
-		Name: optStr(c.Name), Topic: c.Topic, DmKey: optStr(c.DMKey), CreatedBy: nullID(c.CreatedBy)})
+		Name: optStr(c.Name), Topic: c.Topic, DmKey: optStr(c.DMKey), CreatedBy: nullID(c.CreatedBy), RefID: nullID(c.RefID)})
 	if err != nil {
 		if db.IsUniqueViolation(err, "chat_channels_name_key") {
 			return domain.Channel{}, apperr.New(domain.ErrNameTaken, "channel name taken")
+		}
+		if db.IsUniqueViolation(err, "chat_channels_ref_key") {
+			return domain.Channel{}, apperr.New(domain.ErrNameTaken, "conversation exists")
 		}
 		return domain.Channel{}, err
 	}
@@ -95,6 +98,15 @@ func (r *Repo) CreateChannel(ctx context.Context, c domain.Channel) (domain.Chan
 
 func (r *Repo) Channel(ctx context.Context, id uuid.UUID) (domain.Channel, error) {
 	row, err := r.q.GetChannel(ctx, id)
+	if err != nil {
+		return domain.Channel{}, notFound(err)
+	}
+	return toChannel(row), nil
+}
+
+// ScopeChannel returns the conversation of a project or card, or ErrNotFound.
+func (r *Repo) ScopeChannel(ctx context.Context, kind domain.Kind, ref uuid.UUID) (domain.Channel, error) {
+	row, err := r.q.GetScopeChannel(ctx, store.GetScopeChannelParams{Kind: string(kind), RefID: uuid.NullUUID{UUID: ref, Valid: true}})
 	if err != nil {
 		return domain.Channel{}, notFound(err)
 	}
@@ -144,6 +156,19 @@ func (r *Repo) ChannelStates(ctx context.Context, ws, user uuid.UUID) ([]domain.
 			Joined: c.Joined, Muted: c.Muted, Unread: int(c.Unread), Mentions: int(c.Mentions)}
 	}
 	return out, nil
+}
+
+// ChannelState returns one channel as the user sees it.
+func (r *Repo) ChannelState(ctx context.Context, id, user uuid.UUID) (domain.ChannelState, error) {
+	c, err := r.q.GetChannelState(ctx, store.GetChannelStateParams{ID: id, UserID: user})
+	if err != nil {
+		return domain.ChannelState{}, notFound(err)
+	}
+	return domain.ChannelState{
+		Channel: domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
+			Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), CreatedBy: ptrID(c.CreatedBy),
+			CreatedAt: c.CreatedAt, LastMessageAt: c.LastMessageAt},
+		Joined: c.Joined, Muted: c.Muted, Unread: int(c.Unread), Mentions: int(c.Mentions)}, nil
 }
 
 // --- members

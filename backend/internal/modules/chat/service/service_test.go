@@ -295,3 +295,60 @@ func TestChangeHints(t *testing.T) {
 func chatInput(name string, private bool) service.ChannelInput {
 	return service.ChannelInput{Name: name, Private: private}
 }
+
+func TestProjectAndCardConversations(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	project := w.e.Project(w.owner, w.ws, "Core")
+	card := w.e.Card(w.anna, w.ws, project, "Fix login")
+
+	pc, err := c.ScopeChannel(ctx, w.anna, domain.Project, project)
+	if err != nil || pc.Kind != domain.Project || pc.Name != "" || !pc.Joined {
+		t.Fatalf("project chat: %+v %v", pc, err)
+	}
+	again, _ := c.ScopeChannel(ctx, w.ben, domain.Project, project)
+	if again.ID != pc.ID || again.MemberCount != 2 {
+		t.Fatalf("one conversation per project, joined on open: %+v", again)
+	}
+	cc, err := c.ScopeChannel(ctx, w.ben, domain.Card, card.ID)
+	if err != nil || cc.ID == pc.ID || cc.Kind != domain.Card {
+		t.Fatalf("card chat: %+v %v", cc, err)
+	}
+
+	// They never show up in the channel list or the directory.
+	list, _ := c.Channels(ctx, w.anna, w.ws)
+	if len(list) != 0 {
+		t.Fatalf("scoped conversations leaked into the list: %+v", list)
+	}
+
+	// Talking works for editors; viewers read; outsiders and strangers get nothing.
+	if _, err := c.Post(ctx, w.anna, pc.ID, nil, "kickoff"); err != nil {
+		t.Fatal(err)
+	}
+	st, _ := c.ScopeChannel(ctx, w.ben, domain.Project, project)
+	if st.Unread != 1 {
+		t.Fatalf("unread = %d", st.Unread)
+	}
+	if _, err := c.Messages(ctx, w.viewer, pc.ID, nil, 0); err != nil {
+		t.Fatal(err)
+	}
+	_, err = c.Post(ctx, w.viewer, pc.ID, nil, "nope")
+	mustCode(t, err, wsdomain.ErrInsufficientRole)
+	_, err = c.Messages(ctx, w.outsider, pc.ID, nil, 0)
+	mustCode(t, err, domain.ErrNotFound)
+	_, err = c.ScopeChannel(ctx, w.outsider, domain.Project, project)
+	if err == nil {
+		t.Fatal("outsiders must not open a project conversation")
+	}
+	_, err = c.ScopeChannel(ctx, w.ben, domain.Card, uuid.New())
+	if err == nil {
+		t.Fatal("unknown card")
+	}
+
+	// Their shape is fixed.
+	mustCode(t, c.Leave(ctx, w.anna, pc.ID), domain.ErrDMMembers)
+	mustCode(t, c.Archive(ctx, w.owner, pc.ID), domain.ErrForbidden)
+	_, err = c.Update(ctx, w.anna, pc.ID, nil, nil)
+	mustCode(t, err, domain.ErrForbidden)
+}

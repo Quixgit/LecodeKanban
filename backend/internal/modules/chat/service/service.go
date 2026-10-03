@@ -12,8 +12,10 @@ import (
 
 	"github.com/google/uuid"
 
+	carddomain "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/repository"
+	projectsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/domain"
 	usersdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
@@ -24,6 +26,15 @@ import (
 type Workspaces interface {
 	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
 	RolesByUser(ctx context.Context, ws uuid.UUID) (map[uuid.UUID]wsdomain.Role, error)
+}
+
+// Projects and Cards authorise access to the things a scoped conversation hangs off.
+type Projects interface {
+	Ref(ctx context.Context, id uuid.UUID) (projectsdomain.Ref, error)
+}
+
+type Cards interface {
+	Ref(ctx context.Context, user, id uuid.UUID, perm wsdomain.Permission) (carddomain.Ref, error)
 }
 
 type Users interface {
@@ -41,10 +52,19 @@ type Service struct {
 	users Users
 	hints Hints
 	now   func() time.Time
+
+	projects Projects
+	cards    Cards
 }
 
 func New(repo *repository.Repo, ws Workspaces, users Users, hints Hints) *Service {
 	return &Service{repo: repo, ws: ws, users: users, hints: hints, now: time.Now}
+}
+
+// WithScopes enables project and card conversations.
+func (s *Service) WithScopes(p Projects, c Cards) *Service {
+	s.projects, s.cards = p, c
+	return s
 }
 
 func (s *Service) hint(ctx context.Context, typ string, ws uuid.UUID, actor uuid.UUID, channel uuid.UUID, msg *uuid.UUID) {
@@ -78,7 +98,7 @@ func (s *Service) access(ctx context.Context, user, channel uuid.UUID, write boo
 	if err != nil && !apperr.IsCode(err, domain.ErrNotMember) {
 		return domain.Channel{}, false, err
 	}
-	if ch.Kind != domain.Public && !member {
+	if ch.Kind != domain.Public && !ch.Kind.Scoped() && !member {
 		return domain.Channel{}, false, apperr.New(domain.ErrNotFound, "not found")
 	}
 	return ch, member, nil

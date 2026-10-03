@@ -200,6 +200,8 @@ Base URL: `/api/v1`
 | GET | `/workspaces/{workspaceId}/chat/channels` | session |  | 200 | Channels the caller can see, with unread and mention counts |
 | POST | `/workspaces/{workspaceId}/chat/channels` | session | ChatChannelInput | 201, 409 Error, 422 Error |  |
 | POST | `/workspaces/{workspaceId}/chat/direct` | session | ChatDirectInput | 200, 422 Error | Open (or create) the direct conversation with the given people |
+| POST | `/projects/{projectId}/chat` | session |  | 200 | The project's conversation (created on first use; the caller joins it) |
+| POST | `/cards/{cardId}/chat` | session |  | 200 | The card's conversation (created on first use; the caller joins it) |
 | PATCH | `/chat/channels/{channelId}` | session | ChatChannelPatch | 200, 409 Error, 422 Error |  |
 | DELETE | `/chat/channels/{channelId}` | session |  | 204 | Archive a channel (creator or workspace admin) |
 | GET | `/chat/channels/{channelId}/members` | session |  | 200 |  |

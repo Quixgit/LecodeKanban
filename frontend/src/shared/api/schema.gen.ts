@@ -1536,6 +1536,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects/{projectId}/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The project's conversation (created on first use; the caller joins it) */
+        post: operations["openProjectChat"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cards/{cardId}/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The card's conversation (created on first use; the caller joins it) */
+        post: operations["openCardChat"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/chat/channels/{channelId}": {
         parameters: {
             query?: never;
@@ -2593,8 +2631,8 @@ export interface components {
             /** Format: uuid */
             workspaceId: string;
             /** @enum {string} */
-            kind: "public" | "private" | "dm";
-            /** @description Null for direct messages */
+            kind: "public" | "private" | "dm" | "project" | "card";
+            /** @description Null for direct messages and for project and card conversations */
             name: string | null;
             topic: string;
             joined: boolean;
@@ -5548,6 +5586,50 @@ export interface operations {
                 };
             };
             422: components["responses"]["Error"];
+        };
+    };
+    openProjectChat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: components["parameters"]["ProjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The conversation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannel"];
+                };
+            };
+        };
+    };
+    openCardChat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The conversation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannel"];
+                };
+            };
         };
     };
     archiveChatChannel: {

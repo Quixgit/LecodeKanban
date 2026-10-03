@@ -9,8 +9,10 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/reliabilix/lecodekanban/backend/internal/api"
+	carddomain "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/service"
+	projectsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/domain"
 	usersdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
@@ -26,6 +28,8 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Get("/workspaces/{workspaceId}/chat/channels", httpx.H(h.channels))
 	r.Post("/workspaces/{workspaceId}/chat/channels", httpx.H(h.createChannel))
 	r.Post("/workspaces/{workspaceId}/chat/direct", httpx.H(h.openDirect))
+	r.Post("/projects/{projectId}/chat", httpx.H(h.scope(domain.Project, "projectId", projectsdomain.ErrNotFound)))
+	r.Post("/cards/{cardId}/chat", httpx.H(h.scope(domain.Card, "cardId", carddomain.ErrNotFound)))
 	r.Patch("/chat/channels/{channelId}", httpx.H(h.updateChannel))
 	r.Delete("/chat/channels/{channelId}", httpx.H(h.archiveChannel))
 	r.Get("/chat/channels/{channelId}/members", httpx.H(h.members))
@@ -365,6 +369,21 @@ func (h *Handler) react(on bool) httpx.HandlerFunc {
 			return err
 		}
 		httpx.WriteJSON(w, http.StatusOK, toMessage(v))
+		return nil
+	}
+}
+
+func (h *Handler) scope(kind domain.Kind, param_ string, notFound apperr.Code) httpx.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		ref, err := param(r, param_, notFound)
+		if err != nil {
+			return err
+		}
+		v, err := h.svc.ScopeChannel(r.Context(), userID(r), kind, ref)
+		if err != nil {
+			return err
+		}
+		httpx.WriteJSON(w, http.StatusOK, toChannel(v))
 		return nil
 	}
 }

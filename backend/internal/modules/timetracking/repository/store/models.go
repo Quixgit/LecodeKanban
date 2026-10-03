@@ -117,6 +117,7 @@ type ChatChannel struct {
 	CreatedAt     time.Time
 	LastMessageAt *time.Time
 	ArchivedAt    *time.Time
+	RefID         uuid.NullUUID
 }
 
 type ChatMember struct {

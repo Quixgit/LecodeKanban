@@ -15,6 +15,8 @@ type Deps struct {
 	Workspaces service.Workspaces
 	Users      service.Users
 	Hints      service.Hints
+	Projects   service.Projects
+	Cards      service.Cards
 }
 
 type Module struct {
@@ -23,6 +25,6 @@ type Module struct {
 }
 
 func New(d Deps) *Module {
-	svc := service.New(repository.New(d.Pool), d.Workspaces, d.Users, d.Hints)
+	svc := service.New(repository.New(d.Pool), d.Workspaces, d.Users, d.Hints).WithScopes(d.Projects, d.Cards)
 	return &Module{Service: svc, HTTP: transport.NewHandler(svc)}
 }

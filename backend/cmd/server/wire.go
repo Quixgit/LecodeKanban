@@ -99,7 +99,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	wikiMod := wiki.New(wiki.Deps{Pool: pool, Workspaces: wsMod.Service, Teams: noTeams{}, Projects: projectsMod.Service,
 		Storage: storage, MaxUploadBytes: cfg.AttachmentMaxBytes()})
 	chatMod := chat.New(chat.Deps{Pool: pool, Workspaces: wsMod.Service, Users: usersMod.Service,
-		Hints: realtime.NewPublisher(pool, log)})
+		Hints: realtime.NewPublisher(pool, log), Projects: projectsMod.Service, Cards: cardsMod.Service})
 	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
 	hub := realtime.NewHub(cfg.DatabaseURL, log)
 

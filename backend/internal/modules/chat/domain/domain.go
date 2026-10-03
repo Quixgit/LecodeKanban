@@ -20,9 +20,15 @@ const (
 	Public  Kind = "public"
 	Private Kind = "private"
 	DM      Kind = "dm"
+	// Project and Card conversations hang off a board or a task and never appear in the channel list.
+	Project Kind = "project"
+	Card    Kind = "card"
 )
 
-func (k Kind) Valid() bool { return k == Public || k == Private || k == DM }
+func (k Kind) Valid() bool { return k == Public || k == Private || k == DM || k.Scoped() }
+
+// Scoped kinds belong to a project or a card; every workspace member may read and post.
+func (k Kind) Scoped() bool { return k == Project || k == Card }
 
 const (
 	MaxBodyLen  = 8000
@@ -34,12 +40,14 @@ const (
 )
 
 type Channel struct {
-	ID            uuid.UUID
-	WorkspaceID   uuid.UUID
-	Kind          Kind
-	Name          string // empty for direct messages
-	Topic         string
-	DMKey         string
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Kind        Kind
+	Name        string // empty for direct messages
+	Topic       string
+	DMKey       string
+	// RefID is the project or card of a scoped conversation.
+	RefID         *uuid.UUID
 	CreatedBy     *uuid.UUID
 	CreatedAt     time.Time
 	LastMessageAt *time.Time

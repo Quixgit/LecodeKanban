@@ -32,17 +32,23 @@ func (e BulkCardActionAction) Valid() bool {
 
 // Defines values for ChatChannelKind.
 const (
+	ChatChannelKindCard    ChatChannelKind = "card"
 	ChatChannelKindDm      ChatChannelKind = "dm"
 	ChatChannelKindPrivate ChatChannelKind = "private"
+	ChatChannelKindProject ChatChannelKind = "project"
 	ChatChannelKindPublic  ChatChannelKind = "public"
 )
 
 // Valid indicates whether the value is a known member of the ChatChannelKind enum.
 func (e ChatChannelKind) Valid() bool {
 	switch e {
+	case ChatChannelKindCard:
+		return true
 	case ChatChannelKindDm:
 		return true
 	case ChatChannelKindPrivate:
+		return true
+	case ChatChannelKindProject:
 		return true
 	case ChatChannelKindPublic:
 		return true
@@ -1073,7 +1079,7 @@ type ChatChannel struct {
 	Mentions int  `json:"mentions"`
 	Muted    bool `json:"muted"`
 
-	// Name Null for direct messages
+	// Name Null for direct messages and for project and card conversations
 	Name *string `json:"name"`
 
 	// People Participants of a direct message

@@ -1574,6 +1574,30 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ChatChannel" }
         "422": { $ref: "#/components/responses/Error" }
+  /projects/{projectId}/chat:
+    parameters: [{ $ref: "#/components/parameters/ProjectId" }]
+    post:
+      tags: [chat]
+      operationId: openProjectChat
+      summary: The project's conversation (created on first use; the caller joins it)
+      responses:
+        "200":
+          description: The conversation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatChannel" }
+  /cards/{cardId}/chat:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    post:
+      tags: [chat]
+      operationId: openCardChat
+      summary: The card's conversation (created on first use; the caller joins it)
+      responses:
+        "200":
+          description: The conversation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatChannel" }
   /chat/channels/{channelId}:
     parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
     patch:
@@ -2657,8 +2681,8 @@ components:
       properties:
         id: { type: string, format: uuid }
         workspaceId: { type: string, format: uuid }
-        kind: { type: string, enum: [public, private, dm] }
-        name: { type: string, nullable: true, description: Null for direct messages }
+        kind: { type: string, enum: [public, private, dm, project, card] }
+        name: { type: string, nullable: true, description: Null for direct messages and for project and card conversations }
         topic: { type: string }
         joined: { type: boolean }
         muted: { type: boolean }
