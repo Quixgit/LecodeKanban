@@ -143,9 +143,19 @@ func toMessage(v service.MessageView) api.ChatMessage {
 		out.Files[i] = toFile(f)
 	}
 	if len(v.Event) > 0 {
-		var ev api.ChatEvent
-		if json.Unmarshal(v.Event, &ev) == nil {
-			out.Event = &ev
+		var kind struct {
+			Kind string `json:"kind"`
+		}
+		if json.Unmarshal(v.Event, &kind) == nil && kind.Kind == "meeting" {
+			var mt api.ChatMeeting
+			if json.Unmarshal(v.Event, &mt) == nil {
+				out.Meeting = &mt
+			}
+		} else {
+			var ev api.ChatEvent
+			if json.Unmarshal(v.Event, &ev) == nil {
+				out.Event = &ev
+			}
 		}
 	}
 	if v.Author != nil {

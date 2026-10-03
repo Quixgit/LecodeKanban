@@ -57,6 +57,15 @@ type Config struct {
 
 	GoogleClientID     string `env:"LK_GOOGLE_CLIENT_ID"`
 	GoogleClientSecret string `env:"LK_GOOGLE_CLIENT_SECRET"`
+	// Google endpoint overrides point the calendar integration at a stand-in server (tests, local
+	// setups); empty keeps Google's own addresses.
+	GoogleAuthURL     string `env:"LK_GOOGLE_AUTH_URL"`
+	GoogleTokenURL    string `env:"LK_GOOGLE_TOKEN_URL"`
+	GoogleUserinfoURL string `env:"LK_GOOGLE_USERINFO_URL"`
+	GoogleAPIURL      string `env:"LK_GOOGLE_API_URL"`
+	// IntegrationsTick is how often the calendar loop checks for stale syncs and due reminders.
+	IntegrationsTick time.Duration `env:"LK_INTEGRATIONS_TICK" envDefault:"30s"`
+
 	GitHubClientID     string `env:"LK_GITHUB_CLIENT_ID"`
 	GitHubClientSecret string `env:"LK_GITHUB_CLIENT_SECRET"`
 

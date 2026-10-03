@@ -44,6 +44,9 @@ export function keysFor(m: RealtimeMessage): QueryKeyPrefix[] {
     case 'notification':
       // The hint names one person; their key holds the only cache that has to refetch.
       return m.userId ? [['notifications', ws, m.userId]] : [];
+    case 'integration':
+      // Sync results and reminders concern one person: only their cache refetches.
+      return m.userId ? [['integrations', ws, m.userId]] : [];
     case 'columns':
       return [['boardColumns'], ['cards', ws]];
     default:

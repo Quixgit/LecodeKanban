@@ -51,6 +51,22 @@ type BoardColumn struct {
 	CreatedAt time.Time
 }
 
+type CalendarEvent struct {
+	ID              uuid.UUID
+	IntegrationID   uuid.UUID
+	ProviderEventID string
+	Title           string
+	StartsAt        time.Time
+	EndsAt          time.Time
+	AllDay          bool
+	Location        string
+	Link            string
+	JoinUrl         string
+	AttendeeEmails  []string
+	NotifiedAt      *time.Time
+	UpdatedAt       time.Time
+}
+
 type Card struct {
 	ID              uuid.UUID
 	WorkspaceID     uuid.UUID
@@ -225,6 +241,24 @@ type CommentMention struct {
 	UserID    uuid.UUID
 }
 
+type Integration struct {
+	ID              uuid.UUID
+	UserID          uuid.UUID
+	WorkspaceID     uuid.UUID
+	Provider        string
+	Enabled         bool
+	AccountEmail    string
+	RefreshTokenEnc []byte
+	LeadMinutes     int32
+	NotifyBell      bool
+	ChannelID       uuid.NullUUID
+	Status          string
+	LastError       string
+	LastSyncAt      *time.Time
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 type Job struct {
 	ID             int64
 	Kind           string
@@ -264,6 +298,7 @@ type Notification struct {
 	Body        string
 	CreatedAt   time.Time
 	ReadAt      *time.Time
+	Link        *string
 }
 
 type Project struct {

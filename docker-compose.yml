@@ -98,7 +98,6 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_TEAM_MEETING_URL: ${VITE_TEAM_MEETING_URL:-}
         VITE_GMAIL_INBOX_URL: ${VITE_GMAIL_INBOX_URL:-https://mail.google.com/mail/u/0/#inbox}
     image: lecodekanban-web:latest
     restart: unless-stopped

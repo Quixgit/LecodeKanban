@@ -55,6 +55,7 @@ func run() error {
 		return err
 	}
 	go app.Realtime.Run(ctx)
+	go app.Integrations.Run(ctx, cfg.IntegrationsTick)
 
 	api := &http.Server{
 		Addr: cfg.HTTPAddr, Handler: app.Router,

@@ -11,6 +11,7 @@ const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const ShowcasePage = lazy(() => import('@/pages/ShowcasePage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const TeamPage = lazy(() => import('@/pages/TeamPage'));
+const IntegrationsPage = lazy(() => import('@/pages/IntegrationsPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage'));
 const CalendarPage = lazy(() => import('@/pages/CalendarPage'));
@@ -118,7 +119,7 @@ export const routes: RouteObject[] = [
           upcoming('performance', 'performance'),
           upcoming('help', 'help'),
           { path: 'team', handle: page('team'), element: <TeamPage /> },
-          upcoming('integrations', 'integrations'),
+          { path: 'integrations', handle: page('integrations'), element: <IntegrationsPage /> },
           upcoming('settings', 'settings'),
           upcoming('settings/profile', 'settings'),
           { path: 'ui-kit', handle: page('uiKit'), element: <ShowcasePage /> },

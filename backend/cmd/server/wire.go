@@ -21,8 +21,12 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/cards"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat"
+	chatservice "github.com/reliabilix/lecodekanban/backend/internal/modules/chat/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/comments"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/i18n"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/integrations"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/integrations/google"
+	integrationsvc "github.com/reliabilix/lecodekanban/backend/internal/modules/integrations/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/notifications"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/projects"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/timetracking"
@@ -34,6 +38,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/authtoken"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/config"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/crypto"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/eventbus"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/httpx"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/metrics"
@@ -47,6 +52,8 @@ type App struct {
 	Router   http.Handler
 	Metrics  *metrics.Metrics
 	Realtime *realtime.Hub
+	// Integrations runs the calendar loop (sync, meeting reminders).
+	Integrations *integrationsvc.Service
 }
 
 // build wires every module by hand: no globals, no reflection.
@@ -105,6 +112,15 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	notificationsMod := notifications.New(notifications.Deps{Pool: pool, Workspaces: wsMod.Service, Users: usersMod.Service,
 		Cards: cardsMod.Service, Projects: projectsMod.Service, Hints: realtime.NewPublisher(pool, log)})
 	notifications.Register(bus, notificationsMod.Service, cardsMod.Service)
+	sealer, err := crypto.NewSealer(cfg.EncryptionKeyBytes())
+	if err != nil {
+		return nil, err
+	}
+	integrationsMod := integrations.New(integrations.Deps{Pool: pool, Workspaces: wsMod.Service,
+		Calendar: google.New(cfg.GoogleClientID, cfg.GoogleClientSecret, google.Endpoints{Auth: cfg.GoogleAuthURL,
+			Token: cfg.GoogleTokenURL, Userinfo: cfg.GoogleUserinfoURL, API: cfg.GoogleAPIURL}),
+		Sealer: sealer, Notices: notificationsMod.Service, Channels: chatChannels{chatMod.Service},
+		Hints: realtime.NewPublisher(pool, log), PublicURL: cfg.PublicURL, Log: log})
 	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
 	hub := realtime.NewHub(cfg.DatabaseURL, log)
 
@@ -151,6 +167,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 
 		authMod.HTTP.PublicRoutes(r)
 		wsMod.HTTP.PublicRoutes(r)
+		integrationsMod.HTTP.PublicRoutes(r)
 		i18nMod.PublicRoutes(r)
 
 		r.Group(func(r chi.Router) {
@@ -167,6 +184,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			wikiMod.HTTP.PrivateRoutes(r)
 			chatMod.HTTP.PrivateRoutes(r)
 			notificationsMod.HTTP.PrivateRoutes(r)
+			integrationsMod.HTTP.PrivateRoutes(r)
 			activityMod.HTTP.PrivateRoutes(r)
 			r.Get("/workspaces/{workspaceId}/events", hub.Handler(
 				func(r *http.Request) (uuid.UUID, error) {
@@ -192,7 +210,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			return apperr.New(apperr.NotFound, "route not found")
 		}))
 	})
-	return &App{Router: r, Metrics: m, Realtime: hub}, nil
+	return &App{Router: r, Metrics: m, Realtime: hub, Integrations: integrationsMod.Service}, nil
 }
 
 // allowedOrigins are the browser origins permitted to send state-changing requests.
@@ -210,3 +228,15 @@ type noTeams struct{}
 
 func (noTeams) TeamsOf(context.Context, uuid.UUID, uuid.UUID) ([]uuid.UUID, error) { return nil, nil }
 func (noTeams) Exists(context.Context, uuid.UUID, uuid.UUID) (bool, error)         { return false, nil }
+
+// chatChannels lets the integrations module post into chat without knowing chat's types.
+type chatChannels struct{ chat *chatservice.Service }
+
+func (c chatChannels) CanPost(ctx context.Context, user, channel uuid.UUID) (uuid.UUID, error) {
+	return c.chat.CanPost(ctx, user, channel)
+}
+
+func (c chatChannels) PostMeeting(ctx context.Context, ws, channel uuid.UUID, m integrationsvc.MeetingPost) error {
+	return c.chat.PostMeeting(ctx, ws, channel, chatservice.MeetingNotice{Title: m.Title, StartsAt: m.StartsAt, EndsAt: m.EndsAt,
+		Location: m.Location, Link: m.Link, LeadMinutes: m.LeadMinutes, Attendees: m.Attendees})
+}

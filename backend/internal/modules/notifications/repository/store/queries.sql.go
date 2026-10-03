@@ -30,9 +30,9 @@ func (q *Queries) CountUnreadNotifications(ctx context.Context, arg CountUnreadN
 
 const insertNotification = `-- name: InsertNotification :one
 
-INSERT INTO notifications (user_id, workspace_id, kind, actor_id, card_id, project_id, channel_id, message_id, title, body)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, user_id, workspace_id, kind, actor_id, card_id, project_id, channel_id, message_id, title, body, created_at, read_at
+INSERT INTO notifications (user_id, workspace_id, kind, actor_id, card_id, project_id, channel_id, message_id, title, body, link)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+RETURNING id, user_id, workspace_id, kind, actor_id, card_id, project_id, channel_id, message_id, title, body, created_at, read_at, link
 `
 
 type InsertNotificationParams struct {
@@ -46,6 +46,7 @@ type InsertNotificationParams struct {
 	MessageID   uuid.NullUUID
 	Title       string
 	Body        string
+	Link        *string
 }
 
 // notifications module queries (sqlc).
@@ -61,6 +62,7 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 		arg.MessageID,
 		arg.Title,
 		arg.Body,
+		arg.Link,
 	)
 	var i Notification
 	err := row.Scan(
@@ -77,12 +79,13 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 		&i.Body,
 		&i.CreatedAt,
 		&i.ReadAt,
+		&i.Link,
 	)
 	return i, err
 }
 
 const listNotifications = `-- name: ListNotifications :many
-SELECT id, user_id, workspace_id, kind, actor_id, card_id, project_id, channel_id, message_id, title, body, created_at, read_at FROM notifications
+SELECT id, user_id, workspace_id, kind, actor_id, card_id, project_id, channel_id, message_id, title, body, created_at, read_at, link FROM notifications
 WHERE user_id = $1 AND workspace_id = $2 AND ($4::timestamptz IS NULL OR created_at < $4::timestamptz)
 ORDER BY created_at DESC, id DESC
 LIMIT $3
@@ -123,6 +126,7 @@ func (q *Queries) ListNotifications(ctx context.Context, arg ListNotificationsPa
 			&i.Body,
 			&i.CreatedAt,
 			&i.ReadAt,
+			&i.Link,
 		); err != nil {
 			return nil, err
 		}

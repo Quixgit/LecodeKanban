@@ -12,6 +12,7 @@ const base: AppNotification = {
   projectId: null,
   channelId: null,
   messageId: null,
+  link: null,
   createdAt: '2026-10-03T10:00:00Z',
   read: false,
 };
@@ -23,11 +24,17 @@ describe('notifications', () => {
       channel: 'ch1',
     });
     expect(targetOf({ ...base, cardId: null })).toBeNull();
+    expect(
+      targetOf({ ...base, cardId: null, kind: 'meeting', link: 'https://meet.test/x' }),
+    ).toEqual({
+      link: 'https://meet.test/x',
+    });
   });
 
   it('rings for task kinds only', () => {
     expect(soundFor(base)).toBe('task');
     expect(soundFor({ ...base, kind: 'task_commented' })).toBe('notify');
+    expect(soundFor({ ...base, kind: 'meeting' })).toBe('notify');
     expect(soundFor({ ...base, kind: 'mention' })).toBeUndefined();
     expect(soundFor({ ...base, kind: 'dm' })).toBeUndefined();
   });

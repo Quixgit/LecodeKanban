@@ -55,6 +55,10 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) error {
 		n := api.Notification{Id: it.ID, Kind: api.NotificationKind(it.Kind), Title: it.Title, Body: it.Body,
 			CardId: it.CardID, ProjectId: it.ProjectID, ChannelId: it.ChannelID, MessageId: it.MessageID,
 			CreatedAt: it.CreatedAt, Read: it.Read()}
+		if it.Link != "" {
+			l := it.Link
+			n.Link = &l
+		}
 		if it.Actor != nil {
 			n.Actor = &api.PersonRef{Id: it.Actor.ID, Name: it.Actor.Name, AvatarUrl: it.Actor.AvatarURL}
 		}

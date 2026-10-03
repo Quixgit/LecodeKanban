@@ -10,6 +10,7 @@ import {
 } from '@/features/auth';
 import { CommandPalette } from '@/features/command-palette';
 import { useNotificationSounds } from '@/features/notification-sounds';
+import { useMeetingToasts } from '@/features/notifications';
 import { usePresenceHeartbeat } from '@/features/chat';
 import { useWorkspaceEvents } from '@/features/realtime';
 import { useCurrentWorkspace } from '@/features/workspaces';
@@ -35,6 +36,7 @@ export function AppShell() {
   useSessionExpiryListener();
   useWorkspaceEvents(workspace?.id); // live updates from teammates, for every page
   useNotificationSounds(user?.id, workspace?.id); // a soft signal for new messages and tasks
+  useMeetingToasts(user?.id, workspace?.id); // a pop-up shortly before a calendar meeting
   usePresenceHeartbeat(workspace?.id); // "online" in chat
   useApplyProfileLanguage(user);
 

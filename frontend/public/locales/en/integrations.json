@@ -1,0 +1,75 @@
+{
+  "google": {
+    "name": "Google Calendar",
+    "tagline": "See your next meeting in the sidebar and get a reminder before it starts."
+  },
+  "status": {
+    "active": "Active",
+    "paused": "Paused",
+    "reconnect": "Needs reconnecting",
+    "off": "Not connected"
+  },
+  "active": {
+    "label": "Active"
+  },
+  "benefits": {
+    "sidebar": "Your next meeting appears in the sidebar with a Join button.",
+    "reminder": "A reminder pops up and rings before it starts.",
+    "channel": "Optionally post the reminder in a chat channel, with a link to join."
+  },
+  "connect": "Connect Google Calendar",
+  "reconnect": "Connect again",
+  "reconnectHint": "Google no longer accepts the saved access. Connect again to resume reminders.",
+  "notConfigured": {
+    "title": "Google isn't set up on this server",
+    "body": "An administrator needs to add the Google client ID and secret first (see the deployment notes in the docs)."
+  },
+  "account": "Connected as {{email}}",
+  "synced": "Last synced {{when}}",
+  "neverSynced": "Not synced yet",
+  "syncNow": "Sync now",
+  "reminder": {
+    "title": "Reminders",
+    "lead": "Remind me",
+    "leadHint": "How long before a meeting the reminder appears.",
+    "minutesBefore": "{{count}} min before",
+    "bell": "Show in the notification bell",
+    "bellHint": "A pop-up and a sound, and an entry in the bell.",
+    "channel": "Also post in a channel",
+    "channelHint": "Like a calendar bot: the reminder lands in the channel with a link to join.",
+    "noChannel": "No channel"
+  },
+  "meetings": {
+    "title": "Upcoming meetings",
+    "empty": "No meetings in the next week.",
+    "join": "Join"
+  },
+  "disconnect": "Disconnect",
+  "disconnectTitle": "Disconnect Google Calendar?",
+  "disconnectBody": "Reminders stop and the stored meetings are removed. You can connect again at any time.",
+  "toast": {
+    "connected": "Google Calendar connected",
+    "denied": "Google didn't give access, so nothing was connected.",
+    "failed": "Couldn't connect Google Calendar. Please try again."
+  },
+  "loadFailed": "Couldn't load integrations",
+  "retry": "Try again",
+  "card": {
+    "label": "Next meeting",
+    "title": "Announcement!",
+    "startsIn": "Starts in {{minutes}} min",
+    "startsInHours": "Starts in {{hours}} h",
+    "startsAt": "Starts at {{time}}",
+    "now": "Starting now",
+    "participants": "Participants:",
+    "join": "Join Now",
+    "connectTitle": "See your meetings here",
+    "connectBody": "Connect Google Calendar to get a reminder before each one.",
+    "connectCta": "Connect"
+  },
+  "reminderToast": {
+    "title": "Meeting soon",
+    "body": "“{{title}}” starts at {{time}}",
+    "join": "Join"
+  }
+}

@@ -15,13 +15,19 @@ function Row({ n, onOpen }: { n: AppNotification; onOpen: (n: AppNotification) =
   const Icon = KIND_ICONS[n.kind];
   const actor = n.actor?.name ?? t('notifications.someone');
   const kind = n.kind === 'mention' && !n.title ? 'mention_direct' : n.kind;
+  const meeting = n.kind === 'meeting';
   const text = t(`notifications.kinds.${kind}`, {
     actor,
     subject: n.title,
     channel: `#${n.title}`,
     column: n.body,
+    time: meeting
+      ? new Intl.DateTimeFormat(language, { hour: '2-digit', minute: '2-digit' }).format(
+          new Date(n.body),
+        )
+      : '',
   });
-  const detail = n.kind === 'task_moved' ? '' : n.body;
+  const detail = n.kind === 'task_moved' || meeting ? '' : n.body;
   return (
     <li>
       <button
@@ -32,12 +38,18 @@ function Row({ n, onOpen }: { n: AppNotification; onOpen: (n: AppNotification) =
           !n.read && 'bg-primary-subtle/70',
         )}
       >
-        <span className="relative mt-0.5 shrink-0">
-          <Avatar name={actor} src={n.actor?.avatarUrl} size="sm" />
-          <span className="absolute -bottom-1 -right-1 grid size-4 place-items-center rounded-full border border-border bg-surface text-text-muted [&_svg]:size-2.5 [&_svg]:stroke-[2]">
+        {meeting ? (
+          <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft text-primary-ink [&_svg]:size-4 [&_svg]:stroke-[1.7]">
             <Icon aria-hidden />
           </span>
-        </span>
+        ) : (
+          <span className="relative mt-0.5 shrink-0">
+            <Avatar name={actor} src={n.actor?.avatarUrl} size="sm" />
+            <span className="absolute -bottom-1 -right-1 grid size-4 place-items-center rounded-full border border-border bg-surface text-text-muted [&_svg]:size-2.5 [&_svg]:stroke-[2]">
+              <Icon aria-hidden />
+            </span>
+          </span>
+        )}
         <span className="min-w-0 flex-1">
           <span className={cn('block text-sm text-text', !n.read && 'font-medium')}>{text}</span>
           {detail && (
@@ -79,6 +91,8 @@ export function NotificationList({ onNavigate }: { onNavigate: () => void }) {
         },
         { replace: false },
       );
+    } else if (target && 'link' in target) {
+      window.open(target.link, '_blank', 'noopener,noreferrer');
     } else if (target) {
       navigate(`/chat/${target.channel}`);
     }

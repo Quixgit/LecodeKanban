@@ -2,7 +2,7 @@ export { ChatLayout } from './components/ChatLayout';
 export { ChannelView } from './components/ChannelView';
 export { ChatHome } from './components/ChatHome';
 export { SavedView, ThreadsView } from './components/HitList';
-export { useChatUnread } from './hooks/useChat';
+export { useChannels, useChatUnread } from './hooks/useChat';
 export { usePresenceHeartbeat, useStatuses } from './hooks/usePresence';
 export { StatusDialog } from './components/StatusDialog';
 export { MyStatus } from './components/MyStatus';
