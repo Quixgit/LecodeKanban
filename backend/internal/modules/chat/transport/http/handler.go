@@ -104,9 +104,28 @@ func people(us []usersdomain.User) []api.PersonRef {
 	return out
 }
 
+func feedEvents(in []string) []api.ChatChannelFeedEvents {
+	out := make([]api.ChatChannelFeedEvents, len(in))
+	for i, k := range in {
+		out[i] = api.ChatChannelFeedEvents(k)
+	}
+	return out
+}
+
+func strs[T ~string](in *[]T) []string {
+	if in == nil {
+		return nil
+	}
+	out := make([]string, len(*in))
+	for i, k := range *in {
+		out[i] = string(k)
+	}
+	return out
+}
+
 func toChannel(v service.ChannelView) api.ChatChannel {
 	out := api.ChatChannel{Id: v.ID, WorkspaceId: v.WorkspaceID, Kind: api.ChatChannelKind(v.Kind), Topic: v.Topic,
-		Joined: v.Joined, Muted: v.Muted, Starred: v.Starred, Feed: v.Feed, FeedProjectId: v.FeedProjectID, Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
+		Joined: v.Joined, Muted: v.Muted, Starred: v.Starred, Feed: v.Feed, FeedProjectId: v.FeedProjectID, FeedEvents: feedEvents(v.FeedEvents), Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
 		LastMessageAt: v.LastMessageAt, People: people(v.People)}
 	if v.Name != "" {
 		n := v.Name
@@ -176,7 +195,7 @@ func (h *Handler) createChannel(w http.ResponseWriter, r *http.Request) error {
 		si.MemberIDs = *in.MemberIds
 	}
 	if in.Feed != nil {
-		si.Feed, si.FeedProjectID = *in.Feed, in.FeedProjectId
+		si.Feed, si.FeedProjectID, si.FeedEvents = *in.Feed, in.FeedProjectId, strs(in.FeedEvents)
 	}
 	v, err := h.svc.CreateChannel(r.Context(), userID(r), ws, si)
 	if err != nil {
@@ -214,7 +233,7 @@ func (h *Handler) updateChannel(w http.ResponseWriter, r *http.Request) error {
 	}
 	var feed *service.FeedPatch
 	if in.Feed != nil {
-		feed = &service.FeedPatch{On: *in.Feed, ProjectID: in.FeedProjectId}
+		feed = &service.FeedPatch{On: *in.Feed, ProjectID: in.FeedProjectId, Events: strs(in.FeedEvents)}
 	}
 	v, err := h.svc.Update(r.Context(), userID(r), id, in.Name, in.Topic, feed)
 	if err != nil {

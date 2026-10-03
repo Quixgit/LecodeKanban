@@ -18,9 +18,9 @@ const ACTIVE_LAYOUT_ID = 'sidebar-active-item';
 function ChatBadge({ collapsed }: { collapsed: boolean }) {
   const { t } = useTranslation('chat');
   const { workspace } = useCurrentWorkspace();
-  const { total, mentions } = useChatUnread(workspace?.id);
+  const { total, urgent } = useChatUnread(workspace?.id);
   if (total === 0) return null;
-  const tone = mentions > 0 ? 'bg-danger text-white' : 'bg-primary-solid text-on-primary';
+  const tone = urgent > 0 ? 'bg-danger text-white' : 'bg-primary-solid text-on-primary';
   if (collapsed) {
     return (
       <span

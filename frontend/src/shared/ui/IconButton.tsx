@@ -32,12 +32,14 @@ export interface IconButtonProps
   label: string;
   /** Shows a small red dot (e.g. unread notifications). */
   dot?: boolean;
+  /** Shows a red count pill (e.g. unread notifications); 99+ when large, nothing at zero. */
+  count?: number;
   /** Render the single child (e.g. a router Link) with icon-button styling. */
   asChild?: boolean;
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ className, variant, size, label, dot, asChild, children, ...props }, ref) =>
+  ({ className, variant, size, label, dot, count, asChild, children, ...props }, ref) =>
     asChild ? (
       <Slot
         aria-label={label}
@@ -55,6 +57,14 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         {...props}
       >
         {children}
+        {count !== undefined && count > 0 && (
+          <span
+            aria-hidden
+            className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-1 text-2xs font-semibold tabular-nums leading-none text-white ring-2 ring-surface motion-safe:animate-[lk-pop-in_var(--dur-micro)_var(--ease-out)]"
+          >
+            {count > 99 ? '99+' : count}
+          </span>
+        )}
         {dot && (
           <span
             aria-hidden

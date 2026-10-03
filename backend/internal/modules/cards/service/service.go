@@ -237,6 +237,25 @@ func (s *Service) Ref(ctx context.Context, user, id uuid.UUID, perm wsdomain.Per
 	return domain.Ref{ID: c.ID, WorkspaceID: c.WorkspaceID, ProjectID: c.ProjectID, Number: c.Number, Title: c.Title}, nil
 }
 
+// AssigneeIDs lists who is on a card. It is for event consumers (notifications) that have already
+// been told the card changed; callers that act for a person use Ref first.
+func (s *Service) AssigneeIDs(ctx context.Context, card uuid.UUID) ([]uuid.UUID, error) {
+	m, err := s.repo.Assignees(ctx, []uuid.UUID{card})
+	if err != nil {
+		return nil, err
+	}
+	return m[card], nil
+}
+
+// Brief is a card's reference data for event consumers, without an access check.
+func (s *Service) Brief(ctx context.Context, id uuid.UUID) (domain.Ref, error) {
+	c, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return domain.Ref{}, err
+	}
+	return domain.Ref{ID: c.ID, WorkspaceID: c.WorkspaceID, ProjectID: c.ProjectID, Number: c.Number, Title: c.Title}, nil
+}
+
 // SetCommentCount / SetAttachmentCount store counters owned by other modules (event-driven).
 func (s *Service) SetCommentCount(ctx context.Context, card uuid.UUID, n int) error {
 	return s.repo.SetCommentCount(ctx, card, n)

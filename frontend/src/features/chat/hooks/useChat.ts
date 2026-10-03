@@ -48,12 +48,16 @@ export function useChatUnread(ws: string | undefined) {
   return useMemo(() => {
     let unread = 0;
     let mentions = 0;
+    let feeds = 0;
     for (const c of data ?? []) {
       if (!c.joined) continue;
       mentions += c.mentions;
-      if (!c.muted) unread += c.unread;
+      if (c.muted) continue;
+      unread += c.unread;
+      if (c.feed) feeds += c.unread;
     }
-    return { unread, mentions, total: Math.max(mentions, unread) };
+    // Mentions and task feeds are what calls for attention: they colour the badges red.
+    return { unread, mentions, urgent: mentions + feeds, total: Math.max(mentions, unread) };
   }, [data]);
 }
 

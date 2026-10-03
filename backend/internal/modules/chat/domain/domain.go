@@ -51,6 +51,8 @@ type Channel struct {
 	// Feed channels receive task updates; FeedProjectID narrows them to one project (nil: all).
 	Feed          bool
 	FeedProjectID *uuid.UUID
+	// FeedEvents are the kinds of task events a feed takes (see FeedKinds).
+	FeedEvents    []string
 	CreatedBy     *uuid.UUID
 	CreatedAt     time.Time
 	LastMessageAt *time.Time
@@ -150,6 +152,29 @@ func NormalizeName(s string) string {
 }
 
 func ValidName(s string) bool { return nameRe.MatchString(s) }
+
+// FeedKinds are the task events a feed channel can take, in display order.
+var FeedKinds = []string{"created", "assigned", "moved", "updated", "deleted", "commented"}
+
+// NormalizeFeedEvents de-duplicates and orders a choice of feed events. An empty choice means
+// "everything"; an unknown kind reports false.
+func NormalizeFeedEvents(in []string) ([]string, bool) {
+	if len(in) == 0 {
+		return slices.Clone(FeedKinds), true
+	}
+	for _, k := range in {
+		if !slices.Contains(FeedKinds, k) {
+			return nil, false
+		}
+	}
+	out := make([]string, 0, len(in))
+	for _, k := range FeedKinds {
+		if slices.Contains(in, k) {
+			out = append(out, k)
+		}
+	}
+	return out, true
+}
 
 // DMKey identifies a conversation by its participants, independent of order.
 func DMKey(ids []uuid.UUID) string {

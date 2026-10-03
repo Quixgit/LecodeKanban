@@ -105,9 +105,9 @@ func (q *Queries) AttachFiles(ctx context.Context, arg AttachFilesParams) ([]uui
 
 const createChannel = `-- name: CreateChannel :one
 
-INSERT INTO chat_channels (workspace_id, kind, name, topic, dm_key, created_by, ref_id, feed, feed_project_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id
+INSERT INTO chat_channels (workspace_id, kind, name, topic, dm_key, created_by, ref_id, feed, feed_project_id, feed_events)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id, feed_events
 `
 
 type CreateChannelParams struct {
@@ -120,6 +120,7 @@ type CreateChannelParams struct {
 	RefID         uuid.NullUUID
 	Feed          bool
 	FeedProjectID uuid.NullUUID
+	FeedEvents    []string
 }
 
 // chat module queries (sqlc). Threads are one level deep: replies carry parent_id.
@@ -134,6 +135,7 @@ func (q *Queries) CreateChannel(ctx context.Context, arg CreateChannelParams) (C
 		arg.RefID,
 		arg.Feed,
 		arg.FeedProjectID,
+		arg.FeedEvents,
 	)
 	var i ChatChannel
 	err := row.Scan(
@@ -150,6 +152,7 @@ func (q *Queries) CreateChannel(ctx context.Context, arg CreateChannelParams) (C
 		&i.RefID,
 		&i.Feed,
 		&i.FeedProjectID,
+		&i.FeedEvents,
 	)
 	return i, err
 }
@@ -231,7 +234,7 @@ func (q *Queries) DeleteStatus(ctx context.Context, userID uuid.UUID) error {
 }
 
 const getChannel = `-- name: GetChannel :one
-SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id FROM chat_channels WHERE id = $1
+SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id, feed_events FROM chat_channels WHERE id = $1
 `
 
 func (q *Queries) GetChannel(ctx context.Context, id uuid.UUID) (ChatChannel, error) {
@@ -251,12 +254,13 @@ func (q *Queries) GetChannel(ctx context.Context, id uuid.UUID) (ChatChannel, er
 		&i.RefID,
 		&i.Feed,
 		&i.FeedProjectID,
+		&i.FeedEvents,
 	)
 	return i, err
 }
 
 const getChannelState = `-- name: GetChannelState :one
-SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.feed, c.feed_project_id, c.created_by, c.created_at, c.last_message_at,
+SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
        (st.user_id IS NOT NULL)::boolean AS starred,
@@ -290,6 +294,7 @@ type GetChannelStateRow struct {
 	RefID         uuid.NullUUID
 	Feed          bool
 	FeedProjectID uuid.NullUUID
+	FeedEvents    []string
 	CreatedBy     uuid.NullUUID
 	CreatedAt     time.Time
 	LastMessageAt *time.Time
@@ -313,6 +318,7 @@ func (q *Queries) GetChannelState(ctx context.Context, arg GetChannelStateParams
 		&i.RefID,
 		&i.Feed,
 		&i.FeedProjectID,
+		&i.FeedEvents,
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.LastMessageAt,
@@ -326,7 +332,7 @@ func (q *Queries) GetChannelState(ctx context.Context, arg GetChannelStateParams
 }
 
 const getDMChannel = `-- name: GetDMChannel :one
-SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id FROM chat_channels WHERE workspace_id = $1 AND kind = 'dm' AND dm_key = $2
+SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id, feed_events FROM chat_channels WHERE workspace_id = $1 AND kind = 'dm' AND dm_key = $2
 `
 
 type GetDMChannelParams struct {
@@ -351,6 +357,7 @@ func (q *Queries) GetDMChannel(ctx context.Context, arg GetDMChannelParams) (Cha
 		&i.RefID,
 		&i.Feed,
 		&i.FeedProjectID,
+		&i.FeedEvents,
 	)
 	return i, err
 }
@@ -425,7 +432,7 @@ func (q *Queries) GetMessage(ctx context.Context, id uuid.UUID) (ChatMessage, er
 }
 
 const getScopeChannel = `-- name: GetScopeChannel :one
-SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id FROM chat_channels WHERE kind = $1 AND ref_id = $2
+SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id, feed_events FROM chat_channels WHERE kind = $1 AND ref_id = $2
 `
 
 type GetScopeChannelParams struct {
@@ -450,6 +457,7 @@ func (q *Queries) GetScopeChannel(ctx context.Context, arg GetScopeChannelParams
 		&i.RefID,
 		&i.Feed,
 		&i.FeedProjectID,
+		&i.FeedEvents,
 	)
 	return i, err
 }
@@ -581,7 +589,7 @@ func (q *Queries) ListChannelFiles(ctx context.Context, arg ListChannelFilesPara
 }
 
 const listChannelStates = `-- name: ListChannelStates :many
-SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.feed, c.feed_project_id, c.created_by, c.created_at, c.last_message_at,
+SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
        (st.user_id IS NOT NULL)::boolean AS starred,
@@ -617,6 +625,7 @@ type ListChannelStatesRow struct {
 	DmKey         *string
 	Feed          bool
 	FeedProjectID uuid.NullUUID
+	FeedEvents    []string
 	CreatedBy     uuid.NullUUID
 	CreatedAt     time.Time
 	LastMessageAt *time.Time
@@ -645,6 +654,7 @@ func (q *Queries) ListChannelStates(ctx context.Context, arg ListChannelStatesPa
 			&i.DmKey,
 			&i.Feed,
 			&i.FeedProjectID,
+			&i.FeedEvents,
 			&i.CreatedBy,
 			&i.CreatedAt,
 			&i.LastMessageAt,
@@ -665,7 +675,7 @@ func (q *Queries) ListChannelStates(ctx context.Context, arg ListChannelStatesPa
 }
 
 const listFeedChannels = `-- name: ListFeedChannels :many
-SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id FROM chat_channels
+SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id, feed_events FROM chat_channels
 WHERE workspace_id = $1 AND feed AND archived_at IS NULL AND (feed_project_id IS NULL OR feed_project_id = $2)
 `
 
@@ -697,6 +707,7 @@ func (q *Queries) ListFeedChannels(ctx context.Context, arg ListFeedChannelsPara
 			&i.RefID,
 			&i.Feed,
 			&i.FeedProjectID,
+			&i.FeedEvents,
 		); err != nil {
 			return nil, err
 		}
@@ -1373,17 +1384,23 @@ func (q *Queries) SearchMessages(ctx context.Context, arg SearchMessagesParams) 
 }
 
 const setFeed = `-- name: SetFeed :one
-UPDATE chat_channels SET feed = $2, feed_project_id = $3 WHERE id = $1 RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id
+UPDATE chat_channels SET feed = $2, feed_project_id = $3, feed_events = $4 WHERE id = $1 RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id, feed_events
 `
 
 type SetFeedParams struct {
 	ID            uuid.UUID
 	Feed          bool
 	FeedProjectID uuid.NullUUID
+	FeedEvents    []string
 }
 
 func (q *Queries) SetFeed(ctx context.Context, arg SetFeedParams) (ChatChannel, error) {
-	row := q.db.QueryRow(ctx, setFeed, arg.ID, arg.Feed, arg.FeedProjectID)
+	row := q.db.QueryRow(ctx, setFeed,
+		arg.ID,
+		arg.Feed,
+		arg.FeedProjectID,
+		arg.FeedEvents,
+	)
 	var i ChatChannel
 	err := row.Scan(
 		&i.ID,
@@ -1399,6 +1416,7 @@ func (q *Queries) SetFeed(ctx context.Context, arg SetFeedParams) (ChatChannel, 
 		&i.RefID,
 		&i.Feed,
 		&i.FeedProjectID,
+		&i.FeedEvents,
 	)
 	return i, err
 }
@@ -1494,7 +1512,7 @@ func (q *Queries) Unstar(ctx context.Context, arg UnstarParams) error {
 }
 
 const updateChannel = `-- name: UpdateChannel :one
-UPDATE chat_channels SET name = $2, topic = $3 WHERE id = $1 RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id
+UPDATE chat_channels SET name = $2, topic = $3 WHERE id = $1 RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id, feed_events
 `
 
 type UpdateChannelParams struct {
@@ -1520,6 +1538,7 @@ func (q *Queries) UpdateChannel(ctx context.Context, arg UpdateChannelParams) (C
 		&i.RefID,
 		&i.Feed,
 		&i.FeedProjectID,
+		&i.FeedEvents,
 	)
 	return i, err
 }

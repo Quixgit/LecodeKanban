@@ -238,6 +238,13 @@ Base URL: `/api/v1`
 | PUT | `/chat/messages/{messageId}/reactions/{key}` | session |  | 200 |  |
 | DELETE | `/chat/messages/{messageId}/reactions/{key}` | session |  | 200 |  |
 
+## notifications
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/notifications` | session |  | 200 | The caller's notifications in the workspace, newest first, with the unread count |
+| POST | `/workspaces/{workspaceId}/notifications/read` | session | NotificationsReadInput | 204 | Mark the given notifications (or all of them) as read |
+
 ## Schemas
 
 - **ErrorResponse** — `error`: object
@@ -306,7 +313,7 @@ Base URL: `/api/v1`
 - **RunningTimer** — `entry?`: TimeEntry
 - **ActivityEntry** — `id`: integer, `kind`: string, `data`: object, `actor`: object \| null, `at`: string
 - **ActivityPage** — `items`: array, `nextBefore`: integer \| null
-- **RealtimeMessage** — `type`: string, `workspaceId`: string, `projectId?`: string, `cardId?`: string, `actorId?`: string, `channelId?`: string, `messageId?`: string
+- **RealtimeMessage** — `type`: string, `workspaceId`: string, `projectId?`: string, `cardId?`: string, `actorId?`: string, `channelId?`: string, `messageId?`: string, `userId?`: string
 - **CardPage** — `items`: array, `total`: integer, `page`: integer, `pageSize`: integer
 - **StatusCounts** — `todo`: integer, `in_progress`: integer, `in_review`: integer, `done`: integer
 - **BulkCardAction** — `ids`: array, `action`: string, `status?`: TaskStatus, `priority?`: Priority
@@ -342,9 +349,12 @@ Base URL: `/api/v1`
 - **WikiFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string
 - **WikiAuditEvent** — `id`: integer, `kind`: string, `actorId`: string \| null, `nodeId`: string \| null, `data`: object, `at`: string
 - **WikiAuditPage** — `events`: array, `next`: integer \| null
-- **ChatChannel** — `id`: string, `workspaceId`: string, `kind`: string, `name`: string \| null, `topic`: string, `joined`: boolean, `muted`: boolean, `starred`: boolean, `feed`: boolean, `feedProjectId`: string \| null, `unread`: integer, `mentions`: integer, `memberCount`: integer, `lastMessageAt`: string \| null, `people`: array
-- **ChatChannelInput** — `name`: string, `topic?`: string, `private?`: boolean, `feed?`: boolean, `feedProjectId?`: string \| null, `memberIds?`: array
-- **ChatChannelPatch** — `name?`: string, `topic?`: string, `feed?`: boolean, `feedProjectId?`: string \| null
+- **Notification** — `id`: string, `kind`: string, `title`: string, `body`: string, `actor`: object \| null, `cardId`: string \| null, `projectId`: string \| null, `channelId`: string \| null, `messageId`: string \| null, `createdAt`: string, `read`: boolean
+- **NotificationPage** — `items`: array, `unread`: integer, `next`: string \| null
+- **NotificationsReadInput** — `ids?`: array, `all?`: boolean
+- **ChatChannel** — `id`: string, `workspaceId`: string, `kind`: string, `name`: string \| null, `topic`: string, `joined`: boolean, `muted`: boolean, `starred`: boolean, `feed`: boolean, `feedProjectId`: string \| null, `feedEvents`: array, `unread`: integer, `mentions`: integer, `memberCount`: integer, `lastMessageAt`: string \| null, `people`: array
+- **ChatChannelInput** — `name`: string, `topic?`: string, `private?`: boolean, `feed?`: boolean, `feedProjectId?`: string \| null, `feedEvents?`: array, `memberIds?`: array
+- **ChatChannelPatch** — `name?`: string, `topic?`: string, `feed?`: boolean, `feedProjectId?`: string \| null, `feedEvents?`: array
 - **ChatDirectInput** — `userIds`: array
 - **ChatMembersInput** — `userIds`: array
 - **ChatMuteInput** — `muted`: boolean
@@ -353,7 +363,7 @@ Base URL: `/api/v1`
 - **ChatMessagePage** — `messages`: array, `hasMore`: boolean
 - **ChatMessageInput** — `body`: string, `parentId?`: string \| null, `fileIds?`: array
 - **ChatFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string, `createdAt`: string
-- **ChatEvent** — `kind`: string, `projectId`: string, `projectKey`: string, `projectName`: string, `cardId`: string, `number`: integer, `title`: string, `from?`: string, `to?`: string, `column?`: string, `excerpt?`: string, `changes?`: array
+- **ChatEvent** — `kind`: string, `actorId?`: string, `actorName?`: string, `assignees?`: array, `projectId`: string, `projectKey`: string, `projectName`: string, `cardId`: string, `number`: integer, `title`: string, `from?`: string, `to?`: string, `column?`: string, `excerpt?`: string, `changes?`: array
 - **ChatHit** — `message`: ChatMessage, `channel`: ChatChannel
 - **ChatPresence** — `online`: array, `statuses`: array
 - **ChatStatus** — `userId`: string, `kind`: string, `icon`: string \| null, `text`: string, `until`: string \| null

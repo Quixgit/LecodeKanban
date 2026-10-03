@@ -39,7 +39,7 @@
   "notifications": {
     "title": "Notifications",
     "emptyTitle": "You're all caught up",
-    "emptyDescription": "Mentions, assignments and due-date reminders will appear here.",
+    "emptyDescription": "Assignments, updates on your tasks, mentions and direct messages will appear here.",
     "sound": {
       "title": "Sounds",
       "volume": "Volume",
@@ -51,6 +51,20 @@
         "task": "New task",
         "notify": "Other updates"
       }
+    },
+    "titleUnread": "Notifications, {{count}} unread",
+    "markAll": "Mark all as read",
+    "more": "Show older",
+    "someone": "Someone",
+    "unreadItem": "Unread",
+    "kinds": {
+      "assigned": "{{actor}} assigned you to {{subject}}",
+      "task_moved": "{{actor}} moved {{subject}} to {{column}}",
+      "task_updated": "{{actor}} updated {{subject}}",
+      "task_commented": "{{actor}} commented on {{subject}}",
+      "mention": "{{actor}} mentioned you in {{channel}}",
+      "dm": "{{actor}} sent you a message",
+      "mention_direct": "{{actor}} mentioned you"
     }
   },
   "language": {

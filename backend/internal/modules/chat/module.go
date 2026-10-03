@@ -8,6 +8,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/repository"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/service"
 	transport "github.com/reliabilix/lecodekanban/backend/internal/modules/chat/transport/http"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/eventbus"
 )
 
 type Deps struct {
@@ -15,6 +16,7 @@ type Deps struct {
 	Workspaces service.Workspaces
 	Users      service.Users
 	Hints      service.Hints
+	Bus        *eventbus.Bus
 	Projects   service.Projects
 	Cards      service.Cards
 	// Storage and MaxUploadBytes enable attachments.
@@ -29,6 +31,9 @@ type Module struct {
 
 func New(d Deps) *Module {
 	svc := service.New(repository.New(d.Pool), d.Workspaces, d.Users, d.Hints).WithScopes(d.Projects, d.Cards)
+	if d.Bus != nil {
+		svc.WithBus(d.Bus)
+	}
 	if d.Storage != nil {
 		svc.WithFiles(d.Storage, d.MaxUploadBytes)
 	}

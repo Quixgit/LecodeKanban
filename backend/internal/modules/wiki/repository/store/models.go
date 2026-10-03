@@ -120,6 +120,7 @@ type ChatChannel struct {
 	RefID         uuid.NullUUID
 	Feed          bool
 	FeedProjectID uuid.NullUUID
+	FeedEvents    []string
 }
 
 type ChatFile struct {
@@ -247,6 +248,22 @@ type Label struct {
 	Name        string
 	Tone        string
 	CreatedAt   time.Time
+}
+
+type Notification struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	WorkspaceID uuid.UUID
+	Kind        string
+	ActorID     uuid.NullUUID
+	CardID      uuid.NullUUID
+	ProjectID   uuid.NullUUID
+	ChannelID   uuid.NullUUID
+	MessageID   uuid.NullUUID
+	Title       string
+	Body        string
+	CreatedAt   time.Time
+	ReadAt      *time.Time
 }
 
 type Project struct {

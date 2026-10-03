@@ -23,6 +23,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/comments"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/i18n"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/notifications"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/projects"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/timetracking"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users"
@@ -99,8 +100,11 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	wikiMod := wiki.New(wiki.Deps{Pool: pool, Workspaces: wsMod.Service, Teams: noTeams{}, Projects: projectsMod.Service,
 		Storage: storage, MaxUploadBytes: cfg.AttachmentMaxBytes()})
 	chatMod := chat.New(chat.Deps{Pool: pool, Workspaces: wsMod.Service, Users: usersMod.Service,
-		Hints: realtime.NewPublisher(pool, log), Projects: projectsMod.Service, Cards: cardsMod.Service, Storage: storage, MaxUploadBytes: cfg.AttachmentMaxBytes()})
+		Hints: realtime.NewPublisher(pool, log), Bus: bus, Projects: projectsMod.Service, Cards: cardsMod.Service, Storage: storage, MaxUploadBytes: cfg.AttachmentMaxBytes()})
 	chat.RegisterFeeds(bus, chatMod.Service)
+	notificationsMod := notifications.New(notifications.Deps{Pool: pool, Workspaces: wsMod.Service, Users: usersMod.Service,
+		Cards: cardsMod.Service, Projects: projectsMod.Service, Hints: realtime.NewPublisher(pool, log)})
+	notifications.Register(bus, notificationsMod.Service, cardsMod.Service)
 	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
 	hub := realtime.NewHub(cfg.DatabaseURL, log)
 
@@ -162,6 +166,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			timeMod.HTTP.PrivateRoutes(r)
 			wikiMod.HTTP.PrivateRoutes(r)
 			chatMod.HTTP.PrivateRoutes(r)
+			notificationsMod.HTTP.PrivateRoutes(r)
 			activityMod.HTTP.PrivateRoutes(r)
 			r.Get("/workspaces/{workspaceId}/events", hub.Handler(
 				func(r *http.Request) (uuid.UUID, error) {

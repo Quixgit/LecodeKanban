@@ -290,15 +290,17 @@ function Row({
         )}
         {unread && c.feed && (
           <span className="relative flex size-2 shrink-0" aria-hidden>
-            <span className="absolute inline-flex size-full rounded-full bg-primary opacity-60 motion-safe:animate-ping" />
-            <span className="relative inline-flex size-2 rounded-full bg-primary" />
+            <span className="absolute inline-flex size-full rounded-full bg-danger opacity-60 motion-safe:animate-ping" />
+            <span className="relative inline-flex size-2 rounded-full bg-danger" />
           </span>
         )}
         {unread && (
           <span
             className={cn(
               'grid h-5 min-w-5 shrink-0 place-items-center rounded-full px-1.5 text-2xs font-semibold tabular-nums',
-              c.mentions > 0 ? 'bg-danger text-white' : 'bg-primary-solid text-on-primary',
+              c.mentions > 0 || c.feed
+                ? 'bg-danger text-white'
+                : 'bg-primary-solid text-on-primary',
             )}
             aria-label={t('sidebar.unread', { count: c.unread })}
           >

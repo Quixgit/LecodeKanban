@@ -178,7 +178,7 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewC
 	if err != nil {
 		return View{}, err
 	}
-	_ = s.bus.Publish(ctx, events.CardCreated{Card: evCard(card, user), Status: string(card.Status)})
+	_ = s.bus.Publish(ctx, events.CardCreated{Card: evCard(card, user), Status: string(card.Status), Assignees: assignees})
 	return s.presentOne(ctx, card)
 }
 

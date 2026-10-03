@@ -1,30 +1,33 @@
-import { Bell, BellOff } from 'lucide-react';
+import { Bell } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { NotificationList, useNotifications } from '@/features/notifications';
 import { SoundSettings } from '@/features/notification-sounds';
-import { Dropdown, DropdownContent, DropdownTrigger, EmptyState, IconButton } from '@/shared/ui';
+import { IconButton, Popover, PopoverContent, PopoverTrigger } from '@/shared/ui';
 
-/** Bell with the notification inbox. Populated by the notifications module. */
-export function NotificationsMenu({ unread = 0 }: { unread?: number }) {
+/** Bell with the notification inbox: a red count while something is unread. */
+export function NotificationsMenu() {
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const { unread } = useNotifications();
   return (
-    <Dropdown>
-      <DropdownTrigger asChild>
-        <IconButton label={t('notifications.title')} dot={unread > 0}>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <IconButton
+          label={
+            unread > 0
+              ? t('notifications.titleUnread', { count: unread })
+              : t('notifications.title')
+          }
+          count={unread}
+        >
           <Bell />
         </IconButton>
-      </DropdownTrigger>
-      <DropdownContent className="w-[340px] p-0">
-        <div className="border-b border-border-subtle px-4 py-3">
-          <p className="text-base font-semibold text-text">{t('notifications.title')}</p>
-        </div>
-        <EmptyState
-          className="py-10"
-          icon={<BellOff />}
-          title={t('notifications.emptyTitle')}
-          description={t('notifications.emptyDescription')}
-        />
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[360px] max-w-[calc(100vw-1.5rem)] p-0">
+        <NotificationList onNavigate={() => setOpen(false)} />
         <SoundSettings />
-      </DropdownContent>
-    </Dropdown>
+      </PopoverContent>
+    </Popover>
   );
 }

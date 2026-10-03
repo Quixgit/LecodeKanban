@@ -56,9 +56,17 @@ func optStr(s string) *string {
 	return &s
 }
 
+// eventsOrAll keeps the column non-null: no choice means every kind of event.
+func eventsOrAll(e []string) []string {
+	if len(e) == 0 {
+		return domain.FeedKinds
+	}
+	return e
+}
+
 func toChannel(c store.ChatChannel) domain.Channel {
 	return domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
-		Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
+		Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), FeedEvents: c.FeedEvents, CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
 		LastMessageAt: c.LastMessageAt}
 }
 
@@ -84,7 +92,7 @@ func notFound(err error) error {
 
 func (r *Repo) CreateChannel(ctx context.Context, c domain.Channel) (domain.Channel, error) {
 	row, err := r.q.CreateChannel(ctx, store.CreateChannelParams{WorkspaceID: c.WorkspaceID, Kind: string(c.Kind),
-		Name: optStr(c.Name), Topic: c.Topic, DmKey: optStr(c.DMKey), CreatedBy: nullID(c.CreatedBy), RefID: nullID(c.RefID), Feed: c.Feed, FeedProjectID: nullID(c.FeedProjectID)})
+		Name: optStr(c.Name), Topic: c.Topic, DmKey: optStr(c.DMKey), CreatedBy: nullID(c.CreatedBy), RefID: nullID(c.RefID), Feed: c.Feed, FeedProjectID: nullID(c.FeedProjectID), FeedEvents: eventsOrAll(c.FeedEvents)})
 	if err != nil {
 		if db.IsUniqueViolation(err, "chat_channels_name_key") {
 			return domain.Channel{}, apperr.New(domain.ErrNameTaken, "channel name taken")
@@ -152,7 +160,7 @@ func (r *Repo) ChannelStates(ctx context.Context, ws, user uuid.UUID) ([]domain.
 	for i, c := range rows {
 		out[i] = domain.ChannelState{
 			Channel: domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
-				Topic: c.Topic, DMKey: str(c.DmKey), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
+				Topic: c.Topic, DMKey: str(c.DmKey), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), FeedEvents: c.FeedEvents, CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
 				LastMessageAt: c.LastMessageAt},
 			Joined: c.Joined, Muted: c.Muted, Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}
 	}
@@ -167,7 +175,7 @@ func (r *Repo) ChannelState(ctx context.Context, id, user uuid.UUID) (domain.Cha
 	}
 	return domain.ChannelState{
 		Channel: domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
-			Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), CreatedBy: ptrID(c.CreatedBy),
+			Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), FeedEvents: c.FeedEvents, CreatedBy: ptrID(c.CreatedBy),
 			CreatedAt: c.CreatedAt, LastMessageAt: c.LastMessageAt},
 		Joined: c.Joined, Muted: c.Muted, Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}, nil
 }
@@ -533,8 +541,8 @@ func (r *Repo) Online(ctx context.Context, ws uuid.UUID) ([]uuid.UUID, error) {
 }
 
 // SetFeed turns a channel's task feed on or off; project nil means every project.
-func (r *Repo) SetFeed(ctx context.Context, id uuid.UUID, on bool, project *uuid.UUID) (domain.Channel, error) {
-	row, err := r.q.SetFeed(ctx, store.SetFeedParams{ID: id, Feed: on, FeedProjectID: nullID(project)})
+func (r *Repo) SetFeed(ctx context.Context, id uuid.UUID, on bool, project *uuid.UUID, events []string) (domain.Channel, error) {
+	row, err := r.q.SetFeed(ctx, store.SetFeedParams{ID: id, Feed: on, FeedProjectID: nullID(project), FeedEvents: eventsOrAll(events)})
 	if err != nil {
 		return domain.Channel{}, notFound(err)
 	}

@@ -8,6 +8,7 @@ import type { ChatChannel } from '../api/chatApi';
 import { useChannelMembers, useChatMutations } from '../hooks/useChat';
 import { channelTitle } from '../model/channels';
 import { FeedProjectSelect, type FeedProject } from './ChannelDialogs';
+import { FeedEventsPicker } from './FeedEventsPicker';
 import { useStatuses } from '../hooks/usePresence';
 import { PersonAvatar, StatusBadge } from './PresenceDot';
 
@@ -144,7 +145,14 @@ function Details({
                   checked={channel.feed}
                   onCheckedChange={(on) =>
                     m.updateChannel.mutate(
-                      { id: channel.id, patch: { feed: on, feedProjectId: channel.feedProjectId } },
+                      {
+                        id: channel.id,
+                        patch: {
+                          feed: on,
+                          feedProjectId: channel.feedProjectId,
+                          feedEvents: channel.feedEvents,
+                        },
+                      },
                       { onError: (e) => toast.error(errorText(e)) },
                     )
                   }
@@ -159,7 +167,29 @@ function Details({
                     m.updateChannel.mutate(
                       {
                         id: channel.id,
-                        patch: { feed: true, feedProjectId: v === 'all' ? null : v },
+                        patch: {
+                          feed: true,
+                          feedProjectId: v === 'all' ? null : v,
+                          feedEvents: channel.feedEvents,
+                        },
+                      },
+                      { onError: (e) => toast.error(errorText(e)) },
+                    )
+                  }
+                />
+              )}
+              {channel.feed && (
+                <FeedEventsPicker
+                  value={channel.feedEvents}
+                  onChange={(events) =>
+                    m.updateChannel.mutate(
+                      {
+                        id: channel.id,
+                        patch: {
+                          feed: true,
+                          feedProjectId: channel.feedProjectId,
+                          feedEvents: events,
+                        },
                       },
                       { onError: (e) => toast.error(errorText(e)) },
                     )

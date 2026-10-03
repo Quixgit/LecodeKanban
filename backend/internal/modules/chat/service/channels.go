@@ -102,6 +102,8 @@ type ChannelInput struct {
 	// Feed makes it a task feed; FeedProjectID narrows it to one project (nil: all projects).
 	Feed          bool
 	FeedProjectID *uuid.UUID
+	// FeedEvents picks the task events the feed takes; empty means all of them.
+	FeedEvents []string
 }
 
 func validateTopic(v *validation.V, topic string) {
@@ -131,15 +133,19 @@ func (s *Service) CreateChannel(ctx context.Context, user, ws uuid.UUID, in Chan
 		return ChannelView{}, err
 	}
 	var feedProject *uuid.UUID
+	var feedEvents []string
 	if in.Feed {
 		if feedProject, err = s.feedProject(ctx, ws, in.FeedProjectID); err != nil {
+			return ChannelView{}, err
+		}
+		if feedEvents, err = feedChoice(in.FeedEvents); err != nil {
 			return ChannelView{}, err
 		}
 	}
 	var created domain.Channel
 	err = s.repo.InTx(ctx, func(r *repository.Repo) error {
 		ch, err := r.CreateChannel(ctx, domain.Channel{WorkspaceID: ws, Kind: kind, Name: in.Name, Topic: in.Topic, CreatedBy: &user,
-			Feed: in.Feed, FeedProjectID: feedProject})
+			Feed: in.Feed, FeedProjectID: feedProject, FeedEvents: feedEvents})
 		if err != nil {
 			return err
 		}
@@ -344,6 +350,8 @@ func (s *Service) Members(ctx context.Context, user, channel uuid.UUID) ([]users
 type FeedPatch struct {
 	On        bool
 	ProjectID *uuid.UUID
+	// Events picks the task events the feed takes; empty means all of them.
+	Events []string
 }
 
 func (s *Service) Update(ctx context.Context, user, channel uuid.UUID, name, topic *string, feed *FeedPatch) (ChannelView, error) {
@@ -378,7 +386,11 @@ func (s *Service) Update(ctx context.Context, user, channel uuid.UUID, name, top
 		if err != nil {
 			return ChannelView{}, err
 		}
-		if updated, err = s.repo.SetFeed(ctx, ch.ID, feed.On, project); err != nil {
+		events, err := feedChoice(feed.Events)
+		if err != nil {
+			return ChannelView{}, err
+		}
+		if updated, err = s.repo.SetFeed(ctx, ch.ID, feed.On, project, events); err != nil {
 			return ChannelView{}, err
 		}
 	}

@@ -20,6 +20,7 @@ import (
 	usersdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/eventbus"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/realtime"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/validation"
 )
@@ -59,6 +60,8 @@ type Service struct {
 
 	storage  Storage
 	maxBytes int64
+
+	bus *eventbus.Bus
 }
 
 // Storage keeps attachment bytes (the local disk adapter satisfies it).
@@ -71,6 +74,12 @@ type Storage interface {
 // WithFiles enables attachments up to maxBytes each.
 func (s *Service) WithFiles(st Storage, maxBytes int64) *Service {
 	s.storage, s.maxBytes = st, maxBytes
+	return s
+}
+
+// WithBus publishes MessagePosted events for notifications.
+func (s *Service) WithBus(b *eventbus.Bus) *Service {
+	s.bus = b
 	return s
 }
 

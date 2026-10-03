@@ -30,6 +30,36 @@ func (e BulkCardActionAction) Valid() bool {
 	}
 }
 
+// Defines values for ChatChannelFeedEvents.
+const (
+	ChatChannelFeedEventsAssigned  ChatChannelFeedEvents = "assigned"
+	ChatChannelFeedEventsCommented ChatChannelFeedEvents = "commented"
+	ChatChannelFeedEventsCreated   ChatChannelFeedEvents = "created"
+	ChatChannelFeedEventsDeleted   ChatChannelFeedEvents = "deleted"
+	ChatChannelFeedEventsMoved     ChatChannelFeedEvents = "moved"
+	ChatChannelFeedEventsUpdated   ChatChannelFeedEvents = "updated"
+)
+
+// Valid indicates whether the value is a known member of the ChatChannelFeedEvents enum.
+func (e ChatChannelFeedEvents) Valid() bool {
+	switch e {
+	case ChatChannelFeedEventsAssigned:
+		return true
+	case ChatChannelFeedEventsCommented:
+		return true
+	case ChatChannelFeedEventsCreated:
+		return true
+	case ChatChannelFeedEventsDeleted:
+		return true
+	case ChatChannelFeedEventsMoved:
+		return true
+	case ChatChannelFeedEventsUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ChatChannelKind.
 const (
 	ChatChannelKindCard    ChatChannelKind = "card"
@@ -57,8 +87,69 @@ func (e ChatChannelKind) Valid() bool {
 	}
 }
 
+// Defines values for ChatChannelInputFeedEvents.
+const (
+	ChatChannelInputFeedEventsAssigned  ChatChannelInputFeedEvents = "assigned"
+	ChatChannelInputFeedEventsCommented ChatChannelInputFeedEvents = "commented"
+	ChatChannelInputFeedEventsCreated   ChatChannelInputFeedEvents = "created"
+	ChatChannelInputFeedEventsDeleted   ChatChannelInputFeedEvents = "deleted"
+	ChatChannelInputFeedEventsMoved     ChatChannelInputFeedEvents = "moved"
+	ChatChannelInputFeedEventsUpdated   ChatChannelInputFeedEvents = "updated"
+)
+
+// Valid indicates whether the value is a known member of the ChatChannelInputFeedEvents enum.
+func (e ChatChannelInputFeedEvents) Valid() bool {
+	switch e {
+	case ChatChannelInputFeedEventsAssigned:
+		return true
+	case ChatChannelInputFeedEventsCommented:
+		return true
+	case ChatChannelInputFeedEventsCreated:
+		return true
+	case ChatChannelInputFeedEventsDeleted:
+		return true
+	case ChatChannelInputFeedEventsMoved:
+		return true
+	case ChatChannelInputFeedEventsUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChatChannelPatchFeedEvents.
+const (
+	ChatChannelPatchFeedEventsAssigned  ChatChannelPatchFeedEvents = "assigned"
+	ChatChannelPatchFeedEventsCommented ChatChannelPatchFeedEvents = "commented"
+	ChatChannelPatchFeedEventsCreated   ChatChannelPatchFeedEvents = "created"
+	ChatChannelPatchFeedEventsDeleted   ChatChannelPatchFeedEvents = "deleted"
+	ChatChannelPatchFeedEventsMoved     ChatChannelPatchFeedEvents = "moved"
+	ChatChannelPatchFeedEventsUpdated   ChatChannelPatchFeedEvents = "updated"
+)
+
+// Valid indicates whether the value is a known member of the ChatChannelPatchFeedEvents enum.
+func (e ChatChannelPatchFeedEvents) Valid() bool {
+	switch e {
+	case ChatChannelPatchFeedEventsAssigned:
+		return true
+	case ChatChannelPatchFeedEventsCommented:
+		return true
+	case ChatChannelPatchFeedEventsCreated:
+		return true
+	case ChatChannelPatchFeedEventsDeleted:
+		return true
+	case ChatChannelPatchFeedEventsMoved:
+		return true
+	case ChatChannelPatchFeedEventsUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ChatEventKind.
 const (
+	ChatEventKindAssigned  ChatEventKind = "assigned"
 	ChatEventKindCommented ChatEventKind = "commented"
 	ChatEventKindCreated   ChatEventKind = "created"
 	ChatEventKindDeleted   ChatEventKind = "deleted"
@@ -69,6 +160,8 @@ const (
 // Valid indicates whether the value is a known member of the ChatEventKind enum.
 func (e ChatEventKind) Valid() bool {
 	switch e {
+	case ChatEventKindAssigned:
+		return true
 	case ChatEventKindCommented:
 		return true
 	case ChatEventKindCreated:
@@ -243,6 +336,36 @@ func (e Locale) Valid() bool {
 	case LocaleEn:
 		return true
 	case LocaleUk:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for NotificationKind.
+const (
+	NotificationKindAssigned      NotificationKind = "assigned"
+	NotificationKindDm            NotificationKind = "dm"
+	NotificationKindMention       NotificationKind = "mention"
+	NotificationKindTaskCommented NotificationKind = "task_commented"
+	NotificationKindTaskMoved     NotificationKind = "task_moved"
+	NotificationKindTaskUpdated   NotificationKind = "task_updated"
+)
+
+// Valid indicates whether the value is a known member of the NotificationKind enum.
+func (e NotificationKind) Valid() bool {
+	switch e {
+	case NotificationKindAssigned:
+		return true
+	case NotificationKindDm:
+		return true
+	case NotificationKindMention:
+		return true
+	case NotificationKindTaskCommented:
+		return true
+	case NotificationKindTaskMoved:
+		return true
+	case NotificationKindTaskUpdated:
 		return true
 	default:
 		return false
@@ -1261,6 +1384,9 @@ type ChatChannel struct {
 	// Feed Receives task updates; only replies can be posted
 	Feed bool `json:"feed"`
 
+	// FeedEvents Which task events the feed takes
+	FeedEvents []ChatChannelFeedEvents `json:"feedEvents"`
+
 	// FeedProjectId The one project the feed follows; null means all
 	FeedProjectId *openapi_types.UUID `json:"feedProjectId"`
 	Id            openapi_types.UUID  `json:"id"`
@@ -1286,30 +1412,45 @@ type ChatChannel struct {
 	WorkspaceId openapi_types.UUID `json:"workspaceId"`
 }
 
+// ChatChannelFeedEvents defines model for ChatChannel.FeedEvents.
+type ChatChannelFeedEvents string
+
 // ChatChannelKind defines model for ChatChannel.Kind.
 type ChatChannelKind string
 
 // ChatChannelInput defines model for ChatChannelInput.
 type ChatChannelInput struct {
 	// Feed Make it a task feed
-	Feed          *bool                 `json:"feed,omitempty"`
-	FeedProjectId *openapi_types.UUID   `json:"feedProjectId,omitempty"`
-	MemberIds     *[]openapi_types.UUID `json:"memberIds,omitempty"`
-	Name          string                `json:"name"`
-	Private       *bool                 `json:"private,omitempty"`
-	Topic         *string               `json:"topic,omitempty"`
+	Feed *bool `json:"feed,omitempty"`
+
+	// FeedEvents Task events the feed takes; omit for all
+	FeedEvents    *[]ChatChannelInputFeedEvents `json:"feedEvents,omitempty"`
+	FeedProjectId *openapi_types.UUID           `json:"feedProjectId,omitempty"`
+	MemberIds     *[]openapi_types.UUID         `json:"memberIds,omitempty"`
+	Name          string                        `json:"name"`
+	Private       *bool                         `json:"private,omitempty"`
+	Topic         *string                       `json:"topic,omitempty"`
 }
+
+// ChatChannelInputFeedEvents defines model for ChatChannelInput.FeedEvents.
+type ChatChannelInputFeedEvents string
 
 // ChatChannelPatch defines model for ChatChannelPatch.
 type ChatChannelPatch struct {
 	// Feed Turn the task feed on or off
 	Feed *bool `json:"feed,omitempty"`
 
+	// FeedEvents Used with feed; omit or empty for all
+	FeedEvents *[]ChatChannelPatchFeedEvents `json:"feedEvents,omitempty"`
+
 	// FeedProjectId Used with feed; null means all projects
 	FeedProjectId *openapi_types.UUID `json:"feedProjectId,omitempty"`
 	Name          *string             `json:"name,omitempty"`
 	Topic         *string             `json:"topic,omitempty"`
 }
+
+// ChatChannelPatchFeedEvents defines model for ChatChannelPatch.FeedEvents.
+type ChatChannelPatchFeedEvents string
 
 // ChatDirectInput defines model for ChatDirectInput.
 type ChatDirectInput struct {
@@ -1319,8 +1460,14 @@ type ChatDirectInput struct {
 
 // ChatEvent defines model for ChatEvent.
 type ChatEvent struct {
-	CardId  openapi_types.UUID `json:"cardId"`
-	Changes *[]struct {
+	// ActorId Who made the change
+	ActorId   *openapi_types.UUID `json:"actorId,omitempty"`
+	ActorName *string             `json:"actorName,omitempty"`
+
+	// Assignees People on a newly created task
+	Assignees *[]string          `json:"assignees,omitempty"`
+	CardId    openapi_types.UUID `json:"cardId"`
+	Changes   *[]struct {
 		Added   *[]string `json:"added,omitempty"`
 		Field   string    `json:"field"`
 		From    *string   `json:"from,omitempty"`
@@ -1661,6 +1808,48 @@ type Neighbours struct {
 	BeforeId *openapi_types.UUID `json:"beforeId,omitempty"`
 }
 
+// Notification defines model for Notification.
+type Notification struct {
+	Actor *PersonRef `json:"actor"`
+
+	// Body Extra detail such as the start of a message
+	Body      string              `json:"body"`
+	CardId    *openapi_types.UUID `json:"cardId"`
+	ChannelId *openapi_types.UUID `json:"channelId"`
+	CreatedAt time.Time           `json:"createdAt"`
+	Id        openapi_types.UUID  `json:"id"`
+	Kind      NotificationKind    `json:"kind"`
+	MessageId *openapi_types.UUID `json:"messageId"`
+	ProjectId *openapi_types.UUID `json:"projectId"`
+	Read      bool                `json:"read"`
+
+	// Title What happened
+	Title string `json:"title"`
+}
+
+// NotificationKind defines model for Notification.Kind.
+type NotificationKind string
+
+// NotificationPage defines model for NotificationPage.
+type NotificationPage struct {
+	Items []Notification `json:"items"`
+
+	// Next Pass as before for the next page
+	Next *time.Time `json:"next"`
+
+	// Unread Unread notifications in the workspace
+	Unread int `json:"unread"`
+}
+
+// NotificationsReadInput defines model for NotificationsReadInput.
+type NotificationsReadInput struct {
+	// All Mark every notification in the workspace
+	All *bool `json:"all,omitempty"`
+
+	// Ids Notifications to mark; omit with all
+	Ids *[]openapi_types.UUID `json:"ids,omitempty"`
+}
+
 // PersonRef defines model for PersonRef.
 type PersonRef struct {
 	AvatarUrl *string            `json:"avatarUrl"`
@@ -1770,8 +1959,11 @@ type RealtimeMessage struct {
 	ProjectId *openapi_types.UUID `json:"projectId,omitempty"`
 
 	// Type Example: card.moved
-	Type        string             `json:"type"`
-	WorkspaceId openapi_types.UUID `json:"workspaceId"`
+	Type string `json:"type"`
+
+	// UserId Set on notification hints; only that person's clients refresh
+	UserId      *openapi_types.UUID `json:"userId,omitempty"`
+	WorkspaceId openapi_types.UUID  `json:"workspaceId"`
 }
 
 // RegisterRequest defines model for RegisterRequest.
@@ -2515,6 +2707,13 @@ type SearchChatParams struct {
 	Before      *time.Time `form:"before,omitempty" json:"before,omitempty"`
 }
 
+// ListNotificationsParams defines parameters for ListNotifications.
+type ListNotificationsParams struct {
+	// Before Only older than this time
+	Before *time.Time `form:"before,omitempty" json:"before,omitempty"`
+	Limit  *int       `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // ListProjectsParams defines parameters for ListProjects.
 type ListProjectsParams struct {
 	// Q Search in name or key
@@ -2690,6 +2889,9 @@ type CreateLabelJSONRequestBody = LabelInput
 
 // UpdateMemberRoleJSONRequestBody defines body for UpdateMemberRole for application/json ContentType.
 type UpdateMemberRoleJSONRequestBody = UpdateMemberRequest
+
+// MarkNotificationsReadJSONRequestBody defines body for MarkNotificationsRead for application/json ContentType.
+type MarkNotificationsReadJSONRequestBody = NotificationsReadInput
 
 // CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
 type CreateProjectJSONRequestBody = ProjectInput

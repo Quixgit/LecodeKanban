@@ -14,6 +14,8 @@ type Card struct {
 type CardCreated struct {
 	Card
 	Status string
+	// Assignees are the people put on the card when it was created.
+	Assignees []uuid.UUID
 }
 
 func (CardCreated) EventName() string { return "cards.created" }

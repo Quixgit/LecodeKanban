@@ -26,7 +26,7 @@ test.describe('Notification sounds', () => {
     await signIn(page);
     await page.goto('/tasks');
     await page.getByRole('button', { name: 'Notifications' }).click();
-    const menu = page.getByRole('menu');
+    const menu = page.getByRole('dialog');
     await menu.getByRole('button', { name: /Preview: New chat message/ }).click();
     await expect.poll(() => notes(page)).toBeGreaterThan(0);
 
@@ -47,7 +47,7 @@ test.describe('Notification sounds', () => {
 
     // With sounds off, the next message is silent.
     await page.getByRole('button', { name: 'Notifications' }).click();
-    await page.getByRole('menu').getByRole('switch', { name: 'Sounds' }).click();
+    await page.getByRole('dialog').getByRole('switch', { name: 'Sounds' }).click();
     await page.keyboard.press('Escape');
     const silent = await notes(page);
     await box.fill(`again ${stamp()}`);
