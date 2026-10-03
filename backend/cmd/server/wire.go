@@ -26,6 +26,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/timetracking"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users"
 	usershttp "github.com/reliabilix/lecodekanban/backend/internal/modules/users/transport/http"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/wiki"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
@@ -94,6 +95,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 		MaxBytes: cfg.AttachmentMaxBytes(), Cards: cardsMod.Service, Workspaces: wsMod.Service, Users: usersMod.Service})
 	timeMod := timetracking.New(timetracking.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service,
 		Users: usersMod.Service})
+	wikiMod := wiki.New(wiki.Deps{Pool: pool, Workspaces: wsMod.Service, Teams: noTeams{}})
 	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
 	hub := realtime.NewHub(cfg.DatabaseURL, log)
 
@@ -153,6 +155,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			commentsMod.HTTP.PrivateRoutes(r)
 			attachmentsMod.HTTP.PrivateRoutes(r)
 			timeMod.HTTP.PrivateRoutes(r)
+			wikiMod.HTTP.PrivateRoutes(r)
 			activityMod.HTTP.PrivateRoutes(r)
 			r.Get("/workspaces/{workspaceId}/events", hub.Handler(
 				func(r *http.Request) (uuid.UUID, error) {
@@ -189,3 +192,10 @@ func allowedOrigins(cfg *config.Config) []string {
 	}
 	return out
 }
+
+// noTeams answers wiki team lookups while the product has no teams: nobody belongs to a team and
+// team grants are rejected as unknown principals. Replace it when a teams module exists.
+type noTeams struct{}
+
+func (noTeams) TeamsOf(context.Context, uuid.UUID, uuid.UUID) ([]uuid.UUID, error) { return nil, nil }
+func (noTeams) Exists(context.Context, uuid.UUID, uuid.UUID) (bool, error)         { return false, nil }

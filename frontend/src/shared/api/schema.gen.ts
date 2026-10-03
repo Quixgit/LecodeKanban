@@ -976,6 +976,413 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/wiki/spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** @description Spaces the caller can open */
+        get: operations["listWikiSpaces"];
+        put?: never;
+        post: operations["createWikiSpace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/wiki/trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** @description Deleted subtrees the caller may restore (editors and owners), newest first; kept 30 days */
+        get: operations["listWikiTrash"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/wiki/favorites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listWikiFavorites"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/wiki/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listWikiRecent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/wiki/shared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** @description Nodes somebody else explicitly shared with the caller (directly or through a team) */
+        get: operations["listWikiSharedWithMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/wiki/private": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** @description The caller's own nodes whose effective visibility is private */
+        get: operations["listWikiMyPrivate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/spaces/{spaceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getWikiSpace"];
+        put?: never;
+        post?: never;
+        /** @description Owner only. Permanently removes the space and all its pages */
+        delete: operations["deleteWikiSpace"];
+        options?: never;
+        head?: never;
+        /** @description Owner only */
+        patch: operations["updateWikiSpace"];
+        trace?: never;
+    };
+    "/wiki/spaces/{spaceId}/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * @description Every node of the space the caller may see, ordered by depth then rank. Nodes the caller
+         *     may not see are omitted entirely. A node whose parent is hidden from the caller has
+         *     `detached: true` and `parentId: null`.
+         */
+        get: operations["getWikiTree"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/spaces/{spaceId}/nodes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createWikiNode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/spaces/{spaceId}/audit": {
+        parameters: {
+            query?: {
+                /** @description Cursor from the previous page */
+                before?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        /** @description Sharing, visibility, move, delete and restore history. Owner only */
+        get: operations["listWikiAudit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/spaces/{spaceId}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getWikiSpaceAccess"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/spaces/{spaceId}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["setWikiSpaceVisibility"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/spaces/{spaceId}/permissions/{kind}/{principalId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+                kind: components["parameters"]["WikiPrincipalKind"];
+                principalId: components["parameters"]["WikiPrincipalId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["setWikiSpaceGrant"];
+        post?: never;
+        delete: operations["removeWikiSpaceGrant"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        /** @description Also records the node in the caller's recents */
+        get: operations["getWikiNode"];
+        put?: never;
+        post?: never;
+        /** @description Moves the node and its subtree to the trash */
+        delete: operations["deleteWikiNode"];
+        options?: never;
+        head?: never;
+        patch: operations["updateWikiNode"];
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Re-parents or reorders a subtree (also across spaces). Answers 409 `wiki.confirm_widening`
+         *     when the new location would let more people read the node; repeat with `confirmWiden: true`.
+         */
+        post: operations["moveWikiNode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Restores a trashed subtree in place, or at the space root when its parent is gone */
+        post: operations["restoreWikiNode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Permanently deletes a trashed subtree. Owner only */
+        delete: operations["purgeWikiNode"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/favorite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["favoriteWikiNode"];
+        post?: never;
+        delete: operations["unfavoriteWikiNode"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getWikiNodeAccess"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Owner only. A null `visibility` makes the node inherit again */
+        put: operations["setWikiNodeVisibility"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/permissions/{kind}/{principalId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+                kind: components["parameters"]["WikiPrincipalKind"];
+                principalId: components["parameters"]["WikiPrincipalId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["setWikiNodeGrant"];
+        post?: never;
+        delete: operations["removeWikiNodeGrant"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/i18n/error-codes": {
         parameters: {
             query?: never;
@@ -1578,6 +1985,203 @@ export interface components {
             daily: components["schemas"]["DailyActivity"][];
             activity: components["schemas"]["ActivityItem"][];
         };
+        /** @enum {string} */
+        WikiVisibility: "private" | "shared" | "workspace";
+        /** @enum {string} */
+        WikiRole: "owner" | "editor" | "commenter" | "viewer";
+        /**
+         * @description What workspace visibility lets every member do
+         * @enum {string}
+         */
+        WikiWorkspaceRole: "viewer" | "commenter" | "editor";
+        /** @enum {string} */
+        WikiPrincipalKind: "user" | "team";
+        /** @description The caller's effective access to an element */
+        WikiAccess: {
+            /** @description Null when the caller has no access */
+            role: components["schemas"]["WikiRole"] | null;
+            /** @enum {string} */
+            via: "owner" | "grant" | "workspace" | "none";
+            visibility: components["schemas"]["WikiVisibility"];
+            /**
+             * Format: uuid
+             * @description The space or node that sets the effective visibility
+             */
+            visibilitySourceId: string;
+        };
+        WikiSpace: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspaceId: string;
+            /** Format: uuid */
+            ownerId: string;
+            name: string;
+            icon: string;
+            color: string;
+            description: string;
+            visibility: components["schemas"]["WikiVisibility"];
+            workspaceRole: components["schemas"]["WikiWorkspaceRole"];
+            maxDepth: number;
+            access: components["schemas"]["WikiAccess"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        WikiSpaceInput: {
+            name: string;
+            icon?: string;
+            color?: string;
+            description?: string;
+            visibility?: components["schemas"]["WikiVisibility"];
+            workspaceRole?: components["schemas"]["WikiWorkspaceRole"];
+            maxDepth?: number;
+        };
+        WikiSpacePatch: {
+            name?: string;
+            icon?: string;
+            color?: string;
+            description?: string;
+            maxDepth?: number;
+        };
+        WikiNode: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            spaceId: string;
+            /** Format: uuid */
+            parentId: string | null;
+            /** @enum {string} */
+            kind: "folder" | "page";
+            title: string;
+            icon: string;
+            cover: string;
+            rank: string;
+            depth: number;
+            /** @description Explicit visibility of this node; null = inherits */
+            visibility: components["schemas"]["WikiVisibility"] | null;
+            /** Format: uuid */
+            ownerId: string;
+            favorite: boolean;
+            access: components["schemas"]["WikiAccess"];
+            /** Format: date-time */
+            deletedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        WikiTreeNode: components["schemas"]["WikiNode"] & {
+            /** @description Visible although the parent is hidden; show under "Shared with me" */
+            detached: boolean;
+        };
+        WikiTree: {
+            space: components["schemas"]["WikiSpace"];
+            nodes: components["schemas"]["WikiTreeNode"][];
+        };
+        WikiNodeInput: {
+            /** Format: uuid */
+            parentId?: string | null;
+            /** @enum {string} */
+            kind: "folder" | "page";
+            title: string;
+            icon?: string;
+            /**
+             * Format: uuid
+             * @description Sibling to place the node after (default last)
+             */
+            afterId?: string | null;
+        };
+        WikiNodePatch: {
+            title?: string;
+            icon?: string;
+            cover?: string;
+        };
+        WikiMoveInput: {
+            /**
+             * Format: uuid
+             * @description Destination space (default current)
+             */
+            spaceId?: string | null;
+            /**
+             * Format: uuid
+             * @description Destination parent; null = space root
+             */
+            parentId?: string | null;
+            /** Format: uuid */
+            beforeId?: string | null;
+            /** Format: uuid */
+            afterId?: string | null;
+            confirmWiden?: boolean;
+        };
+        WikiTrashItem: {
+            node: components["schemas"]["WikiNode"];
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        WikiVisibilityInput: {
+            /** @description Null = inherit (nodes only) */
+            visibility: components["schemas"]["WikiVisibility"] | null;
+            workspaceRole?: components["schemas"]["WikiWorkspaceRole"];
+        };
+        WikiGrantInput: {
+            role: components["schemas"]["WikiRole"];
+        };
+        WikiGrant: {
+            kind: components["schemas"]["WikiPrincipalKind"];
+            /** Format: uuid */
+            principalId: string;
+            role: components["schemas"]["WikiRole"];
+            inherited: boolean;
+            /** Format: uuid */
+            sourceId: string;
+            /** @enum {string} */
+            source: "space" | "node";
+            sourceTitle: string;
+        };
+        WikiAccessSummary: {
+            role: components["schemas"]["WikiRole"] | null;
+            /** @enum {string} */
+            via: "owner" | "grant" | "workspace" | "none";
+            visibility: components["schemas"]["WikiVisibility"];
+            workspaceRole: components["schemas"]["WikiWorkspaceRole"];
+            /** @description Explicit visibility on this element; null = inherits */
+            own?: components["schemas"]["WikiVisibility"] | null;
+            /** @description The effective visibility is set by an ancestor */
+            inherited: boolean;
+            /** Format: uuid */
+            sourceId: string;
+            /** @enum {string} */
+            source: "space" | "node";
+            sourceTitle: string;
+            /** Format: uuid */
+            ownerId: string;
+            canManage: boolean;
+            grants: components["schemas"]["WikiGrant"][];
+        };
+        WikiAuditEvent: {
+            /** Format: int64 */
+            id: number;
+            kind: string;
+            /** Format: uuid */
+            actorId: string | null;
+            /** Format: uuid */
+            nodeId: string | null;
+            data: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            at: string;
+        };
+        WikiAuditPage: {
+            events: components["schemas"]["WikiAuditEvent"][];
+            /**
+             * Format: int64
+             * @description Cursor for the next page; null at the end
+             */
+            next: number | null;
+        };
     };
     responses: {
         /** @description Authenticated session */
@@ -1622,6 +2226,10 @@ export interface components {
         CommentId: string;
         TimeEntryId: string;
         AttachmentId: string;
+        WikiSpaceId: string;
+        WikiNodeId: string;
+        WikiPrincipalKind: components["schemas"]["WikiPrincipalKind"];
+        WikiPrincipalId: string;
         CardDue: "overdue" | "today" | "week" | "month" | "none";
     };
     requestBodies: never;
@@ -3478,6 +4086,704 @@ export interface operations {
                     "text/event-stream": components["schemas"]["RealtimeMessage"];
                 };
             };
+        };
+    };
+    listWikiSpaces: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Spaces */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiSpace"][];
+                };
+            };
+        };
+    };
+    createWikiSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiSpaceInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiSpace"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    listWikiTrash: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Trash */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiTrashItem"][];
+                };
+            };
+        };
+    };
+    listWikiFavorites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's starred nodes they can still see */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiNode"][];
+                };
+            };
+        };
+    };
+    listWikiRecent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Last opened nodes (max 20) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiNode"][];
+                };
+            };
+        };
+    };
+    listWikiSharedWithMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nodes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiNode"][];
+                };
+            };
+        };
+    };
+    listWikiMyPrivate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nodes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiNode"][];
+                };
+            };
+        };
+    };
+    getWikiSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Space */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiSpace"];
+                };
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    deleteWikiSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    updateWikiSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiSpacePatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiSpace"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    getWikiTree: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tree */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiTree"];
+                };
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    createWikiNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiNodeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiNode"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    listWikiAudit: {
+        parameters: {
+            query?: {
+                /** @description Cursor from the previous page */
+                before?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Events, newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiAuditPage"];
+                };
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    getWikiSpaceAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Effective access summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiAccessSummary"];
+                };
+            };
+        };
+    };
+    setWikiSpaceVisibility: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiVisibilityInput"];
+            };
+        };
+        responses: {
+            /** @description Updated summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiAccessSummary"];
+                };
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    setWikiSpaceGrant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+                kind: components["parameters"]["WikiPrincipalKind"];
+                principalId: components["parameters"]["WikiPrincipalId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiGrantInput"];
+            };
+        };
+        responses: {
+            /** @description Grant */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiGrant"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    removeWikiSpaceGrant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+                kind: components["parameters"]["WikiPrincipalKind"];
+                principalId: components["parameters"]["WikiPrincipalId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    getWikiNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Node */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiNode"];
+                };
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    deleteWikiNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Trashed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    updateWikiNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiNodePatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiNode"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    moveWikiNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiMoveInput"];
+            };
+        };
+        responses: {
+            /** @description Moved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiNode"];
+                };
+            };
+            403: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    restoreWikiNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Restored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiNode"];
+                };
+            };
+            409: components["responses"]["Error"];
+        };
+    };
+    purgeWikiNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Purged */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            409: components["responses"]["Error"];
+        };
+    };
+    favoriteWikiNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Starred */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unfavoriteWikiNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unstarred */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getWikiNodeAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Effective access summary (grants are listed for editors and owners only) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiAccessSummary"];
+                };
+            };
+        };
+    };
+    setWikiNodeVisibility: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiVisibilityInput"];
+            };
+        };
+        responses: {
+            /** @description Updated summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiAccessSummary"];
+                };
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    setWikiNodeGrant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+                kind: components["parameters"]["WikiPrincipalKind"];
+                principalId: components["parameters"]["WikiPrincipalId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiGrantInput"];
+            };
+        };
+        responses: {
+            /** @description Grant */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiGrant"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    removeWikiNodeGrant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+                kind: components["parameters"]["WikiPrincipalKind"];
+                principalId: components["parameters"]["WikiPrincipalId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
         };
     };
     listErrorCodes: {

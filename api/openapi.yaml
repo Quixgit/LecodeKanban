@@ -23,6 +23,7 @@ tags:
   - name: comments
   - name: attachments
   - name: time
+  - name: wiki
   - name: activity
   - name: realtime
   - name: system
@@ -1030,6 +1031,381 @@ paths:
             text/event-stream:
               schema: { $ref: "#/components/schemas/RealtimeMessage" }
 
+  /workspaces/{workspaceId}/wiki/spaces:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [wiki]
+      operationId: listWikiSpaces
+      description: Spaces the caller can open
+      responses:
+        "200":
+          description: Spaces
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/WikiSpace" } }
+    post:
+      tags: [wiki]
+      operationId: createWikiSpace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiSpaceInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiSpace" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/wiki/trash:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [wiki]
+      operationId: listWikiTrash
+      description: Deleted subtrees the caller may restore (editors and owners), newest first; kept 30 days
+      responses:
+        "200":
+          description: Trash
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/WikiTrashItem" } }
+  /workspaces/{workspaceId}/wiki/favorites:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [wiki]
+      operationId: listWikiFavorites
+      responses:
+        "200":
+          description: The caller's starred nodes they can still see
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/WikiNode" } }
+  /workspaces/{workspaceId}/wiki/recent:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [wiki]
+      operationId: listWikiRecent
+      responses:
+        "200":
+          description: Last opened nodes (max 20)
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/WikiNode" } }
+  /workspaces/{workspaceId}/wiki/shared:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [wiki]
+      operationId: listWikiSharedWithMe
+      description: Nodes somebody else explicitly shared with the caller (directly or through a team)
+      responses:
+        "200":
+          description: Nodes
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/WikiNode" } }
+  /workspaces/{workspaceId}/wiki/private:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [wiki]
+      operationId: listWikiMyPrivate
+      description: The caller's own nodes whose effective visibility is private
+      responses:
+        "200":
+          description: Nodes
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/WikiNode" } }
+  /wiki/spaces/{spaceId}:
+    parameters: [{ $ref: "#/components/parameters/WikiSpaceId" }]
+    get:
+      tags: [wiki]
+      operationId: getWikiSpace
+      responses:
+        "200":
+          description: Space
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiSpace" }
+        "404": { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [wiki]
+      operationId: updateWikiSpace
+      description: Owner only
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiSpacePatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiSpace" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [wiki]
+      operationId: deleteWikiSpace
+      description: Owner only. Permanently removes the space and all its pages
+      responses:
+        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Error" }
+  /wiki/spaces/{spaceId}/tree:
+    parameters: [{ $ref: "#/components/parameters/WikiSpaceId" }]
+    get:
+      tags: [wiki]
+      operationId: getWikiTree
+      description: |
+        Every node of the space the caller may see, ordered by depth then rank. Nodes the caller
+        may not see are omitted entirely. A node whose parent is hidden from the caller has
+        `detached: true` and `parentId: null`.
+      responses:
+        "200":
+          description: Tree
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiTree" }
+        "404": { $ref: "#/components/responses/Error" }
+  /wiki/spaces/{spaceId}/nodes:
+    parameters: [{ $ref: "#/components/parameters/WikiSpaceId" }]
+    post:
+      tags: [wiki]
+      operationId: createWikiNode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiNodeInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiNode" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /wiki/spaces/{spaceId}/audit:
+    parameters:
+      - { $ref: "#/components/parameters/WikiSpaceId" }
+      - { name: before, in: query, schema: { type: integer, format: int64 }, description: Cursor from the previous page }
+      - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100 } }
+    get:
+      tags: [wiki]
+      operationId: listWikiAudit
+      description: Sharing, visibility, move, delete and restore history. Owner only
+      responses:
+        "200":
+          description: Events, newest first
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiAuditPage" }
+        "403": { $ref: "#/components/responses/Error" }
+  /wiki/spaces/{spaceId}/access:
+    parameters: [{ $ref: "#/components/parameters/WikiSpaceId" }]
+    get:
+      tags: [wiki]
+      operationId: getWikiSpaceAccess
+      responses:
+        "200":
+          description: Effective access summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiAccessSummary" }
+  /wiki/spaces/{spaceId}/visibility:
+    parameters: [{ $ref: "#/components/parameters/WikiSpaceId" }]
+    put:
+      tags: [wiki]
+      operationId: setWikiSpaceVisibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiVisibilityInput" }
+      responses:
+        "200":
+          description: Updated summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiAccessSummary" }
+        "403": { $ref: "#/components/responses/Error" }
+  /wiki/spaces/{spaceId}/permissions/{kind}/{principalId}:
+    parameters:
+      - { $ref: "#/components/parameters/WikiSpaceId" }
+      - { $ref: "#/components/parameters/WikiPrincipalKind" }
+      - { $ref: "#/components/parameters/WikiPrincipalId" }
+    put:
+      tags: [wiki]
+      operationId: setWikiSpaceGrant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiGrantInput" }
+      responses:
+        "200":
+          description: Grant
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiGrant" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [wiki]
+      operationId: removeWikiSpaceGrant
+      responses:
+        "204": { description: Revoked }
+        "403": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    get:
+      tags: [wiki]
+      operationId: getWikiNode
+      description: Also records the node in the caller's recents
+      responses:
+        "200":
+          description: Node
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiNode" }
+        "404": { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [wiki]
+      operationId: updateWikiNode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiNodePatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiNode" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [wiki]
+      operationId: deleteWikiNode
+      description: Moves the node and its subtree to the trash
+      responses:
+        "204": { description: Trashed }
+        "403": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}/move:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    post:
+      tags: [wiki]
+      operationId: moveWikiNode
+      description: |
+        Re-parents or reorders a subtree (also across spaces). Answers 409 `wiki.confirm_widening`
+        when the new location would let more people read the node; repeat with `confirmWiden: true`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiMoveInput" }
+      responses:
+        "200":
+          description: Moved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiNode" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}/restore:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    post:
+      tags: [wiki]
+      operationId: restoreWikiNode
+      description: Restores a trashed subtree in place, or at the space root when its parent is gone
+      responses:
+        "200":
+          description: Restored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiNode" }
+        "409": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}/purge:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    delete:
+      tags: [wiki]
+      operationId: purgeWikiNode
+      description: Permanently deletes a trashed subtree. Owner only
+      responses:
+        "204": { description: Purged }
+        "409": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}/favorite:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    put:
+      tags: [wiki]
+      operationId: favoriteWikiNode
+      responses:
+        "204": { description: Starred }
+    delete:
+      tags: [wiki]
+      operationId: unfavoriteWikiNode
+      responses:
+        "204": { description: Unstarred }
+  /wiki/nodes/{nodeId}/access:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    get:
+      tags: [wiki]
+      operationId: getWikiNodeAccess
+      responses:
+        "200":
+          description: Effective access summary (grants are listed for editors and owners only)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiAccessSummary" }
+  /wiki/nodes/{nodeId}/visibility:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    put:
+      tags: [wiki]
+      operationId: setWikiNodeVisibility
+      description: "Owner only. A null `visibility` makes the node inherit again"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiVisibilityInput" }
+      responses:
+        "200":
+          description: Updated summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiAccessSummary" }
+        "403": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}/permissions/{kind}/{principalId}:
+    parameters:
+      - { $ref: "#/components/parameters/WikiNodeId" }
+      - { $ref: "#/components/parameters/WikiPrincipalKind" }
+      - { $ref: "#/components/parameters/WikiPrincipalId" }
+    put:
+      tags: [wiki]
+      operationId: setWikiNodeGrant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WikiGrantInput" }
+      responses:
+        "200":
+          description: Grant
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WikiGrant" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [wiki]
+      operationId: removeWikiNodeGrant
+      responses:
+        "204": { description: Revoked }
+        "403": { $ref: "#/components/responses/Error" }
+
   /i18n/error-codes:
     get:
       tags: [system]
@@ -1090,6 +1466,10 @@ components:
     CommentId: { name: commentId, in: path, required: true, schema: { type: string, format: uuid } }
     TimeEntryId: { name: entryId, in: path, required: true, schema: { type: string, format: uuid } }
     AttachmentId: { name: attachmentId, in: path, required: true, schema: { type: string, format: uuid } }
+    WikiSpaceId: { name: spaceId, in: path, required: true, schema: { type: string, format: uuid } }
+    WikiNodeId: { name: nodeId, in: path, required: true, schema: { type: string, format: uuid } }
+    WikiPrincipalKind: { name: kind, in: path, required: true, schema: { $ref: "#/components/schemas/WikiPrincipalKind" } }
+    WikiPrincipalId: { name: principalId, in: path, required: true, schema: { type: string, format: uuid } }
     CardDue: { name: due, in: query, schema: { type: string, enum: [overdue, today, week, month, none] } }
   responses:
     Session:
@@ -1708,5 +2088,170 @@ components:
         statusCounts: { $ref: "#/components/schemas/StatusCounts" }
         daily: { type: array, items: { $ref: "#/components/schemas/DailyActivity" } }
         activity: { type: array, items: { $ref: "#/components/schemas/ActivityItem" } }
+    WikiVisibility: { type: string, enum: [private, shared, workspace] }
+    WikiRole: { type: string, enum: [owner, editor, commenter, viewer] }
+    WikiWorkspaceRole: { type: string, enum: [viewer, commenter, editor], description: What workspace visibility lets every member do }
+    WikiPrincipalKind: { type: string, enum: [user, team] }
+    WikiAccess:
+      type: object
+      description: The caller's effective access to an element
+      required: [role, via, visibility, visibilitySourceId]
+      properties:
+        role: { allOf: [{ $ref: "#/components/schemas/WikiRole" }], nullable: true, description: Null when the caller has no access }
+        via: { type: string, enum: [owner, grant, workspace, none] }
+        visibility: { $ref: "#/components/schemas/WikiVisibility" }
+        visibilitySourceId: { type: string, format: uuid, description: The space or node that sets the effective visibility }
+    WikiSpace:
+      type: object
+      required: [id, workspaceId, ownerId, name, icon, color, description, visibility, workspaceRole, maxDepth, access, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        ownerId: { type: string, format: uuid }
+        name: { type: string }
+        icon: { type: string }
+        color: { type: string }
+        description: { type: string }
+        visibility: { $ref: "#/components/schemas/WikiVisibility" }
+        workspaceRole: { $ref: "#/components/schemas/WikiWorkspaceRole" }
+        maxDepth: { type: integer }
+        access: { $ref: "#/components/schemas/WikiAccess" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    WikiSpaceInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        icon: { type: string }
+        color: { type: string }
+        description: { type: string }
+        visibility: { $ref: "#/components/schemas/WikiVisibility" }
+        workspaceRole: { $ref: "#/components/schemas/WikiWorkspaceRole" }
+        maxDepth: { type: integer, minimum: 2, maximum: 32 }
+    WikiSpacePatch:
+      type: object
+      properties:
+        name: { type: string }
+        icon: { type: string }
+        color: { type: string }
+        description: { type: string }
+        maxDepth: { type: integer, minimum: 2, maximum: 32 }
+    WikiNode:
+      type: object
+      required: [id, spaceId, parentId, kind, title, icon, cover, rank, depth, visibility, ownerId, favorite, access, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        spaceId: { type: string, format: uuid }
+        parentId: { type: string, format: uuid, nullable: true }
+        kind: { type: string, enum: [folder, page] }
+        title: { type: string }
+        icon: { type: string }
+        cover: { type: string }
+        rank: { type: string }
+        depth: { type: integer }
+        visibility: { allOf: [{ $ref: "#/components/schemas/WikiVisibility" }], nullable: true, description: Explicit visibility of this node; null = inherits }
+        ownerId: { type: string, format: uuid }
+        favorite: { type: boolean }
+        access: { $ref: "#/components/schemas/WikiAccess" }
+        deletedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    WikiTreeNode:
+      allOf:
+        - $ref: "#/components/schemas/WikiNode"
+        - type: object
+          required: [detached]
+          properties:
+            detached: { type: boolean, description: Visible although the parent is hidden; show under "Shared with me" }
+    WikiTree:
+      type: object
+      required: [space, nodes]
+      properties:
+        space: { $ref: "#/components/schemas/WikiSpace" }
+        nodes: { type: array, items: { $ref: "#/components/schemas/WikiTreeNode" } }
+    WikiNodeInput:
+      type: object
+      required: [kind, title]
+      properties:
+        parentId: { type: string, format: uuid, nullable: true }
+        kind: { type: string, enum: [folder, page] }
+        title: { type: string }
+        icon: { type: string }
+        afterId: { type: string, format: uuid, nullable: true, description: Sibling to place the node after (default last) }
+    WikiNodePatch:
+      type: object
+      properties:
+        title: { type: string }
+        icon: { type: string }
+        cover: { type: string }
+    WikiMoveInput:
+      type: object
+      properties:
+        spaceId: { type: string, format: uuid, nullable: true, description: Destination space (default current) }
+        parentId: { type: string, format: uuid, nullable: true, description: Destination parent; null = space root }
+        beforeId: { type: string, format: uuid, nullable: true }
+        afterId: { type: string, format: uuid, nullable: true }
+        confirmWiden: { type: boolean }
+    WikiTrashItem:
+      type: object
+      required: [node, expiresAt]
+      properties:
+        node: { $ref: "#/components/schemas/WikiNode" }
+        expiresAt: { type: string, format: date-time }
+    WikiVisibilityInput:
+      type: object
+      required: [visibility]
+      properties:
+        visibility: { allOf: [{ $ref: "#/components/schemas/WikiVisibility" }], nullable: true, description: Null = inherit (nodes only) }
+        workspaceRole: { $ref: "#/components/schemas/WikiWorkspaceRole" }
+    WikiGrantInput:
+      type: object
+      required: [role]
+      properties:
+        role: { $ref: "#/components/schemas/WikiRole" }
+    WikiGrant:
+      type: object
+      required: [kind, principalId, role, inherited, sourceId, source, sourceTitle]
+      properties:
+        kind: { $ref: "#/components/schemas/WikiPrincipalKind" }
+        principalId: { type: string, format: uuid }
+        role: { $ref: "#/components/schemas/WikiRole" }
+        inherited: { type: boolean }
+        sourceId: { type: string, format: uuid }
+        source: { type: string, enum: [space, node] }
+        sourceTitle: { type: string }
+    WikiAccessSummary:
+      type: object
+      required: [role, via, visibility, workspaceRole, inherited, sourceId, source, sourceTitle, ownerId, canManage, grants]
+      properties:
+        role: { allOf: [{ $ref: "#/components/schemas/WikiRole" }], nullable: true }
+        via: { type: string, enum: [owner, grant, workspace, none] }
+        visibility: { $ref: "#/components/schemas/WikiVisibility" }
+        workspaceRole: { $ref: "#/components/schemas/WikiWorkspaceRole" }
+        own: { allOf: [{ $ref: "#/components/schemas/WikiVisibility" }], nullable: true, description: Explicit visibility on this element; null = inherits }
+        inherited: { type: boolean, description: The effective visibility is set by an ancestor }
+        sourceId: { type: string, format: uuid }
+        source: { type: string, enum: [space, node] }
+        sourceTitle: { type: string }
+        ownerId: { type: string, format: uuid }
+        canManage: { type: boolean }
+        grants: { type: array, items: { $ref: "#/components/schemas/WikiGrant" } }
+    WikiAuditEvent:
+      type: object
+      required: [id, kind, actorId, nodeId, data, at]
+      properties:
+        id: { type: integer, format: int64 }
+        kind: { type: string }
+        actorId: { type: string, format: uuid, nullable: true }
+        nodeId: { type: string, format: uuid, nullable: true }
+        data: { type: object, additionalProperties: true }
+        at: { type: string, format: date-time }
+    WikiAuditPage:
+      type: object
+      required: [events, next]
+      properties:
+        events: { type: array, items: { $ref: "#/components/schemas/WikiAuditEvent" } }
+        next: { type: integer, format: int64, nullable: true, description: Cursor for the next page; null at the end }
 security:
   - cookieAuth: []

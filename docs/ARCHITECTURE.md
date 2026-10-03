@@ -73,6 +73,7 @@ internal/
     ├── projects/ boards/ cards/   projects, columns, cards (+ checklists, labels, subtasks)
     ├── comments/ attachments/ activity/   per-card discussion, files, audit feed
     ├── timetracking/  timers and manual time entries per card (ADR 0013)
+    ├── wiki/        docs: spaces, folder/page tree, visibility + grants authorizer, trash (ADR 0014)
     └── i18n/        error-code catalog endpoint (+ translation coverage test)
 ```
 
