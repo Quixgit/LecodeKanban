@@ -52,7 +52,8 @@
     "not_found": "The selected item no longer exists.",
     "project_key": "Use 2–6 capital letters or digits, starting with a letter.",
     "date_order": "The deadline can't be before the start date.",
-    "count": "Select between {{min}} and {{max}} items."
+    "count": "Select between {{min}} and {{max}} items.",
+    "icon_key": "Choose an icon from the list."
   },
   "boards": {
     "not_found": "Board not found.",

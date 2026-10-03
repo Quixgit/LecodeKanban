@@ -9,6 +9,7 @@ import enTasks from '../../public/locales/en/tasks.json';
 import enDashboard from '../../public/locales/en/dashboard.json';
 import enShowcase from '../../public/locales/en/showcase.json';
 import enTeam from '../../public/locales/en/team.json';
+import enWiki from '../../public/locales/en/wiki.json';
 import ukAuth from '../../public/locales/uk/auth.json';
 import ukCommon from '../../public/locales/uk/common.json';
 import ukErrors from '../../public/locales/uk/errors.json';
@@ -18,6 +19,7 @@ import ukTasks from '../../public/locales/uk/tasks.json';
 import ukDashboard from '../../public/locales/uk/dashboard.json';
 import ukShowcase from '../../public/locales/uk/showcase.json';
 import ukTeam from '../../public/locales/uk/team.json';
+import ukWiki from '../../public/locales/uk/wiki.json';
 
 export const testResources = {
   en: {
@@ -30,6 +32,7 @@ export const testResources = {
     tasks: enTasks,
     dashboard: enDashboard,
     showcase: enShowcase,
+    wiki: enWiki,
   },
   uk: {
     common: ukCommon,
@@ -41,6 +44,7 @@ export const testResources = {
     tasks: ukTasks,
     dashboard: ukDashboard,
     showcase: ukShowcase,
+    wiki: ukWiki,
   },
 };
 

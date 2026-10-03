@@ -19,3 +19,16 @@ Facts about what was checked, with how. Update on every phase.
   grant): `internal/modules/wiki/service/service_test.go`; over HTTP: `cmd/server/e2e_wiki_test.go`.
 - Not run: `golangci-lint` (the installed binary is older than the module's Go version), Playwright
   and axe (no frontend for the wiki yet).
+
+## W2 — wiki frontend
+
+- Verified against a real stack (local PostgreSQL 16, the API from this branch, Vite): Playwright
+  17/17 — sidebar centring (8 viewport/theme/language combinations + flyout), Kanban (5), Docs (3:
+  folder → nested page → share → second user sees / doesn't see it → keyboard move → trash →
+  restore; drag-and-drop nesting + keyboard navigation; axe wcag2a/2aa on the page and the share
+  dialog). Vitest 139, `tsc`, ESLint and Prettier clean; locale parity and literal-key guards pass.
+- A bug found by those tests and fixed: opening a just-created page briefly unmounted the tree
+  (space unknown while the page loads), dropping the inline rename. The new page is now seeded in the
+  query cache and the last space is kept.
+- Not covered yet: virtualised tree with 5,000+ nodes (designed for it, not load-tested),
+  screen-reader announcements verified only by code review, mobile layout checked by code only.

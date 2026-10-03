@@ -8,6 +8,7 @@
     "projects": "Projects",
     "calendar": "Calendar",
     "tasks": "Tasks",
+    "docs": "Docs",
     "performance": "Performance",
     "help": "Help & Center",
     "team": "Team",
@@ -80,6 +81,10 @@
     "notFound": {
       "title": "Not found",
       "subtitle": "This route does not exist"
+    },
+    "docs": {
+      "title": "Docs",
+      "subtitle": "Your team’s knowledge base"
     }
   }
 }

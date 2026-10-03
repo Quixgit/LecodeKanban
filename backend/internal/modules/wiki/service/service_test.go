@@ -730,3 +730,18 @@ func TestRestoreRejectsExpiredTrash(t *testing.T) {
 	_, err := e.svc.RestoreNode(ctx, e.alice, p.ID)
 	mustCode(t, err, domain.ErrNotFound)
 }
+
+// Icons are Lucide keys, never emoji or free text.
+func TestIconsMustBeKeys(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	_, err := e.svc.CreateSpace(ctx, e.alice, e.ws, service.SpaceInput{Name: "Emoji", Icon: "🚀"})
+	mustCode(t, err, apperr.Validation)
+	_, err = e.svc.CreateSpace(ctx, e.alice, e.ws, service.SpaceInput{Name: "Spaces", Icon: "Book Open"})
+	mustCode(t, err, apperr.Validation)
+	sp := must(e.svc.CreateSpace(ctx, e.alice, e.ws, service.SpaceInput{Name: "Ok", Icon: "book-open"})).Space
+	n := e.node(t, e.alice, sp.ID, nil, domain.KindPage, "Page")
+	_, err = e.svc.UpdateNode(ctx, e.alice, n.ID, service.NodePatch{Icon: ptr("📘")})
+	mustCode(t, err, apperr.Validation)
+	must(e.svc.UpdateNode(ctx, e.alice, n.ID, service.NodePatch{Icon: ptr("file-text")}))
+}

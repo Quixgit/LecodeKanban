@@ -178,6 +178,9 @@ func run(reset bool) error {
 	if err := seedComments(ctx, comments, ids, cardIDs, people); err != nil {
 		return err
 	}
+	if err := seedWiki(ctx, pool, ws, w.ID, ids); err != nil {
+		return err
+	}
 	if err := backdate(ctx, pool); err != nil {
 		return err
 	}

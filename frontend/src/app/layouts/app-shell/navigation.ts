@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   CalendarDays,
   ClipboardList,
   Gauge,
@@ -49,6 +50,7 @@ export const navigation: NavSection[] = [
           { key: 'done', to: '/tasks/completed' },
         ],
       },
+      { key: 'docs', to: '/docs', icon: BookOpen },
       { key: 'performance', to: '/performance', icon: Gauge },
       { key: 'help', to: '/help', icon: Headset },
     ],
