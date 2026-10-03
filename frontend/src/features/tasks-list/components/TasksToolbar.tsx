@@ -71,7 +71,7 @@ export function TasksToolbar({
     <div className="flex flex-wrap items-center gap-2.5">
       <Input
         id={TASK_SEARCH_ID}
-        wrapperClassName="w-full sm:w-56"
+        wrapperClassName="w-full sm:w-48"
         leadingIcon={<Search />}
         placeholder={t('search')}
         aria-label={t('search')}

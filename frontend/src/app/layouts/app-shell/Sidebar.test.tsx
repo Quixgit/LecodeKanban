@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { renderWithProviders } from '@/test/render';
@@ -41,5 +41,17 @@ describe('Sidebar', () => {
       'false',
     );
     expect(screen.queryByRole('link', { name: 'In Review' })).not.toBeInTheDocument();
+  });
+
+  it('opens the Tasks flyout on focus when collapsed and closes it with Escape', async () => {
+    useSidebarStore.setState({ collapsed: true });
+    renderWithProviders(<Sidebar />);
+    const tasks = screen.getByRole('button', { name: 'Tasks' });
+    tasks.focus();
+    const menu = await screen.findByRole('menu', { name: 'Tasks' });
+    expect(within(menu).getAllByRole('menuitem')).toHaveLength(4);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+    expect(tasks).toHaveFocus();
   });
 });

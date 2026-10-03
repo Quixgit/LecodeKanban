@@ -29,9 +29,21 @@ export default function TasksPage() {
       value={view}
       onChange={setView}
       options={[
-        { value: 'list', label: t('views.list'), icon: <List /> },
-        { value: 'kanban', label: t('views.kanban'), icon: <Columns3 /> },
-        { value: 'calendar', label: t('views.calendar'), icon: <CalendarDays /> },
+        {
+          value: 'list',
+          label: <span className="sr-only 2xl:not-sr-only">{t('views.list')}</span>,
+          icon: <List />,
+        },
+        {
+          value: 'kanban',
+          label: <span className="sr-only 2xl:not-sr-only">{t('views.kanban')}</span>,
+          icon: <Columns3 />,
+        },
+        {
+          value: 'calendar',
+          label: <span className="sr-only 2xl:not-sr-only">{t('views.calendar')}</span>,
+          icon: <CalendarDays />,
+        },
       ]}
     />
   );

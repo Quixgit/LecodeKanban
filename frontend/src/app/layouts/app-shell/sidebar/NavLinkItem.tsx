@@ -5,6 +5,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/shared/lib/cn';
 import { collapse, fade, transition } from '@/shared/motion';
 import { Tooltip } from '@/shared/ui';
+import { CollapsedFlyout } from './CollapsedFlyout';
 import type { NavItem } from '../navigation';
 import { useSidebarStore } from '../sidebarStore';
 import { SubNav } from './SubNav';
@@ -34,6 +35,14 @@ export function NavLinkItem({ item, collapsed }: { item: NavItem; collapsed: boo
   const hasChildren = !!item.children?.length;
   const groupActive = hasChildren && pathname.startsWith(item.to);
 
+  if (collapsed && hasChildren) {
+    return (
+      <li>
+        <CollapsedFlyout item={item} label={label} />
+      </li>
+    );
+  }
+
   return (
     <li>
       <div className="relative">
@@ -44,13 +53,13 @@ export function NavLinkItem({ item, collapsed }: { item: NavItem; collapsed: boo
             onClick={() => hasChildren && expandGroup(item.key)}
             className={({ isActive }) =>
               cn(
-                'group relative flex h-11 items-center gap-3 rounded-lg px-3 text-md outline-none transition-colors duration-micro',
+                'group relative flex h-11 w-full items-center rounded-lg text-md outline-none transition-colors duration-micro',
+                collapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3',
                 'focus-visible:shadow-focus',
                 isActive
                   ? 'font-medium text-primary-ink'
                   : 'text-text-secondary hover:bg-surface-muted hover:text-text',
                 hasChildren && !collapsed && 'pr-10',
-                collapsed && 'justify-center px-0',
               )
             }
           >
@@ -59,7 +68,10 @@ export function NavLinkItem({ item, collapsed }: { item: NavItem; collapsed: boo
                 {isActive && (!hasChildren || collapsed || !expanded || pathname === item.to) && (
                   <ActiveHighlight />
                 )}
-                <Icon className="relative size-5 shrink-0 stroke-[1.6]" aria-hidden />
+                {/* Fixed 20px slot: the icon keeps its x while the rail collapses and expands. */}
+                <span className="relative grid size-5 shrink-0 place-items-center">
+                  <Icon className="size-5 stroke-[1.6]" aria-hidden />
+                </span>
                 <AnimatePresence initial={false}>
                   {!collapsed && (
                     <motion.span

@@ -1,4 +1,11 @@
-import { FolderPlus, Keyboard, KanbanSquare, Plus, TriangleAlert } from 'lucide-react';
+import {
+  FolderPlus,
+  Keyboard,
+  KanbanSquare,
+  MoreHorizontal,
+  Plus,
+  TriangleAlert,
+} from 'lucide-react';
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
@@ -18,6 +25,14 @@ import { useHotkey } from '@/shared/hooks/useHotkey';
 import {
   Button,
   Card as Panel,
+  Dropdown,
+  DropdownContent,
+  DropdownItem,
+  DropdownLabel,
+  DropdownRadioGroup,
+  DropdownRadioItem,
+  DropdownSeparator,
+  DropdownTrigger,
   EmptyState,
   IconButton,
   Select,
@@ -193,15 +208,17 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
   const controls = (
     <>
       <LiveIndicator className="hidden lg:inline-flex" />
-      <Select
-        label={t('lane.label')}
-        prefix={t('lane.prefix')}
-        value={swimlane}
-        onValueChange={(v) => store.setSwimlane(v as typeof store.swimlane)}
-        options={SWIMLANES.filter((s) => !(mode.kind === 'project' && s === 'project')).map(
-          (s) => ({ value: s, label: t(`lane.${s}`) }),
-        )}
-      />
+      <div className="hidden xl:block">
+        <Select
+          label={t('lane.label')}
+          prefix={t('lane.prefix')}
+          value={swimlane}
+          onValueChange={(v) => store.setSwimlane(v as typeof store.swimlane)}
+          options={SWIMLANES.filter((s) => !(mode.kind === 'project' && s === 'project')).map(
+            (s) => ({ value: s, label: t(`lane.${s}`) }),
+          )}
+        />
+      </div>
       {ws && (
         <SavedViewsMenu
           workspaceId={ws}
@@ -221,10 +238,40 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
         />
       )}
       <Tooltip content={`${t('shortcuts.title')} (?)`}>
-        <IconButton label={t('shortcuts.title')} onClick={() => setShortcuts(true)}>
+        <IconButton
+          label={t('shortcuts.title')}
+          className="hidden xl:inline-flex"
+          onClick={() => setShortcuts(true)}
+        >
           <Keyboard />
         </IconButton>
       </Tooltip>
+      {/* Below xl the low-priority controls live in one overflow menu. */}
+      <Dropdown>
+        <DropdownTrigger asChild>
+          <IconButton label={t('toolbar.more')} className="xl:hidden">
+            <MoreHorizontal />
+          </IconButton>
+        </DropdownTrigger>
+        <DropdownContent align="end" className="w-60">
+          <DropdownLabel>{t('lane.label')}</DropdownLabel>
+          <DropdownRadioGroup
+            value={swimlane}
+            onValueChange={(v) => store.setSwimlane(v as typeof store.swimlane)}
+          >
+            {SWIMLANES.filter((l) => !(mode.kind === 'project' && l === 'project')).map((l) => (
+              <DropdownRadioItem key={l} value={l}>
+                {t(`lane.${l}`)}
+              </DropdownRadioItem>
+            ))}
+          </DropdownRadioGroup>
+          <DropdownSeparator />
+          <DropdownItem onSelect={() => setShortcuts(true)}>
+            <Keyboard />
+            {t('shortcuts.title')}
+          </DropdownItem>
+        </DropdownContent>
+      </Dropdown>
       {viewSwitch}
     </>
   );
