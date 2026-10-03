@@ -97,7 +97,10 @@ test.describe('Google Calendar integration', () => {
     await expect(bell).toBeVisible();
     await bell.click();
     await expect(
-      page.getByRole('dialog').getByRole('button', { name: /Team stand-up.*starts at/ }),
+      page
+        .getByRole('dialog')
+        .getByRole('button', { name: /Team stand-up.*starts at/ })
+        .first(),
     ).toBeVisible();
     await page.keyboard.press('Escape');
 
