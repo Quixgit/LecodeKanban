@@ -212,8 +212,17 @@ LIMIT sqlc.arg('lim');
 SELECT m.* FROM chat_messages m
 JOIN chat_channels c ON c.id = m.channel_id AND c.archived_at IS NULL AND c.workspace_id = sqlc.arg('workspace_id')
 LEFT JOIN chat_members cm ON cm.channel_id = c.id AND cm.user_id = sqlc.arg('user_id')
-WHERE m.deleted_at IS NULL AND m.body ILIKE '%' || sqlc.arg('q')::text || '%' ESCAPE '\'
+WHERE m.deleted_at IS NULL
+  AND (sqlc.arg('q')::text = '' OR m.body ILIKE '%' || sqlc.arg('q')::text || '%' ESCAPE '\')
   AND (c.kind IN ('public', 'project', 'card') OR cm.user_id IS NOT NULL)
+  AND (sqlc.narg('channel_id')::uuid IS NULL OR m.channel_id = sqlc.narg('channel_id'))
+  AND (sqlc.narg('from_id')::uuid IS NULL OR m.author_id = sqlc.narg('from_id'))
+  AND (NOT sqlc.arg('mentions_me')::boolean OR sqlc.arg('user_id')::uuid = ANY (m.mentions) OR m.mention_all)
+  AND (NOT sqlc.arg('has_link')::boolean OR m.body ~* 'https?://')
+  AND (NOT sqlc.arg('has_file')::boolean OR EXISTS (SELECT 1 FROM chat_files f WHERE f.message_id = m.id))
+  AND (NOT sqlc.arg('threads_only')::boolean OR m.parent_id IS NOT NULL OR m.reply_count > 0)
+  AND (sqlc.narg('after')::timestamptz IS NULL OR m.created_at >= sqlc.narg('after'))
+  AND (sqlc.narg('before')::timestamptz IS NULL OR m.created_at < sqlc.narg('before'))
 ORDER BY m.created_at DESC
 LIMIT sqlc.arg('lim');
 

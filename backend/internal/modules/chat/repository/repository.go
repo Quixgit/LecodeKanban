@@ -500,10 +500,25 @@ func (r *Repo) MyThreads(ctx context.Context, ws, user uuid.UUID, limit int) ([]
 	return toMessages(rows), err
 }
 
-// Search finds messages containing q in channels the user can see.
-func (r *Repo) Search(ctx context.Context, ws, user uuid.UUID, q string, limit int) ([]domain.Message, error) {
-	esc := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(q)
-	rows, err := r.q.SearchMessages(ctx, store.SearchMessagesParams{WorkspaceID: ws, UserID: user, Q: esc, Lim: int32(limit)})
+// SearchFilter narrows a message search the way Slack's modifiers do.
+type SearchFilter struct {
+	Q           string
+	ChannelID   *uuid.UUID
+	FromID      *uuid.UUID
+	MentionsMe  bool
+	HasLink     bool
+	HasFile     bool
+	ThreadsOnly bool
+	After       *time.Time
+	Before      *time.Time
+}
+
+// Search finds messages matching the text and filters in channels the user can see.
+func (r *Repo) Search(ctx context.Context, ws, user uuid.UUID, f SearchFilter, limit int) ([]domain.Message, error) {
+	esc := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(f.Q)
+	rows, err := r.q.SearchMessages(ctx, store.SearchMessagesParams{WorkspaceID: ws, UserID: user, Q: esc,
+		ChannelID: nullID(f.ChannelID), FromID: nullID(f.FromID), MentionsMe: f.MentionsMe, HasLink: f.HasLink,
+		HasFile: f.HasFile, ThreadsOnly: f.ThreadsOnly, After: f.After, Before: f.Before, Lim: int32(limit)})
 	return toMessages(rows), err
 }
 

@@ -1605,7 +1605,15 @@ paths:
       operationId: searchChat
       summary: Find messages containing the text in conversations the caller can see
       parameters:
-        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 100 } }
+        - { name: q, in: query, schema: { type: string, maxLength: 100 }, description: Text to find; two characters at least unless a filter is set }
+        - { name: channelId, in: query, schema: { type: string, format: uuid }, description: Only this conversation }
+        - { name: fromId, in: query, schema: { type: string, format: uuid }, description: Only messages by this person }
+        - { name: mentionsMe, in: query, schema: { type: boolean }, description: Only messages that mention the caller (or @channel) }
+        - { name: hasLink, in: query, schema: { type: boolean } }
+        - { name: hasFile, in: query, schema: { type: boolean } }
+        - { name: threadsOnly, in: query, schema: { type: boolean }, description: Only replies and messages that have replies }
+        - { name: after, in: query, schema: { type: string, format: date-time } }
+        - { name: before, in: query, schema: { type: string, format: date-time } }
       responses:
         "200":
           description: Messages with the conversation each one lives in
@@ -1922,7 +1930,7 @@ paths:
       - name: key
         in: path
         required: true
-        schema: { type: string, enum: [thumbs-up, heart, check, party-popper, eyes, laugh, flame, lightbulb] }
+        schema: { type: string, minLength: 1, maxLength: 32, description: A built-in icon key or an emoji }
     put:
       tags: [chat]
       operationId: addChatReaction

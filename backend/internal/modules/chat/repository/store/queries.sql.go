@@ -1142,16 +1142,33 @@ const searchMessages = `-- name: SearchMessages :many
 SELECT m.id, m.channel_id, m.author_id, m.parent_id, m.body, m.mentions, m.reply_count, m.last_reply_at, m.created_at, m.edited_at, m.deleted_at, m.mention_all FROM chat_messages m
 JOIN chat_channels c ON c.id = m.channel_id AND c.archived_at IS NULL AND c.workspace_id = $1
 LEFT JOIN chat_members cm ON cm.channel_id = c.id AND cm.user_id = $2
-WHERE m.deleted_at IS NULL AND m.body ILIKE '%' || $3::text || '%' ESCAPE '\'
+WHERE m.deleted_at IS NULL
+  AND ($3::text = '' OR m.body ILIKE '%' || $3::text || '%' ESCAPE '\')
   AND (c.kind IN ('public', 'project', 'card') OR cm.user_id IS NOT NULL)
+  AND ($4::uuid IS NULL OR m.channel_id = $4)
+  AND ($5::uuid IS NULL OR m.author_id = $5)
+  AND (NOT $6::boolean OR $2::uuid = ANY (m.mentions) OR m.mention_all)
+  AND (NOT $7::boolean OR m.body ~* 'https?://')
+  AND (NOT $8::boolean OR EXISTS (SELECT 1 FROM chat_files f WHERE f.message_id = m.id))
+  AND (NOT $9::boolean OR m.parent_id IS NOT NULL OR m.reply_count > 0)
+  AND ($10::timestamptz IS NULL OR m.created_at >= $10)
+  AND ($11::timestamptz IS NULL OR m.created_at < $11)
 ORDER BY m.created_at DESC
-LIMIT $4
+LIMIT $12
 `
 
 type SearchMessagesParams struct {
 	WorkspaceID uuid.UUID
 	UserID      uuid.UUID
 	Q           string
+	ChannelID   uuid.NullUUID
+	FromID      uuid.NullUUID
+	MentionsMe  bool
+	HasLink     bool
+	HasFile     bool
+	ThreadsOnly bool
+	After       *time.Time
+	Before      *time.Time
 	Lim         int32
 }
 
@@ -1160,6 +1177,14 @@ func (q *Queries) SearchMessages(ctx context.Context, arg SearchMessagesParams) 
 		arg.WorkspaceID,
 		arg.UserID,
 		arg.Q,
+		arg.ChannelID,
+		arg.FromID,
+		arg.MentionsMe,
+		arg.HasLink,
+		arg.HasFile,
+		arg.ThreadsOnly,
+		arg.After,
+		arg.Before,
 		arg.Lim,
 	)
 	if err != nil {

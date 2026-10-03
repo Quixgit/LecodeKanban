@@ -2208,7 +2208,24 @@ type CardStatusCountsParamsDue string
 
 // SearchChatParams defines parameters for SearchChat.
 type SearchChatParams struct {
-	Q string `form:"q" json:"q"`
+	// Q Text to find; two characters at least unless a filter is set
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+
+	// ChannelId Only this conversation
+	ChannelId *openapi_types.UUID `form:"channelId,omitempty" json:"channelId,omitempty"`
+
+	// FromId Only messages by this person
+	FromId *openapi_types.UUID `form:"fromId,omitempty" json:"fromId,omitempty"`
+
+	// MentionsMe Only messages that mention the caller (or @channel)
+	MentionsMe *bool `form:"mentionsMe,omitempty" json:"mentionsMe,omitempty"`
+	HasLink    *bool `form:"hasLink,omitempty" json:"hasLink,omitempty"`
+	HasFile    *bool `form:"hasFile,omitempty" json:"hasFile,omitempty"`
+
+	// ThreadsOnly Only replies and messages that have replies
+	ThreadsOnly *bool      `form:"threadsOnly,omitempty" json:"threadsOnly,omitempty"`
+	After       *time.Time `form:"after,omitempty" json:"after,omitempty"`
+	Before      *time.Time `form:"before,omitempty" json:"before,omitempty"`
 }
 
 // ListProjectsParams defines parameters for ListProjects.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -483,22 +484,22 @@ func TestStarsSavedPinsAndLists(t *testing.T) {
 	}
 
 	// Search sees what the caller can see, ignores wildcards, and needs two characters.
-	hits, _ := c.Search(ctx, w.ben, w.ws, "plan")
+	hits, _ := c.Search(ctx, w.ben, w.ws, service.SearchQuery{Q: "plan"})
 	if len(hits) != 2 {
 		t.Fatalf("search plan = %d", len(hits))
 	}
-	if hits, _ = c.Search(ctx, w.ben, w.ws, "%"); len(hits) != 0 {
+	if hits, _ = c.Search(ctx, w.ben, w.ws, service.SearchQuery{Q: "%"}); len(hits) != 0 {
 		t.Fatal("wildcards must be literal")
 	}
-	if hits, _ = c.Search(ctx, w.ben, w.ws, "p"); len(hits) != 0 {
+	if hits, _ = c.Search(ctx, w.ben, w.ws, service.SearchQuery{Q: "p"}); len(hits) != 0 {
 		t.Fatal("one character is too short")
 	}
 	priv, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("hidden", true))
 	_, _ = c.Post(ctx, w.anna, priv.ID, nil, "plan for layoffs", nil)
-	if hits, _ = c.Search(ctx, w.ben, w.ws, "layoffs"); len(hits) != 0 {
+	if hits, _ = c.Search(ctx, w.ben, w.ws, service.SearchQuery{Q: "layoffs"}); len(hits) != 0 {
 		t.Fatal("search must not leak private channels")
 	}
-	if hits, _ = c.Search(ctx, w.anna, w.ws, "layoffs"); len(hits) != 1 {
+	if hits, _ = c.Search(ctx, w.anna, w.ws, service.SearchQuery{Q: "layoffs"}); len(hits) != 1 {
 		t.Fatal("members find their private messages")
 	}
 }
@@ -539,5 +540,75 @@ func TestMentionAllAndPresence(t *testing.T) {
 	}
 	if got := strings.Join(w.e.Hints.Types(), ","); got != "chat.typing" {
 		t.Fatalf("typing hint = %q", got)
+	}
+}
+
+func TestSearchModifiersAndEmojiReactions(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	a, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("alpha", false))
+	b, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("beta", false))
+	_, _ = c.Join(ctx, w.ben, a.ID)
+	_, _ = c.Join(ctx, w.ben, b.ID)
+	m1, _ := c.Post(ctx, w.anna, a.ID, nil, "deploy notes https://example.com/runbook", nil)
+	_, _ = c.Post(ctx, w.ben, a.ID, nil, "deploy done, thanks "+mention("Anna", w.anna), nil)
+	_, _ = c.Post(ctx, w.ben, b.ID, nil, "deploy rollback plan", nil)
+	_, _ = c.Post(ctx, w.anna, a.ID, &m1.ID, "reply about deploy", nil)
+	f := upload(t, w, w.ben, b.ID, "plan.txt", "x")
+	_, _ = c.Post(ctx, w.ben, b.ID, nil, "", []uuid.UUID{f.ID})
+
+	count := func(q service.SearchQuery) int {
+		hits, err := c.Search(ctx, w.anna, w.ws, q)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return len(hits)
+	}
+	if n := count(service.SearchQuery{Q: "deploy"}); n != 4 {
+		t.Fatalf("plain = %d", n)
+	}
+	if n := count(service.SearchQuery{Q: "deploy", ChannelID: &b.ID}); n != 1 {
+		t.Fatalf("in:#beta = %d", n)
+	}
+	if n := count(service.SearchQuery{Q: "deploy", FromID: &w.ben}); n != 2 {
+		t.Fatalf("from:ben = %d", n)
+	}
+	if n := count(service.SearchQuery{Q: "deploy", MentionsMe: true}); n != 1 {
+		t.Fatalf("mentions me = %d", n)
+	}
+	if n := count(service.SearchQuery{HasLink: true}); n != 1 {
+		t.Fatalf("has:link without text = %d", n)
+	}
+	if n := count(service.SearchQuery{HasFile: true}); n != 1 {
+		t.Fatalf("has:file = %d", n)
+	}
+	if n := count(service.SearchQuery{Q: "deploy", ThreadsOnly: true}); n != 2 { // the root with replies and its reply
+		t.Fatalf("threads only = %d", n)
+	}
+	future := time.Now().Add(time.Hour)
+	if n := count(service.SearchQuery{Q: "deploy", After: &future}); n != 0 {
+		t.Fatalf("after the future = %d", n)
+	}
+	if n := count(service.SearchQuery{}); n != 0 {
+		t.Fatal("no text and no filter must return nothing")
+	}
+	if n := count(service.SearchQuery{Q: "d"}); n != 0 {
+		t.Fatal("one character without a filter is too short")
+	}
+
+	// Reactions accept any emoji as well as the built-in keys, and reject junk.
+	for _, key := range []string{"👍", "🎉", "🇺🇦", "thumbs-up"} {
+		if _, err := c.React(ctx, w.ben, m1.ID, key, true); err != nil {
+			t.Fatalf("%q: %v", key, err)
+		}
+	}
+	_, err := c.React(ctx, w.ben, m1.ID, "<b>", true)
+	mustCode(t, err, domain.ErrBadReact)
+	v, _ := c.React(ctx, w.anna, m1.ID, "👍", true)
+	for _, r := range v.Reactions {
+		if r.Key == "👍" && r.Count != 2 {
+			t.Fatalf("emoji count = %d", r.Count)
+		}
 	}
 }

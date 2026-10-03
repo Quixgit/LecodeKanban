@@ -8,6 +8,7 @@ import (
 	"mime"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -42,13 +43,13 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Post("/chat/channels/{channelId}/leave", httpx.H(h.leave))
 	r.Post("/chat/channels/{channelId}/read", httpx.H(h.read))
 	r.Put("/chat/channels/{channelId}/mute", httpx.H(h.mute))
-	r.Get("/workspaces/{workspaceId}/chat/search", httpx.H(h.hitsHandler(h.svc.Search, true)))
-	r.Get("/workspaces/{workspaceId}/chat/saved", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID, _ string) ([]service.Hit, error) {
+	r.Get("/workspaces/{workspaceId}/chat/search", httpx.H(h.search))
+	r.Get("/workspaces/{workspaceId}/chat/saved", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID) ([]service.Hit, error) {
 		return h.svc.Saved(ctx, u, ws)
-	}, false)))
-	r.Get("/workspaces/{workspaceId}/chat/threads", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID, _ string) ([]service.Hit, error) {
+	})))
+	r.Get("/workspaces/{workspaceId}/chat/threads", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID) ([]service.Hit, error) {
 		return h.svc.Threads(ctx, u, ws)
-	}, false)))
+	})))
 	r.Get("/workspaces/{workspaceId}/chat/presence", httpx.H(h.online))
 	r.Post("/workspaces/{workspaceId}/chat/presence", httpx.H(h.heartbeat))
 	r.Post("/chat/channels/{channelId}/typing", httpx.H(h.typing))
@@ -429,13 +430,13 @@ func toFile(f domain.File) api.ChatFile {
 		Url: "/api/v1/chat/files/" + f.ID.String() + "/content"}
 }
 
-func (h *Handler) hitsHandler(fn func(context.Context, uuid.UUID, uuid.UUID, string) ([]service.Hit, error), needsQuery bool) httpx.HandlerFunc {
+func (h *Handler) hitsHandler(fn func(context.Context, uuid.UUID, uuid.UUID) ([]service.Hit, error)) httpx.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
 		if err != nil {
 			return err
 		}
-		hits, err := fn(r.Context(), userID(r), ws, r.URL.Query().Get("q"))
+		hits, err := fn(r.Context(), userID(r), ws)
 		if err != nil {
 			return err
 		}
@@ -619,5 +620,53 @@ func (h *Handler) downloadFile(w http.ResponseWriter, r *http.Request) error {
 	hd.Set("X-Content-Type-Options", "nosniff")
 	hd.Set("Cache-Control", "private, max-age=3600")
 	http.ServeContent(w, r, "", f.CreatedAt, rc)
+	return nil
+}
+
+func queryUUID(r *http.Request, name string) (*uuid.UUID, error) {
+	v := r.URL.Query().Get(name)
+	if v == "" {
+		return nil, nil
+	}
+	id, err := uuid.Parse(v)
+	if err != nil {
+		return nil, apperr.New(domain.ErrNotFound, "not found")
+	}
+	return &id, nil
+}
+
+func queryTime(r *http.Request, name string) *time.Time {
+	t, err := time.Parse(time.RFC3339, r.URL.Query().Get(name))
+	if err != nil {
+		return nil
+	}
+	return &t
+}
+
+// search parses Slack-style modifiers from the query string.
+func (h *Handler) search(w http.ResponseWriter, r *http.Request) error {
+	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	q := r.URL.Query()
+	in := service.SearchQuery{Q: q.Get("q"), MentionsMe: q.Get("mentionsMe") == "true", HasLink: q.Get("hasLink") == "true",
+		HasFile: q.Get("hasFile") == "true", ThreadsOnly: q.Get("threadsOnly") == "true",
+		After: queryTime(r, "after"), Before: queryTime(r, "before")}
+	if in.ChannelID, err = queryUUID(r, "channelId"); err != nil {
+		return err
+	}
+	if in.FromID, err = queryUUID(r, "fromId"); err != nil {
+		return err
+	}
+	hits, err := h.svc.Search(r.Context(), userID(r), ws, in)
+	if err != nil {
+		return err
+	}
+	out := make([]api.ChatHit, len(hits))
+	for i, x := range hits {
+		out[i] = api.ChatHit{Message: toMessage(x.MessageView), Channel: toChannel(x.Channel)}
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
 	return nil
 }

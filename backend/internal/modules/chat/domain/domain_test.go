@@ -49,3 +49,16 @@ func TestMentionsAll(t *testing.T) {
 		}
 	}
 }
+
+func TestEmojiReactions(t *testing.T) {
+	for _, ok := range []string{"👍", "❤️", "🎉", "😂", "🇺🇦", "👍🏽", "👨‍👩‍👧", "1️⃣", "⭐", "thumbs-up"} {
+		if !ValidReaction(ok) {
+			t.Errorf("%q should be a valid reaction", ok)
+		}
+	}
+	for _, bad := range []string{"", "a", "hello", "👍x", "<script>", "1", "👍👍👍👍👍👍👍👍👍👍👍", "boom"} {
+		if ValidReaction(bad) {
+			t.Errorf("%q should be rejected", bad)
+		}
+	}
+}
