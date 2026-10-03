@@ -46,6 +46,15 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  /* A scroll area whose bar stays out of sight until the pointer or focus is inside it. */
+  .scroll-quiet {
+    scrollbar-color: transparent transparent;
+  }
+  .scroll-quiet:hover,
+  .scroll-quiet:focus-within {
+    scrollbar-color: rgb(var(--c-border-strong)) transparent;
+  }
 }
 
 @keyframes lk-pop-in {

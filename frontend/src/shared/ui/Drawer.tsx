@@ -21,6 +21,8 @@ export interface DrawerProps {
   width?: 'md' | 'lg' | 'xl';
   /** No padding and no scrolling: the content manages its own (an embedded chat, for example). */
   flush?: boolean;
+  /** Fill the whole screen (the width animates between the preset and full). */
+  expanded?: boolean;
 }
 
 const widths = { md: 'max-w-md', lg: 'max-w-xl', xl: 'max-w-3xl' } as const;
@@ -36,6 +38,7 @@ export function Drawer({
   footer,
   width = 'lg',
   flush,
+  expanded,
 }: DrawerProps) {
   const { t } = useTranslation();
   const restoreFocus = useRestoreFocus(open);
@@ -57,8 +60,8 @@ export function Drawer({
                 animate="visible"
                 exit="exit"
                 className={cn(
-                  'fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-border-subtle bg-surface shadow-lg',
-                  widths[width],
+                  'fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-border-subtle bg-surface shadow-lg transition-[max-width] duration-large ease-out motion-reduce:transition-none',
+                  expanded ? 'max-w-full' : widths[width],
                 )}
               >
                 <header className="flex items-start justify-between gap-4 border-b border-border-subtle px-6 py-4">

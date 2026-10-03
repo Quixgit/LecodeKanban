@@ -16,8 +16,7 @@
   "conflict": "Someone else changed this task — showing the latest version.",
   "tabs": {
     "label": "Task details",
-    "comments": "Comments ({{count}})",
-    "chat": "Chat",
+    "comments": "Comments",
     "activity": "Activity"
   },
   "fields": {
@@ -68,16 +67,6 @@
     "edit": "Edit item",
     "progress": "{{done}} of {{total}} done",
     "reorder": "Reorder “{{text}}”"
-  },
-  "comments": {
-    "new": "New comment",
-    "placeholder": "Write a comment… @ to mention",
-    "hint": "Ctrl+Enter to post",
-    "post": "Comment",
-    "edit": "Edit",
-    "delete": "Delete",
-    "edited": "edited",
-    "empty": "No comments yet."
   },
   "attachments": {
     "title": "Attachments",
@@ -134,5 +123,7 @@
     "addButton": "Add",
     "progress": "{{done}} of {{total}} subtasks done",
     "toggle": "Complete “{{title}}”"
-  }
+  },
+  "expand": "Expand to full screen",
+  "collapse": "Back to side panel"
 }

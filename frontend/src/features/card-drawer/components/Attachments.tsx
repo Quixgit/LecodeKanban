@@ -188,7 +188,7 @@ export function Attachments({
             <Upload />
             {t('attachments.add')}
           </Button>
-          <p className="text-2xs text-text-faint">{t('attachments.hint')}</p>
+          <p className="text-2xs text-text-muted">{t('attachments.hint')}</p>
         </>
       )}
     </div>

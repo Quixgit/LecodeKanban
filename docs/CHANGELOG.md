@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+
+- **Task window**: one Comments conversation (the card chat) replaces the separate comment list and Chat
+  tab; the old comment UI and its client code are removed (the comments API and stored comments stay in the
+  backend). The window can expand to full screen (remembered per browser; three columns on wide screens:
+  details, conversation, side panel). The timer moved to the top of the side panel as a compact card
+  (start/stop, "Log time" and "Entries" folds). Blocks are framed, the chat scrollbar only shows on hover,
+  and two accessibility issues were fixed (definition list structure, attachment hint contrast).
+
 ### Added
 
 - **Chat task feeds**: a channel can be flagged as a task feed (on create or in channel details) and

@@ -2,7 +2,6 @@ import { api, apiBaseUrl, unwrap, type components } from '@/shared/api';
 
 export type ChecklistItem = components['schemas']['ChecklistItem'];
 export type ChecklistItemPatch = components['schemas']['ChecklistItemPatch'];
-export type Comment = components['schemas']['Comment'];
 export type Attachment = components['schemas']['Attachment'];
 export type ActivityEntry = components['schemas']['ActivityEntry'];
 export type ActivityPage = components['schemas']['ActivityPage'];
@@ -24,13 +23,6 @@ export const drawerApi = {
     unwrap(api.PATCH('/checklist-items/{itemId}', { params: { path: { itemId } }, body })),
   deleteItem: (itemId: string) =>
     unwrap(api.DELETE('/checklist-items/{itemId}', { params: { path: { itemId } } })),
-  comments: (cardId: string) => unwrap(api.GET('/cards/{cardId}/comments', card(cardId))),
-  addComment: (cardId: string, body: string) =>
-    unwrap(api.POST('/cards/{cardId}/comments', { ...card(cardId), body: { body } })),
-  editComment: (commentId: string, body: string) =>
-    unwrap(api.PATCH('/comments/{commentId}', { params: { path: { commentId } }, body: { body } })),
-  deleteComment: (commentId: string) =>
-    unwrap(api.DELETE('/comments/{commentId}', { params: { path: { commentId } } })),
   attachments: (cardId: string) => unwrap(api.GET('/cards/{cardId}/attachments', card(cardId))),
   upload: (cardId: string, file: File) => {
     const form = new FormData();

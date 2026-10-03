@@ -95,7 +95,7 @@ export function MessageList({
         aria-live="polite"
         aria-relevant="additions"
         tabIndex={0}
-        className="h-full overflow-y-auto overscroll-contain pb-3 pt-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40"
+        className="scroll-quiet h-full overflow-y-auto overscroll-contain pb-3 pt-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40"
       >
         {loading && messages.length === 0 ? (
           <FeedSkeleton />
