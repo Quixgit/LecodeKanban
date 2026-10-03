@@ -26,7 +26,10 @@ type Message struct {
 	WorkspaceID uuid.UUID  `json:"workspaceId"`
 	ProjectID   *uuid.UUID `json:"projectId,omitempty"`
 	CardID      *uuid.UUID `json:"cardId,omitempty"`
-	ActorID     *uuid.UUID `json:"actorId,omitempty"`
+	// ChannelID and MessageID are set by chat hints; clients refetch through the authorised API.
+	ChannelID *uuid.UUID `json:"channelId,omitempty"`
+	MessageID *uuid.UUID `json:"messageId,omitempty"`
+	ActorID   *uuid.UUID `json:"actorId,omitempty"`
 }
 
 // Publisher sends messages through Postgres so every API instance receives them.

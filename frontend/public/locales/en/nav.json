@@ -8,6 +8,7 @@
     "projects": "Projects",
     "calendar": "Calendar",
     "tasks": "Tasks",
+    "chat": "Chat",
     "docs": "Docs",
     "performance": "Performance",
     "help": "Help & Center",
@@ -85,6 +86,10 @@
     "docs": {
       "title": "Docs",
       "subtitle": "Your team’s knowledge base"
+    },
+    "chat": {
+      "title": "Chat",
+      "subtitle": "Talk with your team"
     }
   }
 }

@@ -24,7 +24,8 @@ export function AppShell() {
   const location = useLocation();
   // Docs keeps one mounted shell (tree panel, scroll, rename state) across its pages; each page
   // animates itself.
-  const transitionKey = location.pathname.startsWith('/docs') ? '/docs' : location.pathname;
+  const transitionKey =
+    ['/docs', '/chat'].find((p) => location.pathname.startsWith(p)) ?? location.pathname;
   const commands = useShellCommands();
   const viewer = useViewer();
   const { user } = useSession();

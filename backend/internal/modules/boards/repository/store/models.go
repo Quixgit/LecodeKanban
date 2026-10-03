@@ -106,6 +106,48 @@ type CardTransition struct {
 	At          time.Time
 }
 
+type ChatChannel struct {
+	ID            uuid.UUID
+	WorkspaceID   uuid.UUID
+	Kind          string
+	Name          *string
+	Topic         string
+	DmKey         *string
+	CreatedBy     uuid.NullUUID
+	CreatedAt     time.Time
+	LastMessageAt *time.Time
+	ArchivedAt    *time.Time
+}
+
+type ChatMember struct {
+	ChannelID  uuid.UUID
+	UserID     uuid.UUID
+	JoinedAt   time.Time
+	LastReadAt time.Time
+	Muted      bool
+}
+
+type ChatMessage struct {
+	ID          uuid.UUID
+	ChannelID   uuid.UUID
+	AuthorID    uuid.NullUUID
+	ParentID    uuid.NullUUID
+	Body        string
+	Mentions    []uuid.UUID
+	ReplyCount  int32
+	LastReplyAt *time.Time
+	CreatedAt   time.Time
+	EditedAt    *time.Time
+	DeletedAt   *time.Time
+}
+
+type ChatReaction struct {
+	MessageID uuid.UUID
+	UserID    uuid.UUID
+	Key       string
+	CreatedAt time.Time
+}
+
 type ChecklistItem struct {
 	ID          uuid.UUID
 	CardID      uuid.UUID

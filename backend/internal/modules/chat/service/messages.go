@@ -1,0 +1,218 @@
+package service
+
+import (
+	"context"
+	"slices"
+
+	"github.com/google/uuid"
+
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/domain"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/repository"
+	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
+)
+
+// Page is one slice of a channel's history, oldest first within the page.
+type Page struct {
+	Messages []MessageView
+	// HasMore says older messages exist before the first one returned.
+	HasMore bool
+}
+
+// Messages returns top-level messages, newest page first; pass the oldest id you have as before.
+func (s *Service) Messages(ctx context.Context, user, channel uuid.UUID, before *uuid.UUID, limit int) (Page, error) {
+	if _, _, err := s.access(ctx, user, channel, false); err != nil {
+		return Page{}, err
+	}
+	if limit <= 0 {
+		limit = domain.PageSize
+	}
+	limit = min(limit, domain.MaxPageSize)
+	ms, err := s.repo.Messages(ctx, channel, before, limit+1)
+	if err != nil {
+		return Page{}, err
+	}
+	more := len(ms) > limit
+	if more {
+		ms = ms[:limit]
+	}
+	slices.Reverse(ms)
+	views, err := s.present(ctx, user, ms)
+	if err != nil {
+		return Page{}, err
+	}
+	return Page{Messages: views, HasMore: more}, nil
+}
+
+// Thread returns a message and its replies, oldest first (the root is first).
+func (s *Service) Thread(ctx context.Context, user, root uuid.UUID) ([]MessageView, error) {
+	m, err := s.repo.Message(ctx, root)
+	if err != nil {
+		return nil, err
+	}
+	if _, _, err := s.access(ctx, user, m.ChannelID, false); err != nil {
+		return nil, err
+	}
+	if m.ParentID != nil {
+		return nil, apperr.New(domain.ErrNotFound, "not found")
+	}
+	replies, err := s.repo.Replies(ctx, root)
+	if err != nil {
+		return nil, err
+	}
+	return s.present(ctx, user, append([]domain.Message{m}, replies...))
+}
+
+// Post sends a message, or a reply when parent is set. Posting in a public channel joins it.
+func (s *Service) Post(ctx context.Context, user, channel uuid.UUID, parent *uuid.UUID, body string) (MessageView, error) {
+	ch, member, err := s.access(ctx, user, channel, true)
+	if err != nil {
+		return MessageView{}, err
+	}
+	if err := validateBody(&body); err != nil {
+		return MessageView{}, err
+	}
+	if parent != nil {
+		p, err := s.repo.Message(ctx, *parent)
+		if err != nil || p.ChannelID != ch.ID {
+			return MessageView{}, apperr.New(domain.ErrNotFound, "not found")
+		}
+		if p.ParentID != nil {
+			return MessageView{}, apperr.New(domain.ErrThreadDeep, "threads are one level deep")
+		}
+		if p.Deleted() {
+			return MessageView{}, apperr.New(domain.ErrDeleted, "message was deleted")
+		}
+	}
+	mentions, err := s.members(ctx, ch.WorkspaceID, domain.ParseMentions(body))
+	if err != nil {
+		return MessageView{}, err
+	}
+	var saved domain.Message
+	err = s.repo.InTx(ctx, func(r *repository.Repo) error {
+		if !member {
+			if err := r.AddMember(ctx, ch.ID, user); err != nil {
+				return err
+			}
+		}
+		m, err := r.InsertMessage(ctx, domain.Message{ChannelID: ch.ID, AuthorID: &user, ParentID: parent,
+			Body: body, Mentions: mentions})
+		if err != nil {
+			return err
+		}
+		saved = m
+		if parent != nil {
+			if err := r.AddReply(ctx, *parent, m.CreatedAt); err != nil {
+				return err
+			}
+		}
+		if err := r.TouchChannel(ctx, ch.ID, m.CreatedAt); err != nil {
+			return err
+		}
+		// Your own message never counts as unread, and posting means you have caught up.
+		return r.MarkRead(ctx, ch.ID, user)
+	})
+	if err != nil {
+		return MessageView{}, err
+	}
+	s.hint(ctx, "chat.message", ch.WorkspaceID, user, ch.ID, &saved.ID)
+	return s.presentOne(ctx, user, saved)
+}
+
+func (s *Service) ownMessage(ctx context.Context, user, id uuid.UUID) (domain.Message, domain.Channel, error) {
+	m, err := s.repo.Message(ctx, id)
+	if err != nil {
+		return domain.Message{}, domain.Channel{}, err
+	}
+	ch, _, err := s.access(ctx, user, m.ChannelID, true)
+	if err != nil {
+		return domain.Message{}, domain.Channel{}, err
+	}
+	return m, ch, nil
+}
+
+// Edit changes the body of the caller's own message.
+func (s *Service) Edit(ctx context.Context, user, id uuid.UUID, body string) (MessageView, error) {
+	m, ch, err := s.ownMessage(ctx, user, id)
+	if err != nil {
+		return MessageView{}, err
+	}
+	if m.AuthorID == nil || *m.AuthorID != user {
+		return MessageView{}, apperr.New(domain.ErrForbidden, "only the author can edit")
+	}
+	if m.Deleted() {
+		return MessageView{}, apperr.New(domain.ErrDeleted, "message was deleted")
+	}
+	if err := validateBody(&body); err != nil {
+		return MessageView{}, err
+	}
+	mentions, err := s.members(ctx, ch.WorkspaceID, domain.ParseMentions(body))
+	if err != nil {
+		return MessageView{}, err
+	}
+	updated, err := s.repo.UpdateMessage(ctx, id, body, mentions)
+	if err != nil {
+		return MessageView{}, err
+	}
+	s.hint(ctx, "chat.message", ch.WorkspaceID, user, ch.ID, &id)
+	return s.presentOne(ctx, user, updated)
+}
+
+// Delete removes a message (the thread of replies stays, with a tombstone in its place). The
+// author or a workspace admin may delete.
+func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
+	m, ch, err := s.ownMessage(ctx, user, id)
+	if err != nil {
+		return err
+	}
+	if m.Deleted() {
+		return nil
+	}
+	if m.AuthorID == nil || *m.AuthorID != user {
+		role, err := s.ws.Authorize(ctx, ch.WorkspaceID, user, wsdomain.PermView)
+		if err != nil {
+			return err
+		}
+		if !role.AtLeast(wsdomain.RoleAdmin) {
+			return apperr.New(domain.ErrForbidden, "only the author or an admin can delete")
+		}
+	}
+	err = s.repo.InTx(ctx, func(r *repository.Repo) error {
+		if _, err := r.DeleteMessage(ctx, id); err != nil {
+			return err
+		}
+		if m.ParentID != nil {
+			return r.RemoveReply(ctx, *m.ParentID)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	s.hint(ctx, "chat.message", ch.WorkspaceID, user, ch.ID, &id)
+	return nil
+}
+
+// React adds (on=true) or removes the caller's reaction.
+func (s *Service) React(ctx context.Context, user, id uuid.UUID, key string, on bool) (MessageView, error) {
+	if !domain.ValidReaction(key) {
+		return MessageView{}, apperr.New(domain.ErrBadReact, "unknown reaction")
+	}
+	m, ch, err := s.ownMessage(ctx, user, id)
+	if err != nil {
+		return MessageView{}, err
+	}
+	if m.Deleted() {
+		return MessageView{}, apperr.New(domain.ErrDeleted, "message was deleted")
+	}
+	if on {
+		err = s.repo.AddReaction(ctx, id, user, key)
+	} else {
+		err = s.repo.RemoveReaction(ctx, id, user, key)
+	}
+	if err != nil {
+		return MessageView{}, err
+	}
+	s.hint(ctx, "chat.message", ch.WorkspaceID, user, ch.ID, &id)
+	return s.presentOne(ctx, user, m)
+}

@@ -1498,6 +1498,229 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/chat/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** Channels the caller can see, with unread and mention counts */
+        get: operations["listChatChannels"];
+        put?: never;
+        post: operations["createChatChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/chat/direct": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open (or create) the direct conversation with the given people */
+        post: operations["openChatDirect"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Archive a channel (creator or workspace admin) */
+        delete: operations["archiveChatChannel"];
+        options?: never;
+        head?: never;
+        patch: operations["updateChatChannel"];
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listChatMembers"];
+        put?: never;
+        post: operations["addChatMembers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["joinChatChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["leaveChatChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the channel as read up to now */
+        post: operations["markChatRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/mute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["muteChatChannel"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/channels/{channelId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        /** A page of top-level messages, oldest first within the page */
+        get: operations["listChatMessages"];
+        put?: never;
+        /** Send a message, or a reply when parentId is set */
+        post: operations["postChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/messages/{messageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteChatMessage"];
+        options?: never;
+        head?: never;
+        patch: operations["editChatMessage"];
+        trace?: never;
+    };
+    "/chat/messages/{messageId}/thread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getChatThread"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/messages/{messageId}/reactions/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+                key: "thumbs-up" | "heart" | "check" | "party-popper" | "eyes" | "laugh" | "flame" | "lightbulb";
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["addChatReaction"];
+        post?: never;
+        delete: operations["removeChatReaction"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2019,6 +2242,16 @@ export interface components {
             cardId?: string;
             /** Format: uuid */
             actorId?: string;
+            /**
+             * Format: uuid
+             * @description Chat hints only
+             */
+            channelId?: string;
+            /**
+             * Format: uuid
+             * @description Chat hints only
+             */
+            messageId?: string;
         };
         CardPage: {
             items: components["schemas"]["Card"][];
@@ -2354,6 +2587,87 @@ export interface components {
              */
             next: number | null;
         };
+        ChatChannel: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspaceId: string;
+            /** @enum {string} */
+            kind: "public" | "private" | "dm";
+            /** @description Null for direct messages */
+            name: string | null;
+            topic: string;
+            joined: boolean;
+            muted: boolean;
+            /** @description Messages from others since the caller last read */
+            unread: number;
+            /** @description Of those */
+            mentions: number;
+            memberCount: number;
+            /** Format: date-time */
+            lastMessageAt: string | null;
+            /** @description Participants of a direct message */
+            people: components["schemas"]["PersonRef"][];
+        };
+        ChatChannelInput: {
+            name: string;
+            topic?: string;
+            private?: boolean;
+            memberIds?: string[];
+        };
+        ChatChannelPatch: {
+            name?: string;
+            topic?: string;
+        };
+        ChatDirectInput: {
+            /** @description The other participants */
+            userIds: string[];
+        };
+        ChatMembersInput: {
+            userIds: string[];
+        };
+        ChatMuteInput: {
+            muted: boolean;
+        };
+        ChatReaction: {
+            key: string;
+            count: number;
+            mine: boolean;
+            users: string[];
+        };
+        ChatMessage: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            channelId: string;
+            /** Format: uuid */
+            parentId: string | null;
+            author: components["schemas"]["PersonRef"] | null;
+            /** @description Markdown; mentions are written as @[Name](user-id). Empty when deleted */
+            body: string;
+            deleted: boolean;
+            mentions: components["schemas"]["PersonRef"][];
+            reactions: components["schemas"]["ChatReaction"][];
+            replyCount: number;
+            /** Format: date-time */
+            lastReplyAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            editedAt: string | null;
+        };
+        ChatMessagePage: {
+            messages: components["schemas"]["ChatMessage"][];
+            hasMore: boolean;
+        };
+        ChatMessageInput: {
+            body: string;
+            /** Format: uuid */
+            parentId?: string | null;
+        };
+        ChatBodyInput: {
+            body: string;
+        };
     };
     responses: {
         /** @description Authenticated session */
@@ -2376,6 +2690,8 @@ export interface components {
         };
     };
     parameters: {
+        ChatChannelId: string;
+        ChatMessageId: string;
         Provider: "google" | "github";
         WorkspaceId: string;
         ProjectId: string;
@@ -5153,6 +5469,431 @@ export interface operations {
                 };
                 content: {
                     "application/json": string[];
+                };
+            };
+        };
+    };
+    listChatChannels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public channels plus the caller's private channels and direct messages */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannel"][];
+                };
+            };
+        };
+    };
+    createChatChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatChannelInput"];
+            };
+        };
+        responses: {
+            /** @description Created; the caller is a member */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannel"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    openChatDirect: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatDirectInput"];
+            };
+        };
+        responses: {
+            /** @description The conversation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannel"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    archiveChatChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Archived */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateChatChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatChannelPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannel"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    listChatMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description People in the channel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonRef"][];
+                };
+            };
+        };
+    };
+    addChatMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatMembersInput"];
+            };
+        };
+        responses: {
+            /** @description Added */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    joinChatChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Joined */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannel"];
+                };
+            };
+        };
+    };
+    leaveChatChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Left */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    markChatRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Marked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    muteChatChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatMuteInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listChatMessages: {
+        parameters: {
+            query?: {
+                /** @description Id of the oldest message already loaded; returns the page before it */
+                before?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Newest page when `before` is omitted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessagePage"];
+                };
+            };
+        };
+    };
+    postChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: components["parameters"]["ChatChannelId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatMessageInput"];
+            };
+        };
+        responses: {
+            /** @description Sent */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    editChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatBodyInput"];
+            };
+        };
+        responses: {
+            /** @description Edited */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    getChatThread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The root message followed by its replies, oldest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"][];
+                };
+            };
+        };
+    };
+    addChatReaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+                key: "thumbs-up" | "heart" | "check" | "party-popper" | "eyes" | "laugh" | "flame" | "lightbulb";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reacted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+        };
+    };
+    removeChatReaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: components["parameters"]["ChatMessageId"];
+                key: "thumbs-up" | "heart" | "check" | "party-popper" | "eyes" | "laugh" | "flame" | "lightbulb";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reaction removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
                 };
             };
         };
