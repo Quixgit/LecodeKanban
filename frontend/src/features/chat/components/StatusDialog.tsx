@@ -180,7 +180,10 @@ function Form({ open, onOpenChange, workspaceId, current }: Props) {
                   )}
                 >
                   <Icon
-                    className="mt-0.5 size-4 shrink-0 stroke-[1.7] text-text-muted"
+                    className={cn(
+                      'mt-0.5 size-4 shrink-0 stroke-[1.7]',
+                      k === 'available' ? 'text-available' : 'text-text-muted',
+                    )}
                     aria-hidden
                   />
                   <span>

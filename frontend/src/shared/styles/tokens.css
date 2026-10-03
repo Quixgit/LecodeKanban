@@ -60,6 +60,7 @@
   --c-danger-ink: 176 71 66; /* #b04742 */
 
   --c-success: 76 181 174;
+  --c-available: 82 190 144; /* #52be90 – soft mint: "available" status icon and dot */
   --c-warning: 230 176 75;
 
   /* Heatmap / chart series (Dashboard "attendance"-style) */
@@ -163,6 +164,7 @@
   --c-review-soft: 42 34 58;
   --c-review-ink: 200 182 232;
 
+  --c-available: 112 208 164;
   --c-done: 86 196 188;
   --c-done-soft: 22 52 50;
   --c-done-ink: 128 214 207;

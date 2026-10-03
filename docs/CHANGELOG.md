@@ -10,7 +10,7 @@
   items arrive and plays the task sound.
 - **Chat user statuses**: Available, Busy, Do not disturb, Away or a custom text and icon, with optional
   clear-after. Shown as a dot on avatars and a badge next to names; do-not-disturb silences notification
-  sounds. Set from the chat sidebar or the user menu.
+  sounds. Set from the chat sidebar or the user menu. The "available" icon and online dot use a soft mint token (`--c-available`).
 
 - **Docs (wiki) backend, phase W1** (ADR 0014): spaces, nested folders and pages with fractional
   ordering, per-space/folder/page visibility (private, shared, workspace) with inheritance, grants
