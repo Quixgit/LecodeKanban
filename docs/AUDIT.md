@@ -32,3 +32,17 @@ Facts about what was checked, with how. Update on every phase.
   query cache and the last space is kept.
 - Not covered yet: virtualised tree with 5,000+ nodes (designed for it, not load-tested),
   screen-reader announcements verified only by code review, mobile layout checked by code only.
+
+## W3 — wiki editor
+
+- Verified against a real stack: Playwright for Docs (3) and the editor (9) — Markdown shortcuts,
+  slash menu (table, callout, Mermaid), paste of Markdown, unsafe link refused, image upload that
+  survives a reload, Markdown export/import round-trip, properties / verify / templates, offline
+  edit then sync, version conflict stops autosave, read-only reader, axe wcag2a/2aa on the editor,
+  slash menu and shortcuts dialog. Go tests with `-race` (document validator incl. XSS vectors,
+  content conflicts, templates, files, properties), Vitest 178, `tsc`, ESLint, Prettier, build.
+- Bugs found by those tests and fixed: server allow-list rejected table cell `align` and link
+  `title` (422); Ctrl+K opened both the link dialog and the command palette; a link without a scheme
+  was judged before `https://` was added; many spaces squeezed the tree to zero height.
+- Not covered yet: orphaned uploaded files are not cleaned up; real-time co-editing (W4); card
+  references and search (W5); mobile layout checked by code only.

@@ -111,7 +111,7 @@ test.describe('Docs editor', () => {
     await dialog.getByRole('textbox').fill('example.com/runbook');
     await dialog.getByRole('button', { name: 'Apply' }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(editor.locator('a[href="https://example.com/runbook"]')).toBeVisible();
+    await expect(editor.locator('a[href="https://example.com/runbook"]').first()).toBeVisible();
     await waitSaved(page);
   });
 
