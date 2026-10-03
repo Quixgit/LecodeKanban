@@ -15,26 +15,48 @@ type Querier interface {
 	AddReaction(ctx context.Context, arg AddReactionParams) error
 	AddReply(ctx context.Context, arg AddReplyParams) error
 	ArchiveChannel(ctx context.Context, id uuid.UUID) error
+	AttachFiles(ctx context.Context, arg AttachFilesParams) ([]uuid.UUID, error)
 	// chat module queries (sqlc). Threads are one level deep: replies carry parent_id.
 	CreateChannel(ctx context.Context, arg CreateChannelParams) (ChatChannel, error)
+	CreateFile(ctx context.Context, arg CreateFileParams) (ChatFile, error)
 	DeleteMessage(ctx context.Context, id uuid.UUID) (ChatMessage, error)
 	GetChannel(ctx context.Context, id uuid.UUID) (ChatChannel, error)
+	GetChannelState(ctx context.Context, arg GetChannelStateParams) (GetChannelStateRow, error)
 	GetDMChannel(ctx context.Context, arg GetDMChannelParams) (ChatChannel, error)
+	GetFile(ctx context.Context, id uuid.UUID) (ChatFile, error)
 	GetMembership(ctx context.Context, arg GetMembershipParams) (ChatMember, error)
 	GetMessage(ctx context.Context, id uuid.UUID) (ChatMessage, error)
+	GetScopeChannel(ctx context.Context, arg GetScopeChannelParams) (ChatChannel, error)
 	InsertMessage(ctx context.Context, arg InsertMessageParams) (ChatMessage, error)
+	ListChannelFiles(ctx context.Context, arg ListChannelFilesParams) ([]ChatFile, error)
 	ListChannelStates(ctx context.Context, arg ListChannelStatesParams) ([]ListChannelStatesRow, error)
+	ListFilesByMessages(ctx context.Context, ids []uuid.UUID) ([]ChatFile, error)
 	ListMembers(ctx context.Context, channelID uuid.UUID) ([]ChatMember, error)
 	ListMembersOf(ctx context.Context, ids []uuid.UUID) ([]ChatMember, error)
 	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ChatMessage, error)
+	ListMyThreads(ctx context.Context, arg ListMyThreadsParams) ([]ChatMessage, error)
+	ListPinnedFlags(ctx context.Context, ids []uuid.UUID) ([]uuid.UUID, error)
+	ListPinnedMessages(ctx context.Context, channelID uuid.UUID) ([]ChatMessage, error)
 	ListReactions(ctx context.Context, ids []uuid.UUID) ([]ChatReaction, error)
 	ListReplies(ctx context.Context, parentID uuid.NullUUID) ([]ChatMessage, error)
+	ListReplyAuthors(ctx context.Context, ids []uuid.UUID) ([]ListReplyAuthorsRow, error)
+	ListSavedFlags(ctx context.Context, arg ListSavedFlagsParams) ([]uuid.UUID, error)
+	ListSavedMessages(ctx context.Context, arg ListSavedMessagesParams) ([]ChatMessage, error)
 	MarkRead(ctx context.Context, arg MarkReadParams) error
+	OnlineMembers(ctx context.Context, workspaceID uuid.UUID) ([]uuid.UUID, error)
+	Pin(ctx context.Context, arg PinParams) error
 	RemoveMember(ctx context.Context, arg RemoveMemberParams) error
 	RemoveReaction(ctx context.Context, arg RemoveReactionParams) error
 	RemoveReply(ctx context.Context, id uuid.UUID) error
+	Save(ctx context.Context, arg SaveParams) error
+	SearchMessages(ctx context.Context, arg SearchMessagesParams) ([]ChatMessage, error)
 	SetMuted(ctx context.Context, arg SetMutedParams) error
+	Star(ctx context.Context, arg StarParams) error
 	TouchChannel(ctx context.Context, arg TouchChannelParams) error
+	TouchPresence(ctx context.Context, userID uuid.UUID) error
+	Unpin(ctx context.Context, messageID uuid.UUID) error
+	Unsave(ctx context.Context, arg UnsaveParams) error
+	Unstar(ctx context.Context, arg UnstarParams) error
 	UpdateChannel(ctx context.Context, arg UpdateChannelParams) (ChatChannel, error)
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) (ChatMessage, error)
 }

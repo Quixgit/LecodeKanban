@@ -9,6 +9,7 @@ import (
 
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/repository"
+	projectsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/projects/domain"
 	usersdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
@@ -188,6 +189,58 @@ func (s *Service) OpenDM(ctx context.Context, user, ws uuid.UUID, others []uuid.
 	return s.channelView(ctx, user, ch)
 }
 
+// ScopeChannel returns the conversation of a project or card, creating it on first use and
+// adding the caller. Access follows the target: workspace members who can open it can talk in it.
+func (s *Service) ScopeChannel(ctx context.Context, user uuid.UUID, kind domain.Kind, ref uuid.UUID) (ChannelView, error) {
+	if !kind.Scoped() || s.projects == nil || s.cards == nil {
+		return ChannelView{}, apperr.New(domain.ErrNotFound, "not found")
+	}
+	var ws uuid.UUID
+	if kind == domain.Project {
+		p, err := s.projects.Ref(ctx, ref)
+		if err != nil {
+			return ChannelView{}, err
+		}
+		if _, err := s.ws.Authorize(ctx, p.WorkspaceID, user, wsdomain.PermView); err != nil {
+			return ChannelView{}, apperr.New(projectsdomain.ErrNotFound, "project not found")
+		}
+		ws = p.WorkspaceID
+	} else {
+		c, err := s.cards.Ref(ctx, user, ref, wsdomain.PermView)
+		if err != nil {
+			return ChannelView{}, err
+		}
+		ws = c.WorkspaceID
+	}
+	ch, err := s.repo.ScopeChannel(ctx, kind, ref)
+	if apperr.IsCode(err, domain.ErrNotFound) {
+		ch, err = s.repo.CreateChannel(ctx, domain.Channel{WorkspaceID: ws, Kind: kind, RefID: &ref, CreatedBy: &user})
+		if apperr.IsCode(err, domain.ErrNameTaken) { // lost a race with another first visitor
+			ch, err = s.repo.ScopeChannel(ctx, kind, ref)
+		}
+	}
+	if err != nil {
+		return ChannelView{}, err
+	}
+	if err := s.repo.AddMember(ctx, ch.ID, user); err != nil {
+		return ChannelView{}, err
+	}
+	return s.scopeView(ctx, user, ch)
+}
+
+// scopeView builds the view of a scoped channel, which the channel list never returns.
+func (s *Service) scopeView(ctx context.Context, user uuid.UUID, ch domain.Channel) (ChannelView, error) {
+	st, err := s.repo.ChannelState(ctx, ch.ID, user)
+	if err != nil {
+		return ChannelView{}, err
+	}
+	members, err := s.repo.Members(ctx, ch.ID)
+	if err != nil {
+		return ChannelView{}, err
+	}
+	return ChannelView{ChannelState: st, MemberCount: len(members), People: []usersdomain.User{}}, nil
+}
+
 // Join adds the caller to a public channel.
 func (s *Service) Join(ctx context.Context, user, channel uuid.UUID) (ChannelView, error) {
 	ch, member, err := s.access(ctx, user, channel, true)
@@ -212,7 +265,7 @@ func (s *Service) Leave(ctx context.Context, user, channel uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	if ch.Kind == domain.DM {
+	if ch.Kind == domain.DM || ch.Kind.Scoped() {
 		return apperr.New(domain.ErrDMMembers, "cannot leave a conversation")
 	}
 	if !member {
@@ -231,7 +284,7 @@ func (s *Service) AddMembers(ctx context.Context, user, channel uuid.UUID, ids [
 	if err != nil {
 		return err
 	}
-	if ch.Kind == domain.DM {
+	if ch.Kind == domain.DM || ch.Kind.Scoped() {
 		return apperr.New(domain.ErrDMMembers, "conversation members are fixed")
 	}
 	if !member {
@@ -282,7 +335,7 @@ func (s *Service) Update(ctx context.Context, user, channel uuid.UUID, name, top
 	if err != nil {
 		return ChannelView{}, err
 	}
-	if ch.Kind == domain.DM || !member {
+	if ch.Kind == domain.DM || ch.Kind.Scoped() || !member {
 		return ChannelView{}, apperr.New(domain.ErrForbidden, "not allowed")
 	}
 	newName, newTopic := ch.Name, ch.Topic
@@ -319,7 +372,7 @@ func (s *Service) Archive(ctx context.Context, user, channel uuid.UUID) error {
 		return err
 	}
 	creator := ch.CreatedBy != nil && *ch.CreatedBy == user
-	if ch.Kind == domain.DM || !(creator || role.AtLeast(wsdomain.RoleAdmin)) {
+	if ch.Kind == domain.DM || ch.Kind.Scoped() || !(creator || role.AtLeast(wsdomain.RoleAdmin)) {
 		return apperr.New(domain.ErrForbidden, "not allowed")
 	}
 	if err := s.repo.ArchiveChannel(ctx, ch.ID); err != nil {

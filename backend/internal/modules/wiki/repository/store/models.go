@@ -117,6 +117,20 @@ type ChatChannel struct {
 	CreatedAt     time.Time
 	LastMessageAt *time.Time
 	ArchivedAt    *time.Time
+	RefID         uuid.NullUUID
+}
+
+type ChatFile struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	ChannelID   uuid.UUID
+	MessageID   uuid.NullUUID
+	UploadedBy  uuid.NullUUID
+	Name        string
+	ContentType string
+	Size        int64
+	StorageKey  string
+	CreatedAt   time.Time
 }
 
 type ChatMember struct {
@@ -139,12 +153,37 @@ type ChatMessage struct {
 	CreatedAt   time.Time
 	EditedAt    *time.Time
 	DeletedAt   *time.Time
+	MentionAll  bool
+}
+
+type ChatPin struct {
+	MessageID uuid.UUID
+	ChannelID uuid.UUID
+	PinnedBy  uuid.NullUUID
+	PinnedAt  time.Time
+}
+
+type ChatPresence struct {
+	UserID uuid.UUID
+	SeenAt time.Time
 }
 
 type ChatReaction struct {
 	MessageID uuid.UUID
 	UserID    uuid.UUID
 	Key       string
+	CreatedAt time.Time
+}
+
+type ChatSaved struct {
+	UserID    uuid.UUID
+	MessageID uuid.UUID
+	CreatedAt time.Time
+}
+
+type ChatStar struct {
+	UserID    uuid.UUID
+	ChannelID uuid.UUID
 	CreatedAt time.Time
 }
 

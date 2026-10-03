@@ -61,3 +61,14 @@ Facts about what was checked, with how. Update on every phase.
   chat, push/email notifications for mentions, message history search, load test with large channels
   (history is paged by 40, not virtualised), realtime hints carry channel ids to every workspace
   member's stream (data is always fetched through the authorised API).
+
+## Chat, second round
+
+- Go (`chat/service`): attachments (sniffed type, sanitised name, unsent uploads private, cross-channel and
+  cross-user attach refused, file-only messages, private channel files stay private), stars, saved, pins,
+  threads and search (private channels never leak, wildcards literal), @channel counts and email
+  addresses do not, presence and typing hints.
+- Browser: attach image + document, pin, save, star, search, Saved and Threads pages; online dot and
+  "is typing…" between two users.
+- Not covered yet: virtual scrolling of very long histories, orphaned unsent uploads are not cleaned up,
+  no link previews, no message scheduling or reminders.

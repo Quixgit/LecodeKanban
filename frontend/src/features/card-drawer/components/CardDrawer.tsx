@@ -28,6 +28,7 @@ import { ActivityFeed } from './ActivityFeed';
 import { Attachments } from './Attachments';
 import { CardFields } from './CardFields';
 import { Checklist } from './Checklist';
+import { CardChat } from '@/features/chat';
 import { Comments } from './Comments';
 import { DescriptionEditor } from './DescriptionEditor';
 import { Subtasks } from './Subtasks';
@@ -53,7 +54,7 @@ function Section({
   );
 }
 
-type Tab = 'comments' | 'activity';
+type Tab = 'comments' | 'chat' | 'activity';
 
 /** Slide-in card detail, opened from any view through ?card=<id> (shareable links). */
 export function CardDrawer({ currentUserId }: { currentUserId: string }) {
@@ -196,6 +197,7 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
                   className="w-fit"
                   options={[
                     { value: 'comments', label: t('tabs.comments', { count: card.commentCount }) },
+                    { value: 'chat', label: t('tabs.chat') },
                     { value: 'activity', label: t('tabs.activity') },
                   ]}
                 />
@@ -208,6 +210,10 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
                     canComment={editable}
                     isAdmin={isAdmin}
                   />
+                ) : tab === 'chat' ? (
+                  <div className="h-[28rem] overflow-hidden rounded-xl border border-border-subtle">
+                    <CardChat cardId={card.id} />
+                  </div>
                 ) : (
                   <ActivityFeed cardId={card.id} workspaceId={ws} members={members} />
                 )}

@@ -40,3 +40,12 @@ func TestReactionSet(t *testing.T) {
 		t.Fatal("reaction validation wrong")
 	}
 }
+
+func TestMentionsAll(t *testing.T) {
+	for body, want := range map[string]bool{"@channel please look": true, "ping (@here)": true, "hey @everyone": true,
+		"mail a@channel.com": false, "@channels": false, "plain": false} {
+		if MentionsAll(body) != want {
+			t.Errorf("MentionsAll(%q) = %v, want %v", body, !want, want)
+		}
+	}
+}

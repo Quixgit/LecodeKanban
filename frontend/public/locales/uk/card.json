@@ -17,6 +17,7 @@
   "tabs": {
     "label": "Деталі завдання",
     "comments": "Коментарі ({{count}})",
+    "chat": "Чат",
     "activity": "Активність"
   },
   "fields": {

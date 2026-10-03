@@ -1,10 +1,21 @@
-import { BellOff, ChevronDown, Hash, Lock, Plus, Search, SquarePen, Users } from 'lucide-react';
+import {
+  Bookmark,
+  BellOff,
+  ChevronDown,
+  Hash,
+  Lock,
+  MessagesSquare,
+  Plus,
+  Search,
+  SquarePen,
+  Star,
+  Users,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/shared/lib/cn';
 import {
-  Avatar,
   Dropdown,
   DropdownContent,
   DropdownItem,
@@ -16,6 +27,7 @@ import {
 import type { ChatChannel } from '../api/chatApi';
 import { channelTitle, groupChannels } from '../model/channels';
 import { useChatUiStore } from '../store/chatUiStore';
+import { PersonAvatar } from './PresenceDot';
 
 interface Props {
   channels: readonly ChatChannel[] | undefined;
@@ -26,10 +38,14 @@ interface Props {
   onCreate: () => void;
   onBrowse: () => void;
   onNewMessage: () => void;
+  onSearch: () => void;
+  online: ReadonlySet<string>;
 }
 
 /** Left column: joined channels and direct messages, unread ones in bold with a count. */
 export function ChannelList({
+  online,
+  onSearch,
   channels,
   loading,
   me,
@@ -47,6 +63,7 @@ export function ChannelList({
   const q = filter.trim().toLowerCase();
   const match = (c: ChatChannel) =>
     !q || channelTitle(c, me, t('list.you')).toLowerCase().includes(q);
+  const starred = groups.starred.filter(match);
   const joined = groups.channels.filter(match);
   const direct = groups.direct.filter(match);
 
@@ -66,6 +83,11 @@ export function ChannelList({
             className="h-9 w-full rounded-lg border border-border bg-surface pl-8 pr-2 text-sm text-text placeholder:text-text-faint focus:border-primary focus:shadow-focus focus:outline-none"
           />
         </label>
+        <Tooltip content={t('search.open')}>
+          <IconButton label={t('search.open')} size="sm" variant="ghost" onClick={onSearch}>
+            <Search />
+          </IconButton>
+        </Tooltip>
         <Tooltip content={t('sidebar.newMessage')}>
           <IconButton
             label={t('sidebar.newMessage')}
@@ -78,6 +100,11 @@ export function ChannelList({
         </Tooltip>
       </div>
 
+      <ul className="space-y-0.5 px-2 pb-1">
+        <NavRow to="/chat/threads" icon={<MessagesSquare />} label={t('sidebar.threads')} />
+        <NavRow to="/chat/saved" icon={<Bookmark />} label={t('sidebar.saved')} />
+      </ul>
+
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         {loading ? (
           <div className="space-y-2 p-2" aria-busy>
@@ -87,6 +114,18 @@ export function ChannelList({
           </div>
         ) : (
           <>
+            {starred.length > 0 && (
+              <Section
+                title={t('sidebar.starred')}
+                icon={<Star className="fill-warning text-warning size-3.5" aria-hidden />}
+                open={!collapsed.starred}
+                onToggle={() => toggle('starred')}
+              >
+                {starred.map((c) => (
+                  <Row key={c.id} c={c} me={me} active={c.id === activeId} online={online} />
+                ))}
+              </Section>
+            )}
             <Section
               title={t('sidebar.channels')}
               open={!collapsed.channels}
@@ -120,7 +159,9 @@ export function ChannelList({
                   {q ? t('sidebar.noMatch') : t('sidebar.noChannels')}
                 </li>
               ) : (
-                joined.map((c) => <Row key={c.id} c={c} me={me} active={c.id === activeId} />)
+                joined.map((c) => (
+                  <Row key={c.id} c={c} me={me} active={c.id === activeId} online={online} />
+                ))
               )}
             </Section>
             <Section
@@ -133,7 +174,9 @@ export function ChannelList({
                   {q ? t('sidebar.noMatch') : t('sidebar.noDirect')}
                 </li>
               ) : (
-                direct.map((c) => <Row key={c.id} c={c} me={me} active={c.id === activeId} />)
+                direct.map((c) => (
+                  <Row key={c.id} c={c} me={me} active={c.id === activeId} online={online} />
+                ))
               )}
             </Section>
           </>
@@ -145,12 +188,14 @@ export function ChannelList({
 
 function Section({
   title,
+  icon,
   open,
   onToggle,
   action,
   children,
 }: {
   title: string;
+  icon?: React.ReactNode;
   open: boolean;
   onToggle: () => void;
   action?: React.ReactNode;
@@ -169,6 +214,7 @@ function Section({
             className={cn('size-3.5 transition-transform duration-ui', !open && '-rotate-90')}
             aria-hidden
           />
+          {icon}
           {title}
         </button>
         {action}
@@ -178,7 +224,17 @@ function Section({
   );
 }
 
-function Row({ c, me, active }: { c: ChatChannel; me: string; active: boolean }) {
+function Row({
+  c,
+  me,
+  active,
+  online,
+}: {
+  c: ChatChannel;
+  me: string;
+  active: boolean;
+  online: ReadonlySet<string>;
+}) {
   const { t } = useTranslation('chat');
   const title = channelTitle(c, me, t('list.you'));
   const unread = c.unread > 0 && !c.muted;
@@ -204,9 +260,10 @@ function Row({ c, me, active }: { c: ChatChannel; me: string; active: boolean })
           ) : others.length > 1 ? (
             <Users aria-hidden />
           ) : (
-            <Avatar
+            <PersonAvatar
               name={others[0]?.name ?? c.people[0]?.name ?? title}
               src={(others[0] ?? c.people[0])?.avatarUrl}
+              online={online.has((others[0] ?? c.people[0])?.id ?? '')}
               size="xs"
             />
           )}
@@ -226,6 +283,29 @@ function Row({ c, me, active }: { c: ChatChannel; me: string; active: boolean })
             {c.unread > 99 ? '99+' : c.unread}
           </span>
         )}
+      </NavLink>
+    </li>
+  );
+}
+
+function NavRow({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+  return (
+    <li>
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          cn(
+            'flex h-9 items-center gap-2.5 rounded-lg border px-2.5 text-base outline-none transition-colors duration-micro focus-visible:shadow-focus',
+            isActive
+              ? 'border-primary-border bg-primary-subtle font-medium text-primary-ink'
+              : 'border-transparent text-text-secondary hover:bg-surface-muted hover:text-text',
+          )
+        }
+      >
+        <span className="grid size-5 shrink-0 place-items-center text-text-muted [&_svg]:size-4 [&_svg]:stroke-[1.7]">
+          {icon}
+        </span>
+        {label}
       </NavLink>
     </li>
   );

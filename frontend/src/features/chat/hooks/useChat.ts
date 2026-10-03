@@ -22,7 +22,14 @@ export const chatKeys = {
   channels: (ws: string) => ['chat', 'channels', ws] as const,
   messages: (channel: string) => ['chat', 'messages', channel] as const,
   thread: (root: string) => ['chat', 'thread', root] as const,
+  scope: (kind: string, id: string) => ['chat', 'scope', kind, id] as const,
   members: (channel: string) => ['chat', 'members', channel] as const,
+  pins: (channel: string) => ['chat', 'pins', channel] as const,
+  files: (channel: string) => ['chat', 'files', channel] as const,
+  saved: (ws: string) => ['chat', 'saved', ws] as const,
+  threads: (ws: string) => ['chat', 'threads', ws] as const,
+  search: (ws: string, q: string) => ['chat', 'search', ws, q] as const,
+  presence: (ws: string) => ['chat', 'presence', ws] as const,
 };
 
 export function useChannels(ws: string | undefined) {
@@ -65,6 +72,48 @@ export function useMessages(channel: string | undefined) {
     [q.data],
   );
   return { ...q, messages };
+}
+
+export function usePins(channel: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: chatKeys.pins(channel ?? ''),
+    queryFn: () => chatApi.pins(channel!),
+    enabled: !!channel && enabled,
+  });
+}
+
+export function useChannelFiles(channel: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: chatKeys.files(channel ?? ''),
+    queryFn: () => chatApi.files(channel!),
+    enabled: !!channel && enabled,
+  });
+}
+
+export function useSavedMessages(ws: string | undefined) {
+  return useQuery({
+    queryKey: chatKeys.saved(ws ?? ''),
+    queryFn: () => chatApi.saved(ws!),
+    enabled: !!ws,
+  });
+}
+
+export function useMyThreads(ws: string | undefined) {
+  return useQuery({
+    queryKey: chatKeys.threads(ws ?? ''),
+    queryFn: () => chatApi.threads(ws!),
+    enabled: !!ws,
+  });
+}
+
+export function useMessageSearch(ws: string | undefined, q: string) {
+  const term = q.trim();
+  return useQuery({
+    queryKey: chatKeys.search(ws ?? '', term),
+    queryFn: () => chatApi.search(ws!, term),
+    enabled: !!ws && term.length >= 2,
+    staleTime: 15_000,
+  });
 }
 
 export function useThread(root: string | undefined) {
@@ -158,15 +207,19 @@ export function useChatMutations(ws: string) {
     }),
     markRead: useMutation({
       mutationFn: chatApi.markRead,
-      onSuccess: (_d, id) =>
+      onSuccess: (_d, id) => {
         // Clear the badge immediately; the realtime hint confirms it.
         qc.setQueryData<ChatChannel[]>(chatKeys.channels(ws), (d) =>
           d?.map((c) => (c.id === id ? { ...c, unread: 0, mentions: 0 } : c)),
-        ),
+        );
+        qc.setQueriesData<ChatChannel>({ queryKey: ['chat', 'scope'] }, (d) =>
+          d?.id === id ? { ...d, unread: 0, mentions: 0 } : d,
+        );
+      },
     }),
     post: useMutation({
-      mutationFn: (v: { channel: string; body: string; parentId?: string }) =>
-        chatApi.post(v.channel, v.body, v.parentId),
+      mutationFn: (v: { channel: string; body: string; parentId?: string; fileIds?: string[] }) =>
+        chatApi.post(v.channel, v.body, v.parentId, v.fileIds),
       onSuccess: (msg) => {
         appendMessage(qc, msg);
         void channels();
@@ -182,6 +235,24 @@ export function useChatMutations(ws: string) {
         void qc.invalidateQueries({ queryKey: chatKeys.messages(m.channelId) });
         if (m.parentId) void qc.invalidateQueries({ queryKey: chatKeys.thread(m.parentId) });
         else void qc.invalidateQueries({ queryKey: chatKeys.thread(m.id) });
+      },
+    }),
+    star: useMutation({
+      mutationFn: (v: { id: string; on: boolean }) => chatApi.star(v.id, v.on),
+      onSuccess: channels,
+    }),
+    save: useMutation({
+      mutationFn: (v: { message: ChatMessage; on: boolean }) => chatApi.save(v.message.id, v.on),
+      onSuccess: (msg) => {
+        patchMessage(qc, msg as ChatMessage);
+        void qc.invalidateQueries({ queryKey: chatKeys.saved(ws) });
+      },
+    }),
+    pin: useMutation({
+      mutationFn: (v: { message: ChatMessage; on: boolean }) => chatApi.pin(v.message.id, v.on),
+      onSuccess: (msg) => {
+        patchMessage(qc, msg as ChatMessage);
+        void qc.invalidateQueries({ queryKey: chatKeys.pins(msg.channelId) });
       },
     }),
     react: useMutation({

@@ -200,6 +200,24 @@ Base URL: `/api/v1`
 | GET | `/workspaces/{workspaceId}/chat/channels` | session |  | 200 | Channels the caller can see, with unread and mention counts |
 | POST | `/workspaces/{workspaceId}/chat/channels` | session | ChatChannelInput | 201, 409 Error, 422 Error |  |
 | POST | `/workspaces/{workspaceId}/chat/direct` | session | ChatDirectInput | 200, 422 Error | Open (or create) the direct conversation with the given people |
+| POST | `/projects/{projectId}/chat` | session |  | 200 | The project's conversation (created on first use; the caller joins it) |
+| POST | `/cards/{cardId}/chat` | session |  | 200 | The card's conversation (created on first use; the caller joins it) |
+| GET | `/workspaces/{workspaceId}/chat/search` | session |  | 200 | Find messages containing the text in conversations the caller can see |
+| GET | `/workspaces/{workspaceId}/chat/saved` | session |  | 200 | The caller's saved (Later) messages, newest saved first |
+| GET | `/workspaces/{workspaceId}/chat/threads` | session |  | 200 | Threads the caller started or replied in, most recently active first |
+| GET | `/workspaces/{workspaceId}/chat/presence` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/chat/presence` | session |  | 204 | Tell the server the caller has the app open |
+| POST | `/chat/channels/{channelId}/typing` | session |  | 204 | Tell the others in the channel the caller is writing (nothing is stored) |
+| PUT | `/chat/channels/{channelId}/star` | session |  | 204 |  |
+| DELETE | `/chat/channels/{channelId}/star` | session |  | 204 |  |
+| GET | `/chat/channels/{channelId}/pins` | session |  | 200 |  |
+| GET | `/chat/channels/{channelId}/files` | session |  | 200 |  |
+| POST | `/chat/channels/{channelId}/files` | session |  | 201, 413 Error |  |
+| GET | `/chat/files/{fileId}/content` | session |  | 200, 404 Error |  |
+| PUT | `/chat/messages/{messageId}/save` | session |  | 200 |  |
+| DELETE | `/chat/messages/{messageId}/save` | session |  | 200 |  |
+| PUT | `/chat/messages/{messageId}/pin` | session |  | 200 |  |
+| DELETE | `/chat/messages/{messageId}/pin` | session |  | 200 |  |
 | PATCH | `/chat/channels/{channelId}` | session | ChatChannelPatch | 200, 409 Error, 422 Error |  |
 | DELETE | `/chat/channels/{channelId}` | session |  | 204 | Archive a channel (creator or workspace admin) |
 | GET | `/chat/channels/{channelId}/members` | session |  | 200 |  |
@@ -320,14 +338,17 @@ Base URL: `/api/v1`
 - **WikiFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string
 - **WikiAuditEvent** — `id`: integer, `kind`: string, `actorId`: string \| null, `nodeId`: string \| null, `data`: object, `at`: string
 - **WikiAuditPage** — `events`: array, `next`: integer \| null
-- **ChatChannel** — `id`: string, `workspaceId`: string, `kind`: string, `name`: string \| null, `topic`: string, `joined`: boolean, `muted`: boolean, `unread`: integer, `mentions`: integer, `memberCount`: integer, `lastMessageAt`: string \| null, `people`: array
+- **ChatChannel** — `id`: string, `workspaceId`: string, `kind`: string, `name`: string \| null, `topic`: string, `joined`: boolean, `muted`: boolean, `starred`: boolean, `unread`: integer, `mentions`: integer, `memberCount`: integer, `lastMessageAt`: string \| null, `people`: array
 - **ChatChannelInput** — `name`: string, `topic?`: string, `private?`: boolean, `memberIds?`: array
 - **ChatChannelPatch** — `name?`: string, `topic?`: string
 - **ChatDirectInput** — `userIds`: array
 - **ChatMembersInput** — `userIds`: array
 - **ChatMuteInput** — `muted`: boolean
 - **ChatReaction** — `key`: string, `count`: integer, `mine`: boolean, `users`: array
-- **ChatMessage** — `id`: string, `channelId`: string, `parentId`: string \| null, `author`: object \| null, `body`: string, `deleted`: boolean, `mentions`: array, `reactions`: array, `replyCount`: integer, `lastReplyAt`: string \| null, `createdAt`: string, `editedAt`: string \| null
+- **ChatMessage** — `id`: string, `channelId`: string, `parentId`: string \| null, `author`: object \| null, `body`: string, `deleted`: boolean, `mentions`: array, `mentionAll`: boolean, `reactions`: array, `files`: array, `pinned`: boolean, `saved`: boolean, `replyCount`: integer, `replyPeople`: array, `lastReplyAt`: string \| null, `createdAt`: string, `editedAt`: string \| null
 - **ChatMessagePage** — `messages`: array, `hasMore`: boolean
-- **ChatMessageInput** — `body`: string, `parentId?`: string \| null
+- **ChatMessageInput** — `body`: string, `parentId?`: string \| null, `fileIds?`: array
+- **ChatFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string, `createdAt`: string
+- **ChatHit** — `message`: ChatMessage, `channel`: ChatChannel
+- **ChatPresence** — `online`: array
 - **ChatBodyInput** — `body`: string

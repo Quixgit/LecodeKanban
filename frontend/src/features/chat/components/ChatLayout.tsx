@@ -9,7 +9,10 @@ import { EmptyState } from '@/shared/ui';
 import type { Member } from '@/shared/api';
 import type { ChatChannel } from '../api/chatApi';
 import { useChannels } from '../hooks/useChat';
+import { useOnline } from '../hooks/usePresence';
 import { useChatUiStore } from '../store/chatUiStore';
+import { useTypingListener } from '../store/typingStore';
+import { SearchDialog } from './SearchDialog';
 import { BrowseChannelsDialog, CreateChannelDialog, NewMessageDialog } from './ChannelDialogs';
 import { ChannelList } from './ChannelList';
 
@@ -21,8 +24,10 @@ export interface ChatOutletContext {
   me: string;
   isAdmin: boolean;
   canWrite: boolean;
+  online: ReadonlySet<string>;
   openBrowse: () => void;
   openCreate: () => void;
+  openSearch: () => void;
 }
 
 /** Chat shell: channel list on the left, the open conversation (and its thread) on the right. */
@@ -38,12 +43,25 @@ export function ChatLayout() {
   const match = useMatch('/chat/:channelId');
   const activeId = match?.params.channelId;
   const setLast = useChatUiStore((s) => s.setLastChannel);
-  const [dialog, setDialog] = useState<'create' | 'browse' | 'direct' | null>(null);
+  const [dialog, setDialog] = useState<'create' | 'browse' | 'direct' | 'search' | null>(null);
+  const online = useOnline(ws);
 
   const me = user?.id ?? '';
+  useTypingListener(me);
   useEffect(() => {
     if (me && activeId) setLast(me, activeId);
   }, [me, activeId, setLast]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setDialog('search');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   if (isLoading || !workspace) return <div className="min-h-[24rem]" aria-busy />;
 
@@ -60,8 +78,10 @@ export function ChatLayout() {
     me,
     isAdmin,
     canWrite,
+    online,
     openBrowse: () => setDialog('browse'),
     openCreate: () => setDialog('create'),
+    openSearch: () => setDialog('search'),
   };
   // Below lg the list and the conversation take turns.
   const showList = desktop || !activeId;
@@ -87,6 +107,8 @@ export function ChatLayout() {
               canCreate={canWrite}
               onCreate={() => setDialog('create')}
               onBrowse={() => setDialog('browse')}
+              online={online}
+              onSearch={() => setDialog('search')}
               onNewMessage={() => setDialog('direct')}
             />
           </div>
@@ -120,6 +142,12 @@ export function ChatLayout() {
         members={context.members}
         me={me}
         onOpened={open}
+      />
+      <SearchDialog
+        open={dialog === 'search'}
+        onOpenChange={(o) => !o && setDialog(null)}
+        workspaceId={workspace.id}
+        me={me}
       />
       <BrowseChannelsDialog
         open={dialog === 'browse'}

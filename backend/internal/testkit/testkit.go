@@ -101,7 +101,7 @@ func New(t testing.TB, pool *pgxpool.Pool) *Env {
 	activity := activitysvc.New(activityrepo.New(pool), cards, users)
 	timeTracking := timesvc.New(timerepo.New(pool), cards, ws, users)
 	hints := &Hints{}
-	chat := chatsvc.New(chatrepo.New(pool), ws, users, hints)
+	chat := chatsvc.New(chatrepo.New(pool), ws, users, hints).WithScopes(projects, cards).WithFiles(disk, AttachmentMaxBytes)
 	reactions.Register(bus, reactions.Deps{Projects: projects, Cards: cards, Activity: activity, Realtime: hints})
 	return &Env{T: t, Bus: bus, Users: users, Workspaces: ws, Boards: boards, Projects: projects, Cards: cards,
 		Comments: comments, Chat: chat, Attachments: attachments, Activity: activity, Time: timeTracking, Hints: hints}

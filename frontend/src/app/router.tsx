@@ -35,6 +35,12 @@ const ChatHomeRoute = lazy(() =>
 const ChatChannelRoute = lazy(() =>
   import('@/pages/chat/ChatRoutes').then((m) => ({ default: m.ChatChannelRoute })),
 );
+const ChatThreadsRoute = lazy(() =>
+  import('@/pages/chat/ChatRoutes').then((m) => ({ default: m.ChatThreadsRoute })),
+);
+const ChatSavedRoute = lazy(() =>
+  import('@/pages/chat/ChatRoutes').then((m) => ({ default: m.ChatSavedRoute })),
+);
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
@@ -104,6 +110,8 @@ export const routes: RouteObject[] = [
             element: <ChatPage />,
             children: [
               { index: true, element: <ChatHomeRoute /> },
+              { path: 'threads', element: <ChatThreadsRoute /> },
+              { path: 'saved', element: <ChatSavedRoute /> },
               { path: ':channelId', element: <ChatChannelRoute /> },
             ],
           },

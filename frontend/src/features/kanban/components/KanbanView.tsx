@@ -16,6 +16,7 @@ import {
   type CardInput,
   type Priority,
 } from '@/features/cards';
+import { ProjectChatButton } from '@/features/chat';
 import { useAllProjects } from '@/features/projects';
 import { LiveIndicator } from '@/features/realtime';
 import { TASK_SEARCH_ID, TasksToolbar, baseQuery, useTaskFilters } from '@/features/tasks-list';
@@ -208,6 +209,12 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
   const controls = (
     <>
       <LiveIndicator className="hidden lg:inline-flex" />
+      {mode.kind === 'project' && (
+        <ProjectChatButton
+          projectId={mode.projectId}
+          name={projects.data?.items.find((p) => p.id === mode.projectId)?.name ?? ''}
+        />
+      )}
       <div className="hidden xl:block">
         <Select
           label={t('lane.label')}

@@ -1,11 +1,24 @@
 import { motion } from 'framer-motion';
-import { Check, Copy, Ellipsis, MessageSquareText, Pencil, ThumbsUp, Trash2 } from 'lucide-react';
+import {
+  Bookmark,
+  BookmarkCheck,
+  Check,
+  Copy,
+  Ellipsis,
+  MessageSquareText,
+  Pencil,
+  Pin,
+  PinOff,
+  ThumbsUp,
+  Trash2,
+} from 'lucide-react';
 import { memo, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { transition } from '@/shared/motion';
 import {
   Avatar,
+  AvatarGroup,
   Button,
   Dropdown,
   DropdownContent,
@@ -17,12 +30,15 @@ import {
 } from '@/shared/ui';
 import type { ChatMessage } from '../api/chatApi';
 import type { ReactionKey } from '../model/reactions';
+import { Attachments } from './Attachments';
 import { ReactionBar, ReactionPicker } from './ReactionBar';
 
 export interface MessageActions {
   react: (message: ChatMessage, key: ReactionKey, on: boolean) => void;
   edit: (message: ChatMessage, body: string) => Promise<unknown>;
   remove: (message: ChatMessage) => void;
+  save?: (message: ChatMessage, on: boolean) => void;
+  pin?: (message: ChatMessage, on: boolean) => void;
   /** Absent inside a thread, where replies cannot nest. */
   openThread?: (message: ChatMessage) => void;
   copyLink?: (message: ChatMessage) => void;
@@ -117,6 +133,19 @@ export const MessageItem = memo(function MessageItem({
       <ReactionPicker
         onPick={(key) => actions.react(m, key, !m.reactions.find((r) => r.key === key)?.mine)}
       />
+      {actions.save && (
+        <Tooltip content={m.saved ? t('message.unsave') : t('message.save_later')}>
+          <IconButton
+            label={m.saved ? t('message.unsave') : t('message.save_later')}
+            variant="ghost"
+            size="sm"
+            aria-pressed={m.saved}
+            onClick={() => actions.save?.(m, !m.saved)}
+          >
+            {m.saved ? <BookmarkCheck className="text-primary-ink" /> : <Bookmark />}
+          </IconButton>
+        </Tooltip>
+      )}
       {actions.openThread && (
         <Tooltip content={t('message.reply')}>
           <IconButton
@@ -144,6 +173,12 @@ export const MessageItem = memo(function MessageItem({
               {t('message.copyLink')}
             </DropdownItem>
           )}
+          {actions.pin && !m.parentId && (
+            <DropdownItem onSelect={() => actions.pin?.(m, !m.pinned)}>
+              {m.pinned ? <PinOff /> : <Pin />}
+              {m.pinned ? t('message.unpin') : t('message.pin')}
+            </DropdownItem>
+          )}
           {mine && (
             <DropdownItem
               onSelect={() => {
@@ -168,7 +203,6 @@ export const MessageItem = memo(function MessageItem({
 
   return (
     <motion.li
-      layout="position"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={transition.ui}
@@ -205,6 +239,18 @@ export const MessageItem = memo(function MessageItem({
             >
               {time.short(m.createdAt)}
             </time>
+            {m.pinned && (
+              <span className="inline-flex items-center gap-1 text-2xs font-medium text-primary-ink">
+                <Pin className="size-3" aria-hidden />
+                {t('message.pinned')}
+              </span>
+            )}
+            {m.saved && (
+              <BookmarkCheck
+                className="size-3.5 text-primary-ink"
+                aria-label={t('message.savedBadge')}
+              />
+            )}
           </div>
         )}
         {m.deleted ? (
@@ -235,7 +281,7 @@ export const MessageItem = memo(function MessageItem({
           </div>
         ) : (
           <div className="[&>div>p:first-child]:mt-0 [&>div>p:last-child]:mb-0">
-            <Markdown source={m.body} />
+            {m.body && <Markdown source={m.body} />}
             {m.editedAt && (
               <span className="text-2xs text-text-muted" title={time.full(m.editedAt)}>
                 {t('message.edited')}
@@ -243,6 +289,7 @@ export const MessageItem = memo(function MessageItem({
             )}
           </div>
         )}
+        {!m.deleted && <Attachments files={m.files} />}
         {!m.deleted && (
           <ReactionBar
             reactions={m.reactions}
@@ -256,7 +303,15 @@ export const MessageItem = memo(function MessageItem({
             onClick={() => actions.openThread?.(m)}
             className="mt-1.5 inline-flex items-center gap-2 rounded-md px-1.5 py-1 text-xs font-medium text-primary-ink outline-none transition-colors duration-micro hover:bg-primary-soft focus-visible:shadow-focus"
           >
-            <MessageSquareText className="size-3.5" aria-hidden />
+            {m.replyPeople.length > 0 ? (
+              <AvatarGroup
+                size="xs"
+                max={3}
+                people={m.replyPeople.map((p) => ({ name: p.name, src: p.avatarUrl }))}
+              />
+            ) : (
+              <MessageSquareText className="size-3.5" aria-hidden />
+            )}
             {t('message.replies', { count: m.replyCount })}
             {m.lastReplyAt && (
               <span className="font-normal text-text-muted">

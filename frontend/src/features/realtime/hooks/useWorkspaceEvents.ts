@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { apiBaseUrl, refreshSession } from '@/shared/api';
+import { emitRealtime } from '../model/bus';
 import { useRealtimeStore } from '../model/gate';
 import {
   keysFor,
@@ -63,7 +64,9 @@ export function useWorkspaceEvents(workspaceId: string | undefined) {
       });
       source.addEventListener('change', (e) => {
         try {
-          schedule(keysFor(JSON.parse((e as MessageEvent<string>).data) as RealtimeMessage));
+          const msg = JSON.parse((e as MessageEvent<string>).data) as RealtimeMessage;
+          emitRealtime(msg);
+          schedule(keysFor(msg));
         } catch {
           // Malformed hint: ignore, the next one (or a resync) heals the cache.
         }

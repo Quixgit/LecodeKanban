@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion';
-import { Hash, Info, Lock, UserRound, Users } from 'lucide-react';
+import { Hash, Info, Lock, Search, Star, UserRound, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom';
-import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
 import { useErrorText } from '@/shared/hooks/useErrorText';
+import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
+import { cn } from '@/shared/lib/cn';
 import { transition } from '@/shared/motion';
 import {
-  Avatar,
   AvatarGroup,
   Button,
   ConfirmDialog,
@@ -16,19 +16,22 @@ import {
   Tooltip,
   toast,
 } from '@/shared/ui';
-import type { ChatMessage } from '../api/chatApi';
-import { useChannelMembers, useChatMutations, useMessages } from '../hooks/useChat';
+import { chatApi, type ChatMessage } from '../api/chatApi';
+import { useChannelMembers, useChatMutations, useMessages, usePins } from '../hooks/useChat';
 import { channelTitle } from '../model/channels';
 import { ChannelDetailsDialog } from './ChannelDetailsDialog';
+import { ChannelTabBar, FilesPanel, PinsPanel, type ChannelTab } from './ChannelTabs';
 import { Composer } from './Composer';
 import type { ChatOutletContext } from './ChatLayout';
 import type { MessageActions } from './MessageItem';
 import { MessageList } from './MessageList';
+import { PersonAvatar } from './PresenceDot';
 import { ThreadPanel } from './ThreadPanel';
+import { TypingIndicator } from './TypingIndicator';
 
 const THREAD_W = 400;
 
-/** One conversation: header, history, composer and the optional thread panel. */
+/** One conversation: header, tabs, history, composer and the optional thread panel. */
 export function ChannelView() {
   const { t } = useTranslation('chat');
   const { channelId } = useParams();
@@ -39,10 +42,12 @@ export function ChannelView() {
   const [params, setParams] = useSearchParams();
   const threadId = params.get('thread') ?? undefined;
   const highlightId = params.get('m') ?? undefined;
+  const tab = (params.get('tab') as ChannelTab | null) ?? 'messages';
   const channel = ctx.channels.find((c) => c.id === channelId);
   const m = useChatMutations(ctx.workspaceId);
   const msgs = useMessages(channel?.id);
   const members = useChannelMembers(channel?.id);
+  const pins = usePins(channel?.id);
   const [details, setDetails] = useState(false);
   const [removing, setRemoving] = useState<ChatMessage | null>(null);
 
@@ -80,17 +85,22 @@ export function ChannelView() {
   const title = channelTitle(channel, ctx.me, t('list.you'));
   const readOnly = !ctx.canWrite;
   const onError = (e: unknown) => toast.error(errorText(e));
-  const openThread = (message: ChatMessage) =>
+  const edit = (patch: (p: URLSearchParams) => void) =>
     setParams((p) => {
       const next = new URLSearchParams(p);
-      next.set('thread', message.parentId ?? message.id);
+      patch(next);
       return next;
     });
-  const closeThread = () =>
-    setParams((p) => {
-      const next = new URLSearchParams(p);
-      next.delete('thread');
-      return next;
+  const openThread = (message: ChatMessage) =>
+    edit((n) => {
+      n.set('thread', message.parentId ?? message.id);
+      n.delete('tab');
+    });
+  const closeThread = () => edit((n) => n.delete('thread'));
+  const setTab = (next: ChannelTab) =>
+    edit((n) => {
+      if (next === 'messages') n.delete('tab');
+      else n.set('tab', next);
     });
 
   const base: Omit<MessageActions, 'openThread'> = {
@@ -101,6 +111,15 @@ export function ChannelView() {
         throw e;
       }),
     remove: (message) => setRemoving(message),
+    save: (message, on) => m.save.mutate({ message, on }, { onError }),
+    pin: (message, on) =>
+      m.pin.mutate(
+        { message, on },
+        {
+          onError,
+          onSuccess: () => toast.success(t(on ? 'message.pinnedToast' : 'message.unpinnedToast')),
+        },
+      ),
     copyLink: (message) => {
       const url = `${window.location.origin}/chat/${channel.id}?m=${message.id}`;
       void navigator.clipboard?.writeText(url).then(() => toast.success(t('message.linkCopied')));
@@ -118,14 +137,21 @@ export function ChannelView() {
           ? Users
           : UserRound;
   const showThread = !!threadId;
+  const roster = members.data ?? channel.people;
+  const dmPeer = channel.kind === 'dm' && others.length === 1 ? others[0] : undefined;
 
   return (
     <div className="flex min-h-0 flex-1">
       {(desktop || !showThread) && (
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border-subtle px-5">
-            {channel.kind === 'dm' && others.length === 1 ? (
-              <Avatar name={others[0]!.name} src={others[0]!.avatarUrl} size="sm" />
+          <header className="flex h-14 shrink-0 items-center gap-3 px-5">
+            {dmPeer ? (
+              <PersonAvatar
+                name={dmPeer.name}
+                src={dmPeer.avatarUrl}
+                online={ctx.online.has(dmPeer.id)}
+                size="sm"
+              />
             ) : (
               <Icon className="size-5 shrink-0 stroke-[1.6] text-text-muted" aria-hidden />
             )}
@@ -141,6 +167,17 @@ export function ChannelView() {
                 </button>
               )}
             </div>
+            <Tooltip content={channel.starred ? t('header.unstar') : t('header.star')}>
+              <IconButton
+                label={channel.starred ? t('header.unstar') : t('header.star')}
+                variant="ghost"
+                size="sm"
+                aria-pressed={channel.starred}
+                onClick={() => m.star.mutate({ id: channel.id, on: !channel.starred }, { onError })}
+              >
+                <Star className={cn(channel.starred && 'fill-warning text-warning')} />
+              </IconButton>
+            </Tooltip>
             <Tooltip content={t('header.members')}>
               <button
                 type="button"
@@ -152,13 +189,20 @@ export function ChannelView() {
                   size="xs"
                   max={3}
                   total={channel.memberCount}
-                  people={(members.data ?? channel.people).map((p) => ({
-                    name: p.name,
-                    src: p.avatarUrl,
-                  }))}
+                  people={roster.map((p) => ({ name: p.name, src: p.avatarUrl }))}
                 />
                 <span className="tabular-nums">{channel.memberCount}</span>
               </button>
+            </Tooltip>
+            <Tooltip content={t('search.open')}>
+              <IconButton
+                label={t('search.open')}
+                variant="ghost"
+                size="sm"
+                onClick={ctx.openSearch}
+              >
+                <Search />
+              </IconButton>
             </Tooltip>
             <Tooltip content={t('header.details')}>
               <IconButton
@@ -171,65 +215,85 @@ export function ChannelView() {
               </IconButton>
             </Tooltip>
           </header>
+          <ChannelTabBar value={tab} onChange={setTab} pinCount={pins.data?.length} />
 
-          <MessageList
-            scopeKey={channel.id}
-            messages={msgs.messages}
-            loading={msgs.isPending}
-            hasOlder={!!msgs.hasNextPage}
-            loadingOlder={msgs.isFetchingNextPage}
-            onLoadOlder={() => void msgs.fetchNextPage()}
-            actions={actions}
-            me={ctx.me}
-            canModerate={ctx.isAdmin}
-            readOnly={readOnly}
-            highlightId={highlightId}
-            empty={
-              <EmptyState
-                icon={<Icon />}
-                title={t('feed.emptyTitle', { name: title })}
-                description={channel.kind === 'dm' ? t('feed.emptyDirect') : t('feed.emptyChannel')}
-              />
-            }
-          />
-
-          <div className="shrink-0 px-5 pb-4 pt-1">
-            {readOnly ? (
-              <p className="rounded-lg bg-surface-muted px-4 py-3 text-center text-sm text-text-muted">
-                {t('composer.viewer')}
-              </p>
-            ) : !channel.joined ? (
-              <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-muted px-4 py-3">
-                <p className="text-sm text-text-secondary">
-                  {t('composer.preview', { name: title })}
-                </p>
-                <Button
-                  size="sm"
-                  loading={m.join.isPending}
-                  onClick={() => m.join.mutate(channel.id, { onError })}
-                >
-                  {t('browse.join')}
-                </Button>
-              </div>
-            ) : (
-              <Composer
-                draftKey={`c:${channel.id}`}
-                label={t('composer.label', { name: channel.name ? `#${title}` : title })}
-                placeholder={t('composer.placeholder', {
-                  name: channel.name ? `#${title}` : title,
-                })}
-                members={ctx.members}
-                hint={!showThread}
-                autoFocus
-                onSend={(body) =>
-                  m.post.mutateAsync({ channel: channel.id, body }).catch((e) => {
-                    onError(e);
-                    throw e;
-                  })
+          {tab === 'pins' ? (
+            <PinsPanel
+              channel={channel}
+              me={ctx.me}
+              canModerate={ctx.isAdmin}
+              readOnly={readOnly}
+              actions={actions}
+            />
+          ) : tab === 'files' ? (
+            <FilesPanel channel={channel} />
+          ) : (
+            <>
+              <MessageList
+                scopeKey={channel.id}
+                messages={msgs.messages}
+                loading={msgs.isPending}
+                hasOlder={!!msgs.hasNextPage}
+                loadingOlder={msgs.isFetchingNextPage}
+                onLoadOlder={() => void msgs.fetchNextPage()}
+                actions={actions}
+                me={ctx.me}
+                canModerate={ctx.isAdmin}
+                readOnly={readOnly}
+                highlightId={highlightId}
+                empty={
+                  <EmptyState
+                    icon={<Icon />}
+                    title={t('feed.emptyTitle', { name: title })}
+                    description={
+                      channel.kind === 'dm' ? t('feed.emptyDirect') : t('feed.emptyChannel')
+                    }
+                  />
                 }
               />
-            )}
-          </div>
+              <TypingIndicator channelId={channel.id} people={roster} />
+              <div className="shrink-0 px-5 pb-4">
+                {readOnly ? (
+                  <p className="rounded-lg bg-surface-muted px-4 py-3 text-center text-sm text-text-muted">
+                    {t('composer.viewer')}
+                  </p>
+                ) : !channel.joined ? (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-muted px-4 py-3">
+                    <p className="text-sm text-text-secondary">
+                      {t('composer.preview', { name: title })}
+                    </p>
+                    <Button
+                      size="sm"
+                      loading={m.join.isPending}
+                      onClick={() => m.join.mutate(channel.id, { onError })}
+                    >
+                      {t('browse.join')}
+                    </Button>
+                  </div>
+                ) : (
+                  <Composer
+                    draftKey={`c:${channel.id}`}
+                    label={t('composer.label', { name: channel.name ? `#${title}` : title })}
+                    placeholder={t('composer.placeholder', {
+                      name: channel.name ? `#${title}` : title,
+                    })}
+                    members={ctx.members}
+                    uploadTo={channel.id}
+                    broadcast={channel.kind !== 'dm'}
+                    onTyping={() => void chatApi.typing(channel.id).catch(() => undefined)}
+                    hint={!showThread}
+                    autoFocus
+                    onSend={(body, fileIds) =>
+                      m.post.mutateAsync({ channel: channel.id, body, fileIds }).catch((e) => {
+                        onError(e);
+                        throw e;
+                      })
+                    }
+                  />
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -282,6 +346,7 @@ export function ChannelView() {
         members={ctx.members}
         isAdmin={ctx.isAdmin}
         canWrite={ctx.canWrite}
+        online={ctx.online}
         onGone={() => navigate('/chat')}
       />
       <ConfirmDialog
