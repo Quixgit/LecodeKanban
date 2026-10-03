@@ -5,7 +5,7 @@ import type { ChatStatus } from '../api/chatApi';
 import { STATUS_ICONS, presenceOf, type Presence } from '../model/status';
 
 const DOT: Record<Exclude<Presence, 'offline'>, string> = {
-  online: 'bg-success',
+  online: 'bg-available',
   busy: 'bg-progress',
   dnd: 'bg-danger',
   away: 'border-2 border-border-strong bg-surface',
@@ -58,7 +58,8 @@ export function StatusBadge({ status, className }: { status?: ChatStatus; classN
         role="img"
         aria-label={label}
         className={cn(
-          'inline-flex shrink-0 text-text-muted [&_svg]:size-3.5 [&_svg]:stroke-[1.8]',
+          'inline-flex shrink-0 [&_svg]:size-3.5 [&_svg]:stroke-[1.8]',
+          status.kind === 'available' ? 'text-available' : 'text-text-muted',
           className,
         )}
       >

@@ -39,6 +39,7 @@ const colorNames = [
   'done',
   'done-soft',
   'done-ink',
+  'available',
   'danger',
   'danger-soft',
   'danger-ink',
