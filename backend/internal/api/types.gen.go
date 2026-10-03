@@ -1859,6 +1859,9 @@ type IntegrationEntry struct {
 	NotifyBell  bool                     `json:"notifyBell"`
 	Provider    IntegrationEntryProvider `json:"provider"`
 
+	// RedirectUri The address to register with the provider's OAuth app (shown in the setup guide)
+	RedirectUri string `json:"redirectUri"`
+
 	// Status error means the account must be connected again
 	Status IntegrationEntryStatus `json:"status"`
 }

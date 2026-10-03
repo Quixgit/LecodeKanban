@@ -59,7 +59,7 @@ func ids(r *http.Request) (ws uuid.UUID, p domain.Provider, err error) {
 }
 
 func entry(e service.Entry) api.IntegrationEntry {
-	out := api.IntegrationEntry{Provider: api.IntegrationEntryProvider(e.Provider), Configured: e.Configured,
+	out := api.IntegrationEntry{Provider: api.IntegrationEntryProvider(e.Provider), Configured: e.Configured, RedirectUri: e.RedirectURI,
 		LeadMinutes: 30, NotifyBell: true, Status: api.IntegrationEntryStatus(domain.Connected)}
 	if in := e.Integration; in != nil {
 		out.Connected, out.Enabled, out.AccountEmail = true, in.Enabled, in.AccountEmail

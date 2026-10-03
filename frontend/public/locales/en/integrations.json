@@ -1,16 +1,15 @@
 {
-  "google": {
-    "name": "Google Calendar",
-    "tagline": "See your next meeting in the sidebar and get a reminder before it starts."
-  },
   "status": {
     "active": "Active",
     "paused": "Paused",
     "reconnect": "Needs reconnecting",
-    "off": "Not connected"
+    "off": "Not connected",
+    "needsSetup": "Needs setup"
   },
   "active": {
-    "label": "Active"
+    "label": "Active",
+    "hint": "Switch off to pause reminders without disconnecting.",
+    "aria": "{{name}} active"
   },
   "benefits": {
     "sidebar": "Your next meeting appears in the sidebar with a Join button.",
@@ -20,10 +19,6 @@
   "connect": "Connect Google Calendar",
   "reconnect": "Connect again",
   "reconnectHint": "Google no longer accepts the saved access. Connect again to resume reminders.",
-  "notConfigured": {
-    "title": "Google isn't set up on this server",
-    "body": "An administrator needs to add the Google client ID and secret first (see the deployment notes in the docs)."
-  },
   "account": "Connected as {{email}}",
   "synced": "Last synced {{when}}",
   "neverSynced": "Not synced yet",
@@ -71,5 +66,34 @@
     "title": "Meeting soon",
     "body": "“{{title}}” starts at {{time}}",
     "join": "Join"
-  }
+  },
+  "tile": {
+    "settings": "Settings",
+    "connect": "Connect",
+    "setup": "How to set up"
+  },
+  "setup": {
+    "intro": "This is done once by a server administrator.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyRedirect": "Copy the redirect address",
+    "done": "Got it",
+    "docs": "The same steps, with the setting names, are in docs/INTEGRATIONS.md in the repository.",
+    "google_calendar": {
+      "title": "Set up Google for this server",
+      "steps": [
+        "Open the Google Cloud console, choose your project and enable the Google Calendar API (APIs & Services → Library).",
+        "On the OAuth consent screen add the scope https://www.googleapis.com/auth/calendar.events.readonly. While the app is in testing mode, add your team as test users.",
+        "On your OAuth client (the one used for Google sign-in) add this authorised redirect URI:",
+        "Put the client ID and secret into the server settings: LK_GOOGLE_CLIENT_ID and LK_GOOGLE_CLIENT_SECRET, set LK_PUBLIC_URL to this site's address, and restart the server.",
+        "Come back to this page and press Connect."
+      ]
+    }
+  },
+  "google_calendar": {
+    "name": "Google Calendar",
+    "tagline": "See your next meeting in the sidebar and get a reminder before it starts."
+  },
+  "cancel": "Cancel",
+  "disconnectConfirm": "Yes, disconnect"
 }

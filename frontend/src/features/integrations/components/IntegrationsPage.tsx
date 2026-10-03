@@ -1,18 +1,23 @@
-import { useEffect, useRef } from 'react';
+import { Plug } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useErrorText } from '@/shared/hooks/useErrorText';
-import { Button, EmptyState, Skeleton, toast } from '@/shared/ui';
+import { Button, Drawer, EmptyState, Skeleton, toast } from '@/shared/ui';
+import type { IntegrationEntry, Provider } from '../api/integrationsApi';
 import { useIntegrations } from '../hooks/useIntegrations';
-import { GoogleCalendarCard } from './GoogleCalendarCard';
-import { Plug } from 'lucide-react';
+import { GoogleCalendarSettings } from './GoogleCalendarSettings';
+import { IntegrationTile } from './IntegrationTile';
+import { SetupGuide } from './SetupGuide';
 
-/** The Integrations page: every connectable service, each as a card the person can switch on or off. */
+/** The Integrations page: every connectable service as a card in a grid; settings open in a side panel. */
 export function IntegrationsPage() {
   const { t } = useTranslation('integrations');
   const errorText = useErrorText();
   const list = useIntegrations();
   const [params, setParams] = useSearchParams();
+  const [settings, setSettings] = useState<Provider | null>(null);
+  const [setup, setSetup] = useState<Provider | null>(null);
 
   // Google sends the browser back here with the outcome in the address (announced once, even when
   // development mode runs the effect twice).
@@ -30,8 +35,9 @@ export function IntegrationsPage() {
 
   if (list.isPending) {
     return (
-      <div className="flex max-w-4xl flex-col gap-4" aria-busy>
-        <Skeleton className="h-40 rounded-xl" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy>
+        <Skeleton className="h-52 rounded-xl" />
+        <Skeleton className="h-52 rounded-xl" />
       </div>
     );
   }
@@ -45,17 +51,36 @@ export function IntegrationsPage() {
       />
     );
   }
+  const items = list.data.items;
+  const find = (p: Provider | null): IntegrationEntry | undefined =>
+    items.find((i) => i.provider === p);
+  const open = find(settings);
+  const guide = find(setup);
+
   return (
-    <div className="flex max-w-4xl flex-col gap-5">
-      {list.data.items.map((entry) =>
-        entry.provider === 'google_calendar' ? (
-          <GoogleCalendarCard
+    <>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {items.map((entry) => (
+          <IntegrationTile
             key={entry.provider}
             entry={entry}
-            leadChoices={list.data.leadChoices}
+            onSettings={() => setSettings(entry.provider)}
+            onSetup={() => setSetup(entry.provider)}
           />
-        ) : null,
-      )}
-    </div>
+        ))}
+      </div>
+      <Drawer
+        open={!!open}
+        onOpenChange={(o) => !o && setSettings(null)}
+        width="md"
+        title={open ? t(`${open.provider}.name`) : ''}
+        description={open ? t(`${open.provider}.tagline`) : undefined}
+      >
+        {open?.provider === 'google_calendar' && (
+          <GoogleCalendarSettings entry={open} leadChoices={list.data.leadChoices} />
+        )}
+      </Drawer>
+      {guide && <SetupGuide entry={guide} open onOpenChange={(o) => !o && setSetup(null)} />}
+    </>
   );
 }

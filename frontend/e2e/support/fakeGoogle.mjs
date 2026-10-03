@@ -45,7 +45,6 @@ createServer(async (req, res) => {
   }
   if (url.pathname === '/userinfo') return json(res, { email: 'peter@gmail.test' });
   if (url.pathname === '/calendar/v3/calendars/primary/events') {
-    const now = Date.now();
     return json(res, {
       items: events.map((e) => ({
         id: e.id,
@@ -53,14 +52,19 @@ createServer(async (req, res) => {
         summary: e.title,
         htmlLink: `https://calendar.test/${e.id}`,
         hangoutLink: `https://meet.test/${e.id}`,
-        start: { dateTime: new Date(now + e.inMinutes * 60_000).toISOString() },
-        end: { dateTime: new Date(now + (e.inMinutes + 30) * 60_000).toISOString() },
+        start: { dateTime: new Date(e.startsAt).toISOString() },
+        end: { dateTime: new Date(e.startsAt + 30 * 60_000).toISOString() },
         attendees: (e.attendees ?? []).map((email) => ({ email })),
       })),
     });
   }
   if (url.pathname === '/__events' && req.method === 'POST') {
-    events = JSON.parse(await body(req));
+    // Start times are fixed when the calendar is set, so repeated syncs see the same meeting.
+    const now = Date.now();
+    events = JSON.parse(await body(req)).map((e) => ({
+      ...e,
+      startsAt: now + e.inMinutes * 60_000,
+    }));
     return json(res, { ok: true });
   }
   json(res, { error: 'not found' }, 404);

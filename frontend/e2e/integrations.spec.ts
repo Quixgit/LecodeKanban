@@ -64,11 +64,15 @@ test.describe('Google Calendar integration', () => {
     expect(axe.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
 
     // Connect: Google approves at once and sends the browser back.
-    await page.getByRole('button', { name: 'Connect Google Calendar' }).click();
+    await page.getByRole('button', { name: 'Connect', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Connect Google Calendar' }).click();
     await expect(page.getByText('Google Calendar connected')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText('Connected as peter@gmail.test')).toBeVisible();
-    await expect(page.getByRole('switch', { name: 'Active' })).toBeChecked();
-    await expect(page.getByRole('list').getByText('Sprint planning')).toBeVisible();
+    const active = page.getByRole('switch', { name: 'Google Calendar active' });
+    await expect(active).toBeChecked();
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect(page.getByRole('dialog').getByText('Sprint planning')).toBeVisible();
+    await page.keyboard.press('Escape');
 
     // The sidebar card announces the next meeting with its participants and a Join link.
     const announce = page.getByRole('region', { name: 'Next meeting' });
@@ -83,6 +87,7 @@ test.describe('Google Calendar integration', () => {
     // A meeting comes within the lead time while the app is open: pop-up, bell count, and a channel post.
     await api(page, 'POST', `/workspaces/${ws}/chat/channels`, { name: channel });
     await page.reload();
+    await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('combobox', { name: 'Also post in a channel' }).click();
     await page.getByRole('option', { name: channel }).click();
     await calendar(page, [
@@ -91,6 +96,7 @@ test.describe('Google Calendar integration', () => {
     ]);
     await page.getByRole('button', { name: 'Sync now' }).click();
     await expect(page.getByText('Meeting soon')).toBeVisible({ timeout: 20_000 });
+    await page.keyboard.press('Escape'); // close the settings panel so the sidebar is reachable
     await expect(announce).toContainText('Team stand-up');
     await expect(announce).toContainText(/Starts in \d+ min/);
     const bell = page.getByRole('button', { name: /Notifications, \d+ unread/ });
@@ -112,7 +118,7 @@ test.describe('Google Calendar integration', () => {
     );
     const mine = channels.find((c) => c.name === channel)!;
     await page.goto(`/chat/${mine.id}`);
-    await expect(page.getByText('Team stand-up')).toBeVisible();
+    await expect(page.getByText('Team stand-up').first()).toBeVisible();
     await expect(page.getByRole('link', { name: 'Join' }).first()).toHaveAttribute(
       'href',
       'https://meet.test/standup',
@@ -120,21 +126,28 @@ test.describe('Google Calendar integration', () => {
     await page.goto('/integrations');
 
     // Pausing silences the card; resuming brings it back.
-    await page.getByRole('switch', { name: 'Active' }).click();
+    await page.getByRole('switch', { name: 'Google Calendar active' }).click();
     await expect(page.getByText('Paused').first()).toBeVisible();
     await expect(page.getByRole('region', { name: 'Next meeting' })).toHaveCount(0);
-    await page.getByRole('switch', { name: 'Active' }).click();
+    await page.getByRole('switch', { name: 'Google Calendar active' }).click();
     await expect(page.getByRole('region', { name: 'Next meeting' })).toBeVisible();
 
-    // The lead time is a choice.
+    // The lead time is a choice, in the settings panel.
+    await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('combobox', { name: 'Remind me' }).click();
     await page.getByRole('option', { name: '10 min before' }).click();
     await expect(page.getByRole('combobox', { name: 'Remind me' })).toContainText('10 min before');
 
     // Disconnecting forgets everything.
     await page.getByRole('button', { name: 'Disconnect' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Disconnect' }).click();
+    await page
+      .getByRole('group', { name: 'Disconnect Google Calendar?' })
+      .getByRole('button', { name: 'Yes, disconnect' })
+      .click();
     await expect(page.getByText('Not connected').first()).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(1); // only the settings panel is left
+    await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('region', { name: 'Next meeting' })).toContainText(
       'See your meetings here',
     );
