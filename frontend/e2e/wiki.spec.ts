@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, LISA, signIn, test } from './fixtures';
-import { addNode, createSpace, level, stamp } from './wikiHelpers';
+import { addNode, createSpace, level, stamp, waitSaved } from './wikiHelpers';
 
 test.describe('Docs', () => {
   test('folder → nested page → share → other user → move → trash → restore', async ({
@@ -119,5 +119,54 @@ test.describe('Docs', () => {
     await page.getByRole('button', { name: 'Share', exact: true }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     expect(await scan()).toEqual([]);
+  });
+});
+
+test.describe('Docs export', () => {
+  test('downloads a page as HTML, a folder and the whole space as zips', async ({ page }) => {
+    await signIn(page);
+    await createSpace(page, `Export ${stamp()}`);
+    await addNode(page, 'folder', 'Guides');
+    const folder = page.getByRole('treeitem', { name: /Guides/ });
+    await folder.hover();
+    await folder.getByRole('button', { name: /Add a page inside Guides/ }).click();
+    const input = page.getByRole('textbox', { name: 'Page name' });
+    await input.fill('Rollout');
+    await input.press('Enter');
+    const editor = page.getByRole('textbox', { name: 'Page content' });
+    await expect(editor).toBeVisible({ timeout: 30_000 });
+    await editor.click();
+    await page.keyboard.type('# Exported heading\n');
+    await page.keyboard.type('Some **bold** words');
+    await waitSaved(page);
+
+    // One page, as HTML, from the page's own menu.
+    await page.getByRole('button', { name: 'More actions' }).last().click();
+    const [html] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('menuitem', { name: 'Download as HTML' }).click(),
+    ]);
+    expect(html.suggestedFilename()).toBe('Rollout.html');
+    const text = await (await import('node:fs/promises')).readFile((await html.path())!, 'utf8');
+    expect(text).toContain('<!doctype html>');
+    expect(text).toContain('<strong>bold</strong>');
+
+    // The folder, from the tree row's menu.
+    await page.getByRole('treeitem', { name: /Guides/ }).hover();
+    await page.getByRole('button', { name: /Actions for Guides/ }).click();
+    await page.getByRole('menuitem', { name: 'Export' }).hover();
+    const [folderZip] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('menuitem', { name: 'As Markdown (.md)' }).click(),
+    ]);
+    expect(folderZip.suggestedFilename()).toMatch(/\.zip$/);
+
+    // The whole space, from the tree header.
+    await page.getByRole('button', { name: 'Export', exact: true }).click();
+    const [spaceZip] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('menuitem', { name: 'HTML pages (.zip)' }).click(),
+    ]);
+    expect(spaceZip.suggestedFilename()).toMatch(/\.zip$/);
   });
 });

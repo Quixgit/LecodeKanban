@@ -105,19 +105,21 @@ func (q *Queries) AttachFiles(ctx context.Context, arg AttachFilesParams) ([]uui
 
 const createChannel = `-- name: CreateChannel :one
 
-INSERT INTO chat_channels (workspace_id, kind, name, topic, dm_key, created_by, ref_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id
+INSERT INTO chat_channels (workspace_id, kind, name, topic, dm_key, created_by, ref_id, feed, feed_project_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id
 `
 
 type CreateChannelParams struct {
-	WorkspaceID uuid.UUID
-	Kind        string
-	Name        *string
-	Topic       string
-	DmKey       *string
-	CreatedBy   uuid.NullUUID
-	RefID       uuid.NullUUID
+	WorkspaceID   uuid.UUID
+	Kind          string
+	Name          *string
+	Topic         string
+	DmKey         *string
+	CreatedBy     uuid.NullUUID
+	RefID         uuid.NullUUID
+	Feed          bool
+	FeedProjectID uuid.NullUUID
 }
 
 // chat module queries (sqlc). Threads are one level deep: replies carry parent_id.
@@ -130,6 +132,8 @@ func (q *Queries) CreateChannel(ctx context.Context, arg CreateChannelParams) (C
 		arg.DmKey,
 		arg.CreatedBy,
 		arg.RefID,
+		arg.Feed,
+		arg.FeedProjectID,
 	)
 	var i ChatChannel
 	err := row.Scan(
@@ -144,6 +148,8 @@ func (q *Queries) CreateChannel(ctx context.Context, arg CreateChannelParams) (C
 		&i.LastMessageAt,
 		&i.ArchivedAt,
 		&i.RefID,
+		&i.Feed,
+		&i.FeedProjectID,
 	)
 	return i, err
 }
@@ -191,7 +197,7 @@ func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (ChatFil
 }
 
 const deleteMessage = `-- name: DeleteMessage :one
-UPDATE chat_messages SET body = '', mentions = '{}', mention_all = false, deleted_at = now() WHERE id = $1 RETURNING id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all
+UPDATE chat_messages SET body = '', mentions = '{}', mention_all = false, deleted_at = now() WHERE id = $1 RETURNING id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all, event
 `
 
 func (q *Queries) DeleteMessage(ctx context.Context, id uuid.UUID) (ChatMessage, error) {
@@ -210,12 +216,22 @@ func (q *Queries) DeleteMessage(ctx context.Context, id uuid.UUID) (ChatMessage,
 		&i.EditedAt,
 		&i.DeletedAt,
 		&i.MentionAll,
+		&i.Event,
 	)
 	return i, err
 }
 
+const deleteStatus = `-- name: DeleteStatus :exec
+DELETE FROM chat_status WHERE user_id = $1
+`
+
+func (q *Queries) DeleteStatus(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteStatus, userID)
+	return err
+}
+
 const getChannel = `-- name: GetChannel :one
-SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id FROM chat_channels WHERE id = $1
+SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id FROM chat_channels WHERE id = $1
 `
 
 func (q *Queries) GetChannel(ctx context.Context, id uuid.UUID) (ChatChannel, error) {
@@ -233,12 +249,14 @@ func (q *Queries) GetChannel(ctx context.Context, id uuid.UUID) (ChatChannel, er
 		&i.LastMessageAt,
 		&i.ArchivedAt,
 		&i.RefID,
+		&i.Feed,
+		&i.FeedProjectID,
 	)
 	return i, err
 }
 
 const getChannelState = `-- name: GetChannelState :one
-SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.created_by, c.created_at, c.last_message_at,
+SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.feed, c.feed_project_id, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
        (st.user_id IS NOT NULL)::boolean AS starred,
@@ -270,6 +288,8 @@ type GetChannelStateRow struct {
 	Topic         string
 	DmKey         *string
 	RefID         uuid.NullUUID
+	Feed          bool
+	FeedProjectID uuid.NullUUID
 	CreatedBy     uuid.NullUUID
 	CreatedAt     time.Time
 	LastMessageAt *time.Time
@@ -291,6 +311,8 @@ func (q *Queries) GetChannelState(ctx context.Context, arg GetChannelStateParams
 		&i.Topic,
 		&i.DmKey,
 		&i.RefID,
+		&i.Feed,
+		&i.FeedProjectID,
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.LastMessageAt,
@@ -304,7 +326,7 @@ func (q *Queries) GetChannelState(ctx context.Context, arg GetChannelStateParams
 }
 
 const getDMChannel = `-- name: GetDMChannel :one
-SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id FROM chat_channels WHERE workspace_id = $1 AND kind = 'dm' AND dm_key = $2
+SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id FROM chat_channels WHERE workspace_id = $1 AND kind = 'dm' AND dm_key = $2
 `
 
 type GetDMChannelParams struct {
@@ -327,6 +349,8 @@ func (q *Queries) GetDMChannel(ctx context.Context, arg GetDMChannelParams) (Cha
 		&i.LastMessageAt,
 		&i.ArchivedAt,
 		&i.RefID,
+		&i.Feed,
+		&i.FeedProjectID,
 	)
 	return i, err
 }
@@ -376,7 +400,7 @@ func (q *Queries) GetMembership(ctx context.Context, arg GetMembershipParams) (C
 }
 
 const getMessage = `-- name: GetMessage :one
-SELECT id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all FROM chat_messages WHERE id = $1
+SELECT id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all, event FROM chat_messages WHERE id = $1
 `
 
 func (q *Queries) GetMessage(ctx context.Context, id uuid.UUID) (ChatMessage, error) {
@@ -395,12 +419,13 @@ func (q *Queries) GetMessage(ctx context.Context, id uuid.UUID) (ChatMessage, er
 		&i.EditedAt,
 		&i.DeletedAt,
 		&i.MentionAll,
+		&i.Event,
 	)
 	return i, err
 }
 
 const getScopeChannel = `-- name: GetScopeChannel :one
-SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id FROM chat_channels WHERE kind = $1 AND ref_id = $2
+SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id FROM chat_channels WHERE kind = $1 AND ref_id = $2
 `
 
 type GetScopeChannelParams struct {
@@ -423,6 +448,47 @@ func (q *Queries) GetScopeChannel(ctx context.Context, arg GetScopeChannelParams
 		&i.LastMessageAt,
 		&i.ArchivedAt,
 		&i.RefID,
+		&i.Feed,
+		&i.FeedProjectID,
+	)
+	return i, err
+}
+
+const insertEventMessage = `-- name: InsertEventMessage :one
+INSERT INTO chat_messages (channel_id, author_id, body, event)
+VALUES ($1, $2, $3, $4)
+RETURNING id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all, event
+`
+
+type InsertEventMessageParams struct {
+	ChannelID uuid.UUID
+	AuthorID  uuid.NullUUID
+	Body      string
+	Event     []byte
+}
+
+func (q *Queries) InsertEventMessage(ctx context.Context, arg InsertEventMessageParams) (ChatMessage, error) {
+	row := q.db.QueryRow(ctx, insertEventMessage,
+		arg.ChannelID,
+		arg.AuthorID,
+		arg.Body,
+		arg.Event,
+	)
+	var i ChatMessage
+	err := row.Scan(
+		&i.ID,
+		&i.ChannelID,
+		&i.AuthorID,
+		&i.ParentID,
+		&i.Body,
+		&i.Mentions,
+		&i.ReplyCount,
+		&i.LastReplyAt,
+		&i.CreatedAt,
+		&i.EditedAt,
+		&i.DeletedAt,
+		&i.MentionAll,
+		&i.Event,
 	)
 	return i, err
 }
@@ -430,7 +496,7 @@ func (q *Queries) GetScopeChannel(ctx context.Context, arg GetScopeChannelParams
 const insertMessage = `-- name: InsertMessage :one
 INSERT INTO chat_messages (channel_id, author_id, parent_id, body, mentions, mention_all)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all
+RETURNING id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all, event
 `
 
 type InsertMessageParams struct {
@@ -465,6 +531,7 @@ func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) (C
 		&i.EditedAt,
 		&i.DeletedAt,
 		&i.MentionAll,
+		&i.Event,
 	)
 	return i, err
 }
@@ -514,7 +581,7 @@ func (q *Queries) ListChannelFiles(ctx context.Context, arg ListChannelFilesPara
 }
 
 const listChannelStates = `-- name: ListChannelStates :many
-SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.created_by, c.created_at, c.last_message_at,
+SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.feed, c.feed_project_id, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
        (st.user_id IS NOT NULL)::boolean AS starred,
@@ -548,6 +615,8 @@ type ListChannelStatesRow struct {
 	Name          *string
 	Topic         string
 	DmKey         *string
+	Feed          bool
+	FeedProjectID uuid.NullUUID
 	CreatedBy     uuid.NullUUID
 	CreatedAt     time.Time
 	LastMessageAt *time.Time
@@ -574,6 +643,8 @@ func (q *Queries) ListChannelStates(ctx context.Context, arg ListChannelStatesPa
 			&i.Name,
 			&i.Topic,
 			&i.DmKey,
+			&i.Feed,
+			&i.FeedProjectID,
 			&i.CreatedBy,
 			&i.CreatedAt,
 			&i.LastMessageAt,
@@ -582,6 +653,50 @@ func (q *Queries) ListChannelStates(ctx context.Context, arg ListChannelStatesPa
 			&i.Starred,
 			&i.Unread,
 			&i.Mentions,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFeedChannels = `-- name: ListFeedChannels :many
+SELECT id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id FROM chat_channels
+WHERE workspace_id = $1 AND feed AND archived_at IS NULL AND (feed_project_id IS NULL OR feed_project_id = $2)
+`
+
+type ListFeedChannelsParams struct {
+	WorkspaceID   uuid.UUID
+	FeedProjectID uuid.NullUUID
+}
+
+func (q *Queries) ListFeedChannels(ctx context.Context, arg ListFeedChannelsParams) ([]ChatChannel, error) {
+	rows, err := q.db.Query(ctx, listFeedChannels, arg.WorkspaceID, arg.FeedProjectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ChatChannel{}
+	for rows.Next() {
+		var i ChatChannel
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.Kind,
+			&i.Name,
+			&i.Topic,
+			&i.DmKey,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.LastMessageAt,
+			&i.ArchivedAt,
+			&i.RefID,
+			&i.Feed,
+			&i.FeedProjectID,
 		); err != nil {
 			return nil, err
 		}
@@ -689,7 +804,7 @@ func (q *Queries) ListMembersOf(ctx context.Context, ids []uuid.UUID) ([]ChatMem
 }
 
 const listMessages = `-- name: ListMessages :many
-SELECT id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all FROM chat_messages m
+SELECT id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all, event FROM chat_messages m
 WHERE m.channel_id = $1 AND m.parent_id IS NULL
   AND ($2::uuid IS NULL
        OR m.created_at < (SELECT b.created_at FROM chat_messages b WHERE b.id = $2)
@@ -727,6 +842,7 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]C
 			&i.EditedAt,
 			&i.DeletedAt,
 			&i.MentionAll,
+			&i.Event,
 		); err != nil {
 			return nil, err
 		}
@@ -739,7 +855,7 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]C
 }
 
 const listMyThreads = `-- name: ListMyThreads :many
-SELECT m.id, m.channel_id, m.author_id, m.parent_id, m.body, m.mentions, m.reply_count, m.last_reply_at, m.created_at, m.edited_at, m.deleted_at, m.mention_all FROM chat_messages m
+SELECT m.id, m.channel_id, m.author_id, m.parent_id, m.body, m.mentions, m.reply_count, m.last_reply_at, m.created_at, m.edited_at, m.deleted_at, m.mention_all, m.event FROM chat_messages m
 JOIN chat_channels c ON c.id = m.channel_id AND c.archived_at IS NULL AND c.workspace_id = $1
 LEFT JOIN chat_members cm ON cm.channel_id = c.id AND cm.user_id = $2
 WHERE m.parent_id IS NULL AND m.reply_count > 0 AND m.deleted_at IS NULL
@@ -778,6 +894,7 @@ func (q *Queries) ListMyThreads(ctx context.Context, arg ListMyThreadsParams) ([
 			&i.EditedAt,
 			&i.DeletedAt,
 			&i.MentionAll,
+			&i.Event,
 		); err != nil {
 			return nil, err
 		}
@@ -814,7 +931,7 @@ func (q *Queries) ListPinnedFlags(ctx context.Context, ids []uuid.UUID) ([]uuid.
 }
 
 const listPinnedMessages = `-- name: ListPinnedMessages :many
-SELECT m.id, m.channel_id, m.author_id, m.parent_id, m.body, m.mentions, m.reply_count, m.last_reply_at, m.created_at, m.edited_at, m.deleted_at, m.mention_all FROM chat_pins p JOIN chat_messages m ON m.id = p.message_id
+SELECT m.id, m.channel_id, m.author_id, m.parent_id, m.body, m.mentions, m.reply_count, m.last_reply_at, m.created_at, m.edited_at, m.deleted_at, m.mention_all, m.event FROM chat_pins p JOIN chat_messages m ON m.id = p.message_id
 WHERE p.channel_id = $1 AND m.deleted_at IS NULL
 ORDER BY p.pinned_at DESC
 `
@@ -841,6 +958,7 @@ func (q *Queries) ListPinnedMessages(ctx context.Context, channelID uuid.UUID) (
 			&i.EditedAt,
 			&i.DeletedAt,
 			&i.MentionAll,
+			&i.Event,
 		); err != nil {
 			return nil, err
 		}
@@ -882,7 +1000,7 @@ func (q *Queries) ListReactions(ctx context.Context, ids []uuid.UUID) ([]ChatRea
 }
 
 const listReplies = `-- name: ListReplies :many
-SELECT id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all FROM chat_messages WHERE parent_id = $1 ORDER BY created_at, id
+SELECT id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all, event FROM chat_messages WHERE parent_id = $1 ORDER BY created_at, id
 `
 
 func (q *Queries) ListReplies(ctx context.Context, parentID uuid.NullUUID) ([]ChatMessage, error) {
@@ -907,6 +1025,7 @@ func (q *Queries) ListReplies(ctx context.Context, parentID uuid.NullUUID) ([]Ch
 			&i.EditedAt,
 			&i.DeletedAt,
 			&i.MentionAll,
+			&i.Event,
 		); err != nil {
 			return nil, err
 		}
@@ -982,7 +1101,7 @@ func (q *Queries) ListSavedFlags(ctx context.Context, arg ListSavedFlagsParams) 
 }
 
 const listSavedMessages = `-- name: ListSavedMessages :many
-SELECT m.id, m.channel_id, m.author_id, m.parent_id, m.body, m.mentions, m.reply_count, m.last_reply_at, m.created_at, m.edited_at, m.deleted_at, m.mention_all FROM chat_saved s
+SELECT m.id, m.channel_id, m.author_id, m.parent_id, m.body, m.mentions, m.reply_count, m.last_reply_at, m.created_at, m.edited_at, m.deleted_at, m.mention_all, m.event FROM chat_saved s
 JOIN chat_messages m ON m.id = s.message_id AND m.deleted_at IS NULL
 JOIN chat_channels c ON c.id = m.channel_id AND c.archived_at IS NULL AND c.workspace_id = $1
 LEFT JOIN chat_members cm ON cm.channel_id = c.id AND cm.user_id = $2
@@ -1020,6 +1139,40 @@ func (q *Queries) ListSavedMessages(ctx context.Context, arg ListSavedMessagesPa
 			&i.EditedAt,
 			&i.DeletedAt,
 			&i.MentionAll,
+			&i.Event,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStatuses = `-- name: ListStatuses :many
+SELECT s.user_id, s.kind, s.icon, s.text, s.until, s.updated_at FROM chat_status s
+JOIN workspace_members wm ON wm.user_id = s.user_id AND wm.workspace_id = $1
+WHERE s.until IS NULL OR s.until > now()
+`
+
+func (q *Queries) ListStatuses(ctx context.Context, workspaceID uuid.UUID) ([]ChatStatus, error) {
+	rows, err := q.db.Query(ctx, listStatuses, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ChatStatus{}
+	for rows.Next() {
+		var i ChatStatus
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Kind,
+			&i.Icon,
+			&i.Text,
+			&i.Until,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -1139,19 +1292,36 @@ func (q *Queries) Save(ctx context.Context, arg SaveParams) error {
 }
 
 const searchMessages = `-- name: SearchMessages :many
-SELECT m.id, m.channel_id, m.author_id, m.parent_id, m.body, m.mentions, m.reply_count, m.last_reply_at, m.created_at, m.edited_at, m.deleted_at, m.mention_all FROM chat_messages m
+SELECT m.id, m.channel_id, m.author_id, m.parent_id, m.body, m.mentions, m.reply_count, m.last_reply_at, m.created_at, m.edited_at, m.deleted_at, m.mention_all, m.event FROM chat_messages m
 JOIN chat_channels c ON c.id = m.channel_id AND c.archived_at IS NULL AND c.workspace_id = $1
 LEFT JOIN chat_members cm ON cm.channel_id = c.id AND cm.user_id = $2
-WHERE m.deleted_at IS NULL AND m.body ILIKE '%' || $3::text || '%' ESCAPE '\'
+WHERE m.deleted_at IS NULL
+  AND ($3::text = '' OR m.body ILIKE '%' || $3::text || '%' ESCAPE '\')
   AND (c.kind IN ('public', 'project', 'card') OR cm.user_id IS NOT NULL)
+  AND ($4::uuid IS NULL OR m.channel_id = $4)
+  AND ($5::uuid IS NULL OR m.author_id = $5)
+  AND (NOT $6::boolean OR $2::uuid = ANY (m.mentions) OR m.mention_all)
+  AND (NOT $7::boolean OR m.body ~* 'https?://')
+  AND (NOT $8::boolean OR EXISTS (SELECT 1 FROM chat_files f WHERE f.message_id = m.id))
+  AND (NOT $9::boolean OR m.parent_id IS NOT NULL OR m.reply_count > 0)
+  AND ($10::timestamptz IS NULL OR m.created_at >= $10)
+  AND ($11::timestamptz IS NULL OR m.created_at < $11)
 ORDER BY m.created_at DESC
-LIMIT $4
+LIMIT $12
 `
 
 type SearchMessagesParams struct {
 	WorkspaceID uuid.UUID
 	UserID      uuid.UUID
 	Q           string
+	ChannelID   uuid.NullUUID
+	FromID      uuid.NullUUID
+	MentionsMe  bool
+	HasLink     bool
+	HasFile     bool
+	ThreadsOnly bool
+	After       *time.Time
+	Before      *time.Time
 	Lim         int32
 }
 
@@ -1160,6 +1330,14 @@ func (q *Queries) SearchMessages(ctx context.Context, arg SearchMessagesParams) 
 		arg.WorkspaceID,
 		arg.UserID,
 		arg.Q,
+		arg.ChannelID,
+		arg.FromID,
+		arg.MentionsMe,
+		arg.HasLink,
+		arg.HasFile,
+		arg.ThreadsOnly,
+		arg.After,
+		arg.Before,
 		arg.Lim,
 	)
 	if err != nil {
@@ -1182,6 +1360,7 @@ func (q *Queries) SearchMessages(ctx context.Context, arg SearchMessagesParams) 
 			&i.EditedAt,
 			&i.DeletedAt,
 			&i.MentionAll,
+			&i.Event,
 		); err != nil {
 			return nil, err
 		}
@@ -1191,6 +1370,37 @@ func (q *Queries) SearchMessages(ctx context.Context, arg SearchMessagesParams) 
 		return nil, err
 	}
 	return items, nil
+}
+
+const setFeed = `-- name: SetFeed :one
+UPDATE chat_channels SET feed = $2, feed_project_id = $3 WHERE id = $1 RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id
+`
+
+type SetFeedParams struct {
+	ID            uuid.UUID
+	Feed          bool
+	FeedProjectID uuid.NullUUID
+}
+
+func (q *Queries) SetFeed(ctx context.Context, arg SetFeedParams) (ChatChannel, error) {
+	row := q.db.QueryRow(ctx, setFeed, arg.ID, arg.Feed, arg.FeedProjectID)
+	var i ChatChannel
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Kind,
+		&i.Name,
+		&i.Topic,
+		&i.DmKey,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.LastMessageAt,
+		&i.ArchivedAt,
+		&i.RefID,
+		&i.Feed,
+		&i.FeedProjectID,
+	)
+	return i, err
 }
 
 const setMuted = `-- name: SetMuted :exec
@@ -1284,7 +1494,7 @@ func (q *Queries) Unstar(ctx context.Context, arg UnstarParams) error {
 }
 
 const updateChannel = `-- name: UpdateChannel :one
-UPDATE chat_channels SET name = $2, topic = $3 WHERE id = $1 RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id
+UPDATE chat_channels SET name = $2, topic = $3 WHERE id = $1 RETURNING id, workspace_id, kind, name, topic, dm_key, created_by, created_at, last_message_at, archived_at, ref_id, feed, feed_project_id
 `
 
 type UpdateChannelParams struct {
@@ -1308,12 +1518,14 @@ func (q *Queries) UpdateChannel(ctx context.Context, arg UpdateChannelParams) (C
 		&i.LastMessageAt,
 		&i.ArchivedAt,
 		&i.RefID,
+		&i.Feed,
+		&i.FeedProjectID,
 	)
 	return i, err
 }
 
 const updateMessage = `-- name: UpdateMessage :one
-UPDATE chat_messages SET body = $2, mentions = $3, mention_all = $4, edited_at = now() WHERE id = $1 RETURNING id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all
+UPDATE chat_messages SET body = $2, mentions = $3, mention_all = $4, edited_at = now() WHERE id = $1 RETURNING id, channel_id, author_id, parent_id, body, mentions, reply_count, last_reply_at, created_at, edited_at, deleted_at, mention_all, event
 `
 
 type UpdateMessageParams struct {
@@ -1344,6 +1556,33 @@ func (q *Queries) UpdateMessage(ctx context.Context, arg UpdateMessageParams) (C
 		&i.EditedAt,
 		&i.DeletedAt,
 		&i.MentionAll,
+		&i.Event,
 	)
 	return i, err
+}
+
+const upsertStatus = `-- name: UpsertStatus :exec
+INSERT INTO chat_status (user_id, kind, icon, text, until, updated_at)
+VALUES ($1, $2, $3, $4, $5, now())
+ON CONFLICT (user_id) DO UPDATE
+SET kind = EXCLUDED.kind, icon = EXCLUDED.icon, text = EXCLUDED.text, until = EXCLUDED.until, updated_at = now()
+`
+
+type UpsertStatusParams struct {
+	UserID uuid.UUID
+	Kind   string
+	Icon   *string
+	Text   string
+	Until  *time.Time
+}
+
+func (q *Queries) UpsertStatus(ctx context.Context, arg UpsertStatusParams) error {
+	_, err := q.db.Exec(ctx, upsertStatus,
+		arg.UserID,
+		arg.Kind,
+		arg.Icon,
+		arg.Text,
+		arg.Until,
+	)
+	return err
 }

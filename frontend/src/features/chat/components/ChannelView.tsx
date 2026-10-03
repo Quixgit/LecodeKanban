@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Hash, Info, Lock, Search, Star, UserRound, Users } from 'lucide-react';
+import { ClipboardList, Hash, Info, Lock, Star, UserRound, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom';
@@ -25,7 +25,7 @@ import { Composer } from './Composer';
 import type { ChatOutletContext } from './ChatLayout';
 import type { MessageActions } from './MessageItem';
 import { MessageList } from './MessageList';
-import { PersonAvatar } from './PresenceDot';
+import { PersonAvatar, StatusBadge } from './PresenceDot';
 import { ThreadPanel } from './ThreadPanel';
 import { TypingIndicator } from './TypingIndicator';
 
@@ -128,8 +128,9 @@ export function ChannelView() {
   const actions: MessageActions = { ...base, openThread };
 
   const others = channel.people.filter((p) => p.id !== ctx.me);
-  const Icon =
-    channel.kind === 'public'
+  const Icon = channel.feed
+    ? ClipboardList
+    : channel.kind === 'public'
       ? Hash
       : channel.kind === 'private'
         ? Lock
@@ -150,13 +151,22 @@ export function ChannelView() {
                 name={dmPeer.name}
                 src={dmPeer.avatarUrl}
                 online={ctx.online.has(dmPeer.id)}
+                status={ctx.statuses.get(dmPeer.id)}
                 size="sm"
               />
             ) : (
               <Icon className="size-5 shrink-0 stroke-[1.6] text-text-muted" aria-hidden />
             )}
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-md font-semibold text-text">{title}</h1>
+              <h1 className="flex items-center gap-2 truncate text-md font-semibold text-text">
+                {title}
+                {dmPeer && <StatusBadge status={ctx.statuses.get(dmPeer.id)} />}
+                {channel.feed && (
+                  <span className="rounded-md bg-primary-soft px-1.5 py-0.5 text-2xs font-semibold uppercase tracking-wide text-primary-ink">
+                    {t('feed.badge')}
+                  </span>
+                )}
+              </h1>
               {channel.topic && (
                 <button
                   type="button"
@@ -193,16 +203,6 @@ export function ChannelView() {
                 />
                 <span className="tabular-nums">{channel.memberCount}</span>
               </button>
-            </Tooltip>
-            <Tooltip content={t('search.open')}>
-              <IconButton
-                label={t('search.open')}
-                variant="ghost"
-                size="sm"
-                onClick={ctx.openSearch}
-              >
-                <Search />
-              </IconButton>
             </Tooltip>
             <Tooltip content={t('header.details')}>
               <IconButton
@@ -244,9 +244,17 @@ export function ChannelView() {
                 empty={
                   <EmptyState
                     icon={<Icon />}
-                    title={t('feed.emptyTitle', { name: title })}
+                    title={
+                      channel.feed
+                        ? t('feed.emptyFeedTitle')
+                        : t('feed.emptyTitle', { name: title })
+                    }
                     description={
-                      channel.kind === 'dm' ? t('feed.emptyDirect') : t('feed.emptyChannel')
+                      channel.feed
+                        ? t('feed.emptyFeedDescription')
+                        : channel.kind === 'dm'
+                          ? t('feed.emptyDirect')
+                          : t('feed.emptyChannel')
                     }
                   />
                 }
@@ -256,6 +264,11 @@ export function ChannelView() {
                 {readOnly ? (
                   <p className="rounded-lg bg-surface-muted px-4 py-3 text-center text-sm text-text-muted">
                     {t('composer.viewer')}
+                  </p>
+                ) : channel.feed ? (
+                  <p className="flex items-center gap-2 rounded-xl border border-dashed border-border bg-surface-muted px-4 py-3 text-sm text-text-secondary">
+                    <ClipboardList className="size-4 shrink-0 text-primary-ink" aria-hidden />
+                    {t('feed.readonly')}
                   </p>
                 ) : !channel.joined ? (
                   <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-muted px-4 py-3">
@@ -347,6 +360,7 @@ export function ChannelView() {
         isAdmin={ctx.isAdmin}
         canWrite={ctx.canWrite}
         online={ctx.online}
+        projects={ctx.projects}
         onGone={() => navigate('/chat')}
       />
       <ConfirmDialog

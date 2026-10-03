@@ -47,7 +47,10 @@ type Channel struct {
 	Topic       string
 	DMKey       string
 	// RefID is the project or card of a scoped conversation.
-	RefID         *uuid.UUID
+	RefID *uuid.UUID
+	// Feed channels receive task updates; FeedProjectID narrows them to one project (nil: all).
+	Feed          bool
+	FeedProjectID *uuid.UUID
 	CreatedBy     *uuid.UUID
 	CreatedAt     time.Time
 	LastMessageAt *time.Time
@@ -80,7 +83,9 @@ type Message struct {
 	Body      string
 	Mentions  []uuid.UUID
 	// MentionAll is set by @channel, @here or @everyone: every member counts as mentioned.
-	MentionAll  bool
+	MentionAll bool
+	// Event is the structured payload of a task update (a feed message), nil for ordinary messages.
+	Event       []byte
 	ReplyCount  int
 	LastReplyAt *time.Time
 	CreatedAt   time.Time
@@ -102,7 +107,38 @@ type ReactionCount struct {
 // uses no emoji.
 var Reactions = []string{"thumbs-up", "heart", "check", "party-popper", "eyes", "laugh", "flame", "lightbulb"}
 
-func ValidReaction(key string) bool { return slices.Contains(Reactions, key) }
+// ValidReaction accepts a built-in icon key or a single emoji (with its modifiers and joiners).
+func ValidReaction(key string) bool { return slices.Contains(Reactions, key) || IsEmoji(key) }
+
+// IsEmoji reports whether s is one to a few emoji: pictographs, flags, keycaps, skin tones, zero-width
+// joiners and variation selectors, and nothing else.
+func IsEmoji(s string) bool {
+	if s == "" || len(s) > 32 {
+		return false
+	}
+	pictograph := false
+	for _, r := range s {
+		switch {
+		case r >= 0x1F300 && r <= 0x1FAFF, // symbols, emoticons, transport, supplemental, extended-A
+			r >= 0x2600 && r <= 0x27BF,   // misc symbols and dingbats
+			r >= 0x2B00 && r <= 0x2BFF,   // arrows and stars (⭐ ⬆)
+			r >= 0x1F1E6 && r <= 0x1F1FF, // regional indicators (flags)
+			r == 0x00A9, r == 0x00AE, r == 0x203C, r == 0x2049, r == 0x2122, r == 0x2139,
+			r >= 0x2190 && r <= 0x21FF, r >= 0x231A && r <= 0x23FF, r == 0x24C2,
+			r >= 0x25AA && r <= 0x25FE, r >= 0x2934 && r <= 0x2935, r == 0x3030, r == 0x303D, r == 0x3297, r == 0x3299:
+			pictograph = true
+		case r >= '0' && r <= '9', r == '#', r == '*': // keycap bases: only valid with U+20E3 below
+		case r == 0x200D, r == 0xFE0F, r == 0x20E3, r >= 0x1F3FB && r <= 0x1F3FF, r >= 0xE0020 && r <= 0xE007F:
+			// joiner, variation selector, keycap, skin tones, tag characters (subdivision flags)
+		default:
+			return false
+		}
+	}
+	if !pictograph {
+		return strings.HasSuffix(s, "\u20e3") // 1️⃣ #️⃣ ...
+	}
+	return true
+}
 
 var nameRe = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,39}$`)
 
@@ -178,6 +214,41 @@ var (
 	ErrDMMembers    = apperr.Define("chat.dm_members", http.StatusUnprocessableEntity)
 	ErrNotMember    = apperr.Define("chat.not_member", http.StatusForbidden)
 	ErrDeleted      = apperr.Define("chat.message_deleted", http.StatusConflict)
+	ErrFeedOnly     = apperr.Define("chat.feed_readonly", http.StatusForbidden)
 	ErrNoFile       = apperr.Define("chat.no_file", http.StatusBadRequest)
 	ErrTooManyFiles = apperr.Define("chat.too_many_files", http.StatusUnprocessableEntity)
 )
+
+// StatusKind says how reachable somebody is.
+type StatusKind string
+
+const (
+	StatusAvailable StatusKind = "available"
+	StatusBusy      StatusKind = "busy"
+	StatusDND       StatusKind = "dnd"
+	StatusAway      StatusKind = "away"
+)
+
+func (k StatusKind) Valid() bool {
+	return k == StatusAvailable || k == StatusBusy || k == StatusDND || k == StatusAway
+}
+
+// StatusIcons are the icon keys a status may carry (outline icons in the UI).
+var StatusIcons = []string{"calendar-clock", "headphones", "coffee", "utensils", "car", "house", "plane", "thermometer"}
+
+const (
+	MaxStatusText = 100
+	// MaxStatusSpan bounds how far in the future a status may end.
+	MaxStatusSpan = 30 * 24 * time.Hour
+)
+
+// Status is a person's chosen status.
+type Status struct {
+	UserID uuid.UUID
+	Kind   StatusKind
+	Icon   string
+	Text   string
+	Until  *time.Time
+}
+
+var ErrBadStatus = apperr.Define("chat.bad_status", http.StatusUnprocessableEntity)

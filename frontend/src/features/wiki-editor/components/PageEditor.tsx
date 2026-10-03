@@ -37,7 +37,8 @@ import { buildExtensions } from '../extensions';
 import { fileUrl } from '../extensions/FileAttachment';
 import { useAutosave } from '../hooks/useAutosave';
 import { editorApi, type WikiContent } from '../lib/api';
-import { downloadText, fileNameFor, looksLikeMarkdown } from '../lib/markdown';
+import { looksLikeMarkdown } from '../lib/markdown';
+import { startDownload, wikiExportUrl } from '@/shared/api';
 import { isSafeLink, sanitizeDoc } from '../lib/sanitize';
 import { filterSlash, slashItems } from '../lib/slashItems';
 import '../styles/editor.css';
@@ -105,7 +106,6 @@ export default function PageEditor(props: PageEditorProps) {
 
 function EditorSurface({
   nodeId,
-  title,
   canEdit,
   fullWidth,
   onFullWidthChange,
@@ -394,9 +394,13 @@ function EditorSurface({
                 <FileDown />
                 {t('more.copyMarkdown')}
               </DropdownItem>
-              <DropdownItem onSelect={() => downloadText(fileNameFor(title, 'md'), markdown())}>
+              <DropdownItem onSelect={() => startDownload(wikiExportUrl({ node: nodeId }, 'md'))}>
                 <Download />
                 {t('more.downloadMarkdown')}
+              </DropdownItem>
+              <DropdownItem onSelect={() => startDownload(wikiExportUrl({ node: nodeId }, 'html'))}>
+                <Download />
+                {t('more.downloadHtml')}
               </DropdownItem>
               {editable && (
                 <DropdownItem

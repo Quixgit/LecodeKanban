@@ -7,8 +7,22 @@ export type ChatChannelPatch = components['schemas']['ChatChannelPatch'];
 export type ChatMessage = components['schemas']['ChatMessage'];
 export type ChatMessagePage = components['schemas']['ChatMessagePage'];
 export type ChatReaction = components['schemas']['ChatReaction'];
+export type ChatStatus = components['schemas']['ChatStatus'];
+export type ChatStatusInput = components['schemas']['ChatStatusInput'];
+export type ChatEvent = components['schemas']['ChatEvent'];
 export type ChatFile = components['schemas']['ChatFile'];
 export type ChatHit = components['schemas']['ChatHit'];
+
+export interface SearchParams {
+  q?: string;
+  channelId?: string;
+  fromId?: string;
+  mentionsMe?: boolean;
+  hasLink?: boolean;
+  hasFile?: boolean;
+  threadsOnly?: boolean;
+  after?: string;
+}
 
 const channel = (channelId: string) => ({ params: { path: { channelId } } });
 const message = (messageId: string) => ({ params: { path: { messageId } } });
@@ -60,10 +74,10 @@ export const chatApi = {
         body: { body, parentId: parentId ?? null, fileIds },
       }),
     ),
-  search: (workspaceId: string, q: string) =>
+  search: (workspaceId: string, query: SearchParams) =>
     unwrap(
       api.GET('/workspaces/{workspaceId}/chat/search', {
-        params: { path: { workspaceId }, query: { q } },
+        params: { path: { workspaceId }, query },
       }),
     ),
   saved: (workspaceId: string) =>
@@ -79,6 +93,14 @@ export const chatApi = {
   heartbeat: (workspaceId: string) =>
     unwrap(
       api.POST('/workspaces/{workspaceId}/chat/presence', { params: { path: { workspaceId } } }),
+    ),
+  setStatus: (workspaceId: string, body: ChatStatusInput) =>
+    unwrap(
+      api.PUT('/workspaces/{workspaceId}/chat/status', { params: { path: { workspaceId } }, body }),
+    ),
+  clearStatus: (workspaceId: string) =>
+    unwrap(
+      api.DELETE('/workspaces/{workspaceId}/chat/status', { params: { path: { workspaceId } } }),
     ),
   typing: (id: string) => unwrap(api.POST('/chat/channels/{channelId}/typing', channel(id))),
   star: (id: string, on: boolean) =>

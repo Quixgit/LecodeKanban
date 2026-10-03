@@ -22,9 +22,11 @@ export const REACTION_KEYS = [
   'lightbulb',
 ] as const;
 
-export type ReactionKey = (typeof REACTION_KEYS)[number];
+/** A built-in icon key or an emoji. */
+export type ReactionKey = string;
+type IconKey = (typeof REACTION_KEYS)[number];
 
-export const REACTION_ICONS: Record<ReactionKey, LucideIcon> = {
+export const REACTION_ICONS: Record<IconKey, LucideIcon> = {
   'thumbs-up': ThumbsUp,
   heart: Heart,
   check: CircleCheck,
@@ -35,6 +37,6 @@ export const REACTION_ICONS: Record<ReactionKey, LucideIcon> = {
   lightbulb: Lightbulb,
 };
 
-export function isReactionKey(key: string): key is ReactionKey {
+export function isIconKey(key: string): key is IconKey {
   return (REACTION_KEYS as readonly string[]).includes(key);
 }

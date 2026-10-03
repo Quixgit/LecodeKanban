@@ -197,7 +197,8 @@
     "downloadMarkdown": "Завантажити як Markdown",
     "importMarkdown": "Імпортувати файл Markdown…",
     "saveTemplate": "Зберегти як шаблон…",
-    "shortcuts": "Клавіатурні скорочення"
+    "shortcuts": "Клавіатурні скорочення",
+    "downloadHtml": "Завантажити як HTML"
   },
   "markdown": {
     "copied": "Markdown скопійовано",

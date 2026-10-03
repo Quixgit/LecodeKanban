@@ -3,11 +3,13 @@ package http
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"mime"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -42,15 +44,17 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Post("/chat/channels/{channelId}/leave", httpx.H(h.leave))
 	r.Post("/chat/channels/{channelId}/read", httpx.H(h.read))
 	r.Put("/chat/channels/{channelId}/mute", httpx.H(h.mute))
-	r.Get("/workspaces/{workspaceId}/chat/search", httpx.H(h.hitsHandler(h.svc.Search, true)))
-	r.Get("/workspaces/{workspaceId}/chat/saved", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID, _ string) ([]service.Hit, error) {
+	r.Get("/workspaces/{workspaceId}/chat/search", httpx.H(h.search))
+	r.Get("/workspaces/{workspaceId}/chat/saved", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID) ([]service.Hit, error) {
 		return h.svc.Saved(ctx, u, ws)
-	}, false)))
-	r.Get("/workspaces/{workspaceId}/chat/threads", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID, _ string) ([]service.Hit, error) {
+	})))
+	r.Get("/workspaces/{workspaceId}/chat/threads", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID) ([]service.Hit, error) {
 		return h.svc.Threads(ctx, u, ws)
-	}, false)))
+	})))
 	r.Get("/workspaces/{workspaceId}/chat/presence", httpx.H(h.online))
 	r.Post("/workspaces/{workspaceId}/chat/presence", httpx.H(h.heartbeat))
+	r.Put("/workspaces/{workspaceId}/chat/status", httpx.H(h.setStatus))
+	r.Delete("/workspaces/{workspaceId}/chat/status", httpx.H(h.clearStatus))
 	r.Post("/chat/channels/{channelId}/typing", httpx.H(h.typing))
 	r.Put("/chat/channels/{channelId}/star", httpx.H(h.star(true)))
 	r.Delete("/chat/channels/{channelId}/star", httpx.H(h.star(false)))
@@ -102,7 +106,7 @@ func people(us []usersdomain.User) []api.PersonRef {
 
 func toChannel(v service.ChannelView) api.ChatChannel {
 	out := api.ChatChannel{Id: v.ID, WorkspaceId: v.WorkspaceID, Kind: api.ChatChannelKind(v.Kind), Topic: v.Topic,
-		Joined: v.Joined, Muted: v.Muted, Starred: v.Starred, Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
+		Joined: v.Joined, Muted: v.Muted, Starred: v.Starred, Feed: v.Feed, FeedProjectId: v.FeedProjectID, Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
 		LastMessageAt: v.LastMessageAt, People: people(v.People)}
 	if v.Name != "" {
 		n := v.Name
@@ -118,6 +122,12 @@ func toMessage(v service.MessageView) api.ChatMessage {
 		Files: make([]api.ChatFile, len(v.Files)), Pinned: v.Pinned, Saved: v.Saved, ReplyPeople: people(v.ReplyPeople)}
 	for i, f := range v.Files {
 		out.Files[i] = toFile(f)
+	}
+	if len(v.Event) > 0 {
+		var ev api.ChatEvent
+		if json.Unmarshal(v.Event, &ev) == nil {
+			out.Event = &ev
+		}
 	}
 	if v.Author != nil {
 		p := person(*v.Author)
@@ -165,6 +175,9 @@ func (h *Handler) createChannel(w http.ResponseWriter, r *http.Request) error {
 	if in.MemberIds != nil {
 		si.MemberIDs = *in.MemberIds
 	}
+	if in.Feed != nil {
+		si.Feed, si.FeedProjectID = *in.Feed, in.FeedProjectId
+	}
 	v, err := h.svc.CreateChannel(r.Context(), userID(r), ws, si)
 	if err != nil {
 		return err
@@ -199,7 +212,11 @@ func (h *Handler) updateChannel(w http.ResponseWriter, r *http.Request) error {
 	if err := httpx.DecodeJSON(w, r, &in); err != nil {
 		return err
 	}
-	v, err := h.svc.Update(r.Context(), userID(r), id, in.Name, in.Topic)
+	var feed *service.FeedPatch
+	if in.Feed != nil {
+		feed = &service.FeedPatch{On: *in.Feed, ProjectID: in.FeedProjectId}
+	}
+	v, err := h.svc.Update(r.Context(), userID(r), id, in.Name, in.Topic, feed)
 	if err != nil {
 		return err
 	}
@@ -429,13 +446,13 @@ func toFile(f domain.File) api.ChatFile {
 		Url: "/api/v1/chat/files/" + f.ID.String() + "/content"}
 }
 
-func (h *Handler) hitsHandler(fn func(context.Context, uuid.UUID, uuid.UUID, string) ([]service.Hit, error), needsQuery bool) httpx.HandlerFunc {
+func (h *Handler) hitsHandler(fn func(context.Context, uuid.UUID, uuid.UUID) ([]service.Hit, error)) httpx.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
 		if err != nil {
 			return err
 		}
-		hits, err := fn(r.Context(), userID(r), ws, r.URL.Query().Get("q"))
+		hits, err := fn(r.Context(), userID(r), ws)
 		if err != nil {
 			return err
 		}
@@ -460,7 +477,54 @@ func (h *Handler) online(w http.ResponseWriter, r *http.Request) error {
 	if ids == nil {
 		ids = []uuid.UUID{}
 	}
-	httpx.WriteJSON(w, http.StatusOK, api.ChatPresence{Online: ids})
+	sts, err := h.svc.Statuses(r.Context(), userID(r), ws)
+	if err != nil {
+		return err
+	}
+	out := api.ChatPresence{Online: ids, Statuses: make([]api.ChatStatus, len(sts))}
+	for i, st := range sts {
+		out.Statuses[i] = api.ChatStatus{UserId: st.UserID, Kind: api.ChatStatusKind(st.Kind), Text: st.Text, Until: st.Until}
+		if st.Icon != "" {
+			icon := api.ChatStatusIcon(st.Icon)
+			out.Statuses[i].Icon = &icon
+		}
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
+	return nil
+}
+
+func (h *Handler) setStatus(w http.ResponseWriter, r *http.Request) error {
+	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	var in api.ChatStatusInput
+	if err := httpx.DecodeJSON(w, r, &in); err != nil {
+		return err
+	}
+	st := domain.Status{Kind: domain.StatusKind(in.Kind), Until: in.Until}
+	if in.Icon != nil {
+		st.Icon = string(*in.Icon)
+	}
+	if in.Text != nil {
+		st.Text = *in.Text
+	}
+	if err := h.svc.SetStatus(r.Context(), userID(r), ws, st); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
+	return nil
+}
+
+func (h *Handler) clearStatus(w http.ResponseWriter, r *http.Request) error {
+	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	if err := h.svc.ClearStatus(r.Context(), userID(r), ws); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
 	return nil
 }
 
@@ -619,5 +683,53 @@ func (h *Handler) downloadFile(w http.ResponseWriter, r *http.Request) error {
 	hd.Set("X-Content-Type-Options", "nosniff")
 	hd.Set("Cache-Control", "private, max-age=3600")
 	http.ServeContent(w, r, "", f.CreatedAt, rc)
+	return nil
+}
+
+func queryUUID(r *http.Request, name string) (*uuid.UUID, error) {
+	v := r.URL.Query().Get(name)
+	if v == "" {
+		return nil, nil
+	}
+	id, err := uuid.Parse(v)
+	if err != nil {
+		return nil, apperr.New(domain.ErrNotFound, "not found")
+	}
+	return &id, nil
+}
+
+func queryTime(r *http.Request, name string) *time.Time {
+	t, err := time.Parse(time.RFC3339, r.URL.Query().Get(name))
+	if err != nil {
+		return nil
+	}
+	return &t
+}
+
+// search parses Slack-style modifiers from the query string.
+func (h *Handler) search(w http.ResponseWriter, r *http.Request) error {
+	ws, err := param(r, "workspaceId", wsdomain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	q := r.URL.Query()
+	in := service.SearchQuery{Q: q.Get("q"), MentionsMe: q.Get("mentionsMe") == "true", HasLink: q.Get("hasLink") == "true",
+		HasFile: q.Get("hasFile") == "true", ThreadsOnly: q.Get("threadsOnly") == "true",
+		After: queryTime(r, "after"), Before: queryTime(r, "before")}
+	if in.ChannelID, err = queryUUID(r, "channelId"); err != nil {
+		return err
+	}
+	if in.FromID, err = queryUUID(r, "fromId"); err != nil {
+		return err
+	}
+	hits, err := h.svc.Search(r.Context(), userID(r), ws, in)
+	if err != nil {
+		return err
+	}
+	out := make([]api.ChatHit, len(hits))
+	for i, x := range hits {
+		out[i] = api.ChatHit{Message: toMessage(x.MessageView), Channel: toChannel(x.Channel)}
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
 	return nil
 }

@@ -13,15 +13,26 @@ import {
   type DropAnimation,
 } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
-import { FilePlus2, FolderPlus, LayoutTemplate, Settings2, Trash2 } from 'lucide-react';
+import { Download, FilePlus2, FolderPlus, LayoutTemplate, Settings2, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSession } from '@/features/auth';
-import { isApiError } from '@/shared/api';
+import { isApiError, startDownload, wikiExportUrl } from '@/shared/api';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { dragLift, ease, transition } from '@/shared/motion';
-import { Button, ConfirmDialog, IconButton, Tooltip, toast } from '@/shared/ui';
+import {
+  Button,
+  ConfirmDialog,
+  Dropdown,
+  DropdownContent,
+  DropdownItem,
+  DropdownLabel,
+  DropdownTrigger,
+  IconButton,
+  Tooltip,
+  toast,
+} from '@/shared/ui';
 import type { WikiSpace } from '../api/wikiApi';
 import { useTree, useWikiMutations, type MoveVars } from '../hooks/useWiki';
 import { can } from '../model/permissions';
@@ -230,6 +241,16 @@ export function TreePanel({ workspaceId, spaces, spaceId, selectedId, onNavigate
         toast.error(t('share.linkCopyFailed'));
       }
     },
+    onExport: (node, format) =>
+      startDownload(
+        wikiExportUrl(
+          {
+            node: node.id,
+            subtree: node.kind === 'folder' || nodes?.some((n) => n.parentId === node.id),
+          },
+          format,
+        ),
+      ),
     onKeyboardMove: (node, placement, action) => {
       const check = space ? checkPlacement(index, node, placement, space.maxDepth) : { ok: false };
       if (!check.ok) {
@@ -399,6 +420,30 @@ export function TreePanel({ workspaceId, spaces, spaceId, selectedId, onNavigate
                     </IconButton>
                   </Tooltip>
                 </>
+              )}
+              {spaceId && (
+                <Dropdown>
+                  <Tooltip content={t('space.export')}>
+                    <DropdownTrigger asChild>
+                      <IconButton label={t('space.export')} variant="ghost" size="sm">
+                        <Download />
+                      </IconButton>
+                    </DropdownTrigger>
+                  </Tooltip>
+                  <DropdownContent align="end" className="min-w-56">
+                    <DropdownLabel>{t('space.exportAll')}</DropdownLabel>
+                    <DropdownItem
+                      onSelect={() => startDownload(wikiExportUrl({ space: spaceId }, 'md'))}
+                    >
+                      {t('space.exportMarkdown')}
+                    </DropdownItem>
+                    <DropdownItem
+                      onSelect={() => startDownload(wikiExportUrl({ space: spaceId }, 'html'))}
+                    >
+                      {t('space.exportHtml')}
+                    </DropdownItem>
+                  </DropdownContent>
+                </Dropdown>
               )}
               {can.manage(spaceRole) && (
                 <Tooltip content={t('space.settings')}>

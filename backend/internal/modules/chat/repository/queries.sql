@@ -1,8 +1,8 @@
 -- chat module queries (sqlc). Threads are one level deep: replies carry parent_id.
 
 -- name: CreateChannel :one
-INSERT INTO chat_channels (workspace_id, kind, name, topic, dm_key, created_by, ref_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO chat_channels (workspace_id, kind, name, topic, dm_key, created_by, ref_id, feed, feed_project_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: GetChannel :one
@@ -17,6 +17,18 @@ SELECT * FROM chat_channels WHERE kind = $1 AND ref_id = $2;
 -- name: UpdateChannel :one
 UPDATE chat_channels SET name = $2, topic = $3 WHERE id = $1 RETURNING *;
 
+-- name: SetFeed :one
+UPDATE chat_channels SET feed = $2, feed_project_id = $3 WHERE id = $1 RETURNING *;
+
+-- name: ListFeedChannels :many
+SELECT * FROM chat_channels
+WHERE workspace_id = $1 AND feed AND archived_at IS NULL AND (feed_project_id IS NULL OR feed_project_id = $2);
+
+-- name: InsertEventMessage :one
+INSERT INTO chat_messages (channel_id, author_id, body, event)
+VALUES ($1, $2, $3, $4)
+RETURNING *;
+
 -- name: ArchiveChannel :exec
 UPDATE chat_channels SET archived_at = now() WHERE id = $1;
 
@@ -24,7 +36,7 @@ UPDATE chat_channels SET archived_at = now() WHERE id = $1;
 UPDATE chat_channels SET last_message_at = $2 WHERE id = $1;
 
 -- name: ListChannelStates :many
-SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.created_by, c.created_at, c.last_message_at,
+SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.feed, c.feed_project_id, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
        (st.user_id IS NOT NULL)::boolean AS starred,
@@ -46,7 +58,7 @@ WHERE c.workspace_id = sqlc.arg('workspace_id') AND c.archived_at IS NULL
 ORDER BY c.name NULLS LAST, c.last_message_at DESC NULLS LAST, c.id;
 
 -- name: GetChannelState :one
-SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.created_by, c.created_at, c.last_message_at,
+SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.feed, c.feed_project_id, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
        (st.user_id IS NOT NULL)::boolean AS starred,
@@ -212,8 +224,17 @@ LIMIT sqlc.arg('lim');
 SELECT m.* FROM chat_messages m
 JOIN chat_channels c ON c.id = m.channel_id AND c.archived_at IS NULL AND c.workspace_id = sqlc.arg('workspace_id')
 LEFT JOIN chat_members cm ON cm.channel_id = c.id AND cm.user_id = sqlc.arg('user_id')
-WHERE m.deleted_at IS NULL AND m.body ILIKE '%' || sqlc.arg('q')::text || '%' ESCAPE '\'
+WHERE m.deleted_at IS NULL
+  AND (sqlc.arg('q')::text = '' OR m.body ILIKE '%' || sqlc.arg('q')::text || '%' ESCAPE '\')
   AND (c.kind IN ('public', 'project', 'card') OR cm.user_id IS NOT NULL)
+  AND (sqlc.narg('channel_id')::uuid IS NULL OR m.channel_id = sqlc.narg('channel_id'))
+  AND (sqlc.narg('from_id')::uuid IS NULL OR m.author_id = sqlc.narg('from_id'))
+  AND (NOT sqlc.arg('mentions_me')::boolean OR sqlc.arg('user_id')::uuid = ANY (m.mentions) OR m.mention_all)
+  AND (NOT sqlc.arg('has_link')::boolean OR m.body ~* 'https?://')
+  AND (NOT sqlc.arg('has_file')::boolean OR EXISTS (SELECT 1 FROM chat_files f WHERE f.message_id = m.id))
+  AND (NOT sqlc.arg('threads_only')::boolean OR m.parent_id IS NOT NULL OR m.reply_count > 0)
+  AND (sqlc.narg('after')::timestamptz IS NULL OR m.created_at >= sqlc.narg('after'))
+  AND (sqlc.narg('before')::timestamptz IS NULL OR m.created_at < sqlc.narg('before'))
 ORDER BY m.created_at DESC
 LIMIT sqlc.arg('lim');
 
@@ -225,3 +246,17 @@ ON CONFLICT (user_id) DO UPDATE SET seen_at = now();
 SELECT p.user_id FROM chat_presence p
 JOIN workspace_members wm ON wm.user_id = p.user_id AND wm.workspace_id = $1
 WHERE p.seen_at > now() - interval '2 minutes';
+
+-- name: UpsertStatus :exec
+INSERT INTO chat_status (user_id, kind, icon, text, until, updated_at)
+VALUES ($1, $2, $3, $4, $5, now())
+ON CONFLICT (user_id) DO UPDATE
+SET kind = EXCLUDED.kind, icon = EXCLUDED.icon, text = EXCLUDED.text, until = EXCLUDED.until, updated_at = now();
+
+-- name: DeleteStatus :exec
+DELETE FROM chat_status WHERE user_id = $1;
+
+-- name: ListStatuses :many
+SELECT s.* FROM chat_status s
+JOIN workspace_members wm ON wm.user_id = s.user_id AND wm.workspace_id = $1
+WHERE s.until IS NULL OR s.until > now();

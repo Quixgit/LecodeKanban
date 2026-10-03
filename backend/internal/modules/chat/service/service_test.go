@@ -2,11 +2,15 @@ package service_test
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
+	carddomain "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/service"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
@@ -349,7 +353,7 @@ func TestProjectAndCardConversations(t *testing.T) {
 	// Their shape is fixed.
 	mustCode(t, c.Leave(ctx, w.anna, pc.ID), domain.ErrDMMembers)
 	mustCode(t, c.Archive(ctx, w.owner, pc.ID), domain.ErrForbidden)
-	_, err = c.Update(ctx, w.anna, pc.ID, nil, nil)
+	_, err = c.Update(ctx, w.anna, pc.ID, nil, nil, nil)
 	mustCode(t, err, domain.ErrForbidden)
 }
 
@@ -483,22 +487,22 @@ func TestStarsSavedPinsAndLists(t *testing.T) {
 	}
 
 	// Search sees what the caller can see, ignores wildcards, and needs two characters.
-	hits, _ := c.Search(ctx, w.ben, w.ws, "plan")
+	hits, _ := c.Search(ctx, w.ben, w.ws, service.SearchQuery{Q: "plan"})
 	if len(hits) != 2 {
 		t.Fatalf("search plan = %d", len(hits))
 	}
-	if hits, _ = c.Search(ctx, w.ben, w.ws, "%"); len(hits) != 0 {
+	if hits, _ = c.Search(ctx, w.ben, w.ws, service.SearchQuery{Q: "%"}); len(hits) != 0 {
 		t.Fatal("wildcards must be literal")
 	}
-	if hits, _ = c.Search(ctx, w.ben, w.ws, "p"); len(hits) != 0 {
+	if hits, _ = c.Search(ctx, w.ben, w.ws, service.SearchQuery{Q: "p"}); len(hits) != 0 {
 		t.Fatal("one character is too short")
 	}
 	priv, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("hidden", true))
 	_, _ = c.Post(ctx, w.anna, priv.ID, nil, "plan for layoffs", nil)
-	if hits, _ = c.Search(ctx, w.ben, w.ws, "layoffs"); len(hits) != 0 {
+	if hits, _ = c.Search(ctx, w.ben, w.ws, service.SearchQuery{Q: "layoffs"}); len(hits) != 0 {
 		t.Fatal("search must not leak private channels")
 	}
-	if hits, _ = c.Search(ctx, w.anna, w.ws, "layoffs"); len(hits) != 1 {
+	if hits, _ = c.Search(ctx, w.anna, w.ws, service.SearchQuery{Q: "layoffs"}); len(hits) != 1 {
 		t.Fatal("members find their private messages")
 	}
 }
@@ -539,5 +543,239 @@ func TestMentionAllAndPresence(t *testing.T) {
 	}
 	if got := strings.Join(w.e.Hints.Types(), ","); got != "chat.typing" {
 		t.Fatalf("typing hint = %q", got)
+	}
+}
+
+func TestSearchModifiersAndEmojiReactions(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	a, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("alpha", false))
+	b, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("beta", false))
+	_, _ = c.Join(ctx, w.ben, a.ID)
+	_, _ = c.Join(ctx, w.ben, b.ID)
+	m1, _ := c.Post(ctx, w.anna, a.ID, nil, "deploy notes https://example.com/runbook", nil)
+	_, _ = c.Post(ctx, w.ben, a.ID, nil, "deploy done, thanks "+mention("Anna", w.anna), nil)
+	_, _ = c.Post(ctx, w.ben, b.ID, nil, "deploy rollback plan", nil)
+	_, _ = c.Post(ctx, w.anna, a.ID, &m1.ID, "reply about deploy", nil)
+	f := upload(t, w, w.ben, b.ID, "plan.txt", "x")
+	_, _ = c.Post(ctx, w.ben, b.ID, nil, "", []uuid.UUID{f.ID})
+
+	count := func(q service.SearchQuery) int {
+		hits, err := c.Search(ctx, w.anna, w.ws, q)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return len(hits)
+	}
+	if n := count(service.SearchQuery{Q: "deploy"}); n != 4 {
+		t.Fatalf("plain = %d", n)
+	}
+	if n := count(service.SearchQuery{Q: "deploy", ChannelID: &b.ID}); n != 1 {
+		t.Fatalf("in:#beta = %d", n)
+	}
+	if n := count(service.SearchQuery{Q: "deploy", FromID: &w.ben}); n != 2 {
+		t.Fatalf("from:ben = %d", n)
+	}
+	if n := count(service.SearchQuery{Q: "deploy", MentionsMe: true}); n != 1 {
+		t.Fatalf("mentions me = %d", n)
+	}
+	if n := count(service.SearchQuery{HasLink: true}); n != 1 {
+		t.Fatalf("has:link without text = %d", n)
+	}
+	if n := count(service.SearchQuery{HasFile: true}); n != 1 {
+		t.Fatalf("has:file = %d", n)
+	}
+	if n := count(service.SearchQuery{Q: "deploy", ThreadsOnly: true}); n != 2 { // the root with replies and its reply
+		t.Fatalf("threads only = %d", n)
+	}
+	future := time.Now().Add(time.Hour)
+	if n := count(service.SearchQuery{Q: "deploy", After: &future}); n != 0 {
+		t.Fatalf("after the future = %d", n)
+	}
+	if n := count(service.SearchQuery{}); n != 0 {
+		t.Fatal("no text and no filter must return nothing")
+	}
+	if n := count(service.SearchQuery{Q: "d"}); n != 0 {
+		t.Fatal("one character without a filter is too short")
+	}
+
+	// Reactions accept any emoji as well as the built-in keys, and reject junk.
+	for _, key := range []string{"👍", "🎉", "🇺🇦", "thumbs-up"} {
+		if _, err := c.React(ctx, w.ben, m1.ID, key, true); err != nil {
+			t.Fatalf("%q: %v", key, err)
+		}
+	}
+	_, err := c.React(ctx, w.ben, m1.ID, "<b>", true)
+	mustCode(t, err, domain.ErrBadReact)
+	v, _ := c.React(ctx, w.anna, m1.ID, "👍", true)
+	for _, r := range v.Reactions {
+		if r.Key == "👍" && r.Count != 2 {
+			t.Fatalf("emoji count = %d", r.Count)
+		}
+	}
+}
+
+func TestTaskFeeds(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	chat.RegisterFeeds(w.e.Bus, c)
+	core := w.e.Project(w.owner, w.ws, "Core")
+	other := w.e.Project(w.owner, w.ws, "Other")
+
+	all, err := c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "tasks", Feed: true})
+	if err != nil || !all.Feed || all.FeedProjectID != nil {
+		t.Fatalf("feed channel: %+v %v", all, err)
+	}
+	onlyCore, _ := c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "core-tasks", Feed: true, FeedProjectID: &core})
+	if onlyCore.FeedProjectID == nil || *onlyCore.FeedProjectID != core {
+		t.Fatalf("project feed: %+v", onlyCore)
+	}
+	_, err = c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "bad", Feed: true, FeedProjectID: ptrUUID(uuid.New())})
+	mustCode(t, err, apperr.Validation)
+	_, _ = c.Join(ctx, w.ben, all.ID)
+
+	card := w.e.Card(w.ben, w.ws, core, "Fix login")
+	w.e.Card(w.ben, w.ws, other, "Unrelated")
+	done := carddomain.Done
+	cur, _ := w.e.Cards.Get(ctx, w.ben, card.ID)
+	moved, err := w.e.Cards.Move(ctx, w.ben, card.ID, carddomain.Move{Version: cur.Version, Status: &done})
+	if err != nil {
+		t.Fatal(err)
+	}
+	high := carddomain.High
+	title := "Fix login flow"
+	if _, err := w.e.Cards.Update(ctx, w.ben, card.ID, carddomain.Patch{Version: moved.Version, Priority: &high, Title: &title,
+		AssigneeIDs: &[]uuid.UUID{w.anna}}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.e.Comments.Create(ctx, w.ben, card.ID, "Looks good to me"); err != nil {
+		t.Fatal(err)
+	}
+
+	page, err := c.Messages(ctx, w.anna, all.ID, nil, 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kinds := []string{}
+	for _, m := range page.Messages {
+		var ev struct {
+			Kind, ProjectKey, Title string
+			Changes                 []struct{ Field string }
+		}
+		if err := json.Unmarshal(m.Event, &ev); err != nil || m.Author == nil || m.Author.ID != w.ben {
+			t.Fatalf("event message: %+v err=%v", m, err)
+		}
+		kinds = append(kinds, ev.Kind)
+		if ev.ProjectKey == "" {
+			t.Fatalf("project key missing: %s", m.Event)
+		}
+		if ev.Kind == "updated" && len(ev.Changes) < 3 {
+			t.Fatalf("changes = %+v", ev.Changes)
+		}
+	}
+	// created (two projects), moved, updated, commented
+	if len(kinds) != 5 {
+		t.Fatalf("feed kinds = %v", kinds)
+	}
+	core2, _ := c.Messages(ctx, w.anna, onlyCore.ID, nil, 50)
+	if len(core2.Messages) != 4 { // the other project's task is not followed
+		t.Fatalf("project feed has %d messages", len(core2.Messages))
+	}
+	if !strings.Contains(string(page.Messages[len(page.Messages)-1].Event), "Anna") && !strings.Contains(string(page.Messages[len(page.Messages)-2].Event), "Anna") {
+		t.Fatal("assignee names must be resolved")
+	}
+
+	// People who read a feed see unread counts; it takes replies but not top-level posts.
+	st, _ := c.Channels(ctx, w.anna, w.ws)
+	for _, x := range st {
+		if x.ID == all.ID && (x.Unread == 0 || !x.Feed) {
+			t.Fatalf("feed state: %+v", x)
+		}
+	}
+	_, err = c.Post(ctx, w.anna, all.ID, nil, "chatting here", nil)
+	mustCode(t, err, domain.ErrFeedOnly)
+	if _, err := c.Post(ctx, w.anna, all.ID, &page.Messages[0].ID, "on it", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	// Turning a feed off stops it; ordinary channels can become feeds.
+	plain, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("plain", false))
+	on, err := c.Update(ctx, w.anna, plain.ID, nil, nil, &service.FeedPatch{On: true})
+	if err != nil || !on.Feed {
+		t.Fatalf("enable: %+v %v", on, err)
+	}
+	if _, err = c.Update(ctx, w.anna, all.ID, nil, nil, &service.FeedPatch{On: false}); err != nil {
+		t.Fatal(err)
+	}
+	before, _ := c.Messages(ctx, w.anna, all.ID, nil, 50)
+	w.e.Card(w.ben, w.ws, core, "After switching off")
+	after, _ := c.Messages(ctx, w.anna, all.ID, nil, 50)
+	if len(after.Messages) != len(before.Messages) {
+		t.Fatal("a feed that was switched off must stay quiet")
+	}
+	if _, err := c.Post(ctx, w.anna, all.ID, nil, "now it is a normal channel", nil); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func ptrUUID(id uuid.UUID) *uuid.UUID { return &id }
+
+func TestStatuses(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	soon := time.Now().Add(2 * time.Hour)
+	if err := c.SetStatus(ctx, w.anna, w.ws, domain.Status{Kind: domain.StatusBusy, Icon: "calendar-clock", Text: "  In a meeting  ", Until: &soon}); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.SetStatus(ctx, w.ben, w.ws, domain.Status{Kind: domain.StatusDND}); err != nil {
+		t.Fatal(err)
+	}
+	list, _ := c.Statuses(ctx, w.owner, w.ws)
+	if len(list) != 2 {
+		t.Fatalf("statuses = %+v", list)
+	}
+	for _, s := range list {
+		if s.UserID == w.anna && (s.Text != "In a meeting" || s.Icon != "calendar-clock" || s.Until == nil || s.Kind != domain.StatusBusy) {
+			t.Fatalf("anna: %+v", s)
+		}
+	}
+
+	past := time.Now().Add(-time.Minute)
+	far := time.Now().Add(90 * 24 * time.Hour)
+	for name, st := range map[string]domain.Status{
+		"kind":    {Kind: "sleeping"},
+		"icon":    {Kind: domain.StatusBusy, Icon: "skull"},
+		"text":    {Kind: domain.StatusBusy, Text: strings.Repeat("x", domain.MaxStatusText+1)},
+		"expired": {Kind: domain.StatusBusy, Until: &past},
+		"far":     {Kind: domain.StatusBusy, Until: &far},
+	} {
+		mustCode(t, c.SetStatus(ctx, w.ben, w.ws, st), domain.ErrBadStatus)
+		_ = name
+	}
+	if err := c.SetStatus(ctx, w.outsider, w.ws, domain.Status{Kind: domain.StatusBusy}); err == nil {
+		t.Fatal("outsiders cannot set a status")
+	}
+
+	// An ended status disappears by itself; plain "available" stores nothing; clearing works.
+	if _, err := tdb.Pool.Exec(ctx, `UPDATE chat_status SET until = now() - interval '1 minute' WHERE user_id = $1`, w.anna); err != nil {
+		t.Fatal(err)
+	}
+	if list, _ = c.Statuses(ctx, w.owner, w.ws); len(list) != 1 || list[0].UserID != w.ben {
+		t.Fatalf("expired status still shown: %+v", list)
+	}
+	if err := c.SetStatus(ctx, w.ben, w.ws, domain.Status{Kind: domain.StatusAvailable}); err != nil {
+		t.Fatal(err)
+	}
+	if list, _ = c.Statuses(ctx, w.owner, w.ws); len(list) != 0 {
+		t.Fatalf("available must clear the status: %+v", list)
+	}
+	_ = w.e.Hints.Types()
+	_ = c.SetStatus(ctx, w.anna, w.ws, domain.Status{Kind: domain.StatusAway})
+	_ = c.ClearStatus(ctx, w.anna, w.ws)
+	if got := strings.Join(w.e.Hints.Types(), ","); got != "chat.status,chat.status" {
+		t.Fatalf("hints = %q", got)
 	}
 }

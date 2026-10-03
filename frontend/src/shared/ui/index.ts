@@ -21,6 +21,7 @@ export * from './Modal';
 export * from './Pagination';
 export * from './PasswordInput';
 export * from './Pill';
+export * from './Popover';
 export * from './ProgressBar';
 export * from './SegmentedControl';
 export * from './Select';

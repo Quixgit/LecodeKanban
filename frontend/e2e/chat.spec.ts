@@ -58,12 +58,12 @@ test.describe('Chat', () => {
     // Peter reacts; Lisa sees the chip (live).
     await message(page, 'Hello team').hover();
     await page.getByRole('button', { name: 'Add reaction' }).first().click();
-    await page.getByRole('menuitem', { name: 'Celebrate' }).click();
-    await expect(page.getByRole('button', { name: /Celebrate, 1/ })).toHaveAttribute(
+    await page.getByRole('button', { name: '🎉' }).first().click();
+    await expect(page.getByRole('button', { name: /🎉, 1/ })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await expect(lisa.getByRole('button', { name: /Celebrate, 1/ }).first()).toBeVisible({
+    await expect(lisa.getByRole('button', { name: /🎉, 1/ }).first()).toBeVisible({
       timeout: 15_000,
     });
 
@@ -315,6 +315,274 @@ test.describe('Chat live signals', () => {
     await expect(page.getByRole('status').filter({ hasText: 'Lisa is typing' })).toBeVisible({
       timeout: 15_000,
     });
+    await lisaCtx.close();
+  });
+});
+
+test.describe('Chat search, emoji and invitations', () => {
+  test('creates a channel with people already in it', async ({ page, browser }) => {
+    const name = slug();
+    await signIn(page);
+    await page.goto('/chat');
+    await page.getByRole('button', { name: 'Add channels' }).click();
+    await page.getByRole('menuitem', { name: 'Create a channel' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('textbox', { name: 'Name' }).fill(name);
+    await dialog.getByRole('checkbox', { name: 'Lisa Kim' }).click();
+    await expect(dialog.getByRole('button', { name: /Don’t add Lisa Kim/ })).toBeVisible();
+    await dialog.getByRole('button', { name: 'Create channel' }).click();
+    await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Show members' })).toContainText('2');
+
+    // Lisa finds it in her list without joining.
+    const lisaCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const lisa = await lisaCtx.newPage();
+    await signIn(lisa, 'en', 'light', LISA);
+    await lisa.goto('/chat');
+    await expect(lisa.getByRole('link', { name })).toBeVisible();
+    await lisaCtx.close();
+  });
+
+  test('inserts emoji from the picker and reacts with any emoji', async ({ page }) => {
+    const name = slug();
+    await signIn(page);
+    await createChannel(page, name);
+    const box = page.getByRole('textbox', { name: /^Message #/ });
+    await box.fill('great job ');
+    await page.getByRole('button', { name: 'Add an emoji' }).click();
+    await page.getByRole('textbox', { name: 'Search emoji' }).fill('rocket');
+    await page.getByRole('button', { name: 'rocket' }).first().click();
+    await expect(box).toHaveValue(/great job .*🚀/);
+    await box.press('Enter');
+    const item = message(page, 'great job');
+    await expect(item).toContainText('🚀');
+
+    await item.hover();
+    await item.getByRole('button', { name: 'Add reaction' }).first().click();
+    await page.getByRole('textbox', { name: 'Search emoji' }).fill('party');
+    await page
+      .getByRole('button', { name: /party popper|partying/i })
+      .first()
+      .click();
+    await expect(item.getByRole('button', { name: /, 1$/ }).first()).toBeVisible();
+    await item.hover();
+    await item.getByRole('button', { name: 'Add reaction' }).first().click();
+    await page.getByRole('button', { name: '👍' }).first().click();
+    await expect(item.getByRole('button', { name: '👍, 1' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  test('one search with modifiers, chips and jump-to', async ({ page }) => {
+    const name = slug();
+    const word = `zebra${stamp().toLowerCase()}`;
+    await signIn(page);
+    await createChannel(page, name);
+    const box = page.getByRole('textbox', { name: /^Message #/ });
+    await box.fill(`${word} first https://example.com/a`);
+    await box.press('Enter');
+    await box.fill(`${word} second`);
+    await box.press('Enter');
+    await expect(message(page, `${word} second`)).toBeVisible();
+
+    // One entry point only: the sidebar button (no second search icon in the header).
+    await expect(page.getByRole('button', { name: /Search messages/ })).toHaveCount(1);
+    await page.getByRole('button', { name: /Search messages/ }).click();
+    const dialog = page.getByRole('dialog');
+    const input = dialog.getByRole('textbox', { name: /Search messages/ });
+    await input.fill(word);
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} first`) })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} second`) })).toBeVisible();
+
+    // The "Has a link" chip narrows to the first message.
+    await dialog.getByRole('button', { name: 'Has a link' }).click();
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} second`) })).toHaveCount(0);
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} first`) })).toBeVisible();
+
+    // Typed modifiers become chips: in:#channel offers suggestions.
+    await dialog.getByRole('button', { name: 'Clear' }).click();
+    await input.fill(`${word} in:${name}`);
+    await dialog.getByRole('option').first().click();
+    await expect(dialog.getByRole('button', { name: /Remove filter in:/ })).toBeVisible();
+    await expect(dialog.getByRole('button', { name: new RegExp(`${word} second`) })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Jump-to: the channel itself is offered for its name.
+    await dialog.getByRole('button', { name: 'Clear' }).click();
+    await input.fill(name);
+    await dialog.getByRole('button', { name }).first().click();
+    await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
+  });
+});
+
+/** Calls the API from the page, with its session and CSRF cookie, to create board data. */
+async function api<T>(page: Page, method: string, path: string, body?: unknown): Promise<T> {
+  return page.evaluate(
+    async ([m, p, b]) => {
+      const csrf = decodeURIComponent(
+        document.cookie
+          .split('; ')
+          .find((c) => c.startsWith('lk_csrf='))
+          ?.slice(8) ?? '',
+      );
+      const res = await fetch(`/api/v1${p as string}`, {
+        method: m as string,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+        body: b ? (b as string) : undefined,
+      });
+      return (await res.json()) as T;
+    },
+    [method, path, body ? JSON.stringify(body) : ''] as const,
+  );
+}
+
+test.describe('Task feed channel', () => {
+  test('a channel that only receives task updates, and lights up when one arrives', async ({
+    page,
+    browser,
+  }) => {
+    const name = slug();
+    const title = `Feed task ${stamp()}`;
+    await signIn(page);
+    await page.goto('/chat');
+    await page.getByRole('button', { name: 'Add channels' }).click();
+    await page.getByRole('menuitem', { name: 'Create a channel' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('textbox', { name: 'Name' }).fill(name);
+    await dialog.getByRole('switch', { name: 'Task feed' }).click();
+    await expect(dialog.getByRole('combobox', { name: 'Project' })).toBeVisible();
+    await dialog.getByRole('checkbox', { name: 'Lisa Kim' }).click();
+    await dialog.getByRole('button', { name: 'Create channel' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: new RegExp(name) })).toContainText(
+      'Task feed',
+    );
+    await expect(page.getByText('Only task updates appear here')).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /^Message/ })).toHaveCount(0);
+
+    // Lisa is on the Tasks page while a task is created and moved.
+    const lisaCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const lisa = await lisaCtx.newPage();
+    await signIn(lisa, 'en', 'light', LISA);
+    await lisa.goto('/chat');
+    const row = lisa.getByRole('link', { name: new RegExp(name) });
+    await expect(row).toBeVisible();
+
+    const ws = ((await api<{ id: string }[]>(page, 'GET', '/workspaces')) as { id: string }[])[0]!
+      .id;
+    const projects = await api<{ items: { id: string; key: string }[] }>(
+      page,
+      'GET',
+      `/workspaces/${ws}/projects?pageSize=5`,
+    );
+    const project = projects.items[0]!;
+    const card = await api<{ id: string; version: number }>(
+      page,
+      'POST',
+      `/workspaces/${ws}/cards`,
+      {
+        projectId: project.id,
+        title,
+      },
+    );
+    await expect(page.getByText(title)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('New task').first()).toBeVisible();
+    await api(page, 'POST', `/cards/${card.id}/move`, {
+      version: card.version,
+      status: 'in_progress',
+    });
+    await expect(page.getByText('Moved')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('link', { name: 'Open task' }).first()).toBeVisible();
+
+    // The channel announces itself in Lisa's list: unread count and a highlighted row.
+    await expect(row.getByLabel(/unread messages?/)).toBeVisible({ timeout: 15_000 });
+    await row.click();
+    await expect(lisa.getByText(title).first()).toBeVisible();
+    await expect(row.getByLabel(/unread messages?/)).toHaveCount(0, { timeout: 15_000 });
+
+    // Switching the feed off turns it back into an ordinary channel.
+    await page.getByRole('button', { name: 'Channel details' }).click();
+    await page.getByRole('dialog').getByRole('switch', { name: 'Send task updates here' }).click();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('textbox', { name: /^Message #/ })).toBeVisible({
+      timeout: 15_000,
+    });
+    await lisaCtx.close();
+  });
+});
+
+test.describe('Status', () => {
+  test('sets a status that others see, and do-not-disturb silences sounds', async ({
+    page,
+    browser,
+  }) => {
+    const lisaCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const lisa = await lisaCtx.newPage();
+    await lisa.addInitScript(() => {
+      (window as unknown as { __notes: number }).__notes = 0;
+      const proto = window.AudioContext.prototype;
+      const original = proto.createOscillator;
+      proto.createOscillator = function (this: AudioContext) {
+        (window as unknown as { __notes: number }).__notes += 1;
+        return original.call(this);
+      };
+    });
+    await signIn(lisa, 'en', 'light', LISA);
+    await lisa.goto('/chat');
+    await lisa.getByRole('button', { name: 'New message' }).click();
+    await lisa.getByRole('dialog').getByRole('checkbox', { name: 'Peter Gabrielle' }).click();
+    await lisa.getByRole('dialog').getByRole('button', { name: 'Start conversation' }).click();
+    await expect(lisa.getByRole('heading', { level: 1, name: /Peter/ })).toBeVisible();
+
+    // Peter picks "In a meeting" from the user menu.
+    await signIn(page);
+    await page.goto('/tasks');
+    await page.getByRole('button', { name: 'Account menu' }).click();
+    await page.getByRole('menuitem', { name: 'Set a status' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('button', { name: 'In a meeting' }).click();
+    await expect(dialog.getByRole('textbox', { name: 'What’s your status?' })).toHaveValue(
+      'In a meeting',
+    );
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+
+    // Lisa sees the status next to Peter's name without reloading.
+    await expect(lisa.getByRole('img', { name: 'In a meeting' }).first()).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(lisa.getByRole('img', { name: 'Busy' }).first()).toBeVisible();
+
+    // Peter switches to do-not-disturb; a message from Lisa makes no sound for him.
+    await page.getByRole('button', { name: 'Account menu' }).click();
+    await page.getByRole('menuitem', { name: 'Set a status' }).click();
+    await page
+      .getByRole('dialog')
+      .getByRole('radio', { name: /Do not disturb/ })
+      .click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.waitForTimeout(500);
+    await page.evaluate(() => {
+      (window as unknown as { __notes: number }).__notes = 0;
+    });
+    const box = lisa.getByRole('textbox', { name: /^Message / });
+    await box.fill(`quiet ${stamp()}`);
+    await box.press('Enter');
+    await page.waitForTimeout(3500);
+    expect(
+      await page.evaluate(() => (window as unknown as { __notes?: number }).__notes ?? 0),
+    ).toBe(0);
+
+    // Clearing removes it.
+    await page.getByRole('button', { name: 'Account menu' }).click();
+    await page.getByRole('menuitem', { name: 'Set a status' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Clear status' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
     await lisaCtx.close();
   });
 });

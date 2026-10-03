@@ -1,6 +1,7 @@
 import {
   Bookmark,
   BellOff,
+  ClipboardList,
   ChevronDown,
   Hash,
   Lock,
@@ -11,7 +12,7 @@ import {
   Star,
   Users,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/shared/lib/cn';
@@ -24,10 +25,11 @@ import {
   Skeleton,
   Tooltip,
 } from '@/shared/ui';
-import type { ChatChannel } from '../api/chatApi';
+import type { ChatChannel, ChatStatus } from '../api/chatApi';
 import { channelTitle, groupChannels } from '../model/channels';
 import { useChatUiStore } from '../store/chatUiStore';
-import { PersonAvatar } from './PresenceDot';
+import { PersonAvatar, StatusBadge } from './PresenceDot';
+import { SoundToggle } from './SoundToggle';
 
 interface Props {
   channels: readonly ChatChannel[] | undefined;
@@ -40,11 +42,13 @@ interface Props {
   onNewMessage: () => void;
   onSearch: () => void;
   online: ReadonlySet<string>;
+  statuses: ReadonlyMap<string, ChatStatus>;
 }
 
 /** Left column: joined channels and direct messages, unread ones in bold with a count. */
 export function ChannelList({
   online,
+  statuses,
   onSearch,
   channels,
   loading,
@@ -56,38 +60,25 @@ export function ChannelList({
   onNewMessage,
 }: Props) {
   const { t } = useTranslation('chat');
-  const [filter, setFilter] = useState('');
   const collapsed = useChatUiStore((s) => s.collapsed);
   const toggle = useChatUiStore((s) => s.toggleSection);
   const groups = useMemo(() => groupChannels(channels ?? []), [channels]);
-  const q = filter.trim().toLowerCase();
-  const match = (c: ChatChannel) =>
-    !q || channelTitle(c, me, t('list.you')).toLowerCase().includes(q);
-  const starred = groups.starred.filter(match);
-  const joined = groups.channels.filter(match);
-  const direct = groups.direct.filter(match);
+  const starred = groups.starred;
+  const joined = groups.channels;
+  const direct = groups.direct;
 
   return (
     <nav aria-label={t('sidebar.label')} className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-2 px-3 pb-2 pt-3">
-        <label className="relative min-w-0 flex-1">
-          <span className="sr-only">{t('sidebar.filter')}</span>
-          <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-text-faint"
-            aria-hidden
-          />
-          <input
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder={t('sidebar.filter')}
-            className="h-9 w-full rounded-lg border border-border bg-surface pl-8 pr-2 text-sm text-text placeholder:text-text-faint focus:border-primary focus:shadow-focus focus:outline-none"
-          />
-        </label>
-        <Tooltip content={t('search.open')}>
-          <IconButton label={t('search.open')} size="sm" variant="ghost" onClick={onSearch}>
-            <Search />
-          </IconButton>
-        </Tooltip>
+        <button
+          type="button"
+          onClick={onSearch}
+          aria-label={t('search.open')}
+          className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-surface px-2.5 text-left text-sm text-text-muted outline-none transition-[border-color,box-shadow] duration-micro hover:border-border-strong focus-visible:ring-2 focus-visible:ring-primary/40"
+        >
+          <Search className="size-4 shrink-0" aria-hidden />
+          <span className="min-w-0 flex-1 truncate">{t('sidebar.filter')}</span>
+        </button>
         <Tooltip content={t('sidebar.newMessage')}>
           <IconButton
             label={t('sidebar.newMessage')}
@@ -98,6 +89,7 @@ export function ChannelList({
             <SquarePen />
           </IconButton>
         </Tooltip>
+        <SoundToggle />
       </div>
 
       <ul className="space-y-0.5 px-2 pb-1">
@@ -122,7 +114,14 @@ export function ChannelList({
                 onToggle={() => toggle('starred')}
               >
                 {starred.map((c) => (
-                  <Row key={c.id} c={c} me={me} active={c.id === activeId} online={online} />
+                  <Row
+                    key={c.id}
+                    c={c}
+                    me={me}
+                    active={c.id === activeId}
+                    online={online}
+                    statuses={statuses}
+                  />
                 ))}
               </Section>
             )}
@@ -155,12 +154,17 @@ export function ChannelList({
               }
             >
               {joined.length === 0 ? (
-                <li className="px-3 py-2 text-xs text-text-muted">
-                  {q ? t('sidebar.noMatch') : t('sidebar.noChannels')}
-                </li>
+                <li className="px-3 py-2 text-xs text-text-muted">{t('sidebar.noChannels')}</li>
               ) : (
                 joined.map((c) => (
-                  <Row key={c.id} c={c} me={me} active={c.id === activeId} online={online} />
+                  <Row
+                    key={c.id}
+                    c={c}
+                    me={me}
+                    active={c.id === activeId}
+                    online={online}
+                    statuses={statuses}
+                  />
                 ))
               )}
             </Section>
@@ -170,12 +174,17 @@ export function ChannelList({
               onToggle={() => toggle('direct')}
             >
               {direct.length === 0 ? (
-                <li className="px-3 py-2 text-xs text-text-muted">
-                  {q ? t('sidebar.noMatch') : t('sidebar.noDirect')}
-                </li>
+                <li className="px-3 py-2 text-xs text-text-muted">{t('sidebar.noDirect')}</li>
               ) : (
                 direct.map((c) => (
-                  <Row key={c.id} c={c} me={me} active={c.id === activeId} online={online} />
+                  <Row
+                    key={c.id}
+                    c={c}
+                    me={me}
+                    active={c.id === activeId}
+                    online={online}
+                    statuses={statuses}
+                  />
                 ))
               )}
             </Section>
@@ -229,11 +238,13 @@ function Row({
   me,
   active,
   online,
+  statuses,
 }: {
   c: ChatChannel;
   me: string;
   active: boolean;
   online: ReadonlySet<string>;
+  statuses: ReadonlyMap<string, ChatStatus>;
 }) {
   const { t } = useTranslation('chat');
   const title = channelTitle(c, me, t('list.you'));
@@ -249,11 +260,14 @@ function Row({
           active
             ? 'border border-primary-border bg-primary-subtle font-medium text-primary-ink'
             : 'border border-transparent text-text-secondary hover:bg-surface-muted hover:text-text',
-          unread && !active && 'font-semibold text-text',
+          // New activity: a soft tint and bold name, so the channel announces itself.
+          unread && !active && 'border-primary-border/70 bg-primary-subtle font-semibold text-text',
         )}
       >
         <span className="grid size-5 shrink-0 place-items-center text-text-muted [&_svg]:size-4 [&_svg]:stroke-[1.7]">
-          {c.kind === 'public' ? (
+          {c.feed ? (
+            <ClipboardList className={cn(unread && 'text-primary-ink')} aria-hidden />
+          ) : c.kind === 'public' ? (
             <Hash aria-hidden />
           ) : c.kind === 'private' ? (
             <Lock aria-hidden />
@@ -264,13 +278,21 @@ function Row({
               name={others[0]?.name ?? c.people[0]?.name ?? title}
               src={(others[0] ?? c.people[0])?.avatarUrl}
               online={online.has((others[0] ?? c.people[0])?.id ?? '')}
+              status={statuses.get((others[0] ?? c.people[0])?.id ?? '')}
               size="xs"
             />
           )}
         </span>
         <span className="min-w-0 flex-1 truncate">{title}</span>
+        {others.length === 1 && <StatusBadge status={statuses.get(others[0]!.id)} />}
         {c.muted && (
           <BellOff className="size-3.5 shrink-0 text-text-faint" aria-label={t('sidebar.muted')} />
+        )}
+        {unread && c.feed && (
+          <span className="relative flex size-2 shrink-0" aria-hidden>
+            <span className="absolute inline-flex size-full rounded-full bg-primary opacity-60 motion-safe:animate-ping" />
+            <span className="relative inline-flex size-2 rounded-full bg-primary" />
+          </span>
         )}
         {unread && (
           <span

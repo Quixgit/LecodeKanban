@@ -72,6 +72,9 @@ func (s *Service) Post(ctx context.Context, user, channel uuid.UUID, parent *uui
 	if len(fileIDs) > domain.MaxFilesPerMessage {
 		return MessageView{}, apperr.New(domain.ErrTooManyFiles, "too many files").WithMeta("max", domain.MaxFilesPerMessage)
 	}
+	if ch.Feed && parent == nil {
+		return MessageView{}, apperr.New(domain.ErrFeedOnly, "only task updates appear in a task feed")
+	}
 	if err := validateBody(&body, len(fileIDs) > 0); err != nil {
 		return MessageView{}, err
 	}
@@ -154,6 +157,9 @@ func (s *Service) Edit(ctx context.Context, user, id uuid.UUID, body string) (Me
 	}
 	if m.Deleted() {
 		return MessageView{}, apperr.New(domain.ErrDeleted, "message was deleted")
+	}
+	if m.Event != nil {
+		return MessageView{}, apperr.New(domain.ErrForbidden, "task updates cannot be edited")
 	}
 	files, err := s.repo.FilesByMessages(ctx, []uuid.UUID{id})
 	if err != nil {

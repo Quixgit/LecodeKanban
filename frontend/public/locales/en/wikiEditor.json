@@ -197,7 +197,8 @@
     "downloadMarkdown": "Download as Markdown",
     "importMarkdown": "Import Markdown file…",
     "saveTemplate": "Save as template…",
-    "shortcuts": "Keyboard shortcuts"
+    "shortcuts": "Keyboard shortcuts",
+    "downloadHtml": "Download as HTML"
   },
   "markdown": {
     "copied": "Markdown copied",

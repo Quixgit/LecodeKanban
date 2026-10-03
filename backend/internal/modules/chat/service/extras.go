@@ -6,13 +6,16 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"slices"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
 
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/domain"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/repository"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/realtime"
@@ -201,19 +204,38 @@ func (s *Service) hits(ctx context.Context, user, ws uuid.UUID, ms []domain.Mess
 	return out, nil
 }
 
-// Search finds messages containing the text in channels the caller can see.
-func (s *Service) Search(ctx context.Context, user, ws uuid.UUID, q string) ([]Hit, error) {
+// SearchQuery is the text plus the modifiers (in:, from:, has:, is:thread, with:me, dates).
+type SearchQuery struct {
+	Q           string
+	ChannelID   *uuid.UUID
+	FromID      *uuid.UUID
+	MentionsMe  bool
+	HasLink     bool
+	HasFile     bool
+	ThreadsOnly bool
+	After       *time.Time
+	Before      *time.Time
+}
+
+func (q SearchQuery) filtered() bool {
+	return q.ChannelID != nil || q.FromID != nil || q.MentionsMe || q.HasLink || q.HasFile || q.ThreadsOnly ||
+		q.After != nil || q.Before != nil
+}
+
+// Search finds messages matching the text and modifiers in channels the caller can see. Text alone
+// needs two characters; with a modifier the text may be empty ("everything from Anna in #dev").
+func (s *Service) Search(ctx context.Context, user, ws uuid.UUID, in SearchQuery) ([]Hit, error) {
 	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermView); err != nil {
 		return nil, err
 	}
-	q = strings.TrimSpace(q)
-	if utf8.RuneCountInString(q) < 2 {
+	in.Q = strings.TrimSpace(in.Q)
+	if utf8.RuneCountInString(in.Q) > 100 {
+		in.Q = string([]rune(in.Q)[:100])
+	}
+	if utf8.RuneCountInString(in.Q) < 2 && (in.Q != "" || !in.filtered()) {
 		return []Hit{}, nil
 	}
-	if utf8.RuneCountInString(q) > 100 {
-		q = string([]rune(q)[:100])
-	}
-	ms, err := s.repo.Search(ctx, ws, user, q, 30)
+	ms, err := s.repo.Search(ctx, ws, user, repository.SearchFilter(in), 40)
 	if err != nil {
 		return nil, err
 	}
@@ -275,4 +297,58 @@ func (s *Service) Typing(ctx context.Context, user, channel uuid.UUID) error {
 		s.hints.Publish(ctx, realtime.Message{Type: "chat.typing", WorkspaceID: ch.WorkspaceID, ActorID: &user, ChannelID: &ch.ID})
 	}
 	return nil
+}
+
+// SetStatus sets the caller's status. A status without an end time stays until it is changed.
+func (s *Service) SetStatus(ctx context.Context, user, ws uuid.UUID, st domain.Status) error {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermView); err != nil {
+		return err
+	}
+	st.UserID = user
+	st.Text = strings.TrimSpace(st.Text)
+	if !st.Kind.Valid() || utf8.RuneCountInString(st.Text) > domain.MaxStatusText ||
+		(st.Icon != "" && !slices.Contains(domain.StatusIcons, st.Icon)) {
+		return apperr.New(domain.ErrBadStatus, "invalid status")
+	}
+	if st.Until != nil {
+		now := s.now()
+		if !st.Until.After(now) || st.Until.After(now.Add(domain.MaxStatusSpan)) {
+			return apperr.New(domain.ErrBadStatus, "the end time must be in the next 30 days")
+		}
+	}
+	// Plain "available" with nothing attached is the default: store nothing.
+	if st.Kind == domain.StatusAvailable && st.Icon == "" && st.Text == "" {
+		return s.ClearStatus(ctx, user, ws)
+	}
+	if err := s.repo.SetStatus(ctx, st); err != nil {
+		return err
+	}
+	s.hintWorkspace(ctx, "chat.status", ws, user)
+	return nil
+}
+
+// ClearStatus removes the caller's status.
+func (s *Service) ClearStatus(ctx context.Context, user, ws uuid.UUID) error {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermView); err != nil {
+		return err
+	}
+	if err := s.repo.ClearStatus(ctx, user); err != nil {
+		return err
+	}
+	s.hintWorkspace(ctx, "chat.status", ws, user)
+	return nil
+}
+
+// Statuses lists the statuses in force in the workspace.
+func (s *Service) Statuses(ctx context.Context, user, ws uuid.UUID) ([]domain.Status, error) {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermView); err != nil {
+		return nil, err
+	}
+	return s.repo.Statuses(ctx, ws)
+}
+
+func (s *Service) hintWorkspace(ctx context.Context, typ string, ws, actor uuid.UUID) {
+	if s.hints != nil {
+		s.hints.Publish(ctx, realtime.Message{Type: typ, WorkspaceID: ws, ActorID: &actor})
+	}
 }

@@ -1349,6 +1349,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/wiki/spaces/{spaceId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        /** Download every page of the space the caller can read, as a zip of Markdown or HTML files */
+        get: operations["exportWikiSpace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        /** Download a page (one file when it has no attachments, else a zip) or, with subtree, a folder and everything below it */
+        get: operations["exportWikiNode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/wiki/files/{fileId}/content": {
         parameters: {
             query?: never;
@@ -1645,6 +1683,25 @@ export interface paths {
         /** Tell the server the caller has the app open */
         post: operations["chatHeartbeat"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/chat/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the caller's status (availability, icon, short text, optional end) */
+        put: operations["setChatStatus"];
+        post?: never;
+        delete: operations["clearChatStatus"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1951,7 +2008,7 @@ export interface paths {
             header?: never;
             path: {
                 messageId: components["parameters"]["ChatMessageId"];
-                key: "thumbs-up" | "heart" | "check" | "party-popper" | "eyes" | "laugh" | "flame" | "lightbulb";
+                key: string;
             };
             cookie?: never;
         };
@@ -2843,6 +2900,13 @@ export interface components {
             joined: boolean;
             muted: boolean;
             starred: boolean;
+            /** @description Receives task updates; only replies can be posted */
+            feed: boolean;
+            /**
+             * Format: uuid
+             * @description The one project the feed follows; null means all
+             */
+            feedProjectId: string | null;
             /** @description Messages from others since the caller last read */
             unread: number;
             /** @description Of those */
@@ -2857,11 +2921,22 @@ export interface components {
             name: string;
             topic?: string;
             private?: boolean;
+            /** @description Make it a task feed */
+            feed?: boolean;
+            /** Format: uuid */
+            feedProjectId?: string | null;
             memberIds?: string[];
         };
         ChatChannelPatch: {
             name?: string;
             topic?: string;
+            /** @description Turn the task feed on or off */
+            feed?: boolean;
+            /**
+             * Format: uuid
+             * @description Used with feed; null means all projects
+             */
+            feedProjectId?: string | null;
         };
         ChatDirectInput: {
             /** @description The other participants */
@@ -2889,6 +2964,8 @@ export interface components {
             author: components["schemas"]["PersonRef"] | null;
             /** @description Markdown; mentions are written as @[Name](user-id). Empty when deleted */
             body: string;
+            /** @description A task update (feed messages) */
+            event: components["schemas"]["ChatEvent"] | null;
             deleted: boolean;
             mentions: components["schemas"]["PersonRef"][];
             /** @description @channel, @here or @everyone */
@@ -2931,12 +3008,63 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        ChatEvent: {
+            /** @enum {string} */
+            kind: "created" | "moved" | "updated" | "deleted" | "commented";
+            /** Format: uuid */
+            projectId: string;
+            projectKey: string;
+            projectName: string;
+            /** Format: uuid */
+            cardId: string;
+            number: number;
+            title: string;
+            /** @description Previous status of a move */
+            from?: string;
+            /** @description New status of a move */
+            to?: string;
+            column?: string;
+            /** @description Start of a new comment */
+            excerpt?: string;
+            changes?: {
+                field: string;
+                from?: string;
+                to?: string;
+                added?: string[];
+                removed?: string[];
+            }[];
+        };
         ChatHit: {
             message: components["schemas"]["ChatMessage"];
             channel: components["schemas"]["ChatChannel"];
         };
         ChatPresence: {
             online: string[];
+            /** @description Statuses in force */
+            statuses: components["schemas"]["ChatStatus"][];
+        };
+        ChatStatus: {
+            /** Format: uuid */
+            userId: string;
+            /** @enum {string} */
+            kind: "available" | "busy" | "dnd" | "away";
+            /** @enum {string|null} */
+            icon: "calendar-clock" | "headphones" | "coffee" | "utensils" | "car" | "house" | "plane" | "thermometer" | null;
+            text: string;
+            /** Format: date-time */
+            until: string | null;
+        };
+        ChatStatusInput: {
+            /** @enum {string} */
+            kind: "available" | "busy" | "dnd" | "away";
+            /** @enum {string|null} */
+            icon?: "calendar-clock" | "headphones" | "coffee" | "utensils" | "car" | "house" | "plane" | "thermometer" | null;
+            text?: string;
+            /**
+             * Format: date-time
+             * @description When the status ends; omit to keep it until changed
+             */
+            until?: string | null;
         };
         ChatBodyInput: {
             body: string;
@@ -5489,6 +5617,53 @@ export interface operations {
             413: components["responses"]["Error"];
         };
     };
+    exportWikiSpace: {
+        parameters: {
+            query?: {
+                format?: "md" | "html";
+            };
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A zip with the folder structure */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    exportWikiNode: {
+        parameters: {
+            query?: {
+                format?: "md" | "html";
+                subtree?: boolean;
+            };
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A Markdown or HTML file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["Error"];
+        };
+    };
     getWikiFile: {
         parameters: {
             query?: never;
@@ -5869,8 +6044,21 @@ export interface operations {
     };
     searchChat: {
         parameters: {
-            query: {
-                q: string;
+            query?: {
+                /** @description Text to find; two characters at least unless a filter is set */
+                q?: string;
+                /** @description Only this conversation */
+                channelId?: string;
+                /** @description Only messages by this person */
+                fromId?: string;
+                /** @description Only messages that mention the caller (or @channel) */
+                mentionsMe?: boolean;
+                hasLink?: boolean;
+                hasFile?: boolean;
+                /** @description Only replies and messages that have replies */
+                threadsOnly?: boolean;
+                after?: string;
+                before?: string;
             };
             header?: never;
             path: {
@@ -5969,6 +6157,51 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Recorded */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    setChatStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatStatusInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    clearChatStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cleared */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -6528,7 +6761,7 @@ export interface operations {
             header?: never;
             path: {
                 messageId: components["parameters"]["ChatMessageId"];
-                key: "thumbs-up" | "heart" | "check" | "party-popper" | "eyes" | "laugh" | "flame" | "lightbulb";
+                key: string;
             };
             cookie?: never;
         };
@@ -6551,7 +6784,7 @@ export interface operations {
             header?: never;
             path: {
                 messageId: components["parameters"]["ChatMessageId"];
-                key: "thumbs-up" | "heart" | "check" | "party-popper" | "eyes" | "laugh" | "flame" | "lightbulb";
+                key: string;
             };
             cookie?: never;
         };

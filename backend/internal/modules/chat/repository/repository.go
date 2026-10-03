@@ -58,13 +58,13 @@ func optStr(s string) *string {
 
 func toChannel(c store.ChatChannel) domain.Channel {
 	return domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
-		Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
+		Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
 		LastMessageAt: c.LastMessageAt}
 }
 
 func toMessage(m store.ChatMessage) domain.Message {
 	return domain.Message{ID: m.ID, ChannelID: m.ChannelID, AuthorID: ptrID(m.AuthorID), ParentID: ptrID(m.ParentID),
-		Body: m.Body, Mentions: m.Mentions, MentionAll: m.MentionAll, ReplyCount: int(m.ReplyCount), LastReplyAt: m.LastReplyAt,
+		Body: m.Body, Mentions: m.Mentions, MentionAll: m.MentionAll, Event: m.Event, ReplyCount: int(m.ReplyCount), LastReplyAt: m.LastReplyAt,
 		CreatedAt: m.CreatedAt, EditedAt: m.EditedAt, DeletedAt: m.DeletedAt}
 }
 
@@ -84,7 +84,7 @@ func notFound(err error) error {
 
 func (r *Repo) CreateChannel(ctx context.Context, c domain.Channel) (domain.Channel, error) {
 	row, err := r.q.CreateChannel(ctx, store.CreateChannelParams{WorkspaceID: c.WorkspaceID, Kind: string(c.Kind),
-		Name: optStr(c.Name), Topic: c.Topic, DmKey: optStr(c.DMKey), CreatedBy: nullID(c.CreatedBy), RefID: nullID(c.RefID)})
+		Name: optStr(c.Name), Topic: c.Topic, DmKey: optStr(c.DMKey), CreatedBy: nullID(c.CreatedBy), RefID: nullID(c.RefID), Feed: c.Feed, FeedProjectID: nullID(c.FeedProjectID)})
 	if err != nil {
 		if db.IsUniqueViolation(err, "chat_channels_name_key") {
 			return domain.Channel{}, apperr.New(domain.ErrNameTaken, "channel name taken")
@@ -152,7 +152,7 @@ func (r *Repo) ChannelStates(ctx context.Context, ws, user uuid.UUID) ([]domain.
 	for i, c := range rows {
 		out[i] = domain.ChannelState{
 			Channel: domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
-				Topic: c.Topic, DMKey: str(c.DmKey), CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
+				Topic: c.Topic, DMKey: str(c.DmKey), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
 				LastMessageAt: c.LastMessageAt},
 			Joined: c.Joined, Muted: c.Muted, Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}
 	}
@@ -167,7 +167,7 @@ func (r *Repo) ChannelState(ctx context.Context, id, user uuid.UUID) (domain.Cha
 	}
 	return domain.ChannelState{
 		Channel: domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
-			Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), CreatedBy: ptrID(c.CreatedBy),
+			Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), CreatedBy: ptrID(c.CreatedBy),
 			CreatedAt: c.CreatedAt, LastMessageAt: c.LastMessageAt},
 		Joined: c.Joined, Muted: c.Muted, Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}, nil
 }
@@ -500,10 +500,25 @@ func (r *Repo) MyThreads(ctx context.Context, ws, user uuid.UUID, limit int) ([]
 	return toMessages(rows), err
 }
 
-// Search finds messages containing q in channels the user can see.
-func (r *Repo) Search(ctx context.Context, ws, user uuid.UUID, q string, limit int) ([]domain.Message, error) {
-	esc := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(q)
-	rows, err := r.q.SearchMessages(ctx, store.SearchMessagesParams{WorkspaceID: ws, UserID: user, Q: esc, Lim: int32(limit)})
+// SearchFilter narrows a message search the way Slack's modifiers do.
+type SearchFilter struct {
+	Q           string
+	ChannelID   *uuid.UUID
+	FromID      *uuid.UUID
+	MentionsMe  bool
+	HasLink     bool
+	HasFile     bool
+	ThreadsOnly bool
+	After       *time.Time
+	Before      *time.Time
+}
+
+// Search finds messages matching the text and filters in channels the user can see.
+func (r *Repo) Search(ctx context.Context, ws, user uuid.UUID, f SearchFilter, limit int) ([]domain.Message, error) {
+	esc := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(f.Q)
+	rows, err := r.q.SearchMessages(ctx, store.SearchMessagesParams{WorkspaceID: ws, UserID: user, Q: esc,
+		ChannelID: nullID(f.ChannelID), FromID: nullID(f.FromID), MentionsMe: f.MentionsMe, HasLink: f.HasLink,
+		HasFile: f.HasFile, ThreadsOnly: f.ThreadsOnly, After: f.After, Before: f.Before, Lim: int32(limit)})
 	return toMessages(rows), err
 }
 
@@ -515,4 +530,59 @@ func (r *Repo) TouchPresence(ctx context.Context, user uuid.UUID) error {
 
 func (r *Repo) Online(ctx context.Context, ws uuid.UUID) ([]uuid.UUID, error) {
 	return r.q.OnlineMembers(ctx, ws)
+}
+
+// SetFeed turns a channel's task feed on or off; project nil means every project.
+func (r *Repo) SetFeed(ctx context.Context, id uuid.UUID, on bool, project *uuid.UUID) (domain.Channel, error) {
+	row, err := r.q.SetFeed(ctx, store.SetFeedParams{ID: id, Feed: on, FeedProjectID: nullID(project)})
+	if err != nil {
+		return domain.Channel{}, notFound(err)
+	}
+	return toChannel(row), nil
+}
+
+// FeedChannels lists the feed channels of a workspace that take updates of the project.
+func (r *Repo) FeedChannels(ctx context.Context, ws, project uuid.UUID) ([]domain.Channel, error) {
+	rows, err := r.q.ListFeedChannels(ctx, store.ListFeedChannelsParams{WorkspaceID: ws, FeedProjectID: nullID(&project)})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.Channel, len(rows))
+	for i, c := range rows {
+		out[i] = toChannel(c)
+	}
+	return out, nil
+}
+
+// InsertEvent stores a task update as a message authored by the person who made the change.
+func (r *Repo) InsertEvent(ctx context.Context, channel uuid.UUID, actor *uuid.UUID, body string, event []byte) (domain.Message, error) {
+	row, err := r.q.InsertEventMessage(ctx, store.InsertEventMessageParams{ChannelID: channel, AuthorID: nullID(actor), Body: body, Event: event})
+	if err != nil {
+		return domain.Message{}, err
+	}
+	return toMessage(row), nil
+}
+
+// --- status
+
+func (r *Repo) SetStatus(ctx context.Context, st domain.Status) error {
+	return r.q.UpsertStatus(ctx, store.UpsertStatusParams{UserID: st.UserID, Kind: string(st.Kind), Icon: optStr(st.Icon),
+		Text: st.Text, Until: st.Until})
+}
+
+func (r *Repo) ClearStatus(ctx context.Context, user uuid.UUID) error {
+	return r.q.DeleteStatus(ctx, user)
+}
+
+// Statuses lists the statuses in force for the members of a workspace.
+func (r *Repo) Statuses(ctx context.Context, ws uuid.UUID) ([]domain.Status, error) {
+	rows, err := r.q.ListStatuses(ctx, ws)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.Status, len(rows))
+	for i, s := range rows {
+		out[i] = domain.Status{UserID: s.UserID, Kind: domain.StatusKind(s.Kind), Icon: str(s.Icon), Text: s.Text, Until: s.Until}
+	}
+	return out, nil
 }

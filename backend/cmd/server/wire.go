@@ -100,6 +100,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 		Storage: storage, MaxUploadBytes: cfg.AttachmentMaxBytes()})
 	chatMod := chat.New(chat.Deps{Pool: pool, Workspaces: wsMod.Service, Users: usersMod.Service,
 		Hints: realtime.NewPublisher(pool, log), Projects: projectsMod.Service, Cards: cardsMod.Service, Storage: storage, MaxUploadBytes: cfg.AttachmentMaxBytes()})
+	chat.RegisterFeeds(bus, chatMod.Service)
 	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
 	hub := realtime.NewHub(cfg.DatabaseURL, log)
 

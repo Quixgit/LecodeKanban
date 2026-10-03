@@ -1394,6 +1394,29 @@ paths:
               schema: { $ref: "#/components/schemas/WikiFile" }
         "403": { $ref: "#/components/responses/Error" }
         "413": { $ref: "#/components/responses/Error" }
+  /wiki/spaces/{spaceId}/export:
+    parameters: [{ $ref: "#/components/parameters/WikiSpaceId" }]
+    get:
+      tags: [wiki]
+      operationId: exportWikiSpace
+      summary: Download every page of the space the caller can read, as a zip of Markdown or HTML files
+      parameters:
+        - { name: format, in: query, schema: { type: string, enum: [md, html], default: md } }
+      responses:
+        "200": { description: A zip with the folder structure, an index and the attachments }
+        "404": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}/export:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    get:
+      tags: [wiki]
+      operationId: exportWikiNode
+      summary: Download a page (one file when it has no attachments, else a zip) or, with subtree, a folder and everything below it
+      parameters:
+        - { name: format, in: query, schema: { type: string, enum: [md, html], default: md } }
+        - { name: subtree, in: query, schema: { type: boolean, default: false } }
+      responses:
+        "200": { description: A Markdown or HTML file, or a zip }
+        "404": { $ref: "#/components/responses/Error" }
   /wiki/files/{fileId}/content:
     parameters: [{ name: fileId, in: path, required: true, schema: { type: string, format: uuid } }]
     get:
@@ -1605,7 +1628,15 @@ paths:
       operationId: searchChat
       summary: Find messages containing the text in conversations the caller can see
       parameters:
-        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 100 } }
+        - { name: q, in: query, schema: { type: string, maxLength: 100 }, description: Text to find; two characters at least unless a filter is set }
+        - { name: channelId, in: query, schema: { type: string, format: uuid }, description: Only this conversation }
+        - { name: fromId, in: query, schema: { type: string, format: uuid }, description: Only messages by this person }
+        - { name: mentionsMe, in: query, schema: { type: boolean }, description: Only messages that mention the caller (or @channel) }
+        - { name: hasLink, in: query, schema: { type: boolean } }
+        - { name: hasFile, in: query, schema: { type: boolean } }
+        - { name: threadsOnly, in: query, schema: { type: boolean }, description: Only replies and messages that have replies }
+        - { name: after, in: query, schema: { type: string, format: date-time } }
+        - { name: before, in: query, schema: { type: string, format: date-time } }
       responses:
         "200":
           description: Messages with the conversation each one lives in
@@ -1653,6 +1684,25 @@ paths:
       summary: Tell the server the caller has the app open
       responses:
         "204": { description: Recorded }
+  /workspaces/{workspaceId}/chat/status:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    put:
+      tags: [chat]
+      operationId: setChatStatus
+      summary: Set the caller's status (availability, icon, short text, optional end)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatStatusInput" }
+      responses:
+        "204": { description: Saved }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [chat]
+      operationId: clearChatStatus
+      responses:
+        "204": { description: Cleared }
   /chat/channels/{channelId}/typing:
     parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
     post:
@@ -1922,7 +1972,7 @@ paths:
       - name: key
         in: path
         required: true
-        schema: { type: string, enum: [thumbs-up, heart, check, party-popper, eyes, laugh, flame, lightbulb] }
+        schema: { type: string, minLength: 1, maxLength: 32, description: A built-in icon key or an emoji }
     put:
       tags: [chat]
       operationId: addChatReaction
@@ -2843,7 +2893,7 @@ components:
         next: { type: integer, format: int64, nullable: true, description: Cursor for the next page; null at the end }
     ChatChannel:
       type: object
-      required: [id, workspaceId, kind, name, topic, joined, muted, starred, unread, mentions, memberCount, lastMessageAt, people]
+      required: [id, workspaceId, kind, name, topic, joined, muted, starred, feed, feedProjectId, unread, mentions, memberCount, lastMessageAt, people]
       properties:
         id: { type: string, format: uuid }
         workspaceId: { type: string, format: uuid }
@@ -2853,6 +2903,8 @@ components:
         joined: { type: boolean }
         muted: { type: boolean }
         starred: { type: boolean }
+        feed: { type: boolean, description: Receives task updates; only replies can be posted }
+        feedProjectId: { type: string, format: uuid, nullable: true, description: The one project the feed follows; null means all }
         unread: { type: integer, description: Messages from others since the caller last read }
         mentions: { type: integer, description: Of those, how many mention the caller }
         memberCount: { type: integer }
@@ -2865,12 +2917,16 @@ components:
         name: { type: string, minLength: 1, maxLength: 60 }
         topic: { type: string, maxLength: 250 }
         private: { type: boolean }
+        feed: { type: boolean, description: Make it a task feed }
+        feedProjectId: { type: string, format: uuid, nullable: true }
         memberIds: { type: array, items: { type: string, format: uuid } }
     ChatChannelPatch:
       type: object
       properties:
         name: { type: string, maxLength: 60 }
         topic: { type: string, maxLength: 250 }
+        feed: { type: boolean, description: Turn the task feed on or off }
+        feedProjectId: { type: string, format: uuid, nullable: true, description: Used with feed; null means all projects }
     ChatDirectInput:
       type: object
       required: [userIds]
@@ -2896,13 +2952,14 @@ components:
         users: { type: array, items: { type: string, format: uuid } }
     ChatMessage:
       type: object
-      required: [id, channelId, parentId, author, body, deleted, mentions, mentionAll, reactions, files, pinned, saved, replyCount, replyPeople, lastReplyAt, createdAt, editedAt]
+      required: [id, channelId, parentId, author, body, event, deleted, mentions, mentionAll, reactions, files, pinned, saved, replyCount, replyPeople, lastReplyAt, createdAt, editedAt]
       properties:
         id: { type: string, format: uuid }
         channelId: { type: string, format: uuid }
         parentId: { type: string, format: uuid, nullable: true }
         author: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
         body: { type: string, description: "Markdown; mentions are written as @[Name](user-id). Empty when deleted" }
+        event: { allOf: [{ $ref: "#/components/schemas/ChatEvent" }], nullable: true, description: A task update (feed messages) }
         deleted: { type: boolean }
         mentions: { type: array, items: { $ref: "#/components/schemas/PersonRef" } }
         mentionAll: { type: boolean, description: "@channel, @here or @everyone" }
@@ -2938,6 +2995,32 @@ components:
         size: { type: integer, format: int64 }
         url: { type: string }
         createdAt: { type: string, format: date-time }
+    ChatEvent:
+      type: object
+      required: [kind, projectId, projectKey, projectName, cardId, number, title]
+      properties:
+        kind: { type: string, enum: [created, moved, updated, deleted, commented] }
+        projectId: { type: string, format: uuid }
+        projectKey: { type: string }
+        projectName: { type: string }
+        cardId: { type: string, format: uuid }
+        number: { type: integer }
+        title: { type: string }
+        from: { type: string, description: Previous status of a move }
+        to: { type: string, description: New status of a move, or the status of a new task }
+        column: { type: string }
+        excerpt: { type: string, description: Start of a new comment }
+        changes:
+          type: array
+          items:
+            type: object
+            required: [field]
+            properties:
+              field: { type: string }
+              from: { type: string }
+              to: { type: string }
+              added: { type: array, items: { type: string } }
+              removed: { type: array, items: { type: string } }
     ChatHit:
       type: object
       required: [message, channel]
@@ -2946,9 +3029,27 @@ components:
         channel: { $ref: "#/components/schemas/ChatChannel" }
     ChatPresence:
       type: object
-      required: [online]
+      required: [online, statuses]
       properties:
         online: { type: array, items: { type: string, format: uuid } }
+        statuses: { type: array, items: { $ref: "#/components/schemas/ChatStatus" }, description: Statuses in force }
+    ChatStatus:
+      type: object
+      required: [userId, kind, icon, text, until]
+      properties:
+        userId: { type: string, format: uuid }
+        kind: { type: string, enum: [available, busy, dnd, away] }
+        icon: { type: string, nullable: true, enum: [calendar-clock, headphones, coffee, utensils, car, house, plane, thermometer, null] }
+        text: { type: string, maxLength: 100 }
+        until: { type: string, format: date-time, nullable: true }
+    ChatStatusInput:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [available, busy, dnd, away] }
+        icon: { type: string, nullable: true, enum: [calendar-clock, headphones, coffee, utensils, car, house, plane, thermometer, null] }
+        text: { type: string, maxLength: 100 }
+        until: { type: string, format: date-time, nullable: true, description: When the status ends; omit to keep it until changed }
     ChatBodyInput:
       type: object
       required: [body]

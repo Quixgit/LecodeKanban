@@ -1,4 +1,5 @@
 export { api, unwrap, refreshSession, onSessionExpired, apiBaseUrl } from './client';
+export { wikiExportUrl, startDownload, type ExportFormat } from './wikiExport';
 export { ApiError, isApiError, toApiError, NETWORK_ERROR, type FieldError } from './errors';
 export type { components, paths } from './schema.gen';
 

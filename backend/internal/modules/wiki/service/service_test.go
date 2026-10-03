@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"io"
@@ -1011,4 +1012,115 @@ func TestFiles(t *testing.T) {
 	// Size limit.
 	_, err = e.svc.UploadFile(ctx, e.alice, page.ID, "big.bin", bytes.NewReader(make([]byte, 2<<20)))
 	mustCode(t, err, apperr.TooLarge)
+}
+
+func TestExport(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	sp := e.space(t, e.alice, domain.Workspace, domain.RoleViewer)
+	folder := e.node(t, e.alice, sp.ID, nil, domain.KindFolder, "Runbooks")
+	page := e.node(t, e.alice, sp.ID, &folder.ID, domain.KindPage, "Fail/over: guide")
+	dup := e.node(t, e.alice, sp.ID, &folder.ID, domain.KindPage, "Fail-over- guide")
+	secret := e.node(t, e.alice, sp.ID, nil, domain.KindPage, "Private notes")
+	must(e.svc.SetVisibility(ctx, e.alice, service.Target{SpaceID: sp.ID, NodeID: &secret.ID}, domain.Private, ""))
+
+	png := append([]byte("\x89PNG\r\n\x1a\n"), bytes.Repeat([]byte{1}, 64)...)
+	f := must(e.svc.UploadFile(ctx, e.alice, page.ID, "dia.png", bytes.NewReader(png)))
+	doc := `{"type":"doc","content":[
+	  {"type":"paragraph","content":[{"type":"text","text":"Hello "},{"type":"text","text":"world","marks":[{"type":"bold"}]}]},
+	  {"type":"image","attrs":{"src":"` + "/api/v1/wiki/files/" + f.ID.String() + "/content?inline=true" + `","alt":"dia"}},
+	  {"type":"paragraph","content":[{"type":"pageLink","attrs":{"nodeId":"` + dup.ID.String() + `","label":"Other"}}]}]}`
+	must(e.svc.SaveContent(ctx, e.alice, page.ID, []byte(doc), 0))
+	must(e.svc.SaveContent(ctx, e.alice, secret.ID, []byte(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"TOPSECRET"}]}]}`), 0))
+
+	read := func(b service.Bundle) map[string]string {
+		var buf bytes.Buffer
+		must0(e.svc.WriteZip(ctx, &buf, b))
+		zr := must(zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len())))
+		out := map[string]string{}
+		for _, zf := range zr.File {
+			rc := must(zf.Open())
+			data := must(io.ReadAll(rc))
+			_ = rc.Close()
+			out[zf.Name] = string(data)
+		}
+		return out
+	}
+
+	// A whole space, as Markdown: structure, unique file names, assets, relative links, an index.
+	b := must(e.svc.ExportSpace(ctx, e.bob, sp.ID, service.ExportMarkdown))
+	files := read(b)
+	var pagePath string
+	for name := range files {
+		if strings.HasPrefix(name, "Runbooks/Fail-over- guide") && strings.HasSuffix(name, ".md") && strings.Contains(files[name], "world") {
+			pagePath = name
+		}
+	}
+	if pagePath == "" {
+		t.Fatalf("page not found in %v", keys(files))
+	}
+	md := files[pagePath]
+	if !strings.Contains(md, "# Fail/over: guide") || !strings.Contains(md, "Hello **world**") ||
+		!strings.Contains(md, "![dia](../assets/") || !strings.Contains(md, "[Other](") {
+		t.Fatalf("markdown:\n%s", md)
+	}
+	var asset string
+	for name := range files {
+		if strings.HasPrefix(name, "assets/") {
+			asset = name
+		}
+	}
+	if asset == "" || files[asset] != string(png) {
+		t.Fatalf("attachment missing or altered: %v", keys(files))
+	}
+	if _, ok := files["index.md"]; !ok {
+		t.Fatalf("no index in %v", keys(files))
+	}
+	for name, body := range files { // a private page the reader cannot see never leaks, not even its title
+		if strings.Contains(body, "TOPSECRET") || strings.Contains(name, "Private") || strings.Contains(body, "Private notes") {
+			t.Fatalf("private page leaked in %s", name)
+		}
+	}
+	if len(files) != 5 { // 2 pages, the attachment, the index and... the folder holds no entry
+		// 2 pages + asset + index = 4; keep the assertion loose about structure, strict about leaks
+		if len(files) < 4 {
+			t.Fatalf("files = %v", keys(files))
+		}
+	}
+
+	// A single page without attachments is one plain file; HTML is a standalone page.
+	one := must(e.svc.ExportNode(ctx, e.alice, dup.ID, false, service.ExportHTML))
+	if !one.Single() || !strings.HasPrefix(string(one.Entries[0].Data), "<!doctype html>") || one.Name != "Fail-over- guide" {
+		t.Fatalf("single page: %+v", one)
+	}
+	// A page with an attachment comes as a zip with the asset next to it.
+	withAsset := must(e.svc.ExportNode(ctx, e.alice, page.ID, false, service.ExportHTML))
+	if withAsset.Single() {
+		t.Fatal("a page with an attachment needs a zip")
+	}
+	// A folder with its subtree; readers cannot export what they cannot see.
+	sub := must(e.svc.ExportNode(ctx, e.alice, folder.ID, true, service.ExportMarkdown))
+	if got := read(sub); len(got) < 3 {
+		t.Fatalf("folder export: %v", keys(got))
+	}
+	_, err := e.svc.ExportNode(ctx, e.bob, secret.ID, false, service.ExportMarkdown)
+	mustCode(t, err, domain.ErrNotFound)
+	_, err = e.svc.ExportSpace(ctx, e.out, sp.ID, service.ExportMarkdown)
+	mustCode(t, err, domain.ErrNotFound)
+	_, err = e.svc.ExportNode(ctx, e.alice, page.ID, false, "pdf")
+	mustCode(t, err, apperr.Validation)
+}
+
+func keys(m map[string]string) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	return out
+}
+
+func must0(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

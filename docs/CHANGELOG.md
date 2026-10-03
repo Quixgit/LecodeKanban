@@ -4,6 +4,14 @@
 
 ### Added
 
+- **Chat task feeds**: a channel can be flagged as a task feed (on create or in channel details) and
+  optionally bound to one project. Card created, moved, edited, deleted and commented events arrive as
+  Slack-bot-style cards; people cannot post in a feed. The channel highlights with a pulsing dot when new
+  items arrive and plays the task sound.
+- **Chat user statuses**: Available, Busy, Do not disturb, Away or a custom text and icon, with optional
+  clear-after. Shown as a dot on avatars and a badge next to names; do-not-disturb silences notification
+  sounds. Set from the chat sidebar or the user menu.
+
 - **Docs (wiki) backend, phase W1** (ADR 0014): spaces, nested folders and pages with fractional
   ordering, per-space/folder/page visibility (private, shared, workspace) with inheritance, grants
   (owner, editor, commenter, viewer), one `domain.Resolve` authorizer with a table-driven matrix,
@@ -52,6 +60,16 @@
   new tasks and new comments, played only for what is relevant (not your own actions, muted
   channels or the conversation you are reading). Volume, per-kind switches and previews live in the
   bell menu.
+
+- **Docs export**: download a page as Markdown or HTML (one file, or a zip when it has attachments), a
+  folder with everything below it, or a whole space as a zip with the folder structure, an index and
+  the attachments. Done on the server from the stored document (tables, code, callouts, math,
+  links between pages and images all convert), so it includes only what the caller may read.
+- **Chat search like Slack**: one search entry, with `in:#channel`, `from:@person`, `has:link`,
+  `has:file`, `is:thread`, `with:me` modifiers (typed or as chips), a date filter, "jump to"
+  conversations and people. Emoji picker (search, categories, skin tones, frequently used) for
+  messages and reactions; creating a channel can add people at once; a sound on/off toggle sits next to
+  "new message". Migration `00016_chat_emoji`.
 
 ### Fixed
 

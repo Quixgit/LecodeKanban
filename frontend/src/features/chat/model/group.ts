@@ -28,6 +28,8 @@ export function buildFeed(messages: readonly ChatMessage[]): FeedItem[] {
       prev.author?.id === message.author.id &&
       !prev.deleted &&
       !message.deleted &&
+      !prev.event &&
+      !message.event &&
       at.getTime() - new Date(prev.createdAt).getTime() < GROUP_WINDOW_MS;
     out.push({ type: 'message', key: message.id, message, compact });
     prev = message;

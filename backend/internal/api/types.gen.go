@@ -57,6 +57,159 @@ func (e ChatChannelKind) Valid() bool {
 	}
 }
 
+// Defines values for ChatEventKind.
+const (
+	ChatEventKindCommented ChatEventKind = "commented"
+	ChatEventKindCreated   ChatEventKind = "created"
+	ChatEventKindDeleted   ChatEventKind = "deleted"
+	ChatEventKindMoved     ChatEventKind = "moved"
+	ChatEventKindUpdated   ChatEventKind = "updated"
+)
+
+// Valid indicates whether the value is a known member of the ChatEventKind enum.
+func (e ChatEventKind) Valid() bool {
+	switch e {
+	case ChatEventKindCommented:
+		return true
+	case ChatEventKindCreated:
+		return true
+	case ChatEventKindDeleted:
+		return true
+	case ChatEventKindMoved:
+		return true
+	case ChatEventKindUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChatStatusIcon.
+const (
+	ChatStatusIconCalendarClock ChatStatusIcon = "calendar-clock"
+	ChatStatusIconCar           ChatStatusIcon = "car"
+	ChatStatusIconCoffee        ChatStatusIcon = "coffee"
+	ChatStatusIconHeadphones    ChatStatusIcon = "headphones"
+	ChatStatusIconHouse         ChatStatusIcon = "house"
+	ChatStatusIconLessThannil   ChatStatusIcon = "<nil>"
+	ChatStatusIconPlane         ChatStatusIcon = "plane"
+	ChatStatusIconThermometer   ChatStatusIcon = "thermometer"
+	ChatStatusIconUtensils      ChatStatusIcon = "utensils"
+)
+
+// Valid indicates whether the value is a known member of the ChatStatusIcon enum.
+func (e ChatStatusIcon) Valid() bool {
+	switch e {
+	case ChatStatusIconCalendarClock:
+		return true
+	case ChatStatusIconCar:
+		return true
+	case ChatStatusIconCoffee:
+		return true
+	case ChatStatusIconHeadphones:
+		return true
+	case ChatStatusIconHouse:
+		return true
+	case ChatStatusIconLessThannil:
+		return true
+	case ChatStatusIconPlane:
+		return true
+	case ChatStatusIconThermometer:
+		return true
+	case ChatStatusIconUtensils:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChatStatusKind.
+const (
+	ChatStatusKindAvailable ChatStatusKind = "available"
+	ChatStatusKindAway      ChatStatusKind = "away"
+	ChatStatusKindBusy      ChatStatusKind = "busy"
+	ChatStatusKindDnd       ChatStatusKind = "dnd"
+)
+
+// Valid indicates whether the value is a known member of the ChatStatusKind enum.
+func (e ChatStatusKind) Valid() bool {
+	switch e {
+	case ChatStatusKindAvailable:
+		return true
+	case ChatStatusKindAway:
+		return true
+	case ChatStatusKindBusy:
+		return true
+	case ChatStatusKindDnd:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChatStatusInputIcon.
+const (
+	ChatStatusInputIconCalendarClock ChatStatusInputIcon = "calendar-clock"
+	ChatStatusInputIconCar           ChatStatusInputIcon = "car"
+	ChatStatusInputIconCoffee        ChatStatusInputIcon = "coffee"
+	ChatStatusInputIconHeadphones    ChatStatusInputIcon = "headphones"
+	ChatStatusInputIconHouse         ChatStatusInputIcon = "house"
+	ChatStatusInputIconLessThannil   ChatStatusInputIcon = "<nil>"
+	ChatStatusInputIconPlane         ChatStatusInputIcon = "plane"
+	ChatStatusInputIconThermometer   ChatStatusInputIcon = "thermometer"
+	ChatStatusInputIconUtensils      ChatStatusInputIcon = "utensils"
+)
+
+// Valid indicates whether the value is a known member of the ChatStatusInputIcon enum.
+func (e ChatStatusInputIcon) Valid() bool {
+	switch e {
+	case ChatStatusInputIconCalendarClock:
+		return true
+	case ChatStatusInputIconCar:
+		return true
+	case ChatStatusInputIconCoffee:
+		return true
+	case ChatStatusInputIconHeadphones:
+		return true
+	case ChatStatusInputIconHouse:
+		return true
+	case ChatStatusInputIconLessThannil:
+		return true
+	case ChatStatusInputIconPlane:
+		return true
+	case ChatStatusInputIconThermometer:
+		return true
+	case ChatStatusInputIconUtensils:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChatStatusInputKind.
+const (
+	ChatStatusInputKindAvailable ChatStatusInputKind = "available"
+	ChatStatusInputKindAway      ChatStatusInputKind = "away"
+	ChatStatusInputKindBusy      ChatStatusInputKind = "busy"
+	ChatStatusInputKindDnd       ChatStatusInputKind = "dnd"
+)
+
+// Valid indicates whether the value is a known member of the ChatStatusInputKind enum.
+func (e ChatStatusInputKind) Valid() bool {
+	switch e {
+	case ChatStatusInputKindAvailable:
+		return true
+	case ChatStatusInputKindAway:
+		return true
+	case ChatStatusInputKindBusy:
+		return true
+	case ChatStatusInputKindDnd:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for InviteRole.
 const (
 	InviteRoleAdmin  InviteRole = "admin"
@@ -615,6 +768,42 @@ func (e OauthStartParamsProvider) Valid() bool {
 	}
 }
 
+// Defines values for ExportWikiNodeParamsFormat.
+const (
+	ExportWikiNodeParamsFormatHtml ExportWikiNodeParamsFormat = "html"
+	ExportWikiNodeParamsFormatMd   ExportWikiNodeParamsFormat = "md"
+)
+
+// Valid indicates whether the value is a known member of the ExportWikiNodeParamsFormat enum.
+func (e ExportWikiNodeParamsFormat) Valid() bool {
+	switch e {
+	case ExportWikiNodeParamsFormatHtml:
+		return true
+	case ExportWikiNodeParamsFormatMd:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ExportWikiSpaceParamsFormat.
+const (
+	ExportWikiSpaceParamsFormatHtml ExportWikiSpaceParamsFormat = "html"
+	ExportWikiSpaceParamsFormatMd   ExportWikiSpaceParamsFormat = "md"
+)
+
+// Valid indicates whether the value is a known member of the ExportWikiSpaceParamsFormat enum.
+func (e ExportWikiSpaceParamsFormat) Valid() bool {
+	switch e {
+	case ExportWikiSpaceParamsFormatHtml:
+		return true
+	case ExportWikiSpaceParamsFormatMd:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListCardsParamsDue.
 const (
 	ListCardsParamsDueMonth   ListCardsParamsDue = "month"
@@ -1069,11 +1258,16 @@ type ChatBodyInput struct {
 
 // ChatChannel defines model for ChatChannel.
 type ChatChannel struct {
-	Id            openapi_types.UUID `json:"id"`
-	Joined        bool               `json:"joined"`
-	Kind          ChatChannelKind    `json:"kind"`
-	LastMessageAt *time.Time         `json:"lastMessageAt"`
-	MemberCount   int                `json:"memberCount"`
+	// Feed Receives task updates; only replies can be posted
+	Feed bool `json:"feed"`
+
+	// FeedProjectId The one project the feed follows; null means all
+	FeedProjectId *openapi_types.UUID `json:"feedProjectId"`
+	Id            openapi_types.UUID  `json:"id"`
+	Joined        bool                `json:"joined"`
+	Kind          ChatChannelKind     `json:"kind"`
+	LastMessageAt *time.Time          `json:"lastMessageAt"`
+	MemberCount   int                 `json:"memberCount"`
 
 	// Mentions Of those
 	Mentions int  `json:"mentions"`
@@ -1097,16 +1291,24 @@ type ChatChannelKind string
 
 // ChatChannelInput defines model for ChatChannelInput.
 type ChatChannelInput struct {
-	MemberIds *[]openapi_types.UUID `json:"memberIds,omitempty"`
-	Name      string                `json:"name"`
-	Private   *bool                 `json:"private,omitempty"`
-	Topic     *string               `json:"topic,omitempty"`
+	// Feed Make it a task feed
+	Feed          *bool                 `json:"feed,omitempty"`
+	FeedProjectId *openapi_types.UUID   `json:"feedProjectId,omitempty"`
+	MemberIds     *[]openapi_types.UUID `json:"memberIds,omitempty"`
+	Name          string                `json:"name"`
+	Private       *bool                 `json:"private,omitempty"`
+	Topic         *string               `json:"topic,omitempty"`
 }
 
 // ChatChannelPatch defines model for ChatChannelPatch.
 type ChatChannelPatch struct {
-	Name  *string `json:"name,omitempty"`
-	Topic *string `json:"topic,omitempty"`
+	// Feed Turn the task feed on or off
+	Feed *bool `json:"feed,omitempty"`
+
+	// FeedProjectId Used with feed; null means all projects
+	FeedProjectId *openapi_types.UUID `json:"feedProjectId,omitempty"`
+	Name          *string             `json:"name,omitempty"`
+	Topic         *string             `json:"topic,omitempty"`
 }
 
 // ChatDirectInput defines model for ChatDirectInput.
@@ -1114,6 +1316,37 @@ type ChatDirectInput struct {
 	// UserIds The other participants
 	UserIds []openapi_types.UUID `json:"userIds"`
 }
+
+// ChatEvent defines model for ChatEvent.
+type ChatEvent struct {
+	CardId  openapi_types.UUID `json:"cardId"`
+	Changes *[]struct {
+		Added   *[]string `json:"added,omitempty"`
+		Field   string    `json:"field"`
+		From    *string   `json:"from,omitempty"`
+		Removed *[]string `json:"removed,omitempty"`
+		To      *string   `json:"to,omitempty"`
+	} `json:"changes,omitempty"`
+	Column *string `json:"column,omitempty"`
+
+	// Excerpt Start of a new comment
+	Excerpt *string `json:"excerpt,omitempty"`
+
+	// From Previous status of a move
+	From        *string            `json:"from,omitempty"`
+	Kind        ChatEventKind      `json:"kind"`
+	Number      int                `json:"number"`
+	ProjectId   openapi_types.UUID `json:"projectId"`
+	ProjectKey  string             `json:"projectKey"`
+	ProjectName string             `json:"projectName"`
+	Title       string             `json:"title"`
+
+	// To New status of a move
+	To *string `json:"to,omitempty"`
+}
+
+// ChatEventKind defines model for ChatEvent.Kind.
+type ChatEventKind string
 
 // ChatFile defines model for ChatFile.
 type ChatFile struct {
@@ -1141,11 +1374,14 @@ type ChatMessage struct {
 	Author *PersonRef `json:"author"`
 
 	// Body Markdown; mentions are written as @[Name](user-id). Empty when deleted
-	Body        string             `json:"body"`
-	ChannelId   openapi_types.UUID `json:"channelId"`
-	CreatedAt   time.Time          `json:"createdAt"`
-	Deleted     bool               `json:"deleted"`
-	EditedAt    *time.Time         `json:"editedAt"`
+	Body      string             `json:"body"`
+	ChannelId openapi_types.UUID `json:"channelId"`
+	CreatedAt time.Time          `json:"createdAt"`
+	Deleted   bool               `json:"deleted"`
+	EditedAt  *time.Time         `json:"editedAt"`
+
+	// Event A task update (feed messages)
+	Event       *ChatEvent         `json:"event"`
 	Files       []ChatFile         `json:"files"`
 	Id          openapi_types.UUID `json:"id"`
 	LastReplyAt *time.Time         `json:"lastReplyAt"`
@@ -1189,6 +1425,9 @@ type ChatMuteInput struct {
 // ChatPresence defines model for ChatPresence.
 type ChatPresence struct {
 	Online []openapi_types.UUID `json:"online"`
+
+	// Statuses Statuses in force
+	Statuses []ChatStatus `json:"statuses"`
 }
 
 // ChatReaction defines model for ChatReaction.
@@ -1198,6 +1437,37 @@ type ChatReaction struct {
 	Mine  bool                 `json:"mine"`
 	Users []openapi_types.UUID `json:"users"`
 }
+
+// ChatStatus defines model for ChatStatus.
+type ChatStatus struct {
+	Icon   *ChatStatusIcon    `json:"icon"`
+	Kind   ChatStatusKind     `json:"kind"`
+	Text   string             `json:"text"`
+	Until  *time.Time         `json:"until"`
+	UserId openapi_types.UUID `json:"userId"`
+}
+
+// ChatStatusIcon defines model for ChatStatus.Icon.
+type ChatStatusIcon string
+
+// ChatStatusKind defines model for ChatStatus.Kind.
+type ChatStatusKind string
+
+// ChatStatusInput defines model for ChatStatusInput.
+type ChatStatusInput struct {
+	Icon *ChatStatusInputIcon `json:"icon,omitempty"`
+	Kind ChatStatusInputKind  `json:"kind"`
+	Text *string              `json:"text,omitempty"`
+
+	// Until When the status ends; omit to keep it until changed
+	Until *time.Time `json:"until,omitempty"`
+}
+
+// ChatStatusInputIcon defines model for ChatStatusInput.Icon.
+type ChatStatusInputIcon string
+
+// ChatStatusInputKind defines model for ChatStatusInput.Kind.
+type ChatStatusInputKind string
 
 // ChecklistItem defines model for ChecklistItem.
 type ChecklistItem struct {
@@ -2124,6 +2394,15 @@ type ListChatMessagesParams struct {
 	Limit  *int                `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// ExportWikiNodeParams defines parameters for ExportWikiNode.
+type ExportWikiNodeParams struct {
+	Format  *ExportWikiNodeParamsFormat `form:"format,omitempty" json:"format,omitempty"`
+	Subtree *bool                       `form:"subtree,omitempty" json:"subtree,omitempty"`
+}
+
+// ExportWikiNodeParamsFormat defines parameters for ExportWikiNode.
+type ExportWikiNodeParamsFormat string
+
 // UploadWikiFileMultipartBody defines parameters for UploadWikiFile.
 type UploadWikiFileMultipartBody struct {
 	File openapi_types.File `json:"file"`
@@ -2135,6 +2414,14 @@ type ListWikiAuditParams struct {
 	Before *int64 `form:"before,omitempty" json:"before,omitempty"`
 	Limit  *int   `form:"limit,omitempty" json:"limit,omitempty"`
 }
+
+// ExportWikiSpaceParams defines parameters for ExportWikiSpace.
+type ExportWikiSpaceParams struct {
+	Format *ExportWikiSpaceParamsFormat `form:"format,omitempty" json:"format,omitempty"`
+}
+
+// ExportWikiSpaceParamsFormat defines parameters for ExportWikiSpace.
+type ExportWikiSpaceParamsFormat string
 
 // ListCardsParams defines parameters for ListCards.
 type ListCardsParams struct {
@@ -2208,7 +2495,24 @@ type CardStatusCountsParamsDue string
 
 // SearchChatParams defines parameters for SearchChat.
 type SearchChatParams struct {
-	Q string `form:"q" json:"q"`
+	// Q Text to find; two characters at least unless a filter is set
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+
+	// ChannelId Only this conversation
+	ChannelId *openapi_types.UUID `form:"channelId,omitempty" json:"channelId,omitempty"`
+
+	// FromId Only messages by this person
+	FromId *openapi_types.UUID `form:"fromId,omitempty" json:"fromId,omitempty"`
+
+	// MentionsMe Only messages that mention the caller (or @channel)
+	MentionsMe *bool `form:"mentionsMe,omitempty" json:"mentionsMe,omitempty"`
+	HasLink    *bool `form:"hasLink,omitempty" json:"hasLink,omitempty"`
+	HasFile    *bool `form:"hasFile,omitempty" json:"hasFile,omitempty"`
+
+	// ThreadsOnly Only replies and messages that have replies
+	ThreadsOnly *bool      `form:"threadsOnly,omitempty" json:"threadsOnly,omitempty"`
+	After       *time.Time `form:"after,omitempty" json:"after,omitempty"`
+	Before      *time.Time `form:"before,omitempty" json:"before,omitempty"`
 }
 
 // ListProjectsParams defines parameters for ListProjects.
@@ -2374,6 +2678,9 @@ type CreateChatChannelJSONRequestBody = ChatChannelInput
 
 // OpenChatDirectJSONRequestBody defines body for OpenChatDirect for application/json ContentType.
 type OpenChatDirectJSONRequestBody = ChatDirectInput
+
+// SetChatStatusJSONRequestBody defines body for SetChatStatus for application/json ContentType.
+type SetChatStatusJSONRequestBody = ChatStatusInput
 
 // CreateInviteJSONRequestBody defines body for CreateInvite for application/json ContentType.
 type CreateInviteJSONRequestBody = CreateInviteRequest

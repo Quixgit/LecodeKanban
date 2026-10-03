@@ -31,6 +31,8 @@ import {
 import type { ChatMessage } from '../api/chatApi';
 import type { ReactionKey } from '../model/reactions';
 import { Attachments } from './Attachments';
+import { AuthorStatus } from './AuthorStatus';
+import { TaskEventCard } from './TaskEventCard';
 import { ReactionBar, ReactionPicker } from './ReactionBar';
 
 export interface MessageActions {
@@ -123,9 +125,7 @@ export const MessageItem = memo(function MessageItem({
           label={t('reactions.names.thumbs-up')}
           variant="ghost"
           size="sm"
-          onClick={() =>
-            actions.react(m, 'thumbs-up', !m.reactions.find((r) => r.key === 'thumbs-up')?.mine)
-          }
+          onClick={() => actions.react(m, '👍', !m.reactions.find((r) => r.key === '👍')?.mine)}
         >
           <ThumbsUp />
         </IconButton>
@@ -179,7 +179,7 @@ export const MessageItem = memo(function MessageItem({
               {m.pinned ? t('message.unpin') : t('message.pin')}
             </DropdownItem>
           )}
-          {mine && (
+          {mine && !m.event && (
             <DropdownItem
               onSelect={() => {
                 setDraft(m.body);
@@ -232,6 +232,12 @@ export const MessageItem = memo(function MessageItem({
         {!compact && (
           <div className="flex items-baseline gap-2">
             <span className="text-base font-semibold text-text">{author}</span>
+            {m.author && <AuthorStatus userId={m.author.id} />}
+            {m.event && (
+              <span className="rounded bg-primary-soft px-1.5 text-2xs font-semibold uppercase tracking-wide text-primary-ink">
+                {t('feed.app')}
+              </span>
+            )}
             <time
               dateTime={m.createdAt}
               title={time.full(m.createdAt)}
@@ -266,7 +272,7 @@ export const MessageItem = memo(function MessageItem({
               aria-label={t('message.editLabel')}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={onEditKey}
-              className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-base text-text focus:border-primary focus:shadow-focus focus:outline-none"
+              className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-base text-text focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/10 focus-visible:shadow-none"
             />
             <div className="mt-2 flex items-center gap-2">
               <Button size="sm" onClick={() => void save()} disabled={saving || !draft.trim()}>
@@ -281,7 +287,7 @@ export const MessageItem = memo(function MessageItem({
           </div>
         ) : (
           <div className="[&>div>p:first-child]:mt-0 [&>div>p:last-child]:mb-0">
-            {m.body && <Markdown source={m.body} />}
+            {m.event ? <TaskEventCard event={m.event} /> : m.body && <Markdown source={m.body} />}
             {m.editedAt && (
               <span className="text-2xs text-text-muted" title={time.full(m.editedAt)}>
                 {t('message.edited')}

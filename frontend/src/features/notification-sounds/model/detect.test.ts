@@ -46,3 +46,17 @@ describe('strongest', () => {
     expect(strongest([])).toBeUndefined();
   });
 });
+
+describe('detectChatSound for task feeds', () => {
+  it('rings the task sound for a feed, and a message elsewhere does not mask a mention', () => {
+    const feed = (unread: number) => c({ unread, feed: true });
+    expect(detectChatSound(snap({ f: feed(0) }), snap({ f: feed(2) }), undefined)).toBe('task');
+    expect(
+      detectChatSound(
+        snap({ f: feed(0), a: c() }),
+        snap({ f: feed(1), a: c({ unread: 1, mentions: 1 }) }),
+        undefined,
+      ),
+    ).toBe('mention');
+  });
+});

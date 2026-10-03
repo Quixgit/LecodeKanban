@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
-import { chatApi } from '../api/chatApi';
+import { chatApi, type ChatStatus } from '../api/chatApi';
 import { chatKeys } from './useChat';
 
 const BEAT_MS = 60_000;
@@ -23,9 +23,8 @@ export function usePresenceHeartbeat(ws: string | undefined) {
   }, [ws]);
 }
 
-/** Who is online right now (seen within two minutes). */
-export function useOnline(ws: string | undefined): ReadonlySet<string> {
-  const { data } = useQuery({
+function usePresenceData(ws: string | undefined) {
+  return useQuery({
     queryKey: chatKeys.presence(ws ?? ''),
     queryFn: () => chatApi.presence(ws!),
     enabled: !!ws,
@@ -33,5 +32,16 @@ export function useOnline(ws: string | undefined): ReadonlySet<string> {
     refetchIntervalInBackground: false,
     staleTime: 20_000,
   });
+}
+
+/** Who is online right now (seen within two minutes). */
+export function useOnline(ws: string | undefined): ReadonlySet<string> {
+  const { data } = usePresenceData(ws);
   return useMemo(() => new Set(data?.online ?? []), [data]);
+}
+
+/** Chosen statuses by person (available, busy, do not disturb, away, with icon and text). */
+export function useStatuses(ws: string | undefined): ReadonlyMap<string, ChatStatus> {
+  const { data } = usePresenceData(ws);
+  return useMemo(() => new Map((data?.statuses ?? []).map((s) => [s.userId, s])), [data]);
 }

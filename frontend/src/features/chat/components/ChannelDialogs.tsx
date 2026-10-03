@@ -1,10 +1,10 @@
-import { Check, Hash, Lock, Search } from 'lucide-react';
+import { Check, ClipboardList, Hash, Lock, Search, X } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Member } from '@/shared/api';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { cn } from '@/shared/lib/cn';
-import { Avatar, Button, Checkbox, Field, Input, Modal, Switch } from '@/shared/ui';
+import { Avatar, Button, Checkbox, Field, Input, Modal, Select, Switch } from '@/shared/ui';
 import type { ChatChannel } from '../api/chatApi';
 import { useChatMutations } from '../hooks/useChat';
 import { channelTitle, normalizeChannelName } from '../model/channels';
@@ -15,34 +15,36 @@ interface Common {
   workspaceId: string;
 }
 
-export function CreateChannelDialog({
-  open,
-  onOpenChange,
-  workspaceId,
-  onCreated,
-}: Common & { onCreated: (c: ChatChannel) => void }) {
-  return open ? (
-    <CreateForm
-      open={open}
-      onOpenChange={onOpenChange}
-      workspaceId={workspaceId}
-      onCreated={onCreated}
-    />
-  ) : null;
+interface CreateProps extends Common {
+  members: readonly Member[];
+  projects: readonly FeedProject[];
+  me: string;
+  onCreated: (c: ChatChannel) => void;
+}
+
+export function CreateChannelDialog(props: CreateProps) {
+  return props.open ? <CreateForm {...props} /> : null;
 }
 
 function CreateForm({
   open,
   onOpenChange,
   workspaceId,
+  members,
+  projects,
+  me,
   onCreated,
-}: Common & { onCreated: (c: ChatChannel) => void }) {
+}: CreateProps) {
   const { t } = useTranslation('chat');
   const errorText = useErrorText();
   const m = useChatMutations(workspaceId);
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('');
   const [isPrivate, setPrivate] = useState(false);
+  const [invited, setInvited] = useState<string[]>([]);
+  const [feed, setFeed] = useState(false);
+  const [feedProject, setFeedProject] = useState('all');
+  const [q, setQ] = useState('');
   const [error, setError] = useState<string | null>(null);
   const normalized = normalizeChannelName(name);
 
@@ -50,7 +52,14 @@ function CreateForm({
     e.preventDefault();
     if (!normalized) return;
     m.createChannel.mutate(
-      { name: normalized, topic: topic.trim(), private: isPrivate },
+      {
+        name: normalized,
+        topic: topic.trim(),
+        private: isPrivate,
+        memberIds: invited,
+        feed,
+        feedProjectId: feed && feedProject !== 'all' ? feedProject : null,
+      },
       {
         onSuccess: (c) => {
           onOpenChange(false);
@@ -110,6 +119,95 @@ function CreateForm({
             aria-label={t('create.private')}
           />
         </label>
+        <div className="rounded-lg border border-border-subtle p-3">
+          <label className="flex cursor-pointer items-start justify-between gap-4">
+            <span>
+              <span className="flex items-center gap-2 text-sm font-medium text-text">
+                <ClipboardList className="size-4 text-primary-ink" aria-hidden />
+                {t('feed.toggle')}
+              </span>
+              <span className="mt-0.5 block text-xs text-text-muted">{t('feed.toggleHint')}</span>
+            </span>
+            <Switch checked={feed} onCheckedChange={setFeed} aria-label={t('feed.toggle')} />
+          </label>
+          {feed && (
+            <FeedProjectSelect value={feedProject} onChange={setFeedProject} projects={projects} />
+          )}
+        </div>
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-sm font-medium text-text">
+            {t('create.invite')}{' '}
+            <span className="font-normal text-text-muted">{t('create.optional')}</span>
+          </legend>
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            leadingIcon={<Search />}
+            placeholder={t('create.invitePlaceholder')}
+            aria-label={t('create.invitePlaceholder')}
+          />
+          {invited.length > 0 && (
+            <ul className="flex flex-wrap gap-1.5" aria-label={t('create.invited')}>
+              {invited.map((id) => {
+                const p = members.find((x) => x.user.id === id);
+                return p ? (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      onClick={() => setInvited((v) => v.filter((x) => x !== id))}
+                      aria-label={t('create.uninvite', { name: p.user.name })}
+                      className="inline-flex h-7 items-center gap-1.5 rounded-full bg-primary-soft py-0 pl-1 pr-2.5 text-sm font-medium text-primary-ink outline-none transition-colors duration-micro hover:bg-primary-soft/70 focus-visible:ring-2 focus-visible:ring-primary/40"
+                    >
+                      <Avatar
+                        name={p.user.name}
+                        src={p.user.avatarUrl}
+                        size="xs"
+                        className="!size-5"
+                      />
+                      {p.user.name}
+                      <X className="size-3" aria-hidden />
+                    </button>
+                  </li>
+                ) : null;
+              })}
+            </ul>
+          )}
+          <ul className="max-h-40 space-y-0.5 overflow-y-auto" aria-label={t('direct.people')}>
+            {members
+              .filter(
+                (x) =>
+                  x.user.id !== me &&
+                  (!q.trim() || x.user.name.toLowerCase().includes(q.trim().toLowerCase())),
+              )
+              .map((x) => {
+                const on = invited.includes(x.user.id);
+                return (
+                  <li key={x.user.id}>
+                    <label
+                      className={cn(
+                        'flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors duration-micro hover:bg-surface-muted',
+                        on && 'bg-primary-subtle',
+                      )}
+                    >
+                      <Checkbox
+                        checked={on}
+                        onCheckedChange={(v) =>
+                          setInvited((cur) =>
+                            v === true ? [...cur, x.user.id] : cur.filter((id) => id !== x.user.id),
+                          )
+                        }
+                        aria-label={x.user.name}
+                      />
+                      <Avatar name={x.user.name} src={x.user.avatarUrl} size="sm" />
+                      <span className="min-w-0 flex-1 truncate text-base text-text">
+                        {x.user.name}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+          </ul>
+        </fieldset>
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
@@ -338,5 +436,38 @@ export function BrowseChannelsDialog({
         )}
       </div>
     </Modal>
+  );
+}
+
+export interface FeedProject {
+  id: string;
+  key: string;
+  name: string;
+}
+
+/** Which project a task feed follows: all of them or one. */
+export function FeedProjectSelect({
+  value,
+  onChange,
+  projects,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  projects: readonly FeedProject[];
+}) {
+  const { t } = useTranslation('chat');
+  return (
+    <div className="mt-3">
+      <Select
+        label={t('feed.project')}
+        prefix={t('feed.projectPrefix')}
+        value={value}
+        onValueChange={onChange}
+        options={[
+          { value: 'all', label: t('feed.allProjects') },
+          ...projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+        ]}
+      />
+    </div>
   );
 }

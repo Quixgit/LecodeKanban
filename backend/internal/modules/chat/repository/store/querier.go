@@ -20,6 +20,7 @@ type Querier interface {
 	CreateChannel(ctx context.Context, arg CreateChannelParams) (ChatChannel, error)
 	CreateFile(ctx context.Context, arg CreateFileParams) (ChatFile, error)
 	DeleteMessage(ctx context.Context, id uuid.UUID) (ChatMessage, error)
+	DeleteStatus(ctx context.Context, userID uuid.UUID) error
 	GetChannel(ctx context.Context, id uuid.UUID) (ChatChannel, error)
 	GetChannelState(ctx context.Context, arg GetChannelStateParams) (GetChannelStateRow, error)
 	GetDMChannel(ctx context.Context, arg GetDMChannelParams) (ChatChannel, error)
@@ -27,9 +28,11 @@ type Querier interface {
 	GetMembership(ctx context.Context, arg GetMembershipParams) (ChatMember, error)
 	GetMessage(ctx context.Context, id uuid.UUID) (ChatMessage, error)
 	GetScopeChannel(ctx context.Context, arg GetScopeChannelParams) (ChatChannel, error)
+	InsertEventMessage(ctx context.Context, arg InsertEventMessageParams) (ChatMessage, error)
 	InsertMessage(ctx context.Context, arg InsertMessageParams) (ChatMessage, error)
 	ListChannelFiles(ctx context.Context, arg ListChannelFilesParams) ([]ChatFile, error)
 	ListChannelStates(ctx context.Context, arg ListChannelStatesParams) ([]ListChannelStatesRow, error)
+	ListFeedChannels(ctx context.Context, arg ListFeedChannelsParams) ([]ChatChannel, error)
 	ListFilesByMessages(ctx context.Context, ids []uuid.UUID) ([]ChatFile, error)
 	ListMembers(ctx context.Context, channelID uuid.UUID) ([]ChatMember, error)
 	ListMembersOf(ctx context.Context, ids []uuid.UUID) ([]ChatMember, error)
@@ -42,6 +45,7 @@ type Querier interface {
 	ListReplyAuthors(ctx context.Context, ids []uuid.UUID) ([]ListReplyAuthorsRow, error)
 	ListSavedFlags(ctx context.Context, arg ListSavedFlagsParams) ([]uuid.UUID, error)
 	ListSavedMessages(ctx context.Context, arg ListSavedMessagesParams) ([]ChatMessage, error)
+	ListStatuses(ctx context.Context, workspaceID uuid.UUID) ([]ChatStatus, error)
 	MarkRead(ctx context.Context, arg MarkReadParams) error
 	OnlineMembers(ctx context.Context, workspaceID uuid.UUID) ([]uuid.UUID, error)
 	Pin(ctx context.Context, arg PinParams) error
@@ -50,6 +54,7 @@ type Querier interface {
 	RemoveReply(ctx context.Context, id uuid.UUID) error
 	Save(ctx context.Context, arg SaveParams) error
 	SearchMessages(ctx context.Context, arg SearchMessagesParams) ([]ChatMessage, error)
+	SetFeed(ctx context.Context, arg SetFeedParams) (ChatChannel, error)
 	SetMuted(ctx context.Context, arg SetMutedParams) error
 	Star(ctx context.Context, arg StarParams) error
 	TouchChannel(ctx context.Context, arg TouchChannelParams) error
@@ -59,6 +64,7 @@ type Querier interface {
 	Unstar(ctx context.Context, arg UnstarParams) error
 	UpdateChannel(ctx context.Context, arg UpdateChannelParams) (ChatChannel, error)
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) (ChatMessage, error)
+	UpsertStatus(ctx context.Context, arg UpsertStatusParams) error
 }
 
 var _ Querier = (*Queries)(nil)

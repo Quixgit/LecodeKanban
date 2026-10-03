@@ -1,4 +1,4 @@
-import { BellOff, LogOut, Plus, Trash2 } from 'lucide-react';
+import { BellOff, ClipboardList, LogOut, Plus, Trash2 } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Member } from '@/shared/api';
@@ -7,7 +7,9 @@ import { Button, ConfirmDialog, Field, Input, Modal, Select, Switch, toast } fro
 import type { ChatChannel } from '../api/chatApi';
 import { useChannelMembers, useChatMutations } from '../hooks/useChat';
 import { channelTitle } from '../model/channels';
-import { PersonAvatar } from './PresenceDot';
+import { FeedProjectSelect, type FeedProject } from './ChannelDialogs';
+import { useStatuses } from '../hooks/usePresence';
+import { PersonAvatar, StatusBadge } from './PresenceDot';
 
 interface Props {
   open: boolean;
@@ -19,6 +21,7 @@ interface Props {
   isAdmin: boolean;
   canWrite: boolean;
   online: ReadonlySet<string>;
+  projects: readonly FeedProject[];
   online: ReadonlySet<string>;
   /** Called after the user leaves or the channel is archived. */
   onGone: () => void;
@@ -39,12 +42,14 @@ function Details({
   isAdmin,
   canWrite,
   online,
+  projects,
   onGone,
 }: Props) {
   const { t } = useTranslation('chat');
   const errorText = useErrorText();
   const m = useChatMutations(workspaceId);
   const people = useChannelMembers(channel.id);
+  const statuses = useStatuses(workspaceId);
   const direct = channel.kind === 'dm';
   const [name, setName] = useState(channel.name ?? '');
   const [topic, setTopic] = useState(channel.topic);
@@ -120,6 +125,50 @@ function Details({
             </form>
           )}
 
+          {!direct && canWrite && (
+            <section
+              className="rounded-lg border border-border-subtle p-3"
+              aria-label={t('feed.toggle')}
+            >
+              <label className="flex cursor-pointer items-start justify-between gap-4">
+                <span>
+                  <span className="flex items-center gap-2 text-sm font-medium text-text">
+                    <ClipboardList className="size-4 text-primary-ink" aria-hidden />
+                    {t('feed.detailsToggle')}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-text-muted">
+                    {t('feed.toggleHint')}
+                  </span>
+                </span>
+                <Switch
+                  checked={channel.feed}
+                  onCheckedChange={(on) =>
+                    m.updateChannel.mutate(
+                      { id: channel.id, patch: { feed: on, feedProjectId: channel.feedProjectId } },
+                      { onError: (e) => toast.error(errorText(e)) },
+                    )
+                  }
+                  aria-label={t('feed.detailsToggle')}
+                />
+              </label>
+              {channel.feed && (
+                <FeedProjectSelect
+                  value={channel.feedProjectId ?? 'all'}
+                  projects={projects}
+                  onChange={(v) =>
+                    m.updateChannel.mutate(
+                      {
+                        id: channel.id,
+                        patch: { feed: true, feedProjectId: v === 'all' ? null : v },
+                      },
+                      { onError: (e) => toast.error(errorText(e)) },
+                    )
+                  }
+                />
+              )}
+            </section>
+          )}
+
           {channel.joined && (
             <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border-subtle p-3">
               <span className="flex items-center gap-2 text-sm font-medium text-text">
@@ -148,11 +197,16 @@ function Details({
                     name={p.name}
                     src={p.avatarUrl}
                     online={online.has(p.id)}
+                    status={statuses.get(p.id)}
                     size="sm"
                   />
                   <span className="truncate text-base text-text">
                     {p.name}
                     {p.id === me && <span className="text-text-muted"> ({t('list.you')})</span>}
+                    <StatusBadge
+                      status={statuses.get(p.id)}
+                      className="ml-1.5 inline-flex align-middle"
+                    />
                   </span>
                 </li>
               ))}

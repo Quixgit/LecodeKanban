@@ -20,7 +20,8 @@
     "broadcast": {
       "channel": "Notify everyone in this channel",
       "here": "Notify everyone in this channel"
-    }
+    },
+    "emoji": "Add an emoji"
   },
   "reactions": {
     "label": "Reactions",
@@ -90,7 +91,7 @@
   "sidebar": {
     "title": "Chat",
     "label": "Channels and direct messages",
-    "filter": "Find a conversation",
+    "filter": "Search",
     "newMessage": "New message",
     "channels": "Channels",
     "direct": "Direct messages",
@@ -105,7 +106,9 @@
     "unread_other": "{{count}} unread messages",
     "threads": "Threads",
     "saved": "Saved",
-    "starred": "Starred"
+    "starred": "Starred",
+    "soundOn": "Turn notification sounds on",
+    "soundOff": "Mute notification sounds"
   },
   "create": {
     "title": "Create a channel",
@@ -118,7 +121,12 @@
     "topicPlaceholder": "What is this channel for?",
     "private": "Make private",
     "privateHint": "Only people you add can find and read it.",
-    "submit": "Create channel"
+    "submit": "Create channel",
+    "invite": "Add people",
+    "optional": "(optional)",
+    "invitePlaceholder": "Search people to add",
+    "invited": "People to add",
+    "uninvite": "Don’t add {{name}}"
   },
   "common": {
     "cancel": "Cancel"
@@ -173,7 +181,39 @@
   "feed": {
     "emptyTitle": "This is the start of {{name}}",
     "emptyDirect": "Send the first message to begin the conversation.",
-    "emptyChannel": "Say hello and set the tone for the channel."
+    "emptyChannel": "Say hello and set the tone for the channel.",
+    "badge": "Task feed",
+    "app": "Tasks",
+    "readonly": "Only task updates appear here. Reply in a thread to discuss one.",
+    "emptyFeedTitle": "No task updates yet",
+    "emptyFeedDescription": "New tasks, status changes, edits and comments will appear here as they happen.",
+    "toggle": "Task feed",
+    "detailsToggle": "Send task updates here",
+    "toggleHint": "Only task updates land in this channel: created, moved, edited, deleted and commented tasks.",
+    "project": "Project",
+    "projectPrefix": "Follow:",
+    "allProjects": "All projects",
+    "open": "Open task",
+    "cleared": "cleared",
+    "kind": {
+      "created": "New task",
+      "moved": "Moved",
+      "updated": "Updated",
+      "deleted": "Deleted",
+      "commented": "New comment"
+    },
+    "field": {
+      "title": "Title",
+      "priority": "Priority",
+      "dueDate": "Due date",
+      "assignees": "Assignee",
+      "labels": "Labels"
+    },
+    "priority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
   },
   "empty": {
     "title": "No channels yet",
@@ -214,12 +254,37 @@
     "many": "Several people are typing…"
   },
   "search": {
-    "title": "Search messages",
+    "title": "Search",
     "description": "Look through every conversation you can see.",
-    "placeholder": "Search messages",
-    "hint": "Type at least two characters.",
+    "placeholder": "Search messages, or try from:@name in:#channel",
+    "hint": "Search every conversation you can see. Combine words with filters:",
     "none": "Nothing found for “{{q}}”.",
-    "open": "Search messages (Ctrl+Shift+F)"
+    "open": "Search messages (Ctrl+Shift+F)",
+    "placeholderFiltered": "Add words to narrow the search",
+    "clear": "Clear",
+    "filters": "Search filters",
+    "suggestions": "Suggestions",
+    "in": "in",
+    "from": "from",
+    "inHint": "Search in this channel",
+    "fromHint": "Messages from this person",
+    "inThis": "In this conversation",
+    "fromMe": "From me",
+    "includesMe": "Includes me",
+    "hasLink": "Has a link",
+    "hasFile": "Has a file",
+    "threadsOnly": "Threads only",
+    "removeFilter": "Remove filter {{name}}",
+    "jumpTo": "Jump to",
+    "message": "Message",
+    "messages": "Messages",
+    "noneFiltered": "No messages match these filters.",
+    "range": {
+      "any": "Any time",
+      "day": "Today",
+      "week": "Last 7 days",
+      "month": "Last 30 days"
+    }
   },
   "tabs": {
     "label": "Conversation sections",
@@ -242,5 +307,82 @@
     "title": "Saved",
     "emptyTitle": "Nothing saved",
     "emptyDescription": "Save a message for later with the bookmark button and find it here."
+  },
+  "emoji": {
+    "label": "Emoji",
+    "search": "Search emoji",
+    "none": "No emoji match “{{q}}”.",
+    "recent": "Frequently used",
+    "hint": "Pick an emoji",
+    "skinTone": "Skin tone",
+    "tone": "Skin tone {{n}}",
+    "quick": "Quick reactions",
+    "groups": {
+      "0": "Smileys & emotion",
+      "1": "People & body",
+      "3": "Animals & nature",
+      "4": "Food & drink",
+      "5": "Travel & places",
+      "6": "Activities",
+      "7": "Objects",
+      "8": "Symbols",
+      "9": "Flags"
+    }
+  },
+  "status": {
+    "title": "Set a status",
+    "description": "Tell your team how reachable you are. Others see it next to your name.",
+    "suggestions": "Suggestions",
+    "text": "What’s your status?",
+    "textPlaceholder": "For example: In a meeting",
+    "icon": "Status icon",
+    "availability": "Availability",
+    "clearAfter": "Clear after",
+    "clearPrefix": "Clear after:",
+    "remove": "Clear status",
+    "save": "Save",
+    "set": "Set a status",
+    "setNamed": "Your status: {{status}}. Change it",
+    "kinds": {
+      "available": "Available",
+      "busy": "Busy",
+      "dnd": "Do not disturb",
+      "away": "Away",
+      "online": "Online"
+    },
+    "kindHints": {
+      "available": "Shown as online while you are in the app",
+      "busy": "Others see an amber dot",
+      "dnd": "No notification sounds for you",
+      "away": "A hollow dot: you are not at your desk"
+    },
+    "presets": {
+      "meeting": "In a meeting",
+      "focus": "Focusing",
+      "lunch": "Out for lunch",
+      "break": "Taking a break",
+      "commuting": "Commuting",
+      "remote": "Working remotely",
+      "sick": "Out sick",
+      "vacation": "On vacation"
+    },
+    "icons": {
+      "calendar-clock": "Meeting",
+      "headphones": "Focus",
+      "coffee": "Break",
+      "utensils": "Lunch",
+      "car": "Commuting",
+      "house": "Remote",
+      "plane": "Vacation",
+      "thermometer": "Sick"
+    },
+    "clear": {
+      "never": "Don’t clear",
+      "30m": "30 minutes",
+      "1h": "1 hour",
+      "4h": "4 hours",
+      "today": "Today",
+      "week": "This week"
+    }
   }
 }

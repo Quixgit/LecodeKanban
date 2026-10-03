@@ -118,6 +118,8 @@ type ChatChannel struct {
 	LastMessageAt *time.Time
 	ArchivedAt    *time.Time
 	RefID         uuid.NullUUID
+	Feed          bool
+	FeedProjectID uuid.NullUUID
 }
 
 type ChatFile struct {
@@ -154,6 +156,7 @@ type ChatMessage struct {
 	EditedAt    *time.Time
 	DeletedAt   *time.Time
 	MentionAll  bool
+	Event       []byte
 }
 
 type ChatPin struct {
@@ -185,6 +188,15 @@ type ChatStar struct {
 	UserID    uuid.UUID
 	ChannelID uuid.UUID
 	CreatedAt time.Time
+}
+
+type ChatStatus struct {
+	UserID    uuid.UUID
+	Kind      string
+	Icon      *string
+	Text      string
+	Until     *time.Time
+	UpdatedAt time.Time
 }
 
 type ChecklistItem struct {
