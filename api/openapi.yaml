@@ -25,6 +25,7 @@ tags:
   - name: time
   - name: wiki
   - name: chat
+  - name: notifications
   - name: activity
   - name: realtime
   - name: system
@@ -1684,6 +1685,34 @@ paths:
       summary: Tell the server the caller has the app open
       responses:
         "204": { description: Recorded }
+  /workspaces/{workspaceId}/notifications:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [notifications]
+      operationId: listNotifications
+      summary: The caller's notifications in the workspace, newest first, with the unread count
+      parameters:
+        - { name: before, in: query, required: false, schema: { type: string, format: date-time }, description: Only older than this time }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100 } }
+      responses:
+        "200":
+          description: A page
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationPage" }
+  /workspaces/{workspaceId}/notifications/read:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    post:
+      tags: [notifications]
+      operationId: markNotificationsRead
+      summary: Mark the given notifications (or all of them) as read
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NotificationsReadInput" }
+      responses:
+        "204": { description: Marked }
   /workspaces/{workspaceId}/chat/status:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     put:
@@ -2592,6 +2621,7 @@ components:
         actorId: { type: string, format: uuid }
         channelId: { type: string, format: uuid, description: Chat hints only }
         messageId: { type: string, format: uuid, description: Chat hints only }
+        userId: { type: string, format: uuid, description: Set on notification hints; only that person's clients refresh }
     CardPage:
       type: object
       required: [items, total, page, pageSize]
@@ -2891,9 +2921,36 @@ components:
       properties:
         events: { type: array, items: { $ref: "#/components/schemas/WikiAuditEvent" } }
         next: { type: integer, format: int64, nullable: true, description: Cursor for the next page; null at the end }
+    Notification:
+      type: object
+      required: [id, kind, title, body, actor, cardId, projectId, channelId, messageId, createdAt, read]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [assigned, task_moved, task_updated, task_commented, mention, dm] }
+        title: { type: string, description: What happened, as a short line }
+        body: { type: string, description: Extra detail such as the start of a message }
+        actor: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
+        cardId: { type: string, format: uuid, nullable: true }
+        projectId: { type: string, format: uuid, nullable: true }
+        channelId: { type: string, format: uuid, nullable: true }
+        messageId: { type: string, format: uuid, nullable: true }
+        createdAt: { type: string, format: date-time }
+        read: { type: boolean }
+    NotificationPage:
+      type: object
+      required: [items, unread, next]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Notification" } }
+        unread: { type: integer, description: Unread notifications in the workspace }
+        next: { type: string, format: date-time, nullable: true, description: Pass as before for the next page }
+    NotificationsReadInput:
+      type: object
+      properties:
+        ids: { type: array, maxItems: 100, items: { type: string, format: uuid }, description: Notifications to mark; omit with all }
+        all: { type: boolean, description: Mark every notification in the workspace }
     ChatChannel:
       type: object
-      required: [id, workspaceId, kind, name, topic, joined, muted, starred, feed, feedProjectId, unread, mentions, memberCount, lastMessageAt, people]
+      required: [id, workspaceId, kind, name, topic, joined, muted, starred, feed, feedProjectId, feedEvents, unread, mentions, memberCount, lastMessageAt, people]
       properties:
         id: { type: string, format: uuid }
         workspaceId: { type: string, format: uuid }
@@ -2905,6 +2962,7 @@ components:
         starred: { type: boolean }
         feed: { type: boolean, description: Receives task updates; only replies can be posted }
         feedProjectId: { type: string, format: uuid, nullable: true, description: The one project the feed follows; null means all }
+        feedEvents: { type: array, items: { type: string, enum: [created, assigned, moved, updated, deleted, commented] }, description: Which task events the feed takes }
         unread: { type: integer, description: Messages from others since the caller last read }
         mentions: { type: integer, description: Of those, how many mention the caller }
         memberCount: { type: integer }
@@ -2919,6 +2977,7 @@ components:
         private: { type: boolean }
         feed: { type: boolean, description: Make it a task feed }
         feedProjectId: { type: string, format: uuid, nullable: true }
+        feedEvents: { type: array, items: { type: string, enum: [created, assigned, moved, updated, deleted, commented] }, description: Task events the feed takes; omit for all }
         memberIds: { type: array, items: { type: string, format: uuid } }
     ChatChannelPatch:
       type: object
@@ -2927,6 +2986,7 @@ components:
         topic: { type: string, maxLength: 250 }
         feed: { type: boolean, description: Turn the task feed on or off }
         feedProjectId: { type: string, format: uuid, nullable: true, description: Used with feed; null means all projects }
+        feedEvents: { type: array, items: { type: string, enum: [created, assigned, moved, updated, deleted, commented] }, description: Used with feed; omit or empty for all }
     ChatDirectInput:
       type: object
       required: [userIds]
@@ -2999,7 +3059,10 @@ components:
       type: object
       required: [kind, projectId, projectKey, projectName, cardId, number, title]
       properties:
-        kind: { type: string, enum: [created, moved, updated, deleted, commented] }
+        kind: { type: string, enum: [created, assigned, moved, updated, deleted, commented] }
+        actorId: { type: string, format: uuid, description: Who made the change }
+        actorName: { type: string }
+        assignees: { type: array, items: { type: string }, description: People on a newly created task }
         projectId: { type: string, format: uuid }
         projectKey: { type: string }
         projectName: { type: string }

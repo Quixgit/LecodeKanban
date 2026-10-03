@@ -8,6 +8,8 @@ import { Avatar, Button, Checkbox, Field, Input, Modal, Select, Switch } from '@
 import type { ChatChannel } from '../api/chatApi';
 import { useChatMutations } from '../hooks/useChat';
 import { channelTitle, normalizeChannelName } from '../model/channels';
+import { FEED_KINDS, type FeedKind } from '../model/feed';
+import { FeedEventsPicker } from './FeedEventsPicker';
 
 interface Common {
   open: boolean;
@@ -44,6 +46,7 @@ function CreateForm({
   const [invited, setInvited] = useState<string[]>([]);
   const [feed, setFeed] = useState(false);
   const [feedProject, setFeedProject] = useState('all');
+  const [feedEvents, setFeedEvents] = useState<FeedKind[]>([...FEED_KINDS]);
   const [q, setQ] = useState('');
   const [error, setError] = useState<string | null>(null);
   const normalized = normalizeChannelName(name);
@@ -59,6 +62,7 @@ function CreateForm({
         memberIds: invited,
         feed,
         feedProjectId: feed && feedProject !== 'all' ? feedProject : null,
+        feedEvents: feed ? feedEvents : undefined,
       },
       {
         onSuccess: (c) => {
@@ -131,7 +135,14 @@ function CreateForm({
             <Switch checked={feed} onCheckedChange={setFeed} aria-label={t('feed.toggle')} />
           </label>
           {feed && (
-            <FeedProjectSelect value={feedProject} onChange={setFeedProject} projects={projects} />
+            <>
+              <FeedProjectSelect
+                value={feedProject}
+                onChange={setFeedProject}
+                projects={projects}
+              />
+              <FeedEventsPicker value={feedEvents} onChange={setFeedEvents} />
+            </>
           )}
         </div>
         <fieldset className="flex flex-col gap-2">

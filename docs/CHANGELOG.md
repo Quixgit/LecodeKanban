@@ -4,6 +4,22 @@
 
 ### Added
 
+- **Notifications (the bell)** (ADR 0018): a real inbox replaces the empty placeholder. People are told
+  when they are assigned to a task, when a task they work on is moved, edited or discussed, when they are
+  mentioned (`@name`, `@channel`, `@here`) and when they get a direct message. A red count sits on the bell,
+  the list opens the task or conversation and marks items read, "Mark all as read" clears it, and a sound
+  plays for new task notifications. The chat navigation badge turns red for mentions and task feeds.
+- **Feed event choice**: a task-feed channel takes any mix of new tasks, new assignments, moves, edits,
+  deletions and comments (create dialog and channel details). "New assignments" fires only when somebody is
+  newly put on a task.
+
+### Fixed
+
+- **Task-feed messages never counted as unread for the person who made the change**, so testing a feed
+  alone showed no badge and played no sound. Feed messages are now written by the system (the actor is in
+  the card), so they count for everyone, the actor included.
+- Dialogs taller than the window scroll instead of hiding their buttons.
+
 - **Chat task feeds**: a channel can be flagged as a task feed (on create or in channel details) and
   optionally bound to one project. Card created, moved, edited, deleted and commented events arrive as
   Slack-bot-style cards; people cannot post in a feed. The channel highlights with a pulsing dot when new

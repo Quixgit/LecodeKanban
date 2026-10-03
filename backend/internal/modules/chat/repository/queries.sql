@@ -1,8 +1,8 @@
 -- chat module queries (sqlc). Threads are one level deep: replies carry parent_id.
 
 -- name: CreateChannel :one
-INSERT INTO chat_channels (workspace_id, kind, name, topic, dm_key, created_by, ref_id, feed, feed_project_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+INSERT INTO chat_channels (workspace_id, kind, name, topic, dm_key, created_by, ref_id, feed, feed_project_id, feed_events)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING *;
 
 -- name: GetChannel :one
@@ -18,7 +18,7 @@ SELECT * FROM chat_channels WHERE kind = $1 AND ref_id = $2;
 UPDATE chat_channels SET name = $2, topic = $3 WHERE id = $1 RETURNING *;
 
 -- name: SetFeed :one
-UPDATE chat_channels SET feed = $2, feed_project_id = $3 WHERE id = $1 RETURNING *;
+UPDATE chat_channels SET feed = $2, feed_project_id = $3, feed_events = $4 WHERE id = $1 RETURNING *;
 
 -- name: ListFeedChannels :many
 SELECT * FROM chat_channels
@@ -36,7 +36,7 @@ UPDATE chat_channels SET archived_at = now() WHERE id = $1;
 UPDATE chat_channels SET last_message_at = $2 WHERE id = $1;
 
 -- name: ListChannelStates :many
-SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.feed, c.feed_project_id, c.created_by, c.created_at, c.last_message_at,
+SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
        (st.user_id IS NOT NULL)::boolean AS starred,
@@ -58,7 +58,7 @@ WHERE c.workspace_id = sqlc.arg('workspace_id') AND c.archived_at IS NULL
 ORDER BY c.name NULLS LAST, c.last_message_at DESC NULLS LAST, c.id;
 
 -- name: GetChannelState :one
-SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.feed, c.feed_project_id, c.created_by, c.created_at, c.last_message_at,
+SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
        (st.user_id IS NOT NULL)::boolean AS starred,

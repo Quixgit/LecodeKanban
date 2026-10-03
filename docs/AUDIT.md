@@ -82,3 +82,17 @@ Facts about what was checked, with how. Update on every phase.
   status that a second user sees, and do-not-disturb silencing sounds.
 - Not covered yet: the feed toggle lives only in the chat dialogs (not in the Tasks settings), feeds for
   scoped project/card chats, bounce webhooks for Mailgun.
+
+## Notifications and feed events
+
+- Go: `notifications/service` (TestTaskNotifications: assignment on create and on edit, move/edit/comment
+  reach the people on the task, the author is never notified, per-person read state, outsiders refused;
+  TestChatNotifications: mention, @channel, muted members skipped for @channel but not direct mentions,
+  direct messages, task conversations) and `chat/service` (TestFeedEventChoice: each event kind reaches
+  only the feeds that take it, created-with-assignee counts as assigned, choice editable, own change is
+  unread in a feed).
+- Browser: assignment rings and shows a red count that opens the task; DM lands in the bell; a feed that
+  takes only new assignments stays empty on create/move and badges the acting person.
+- Not covered yet: notifications are never pruned; no email or push for offline people; no per-kind
+  notification preferences; audio stays locked after a hard reload until the first click or key press (browser
+  policy).

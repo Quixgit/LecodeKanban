@@ -1,7 +1,9 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { onRealtime } from '@/features/realtime';
 import type { ChatChannel } from '@/features/chat';
+import { freshIds, soundFor } from '@/features/notifications';
+import type { components } from '@/shared/api';
 import { detectChatSound, type ChannelCounts } from '../model/detect';
 import { playSound, strongest, unlockAudioOnGesture, type SoundKind } from '../model/synth';
 import { soundAllowed, useSoundStore } from '../store/soundStore';
@@ -73,6 +75,25 @@ export function useNotificationSounds(me: string | undefined, ws: string | undef
       previous = next; // the first load only sets the baseline
     });
 
+    // The bell: assignments and updates on your tasks (chat kinds already ring through the list).
+    let seen: Set<string> | null = null;
+    const unsubscribeBell = qc.getQueryCache().subscribe((event) => {
+      const key = event.query.queryKey;
+      if (key[0] !== 'notifications' || key[1] !== ws || key[2] !== me) return;
+      if (event.type !== 'updated' || event.action.type !== 'success') return;
+      const first = (
+        event.query.state.data as
+          InfiniteData<components['schemas']['NotificationPage']> | undefined
+      )?.pages[0]?.items;
+      if (!first) return;
+      const fresh = new Set(freshIds(seen, first));
+      for (const n of first) {
+        const kind = fresh.has(n.id) ? soundFor(n) : undefined;
+        if (kind) ring(kind);
+      }
+      seen = new Set(first.map((n) => n.id)); // the first load only sets the baseline
+    });
+
     // Boards: hints from other people.
     const offRealtime = onRealtime((m) => {
       if (m.workspaceId !== ws || m.actorId === me) return;
@@ -82,6 +103,7 @@ export function useNotificationSounds(me: string | undefined, ws: string | undef
 
     return () => {
       unsubscribeCache();
+      unsubscribeBell();
       offRealtime();
       window.clearTimeout(timer);
     };

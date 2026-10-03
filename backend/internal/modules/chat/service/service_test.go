@@ -661,10 +661,11 @@ func TestTaskFeeds(t *testing.T) {
 	kinds := []string{}
 	for _, m := range page.Messages {
 		var ev struct {
-			Kind, ProjectKey, Title string
-			Changes                 []struct{ Field string }
+			Kind, ProjectKey, Title, ActorName string
+			Changes                            []struct{ Field string }
 		}
-		if err := json.Unmarshal(m.Event, &ev); err != nil || m.Author == nil || m.Author.ID != w.ben {
+		// Feed messages are written by the system; the person who acted travels in the payload.
+		if err := json.Unmarshal(m.Event, &ev); err != nil || m.Author != nil || ev.ActorName != "Ben Member" {
 			t.Fatalf("event message: %+v err=%v", m, err)
 		}
 		kinds = append(kinds, ev.Kind)
@@ -777,5 +778,90 @@ func TestStatuses(t *testing.T) {
 	_ = c.ClearStatus(ctx, w.anna, w.ws)
 	if got := strings.Join(w.e.Hints.Types(), ","); got != "chat.status,chat.status" {
 		t.Fatalf("hints = %q", got)
+	}
+}
+
+func TestFeedEventChoice(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	chat.RegisterFeeds(w.e.Bus, c)
+	core := w.e.Project(w.owner, w.ws, "Core")
+
+	_, err := c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "bad", Feed: true, FeedEvents: []string{"exploded"}})
+	mustCode(t, err, apperr.Validation)
+	all, err := c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "everything", Feed: true})
+	if err != nil || len(all.FeedEvents) != len(domain.FeedKinds) {
+		t.Fatalf("default events: %+v %v", all.FeedEvents, err)
+	}
+	assigned, err := c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "new-assignments", Feed: true, FeedEvents: []string{"assigned"}})
+	if err != nil || len(assigned.FeedEvents) != 1 {
+		t.Fatalf("assigned feed: %+v %v", assigned.FeedEvents, err)
+	}
+	moves, _ := c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "moves", Feed: true, FeedEvents: []string{"moved", "created"}})
+
+	count := func(id uuid.UUID) int {
+		p, err := c.Messages(ctx, w.anna, id, nil, 50)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return len(p.Messages)
+	}
+
+	// A task created with nobody on it: only the feeds that take "created" hear about it.
+	card := w.e.Card(w.ben, w.ws, core, "Fix login")
+	if count(all.ID) != 1 || count(assigned.ID) != 0 || count(moves.ID) != 1 {
+		t.Fatalf("after create: all=%d assigned=%d moves=%d", count(all.ID), count(assigned.ID), count(moves.ID))
+	}
+	// A priority change is "updated": none of the narrow feeds takes it.
+	high := carddomain.High
+	cur, _ := w.e.Cards.Get(ctx, w.ben, card.ID)
+	upd, err := w.e.Cards.Update(ctx, w.ben, card.ID, carddomain.Patch{Version: cur.Version, Priority: &high})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count(all.ID) != 2 || count(assigned.ID) != 0 || count(moves.ID) != 1 {
+		t.Fatalf("after edit: all=%d assigned=%d moves=%d", count(all.ID), count(assigned.ID), count(moves.ID))
+	}
+	// Putting somebody on it is "assigned".
+	if _, err := w.e.Cards.Update(ctx, w.ben, card.ID, carddomain.Patch{Version: upd.Version, AssigneeIDs: &[]uuid.UUID{w.anna}}); err != nil {
+		t.Fatal(err)
+	}
+	if count(all.ID) != 3 || count(assigned.ID) != 1 || count(moves.ID) != 1 {
+		t.Fatalf("after assign: all=%d assigned=%d moves=%d", count(all.ID), count(assigned.ID), count(moves.ID))
+	}
+	// A task created with people on it counts as assigned too.
+	if _, err := w.e.Cards.Create(ctx, w.ben, w.ws, carddomain.NewCard{ProjectID: core, Title: "Second", AssigneeIDs: []uuid.UUID{w.anna}}); err != nil {
+		t.Fatal(err)
+	}
+	if count(assigned.ID) != 2 {
+		t.Fatalf("created with assignee: %d", count(assigned.ID))
+	}
+
+	// The choice can change later, and empty means everything again.
+	on := true
+	got, err := c.Update(ctx, w.anna, assigned.ID, nil, nil, &service.FeedPatch{On: on, Events: []string{"deleted"}})
+	if err != nil || len(got.FeedEvents) != 1 || got.FeedEvents[0] != "deleted" {
+		t.Fatalf("update: %+v %v", got.FeedEvents, err)
+	}
+	got, _ = c.Update(ctx, w.anna, assigned.ID, nil, nil, &service.FeedPatch{On: on})
+	if len(got.FeedEvents) != len(domain.FeedKinds) {
+		t.Fatalf("reset: %+v", got.FeedEvents)
+	}
+
+	// The person who made the change still sees the feed as unread: it is the system speaking.
+	st, _ := c.Channels(ctx, w.ben, w.ws)
+	for _, x := range st {
+		if x.ID == all.ID && x.Joined {
+			t.Fatalf("ben never joined, got %+v", x)
+		}
+	}
+	_, _ = c.Join(ctx, w.ben, all.ID)
+	w.e.Card(w.ben, w.ws, core, "Third")
+	st, _ = c.Channels(ctx, w.ben, w.ws)
+	for _, x := range st {
+		if x.ID == all.ID && x.Unread == 0 {
+			t.Fatalf("own change should count as unread in a feed: %+v", x)
+		}
 	}
 }

@@ -189,7 +189,7 @@
     "emptyFeedDescription": "New tasks, status changes, edits and comments will appear here as they happen.",
     "toggle": "Task feed",
     "detailsToggle": "Send task updates here",
-    "toggleHint": "Only task updates land in this channel: created, moved, edited, deleted and commented tasks.",
+    "toggleHint": "Only task updates land in this channel. Choose which ones below.",
     "project": "Project",
     "projectPrefix": "Follow:",
     "allProjects": "All projects",
@@ -200,7 +200,8 @@
       "moved": "Moved",
       "updated": "Updated",
       "deleted": "Deleted",
-      "commented": "New comment"
+      "commented": "New comment",
+      "assigned": "Assigned"
     },
     "field": {
       "title": "Title",
@@ -213,6 +214,18 @@
       "high": "High",
       "medium": "Medium",
       "low": "Low"
+    },
+    "by": "by {{name}}",
+    "assignedTo": "Assigned to {{names}}",
+    "eventsLabel": "Which updates land here",
+    "eventsHint": "Pick only what you want to see, for example just new assignments.",
+    "events": {
+      "created": "New tasks",
+      "assigned": "New assignments",
+      "moved": "Moves",
+      "updated": "Edits",
+      "deleted": "Deletions",
+      "commented": "Comments"
     }
   },
   "empty": {

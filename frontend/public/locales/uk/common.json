@@ -41,7 +41,7 @@
   "notifications": {
     "title": "Сповіщення",
     "emptyTitle": "Нових сповіщень немає",
-    "emptyDescription": "Тут з'являтимуться згадки, призначення та нагадування про дедлайни.",
+    "emptyDescription": "Тут з’являтимуться призначення, оновлення ваших завдань, згадки та особисті повідомлення.",
     "sound": {
       "title": "Звуки",
       "volume": "Гучність",
@@ -53,6 +53,20 @@
         "task": "Нова задача",
         "notify": "Інші оновлення"
       }
+    },
+    "titleUnread": "Сповіщення, непрочитаних: {{count}}",
+    "markAll": "Позначити все прочитаним",
+    "more": "Показати старіші",
+    "someone": "Хтось",
+    "unreadItem": "Непрочитане",
+    "kinds": {
+      "assigned": "{{actor}} призначає вас на {{subject}}",
+      "task_moved": "{{actor}} переносить {{subject}} у «{{column}}»",
+      "task_updated": "{{actor}} оновлює {{subject}}",
+      "task_commented": "{{actor}} коментує {{subject}}",
+      "mention": "{{actor}} згадує вас у {{channel}}",
+      "dm": "{{actor}} надсилає вам повідомлення",
+      "mention_direct": "{{actor}} згадує вас"
     }
   },
   "language": {

@@ -41,6 +41,9 @@ export function keysFor(m: RealtimeMessage): QueryKeyPrefix[] {
           : []),
         ...(m.channelId ? [['chat', 'members', m.channelId] as const] : []),
       ];
+    case 'notification':
+      // The hint names one person; their key holds the only cache that has to refetch.
+      return m.userId ? [['notifications', ws, m.userId]] : [];
     case 'columns':
       return [['boardColumns'], ['cards', ws]];
     default:

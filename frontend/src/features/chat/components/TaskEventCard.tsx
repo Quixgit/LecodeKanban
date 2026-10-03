@@ -4,6 +4,7 @@ import {
   MessageSquareText,
   Pencil,
   Trash2,
+  UserPlus,
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +21,8 @@ const isStatus = (s: string | undefined): s is Status =>
 const KIND: Record<ChatEvent['kind'], { icon: LucideIcon; bar: string; chip: string }> = {
   created: { icon: ClipboardPlus, bar: 'bg-done', chip: 'bg-done-soft text-done-ink' },
   moved: { icon: ArrowRight, bar: 'bg-progress', chip: 'bg-progress-soft text-progress-ink' },
-  updated: { icon: Pencil, bar: 'bg-review', chip: 'bg-review-soft text-review-ink' },
+  assigned: { icon: UserPlus, bar: 'bg-review', chip: 'bg-review-soft text-review-ink' },
+  updated: { icon: Pencil, bar: 'bg-todo', chip: 'bg-todo-soft text-todo-ink' },
   deleted: { icon: Trash2, bar: 'bg-danger', chip: 'bg-danger-soft text-danger-ink' },
   commented: {
     icon: MessageSquareText,
@@ -77,14 +79,22 @@ export function TaskEventCard({ event: e }: { event: ChatEvent }) {
             {e.title}
           </p>
 
+          {e.actorName && (
+            <p className="text-xs text-text-muted">{t('feed.by', { name: e.actorName })}</p>
+          )}
           {e.kind === 'created' && isStatus(e.to) && <StatusFlow to={e.to} />}
+          {e.kind === 'created' && e.assignees && e.assignees.length > 0 && (
+            <p className="text-sm text-text-secondary">
+              {t('feed.assignedTo', { names: e.assignees.join(', ') })}
+            </p>
+          )}
           {e.kind === 'moved' && <StatusFlow from={e.from} to={e.to} />}
           {e.kind === 'commented' && e.excerpt && (
             <blockquote className="border-l-2 border-border pl-3 text-sm text-text-secondary">
               {e.excerpt}
             </blockquote>
           )}
-          {e.kind === 'updated' && (
+          {(e.kind === 'updated' || e.kind === 'assigned') && (
             <ul className="space-y-1">
               {(e.changes ?? []).map((c) => (
                 <li key={c.field} className="flex flex-wrap items-baseline gap-x-2 text-sm">

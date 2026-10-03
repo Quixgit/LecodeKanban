@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"slices"
+	"strings"
 
 	"github.com/google/uuid"
 
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/domain"
+	chatevents "github.com/reliabilix/lecodekanban/backend/internal/modules/chat/events"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/repository"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
@@ -131,6 +133,7 @@ func (s *Service) Post(ctx context.Context, user, channel uuid.UUID, parent *uui
 		return MessageView{}, err
 	}
 	s.hint(ctx, "chat.message", ch.WorkspaceID, user, ch.ID, &saved.ID)
+	s.announce(ctx, ch, saved, mentions)
 	return s.presentOne(ctx, user, saved)
 }
 
@@ -237,4 +240,46 @@ func (s *Service) React(ctx context.Context, user, id uuid.UUID, key string, on 
 	}
 	s.hint(ctx, "chat.message", ch.WorkspaceID, user, ch.ID, &id)
 	return s.presentOne(ctx, user, m)
+}
+
+// announce tells the notifications module whom a new message is for. Failing to do so never fails
+// the post.
+func (s *Service) announce(ctx context.Context, ch domain.Channel, m domain.Message, mentions []uuid.UUID) {
+	if s.bus == nil || m.AuthorID == nil {
+		return
+	}
+	author := *m.AuthorID
+	members, err := s.repo.Members(ctx, ch.ID)
+	if err != nil {
+		return
+	}
+	ev := chatevents.MessagePosted{WorkspaceID: ch.WorkspaceID, ChannelID: ch.ID, MessageID: m.ID, AuthorID: author,
+		ChannelKind: string(ch.Kind), ChannelName: ch.Name, RefID: ch.RefID, Excerpt: excerpt(m.Body)}
+	named := map[uuid.UUID]bool{}
+	for _, id := range mentions {
+		if id != author && !named[id] {
+			named[id] = true
+			ev.Mentioned = append(ev.Mentioned, id)
+		}
+	}
+	for _, mem := range members {
+		if mem.UserID == author || named[mem.UserID] || mem.Muted {
+			continue
+		}
+		switch {
+		case ch.Kind == domain.DM:
+			ev.Direct = append(ev.Direct, mem.UserID)
+		case m.MentionAll:
+			ev.Mentioned = append(ev.Mentioned, mem.UserID)
+		}
+	}
+	_ = s.bus.Publish(ctx, ev)
+}
+
+func excerpt(body string) string {
+	body = strings.Join(strings.Fields(body), " ")
+	if r := []rune(body); len(r) > 140 {
+		return string(r[:140]) + "…"
+	}
+	return body
 }

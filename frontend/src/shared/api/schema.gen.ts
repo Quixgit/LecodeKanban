@@ -1688,6 +1688,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** The caller's notifications in the workspace, newest first, with the unread count */
+        get: operations["listNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/notifications/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the given notifications (or all of them) as read */
+        post: operations["markNotificationsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/chat/status": {
         parameters: {
             query?: never;
@@ -2552,6 +2590,11 @@ export interface components {
              * @description Chat hints only
              */
             messageId?: string;
+            /**
+             * Format: uuid
+             * @description Set on notification hints; only that person's clients refresh
+             */
+            userId?: string;
         };
         CardPage: {
             items: components["schemas"]["Card"][];
@@ -2887,6 +2930,44 @@ export interface components {
              */
             next: number | null;
         };
+        Notification: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "assigned" | "task_moved" | "task_updated" | "task_commented" | "mention" | "dm";
+            /** @description What happened */
+            title: string;
+            /** @description Extra detail such as the start of a message */
+            body: string;
+            actor: components["schemas"]["PersonRef"] | null;
+            /** Format: uuid */
+            cardId: string | null;
+            /** Format: uuid */
+            projectId: string | null;
+            /** Format: uuid */
+            channelId: string | null;
+            /** Format: uuid */
+            messageId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            read: boolean;
+        };
+        NotificationPage: {
+            items: components["schemas"]["Notification"][];
+            /** @description Unread notifications in the workspace */
+            unread: number;
+            /**
+             * Format: date-time
+             * @description Pass as before for the next page
+             */
+            next: string | null;
+        };
+        NotificationsReadInput: {
+            /** @description Notifications to mark; omit with all */
+            ids?: string[];
+            /** @description Mark every notification in the workspace */
+            all?: boolean;
+        };
         ChatChannel: {
             /** Format: uuid */
             id: string;
@@ -2907,6 +2988,8 @@ export interface components {
              * @description The one project the feed follows; null means all
              */
             feedProjectId: string | null;
+            /** @description Which task events the feed takes */
+            feedEvents: ("created" | "assigned" | "moved" | "updated" | "deleted" | "commented")[];
             /** @description Messages from others since the caller last read */
             unread: number;
             /** @description Of those */
@@ -2925,6 +3008,8 @@ export interface components {
             feed?: boolean;
             /** Format: uuid */
             feedProjectId?: string | null;
+            /** @description Task events the feed takes; omit for all */
+            feedEvents?: ("created" | "assigned" | "moved" | "updated" | "deleted" | "commented")[];
             memberIds?: string[];
         };
         ChatChannelPatch: {
@@ -2937,6 +3022,8 @@ export interface components {
              * @description Used with feed; null means all projects
              */
             feedProjectId?: string | null;
+            /** @description Used with feed; omit or empty for all */
+            feedEvents?: ("created" | "assigned" | "moved" | "updated" | "deleted" | "commented")[];
         };
         ChatDirectInput: {
             /** @description The other participants */
@@ -3010,7 +3097,15 @@ export interface components {
         };
         ChatEvent: {
             /** @enum {string} */
-            kind: "created" | "moved" | "updated" | "deleted" | "commented";
+            kind: "created" | "assigned" | "moved" | "updated" | "deleted" | "commented";
+            /**
+             * Format: uuid
+             * @description Who made the change
+             */
+            actorId?: string;
+            actorName?: string;
+            /** @description People on a newly created task */
+            assignees?: string[];
             /** Format: uuid */
             projectId: string;
             projectKey: string;
@@ -6157,6 +6252,56 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Recorded */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listNotifications: {
+        parameters: {
+            query?: {
+                /** @description Only older than this time */
+                before?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPage"];
+                };
+            };
+        };
+    };
+    markNotificationsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationsReadInput"];
+            };
+        };
+        responses: {
+            /** @description Marked */
             204: {
                 headers: {
                     [name: string]: unknown;

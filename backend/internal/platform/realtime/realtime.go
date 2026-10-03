@@ -30,6 +30,8 @@ type Message struct {
 	ChannelID *uuid.UUID `json:"channelId,omitempty"`
 	MessageID *uuid.UUID `json:"messageId,omitempty"`
 	ActorID   *uuid.UUID `json:"actorId,omitempty"`
+	// UserID narrows a hint to one person (notifications); clients of other people ignore it.
+	UserID *uuid.UUID `json:"userId,omitempty"`
 }
 
 // Publisher sends messages through Postgres so every API instance receives them.
