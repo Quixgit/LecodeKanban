@@ -1,8 +1,8 @@
 -- notifications module queries (sqlc).
 
 -- name: InsertNotification :one
-INSERT INTO notifications (user_id, workspace_id, kind, actor_id, card_id, project_id, channel_id, message_id, title, body)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+INSERT INTO notifications (user_id, workspace_id, kind, actor_id, card_id, project_id, channel_id, message_id, title, body, link)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 RETURNING *;
 
 -- name: ListNotifications :many

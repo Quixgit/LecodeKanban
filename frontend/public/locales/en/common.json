@@ -64,7 +64,8 @@
       "task_commented": "{{actor}} commented on {{subject}}",
       "mention": "{{actor}} mentioned you in {{channel}}",
       "dm": "{{actor}} sent you a message",
-      "mention_direct": "{{actor}} mentioned you"
+      "mention_direct": "{{actor}} mentioned you",
+      "meeting": "“{{subject}}” starts at {{time}}"
     }
   },
   "language": {

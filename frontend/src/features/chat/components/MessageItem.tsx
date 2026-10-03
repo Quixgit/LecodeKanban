@@ -32,6 +32,7 @@ import type { ChatMessage } from '../api/chatApi';
 import type { ReactionKey } from '../model/reactions';
 import { Attachments } from './Attachments';
 import { AuthorStatus } from './AuthorStatus';
+import { MeetingCard } from './MeetingCard';
 import { TaskEventCard } from './TaskEventCard';
 import { ReactionBar, ReactionPicker } from './ReactionBar';
 
@@ -87,6 +88,7 @@ export const MessageItem = memo(function MessageItem({
   const [saving, setSaving] = useState(false);
   const mine = m.author?.id === me;
   const mentionsMe = m.mentions.some((p) => p.id === me);
+  const system = !!m.event || !!m.meeting;
   const author = m.author?.name ?? t('message.unknownAuthor');
 
   const save = async () => {
@@ -179,7 +181,7 @@ export const MessageItem = memo(function MessageItem({
               {m.pinned ? t('message.unpin') : t('message.pin')}
             </DropdownItem>
           )}
-          {mine && !m.event && (
+          {mine && !system && (
             <DropdownItem
               onSelect={() => {
                 setDraft(m.body);
@@ -233,9 +235,9 @@ export const MessageItem = memo(function MessageItem({
           <div className="flex items-baseline gap-2">
             <span className="text-base font-semibold text-text">{author}</span>
             {m.author && <AuthorStatus userId={m.author.id} />}
-            {m.event && (
+            {system && (
               <span className="rounded bg-primary-soft px-1.5 text-2xs font-semibold uppercase tracking-wide text-primary-ink">
-                {t('feed.app')}
+                {m.meeting ? t('meeting.app') : t('feed.app')}
               </span>
             )}
             <time
@@ -287,7 +289,13 @@ export const MessageItem = memo(function MessageItem({
           </div>
         ) : (
           <div className="[&>div>p:first-child]:mt-0 [&>div>p:last-child]:mb-0">
-            {m.event ? <TaskEventCard event={m.event} /> : m.body && <Markdown source={m.body} />}
+            {m.meeting ? (
+              <MeetingCard meeting={m.meeting} />
+            ) : m.event ? (
+              <TaskEventCard event={m.event} />
+            ) : (
+              m.body && <Markdown source={m.body} />
+            )}
             {m.editedAt && (
               <span className="text-2xs text-text-muted" title={time.full(m.editedAt)}>
                 {t('message.edited')}

@@ -16,6 +16,7 @@ const (
 	TaskCommented Kind = "task_commented" // someone wrote on a task you work on
 	Mention       Kind = "mention"        // named, or reached through @channel / @here
 	DM            Kind = "dm"             // a direct message
+	Meeting       Kind = "meeting"        // a calendar meeting is about to start
 )
 
 // Notification is one row of a person's bell. Title is the subject (a task key and title, or a
@@ -32,8 +33,10 @@ type Notification struct {
 	MessageID   *uuid.UUID
 	Title       string
 	Body        string
-	CreatedAt   time.Time
-	ReadAt      *time.Time
+	// Link is an outside address the notification leads to (a meeting's video call).
+	Link      string
+	CreatedAt time.Time
+	ReadAt    *time.Time
 }
 
 func (n Notification) Read() bool { return n.ReadAt != nil }

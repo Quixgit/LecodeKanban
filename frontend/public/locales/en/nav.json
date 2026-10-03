@@ -32,10 +32,9 @@
     "open": "Open menu"
   },
   "announcement": {
-    "label": "Team announcement",
+    "label": "Next meeting",
     "title": "Announcement!",
-    "defaultMessage": "Team stand-up is starting soon",
-    "members": "Members:",
+    "members": "Participants:",
     "join": "Join Now"
   },
   "pages": {

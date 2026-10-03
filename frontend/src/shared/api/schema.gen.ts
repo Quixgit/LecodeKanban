@@ -1688,6 +1688,124 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** What can be connected and where each stands for the caller */
+        get: operations["listIntegrations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/integrations/meetings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** The caller's next calendar meetings, soonest first */
+        get: operations["listMeetings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/integrations/{provider}/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                provider: components["parameters"]["IntegrationProvider"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start connecting an account; returns where to send the browser */
+        post: operations["connectIntegration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/integrations/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                provider: components["parameters"]["IntegrationProvider"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Forget the account and its cached events */
+        delete: operations["disconnectIntegration"];
+        options?: never;
+        head?: never;
+        /** Activate or pause a connection and change its reminders */
+        patch: operations["updateIntegration"];
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/integrations/{provider}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                provider: components["parameters"]["IntegrationProvider"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh the connection now */
+        post: operations["syncIntegration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{provider}/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["IntegrationProvider"];
+            };
+            cookie?: never;
+        };
+        /** Where the provider sends the browser back (redirects to the Integrations page) */
+        get: operations["integrationCallback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/notifications": {
         parameters: {
             query?: never;
@@ -2930,11 +3048,88 @@ export interface components {
              */
             next: number | null;
         };
+        IntegrationEntry: {
+            /** @enum {string} */
+            provider: "google_calendar";
+            /** @description The server has credentials for this provider */
+            configured: boolean;
+            connected: boolean;
+            /** @description Active; a paused connection keeps its account but does nothing */
+            enabled: boolean;
+            accountEmail: string;
+            /** @description How many minutes before a meeting the reminder fires */
+            leadMinutes: number;
+            notifyBell: boolean;
+            /**
+             * Format: uuid
+             * @description A chat channel that also gets the reminder
+             */
+            channelId: string | null;
+            /**
+             * @description error means the account must be connected again
+             * @enum {string}
+             */
+            status: "connected" | "error";
+            lastError: string;
+            /** Format: date-time */
+            lastSyncAt: string | null;
+        };
+        IntegrationList: {
+            items: components["schemas"]["IntegrationEntry"][];
+            leadChoices: number[];
+        };
+        IntegrationPatch: {
+            enabled?: boolean;
+            leadMinutes?: number;
+            notifyBell?: boolean;
+            /**
+             * Format: uuid
+             * @description Also post reminders in this channel
+             */
+            channelId?: string;
+            /** @description Stop posting reminders in a channel */
+            clearChannel?: boolean;
+        };
+        IntegrationConnect: {
+            url: string;
+        };
+        Meeting: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            provider: "google_calendar";
+            title: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            location: string;
+            /** @description The video call */
+            url: string;
+            /** @description Invited addresses */
+            attendees: string[];
+        };
+        MeetingList: {
+            items: components["schemas"]["Meeting"][];
+        };
+        ChatMeeting: {
+            /** @enum {string} */
+            kind: "meeting";
+            title: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            location?: string;
+            link?: string;
+            leadMinutes: number;
+            attendees: number;
+        };
         Notification: {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            kind: "assigned" | "task_moved" | "task_updated" | "task_commented" | "mention" | "dm";
+            kind: "assigned" | "task_moved" | "task_updated" | "task_commented" | "mention" | "dm" | "meeting";
             /** @description What happened */
             title: string;
             /** @description Extra detail such as the start of a message */
@@ -2948,6 +3143,8 @@ export interface components {
             channelId: string | null;
             /** Format: uuid */
             messageId: string | null;
+            /** @description An outside address it leads to (a meeting's video call) */
+            link: string | null;
             /** Format: date-time */
             createdAt: string;
             read: boolean;
@@ -3053,6 +3250,8 @@ export interface components {
             body: string;
             /** @description A task update (feed messages) */
             event: components["schemas"]["ChatEvent"] | null;
+            /** @description A calendar meeting reminder */
+            meeting: components["schemas"]["ChatMeeting"] | null;
             deleted: boolean;
             mentions: components["schemas"]["PersonRef"][];
             /** @description @channel, @here or @everyone */
@@ -3186,6 +3385,7 @@ export interface components {
         };
     };
     parameters: {
+        IntegrationProvider: "google_calendar";
         ChatChannelId: string;
         ChatMessageId: string;
         Provider: "google" | "github";
@@ -6253,6 +6453,170 @@ export interface operations {
         responses: {
             /** @description Recorded */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listIntegrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The catalogue */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationList"];
+                };
+            };
+        };
+    };
+    listMeetings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Upcoming meetings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeetingList"];
+                };
+            };
+        };
+    };
+    connectIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                provider: components["parameters"]["IntegrationProvider"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The authorisation address */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationConnect"];
+                };
+            };
+            409: components["responses"]["Error"];
+        };
+    };
+    disconnectIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                provider: components["parameters"]["IntegrationProvider"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Disconnected */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                provider: components["parameters"]["IntegrationProvider"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IntegrationPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationEntry"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    syncIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                provider: components["parameters"]["IntegrationProvider"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Refreshed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationEntry"];
+                };
+            };
+        };
+    };
+    integrationCallback: {
+        parameters: {
+            query?: {
+                code?: string;
+                state?: string;
+                error?: string;
+            };
+            header?: never;
+            path: {
+                provider: components["parameters"]["IntegrationProvider"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect */
+            302: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -96,3 +96,18 @@ Facts about what was checked, with how. Update on every phase.
 - Not covered yet: notifications are never pruned; no email or push for offline people; no per-kind
   notification preferences; audio stays locked after a hard reload until the first click or key press (browser
   policy).
+
+## Integrations (Google Calendar)
+
+- Go: `integrations/service` (TestConnectFlow: unconfigured server, forged and expired state, token stored
+  sealed, sync, per-person visibility, outsiders refused; TestMeetingReminders: reminder once inside the
+  lead window, bell and channel post, paused and bell-off silence, all-day events never ring;
+  TestSettingsAndDisconnect: lead choices, foreign channels refused, revoked grant marks the connection
+  for reconnecting, disconnect removes events) and `integrations/google` (OAuth URL asks for offline
+  read-only access, token exchange, event parsing: cancelled/declined dropped, video entry point, all-day,
+  rooms excluded, revoked grant).
+- Browser (needs the stand-in Google, `E2E_FAKE_GOOGLE=1`): connect round trip, sidebar announcement,
+  pop-up + bell + channel card for a meeting inside the lead window, pause/resume, lead choice, disconnect.
+- Not covered yet: Google's own consent screen and verification (the app must be added to a Google Cloud
+  project; calendar scopes need app verification for public use), only the primary calendar is read,
+  no per-event muting, no email or push for offline people, other providers (Slack, GitHub, Gmail).

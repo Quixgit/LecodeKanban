@@ -13,6 +13,22 @@
 
 ### Added
 
+- **Integrations module with Google Calendar** (ADR 0019): the Integrations page now lists connectable
+  services as cards that can be connected, paused (Active switch), re-connected and disconnected. Google
+  Calendar connects through OAuth (read-only access to events), syncs the next week every few minutes, and
+  - shows the next meeting in the sidebar card (countdown, invited colleagues, Join button; the card also
+    invites you to connect when nothing is connected),
+  - reminds you shortly before it starts (5, 10, 15, 30 or 60 minutes): a pop-up, a sound and an entry in
+    the notification bell that opens the video call,
+  - optionally posts the reminder in a chat channel as a meeting card with a Join link.
+  The server needs the Google client ID and secret it already uses for sign-in, the Calendar API enabled and
+  `<LK_PUBLIC_URL>/api/v1/integrations/google_calendar/callback` registered as a redirect URI.
+
+### Changed
+
+- The static sidebar announcement (`VITE_TEAM_MEETING_URL`) is replaced by the live calendar card; the
+  variable is gone.
+
 - **Notifications (the bell)** (ADR 0018): a real inbox replaces the empty placeholder. People are told
   when they are assigned to a task, when a task they work on is moved, edited or discussed, when they are
   mentioned (`@name`, `@channel`, `@here`) and when they get a direct message. A red count sits on the bell,

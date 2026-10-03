@@ -177,6 +177,21 @@ func (e ChatEventKind) Valid() bool {
 	}
 }
 
+// Defines values for ChatMeetingKind.
+const (
+	ChatMeetingKindMeeting ChatMeetingKind = "meeting"
+)
+
+// Valid indicates whether the value is a known member of the ChatMeetingKind enum.
+func (e ChatMeetingKind) Valid() bool {
+	switch e {
+	case ChatMeetingKindMeeting:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ChatStatusIcon.
 const (
 	ChatStatusIconCalendarClock ChatStatusIcon = "calendar-clock"
@@ -303,6 +318,39 @@ func (e ChatStatusInputKind) Valid() bool {
 	}
 }
 
+// Defines values for IntegrationEntryProvider.
+const (
+	IntegrationEntryProviderGoogleCalendar IntegrationEntryProvider = "google_calendar"
+)
+
+// Valid indicates whether the value is a known member of the IntegrationEntryProvider enum.
+func (e IntegrationEntryProvider) Valid() bool {
+	switch e {
+	case IntegrationEntryProviderGoogleCalendar:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for IntegrationEntryStatus.
+const (
+	IntegrationEntryStatusConnected IntegrationEntryStatus = "connected"
+	IntegrationEntryStatusError     IntegrationEntryStatus = "error"
+)
+
+// Valid indicates whether the value is a known member of the IntegrationEntryStatus enum.
+func (e IntegrationEntryStatus) Valid() bool {
+	switch e {
+	case IntegrationEntryStatusConnected:
+		return true
+	case IntegrationEntryStatusError:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for InviteRole.
 const (
 	InviteRoleAdmin  InviteRole = "admin"
@@ -342,10 +390,26 @@ func (e Locale) Valid() bool {
 	}
 }
 
+// Defines values for MeetingProvider.
+const (
+	MeetingProviderGoogleCalendar MeetingProvider = "google_calendar"
+)
+
+// Valid indicates whether the value is a known member of the MeetingProvider enum.
+func (e MeetingProvider) Valid() bool {
+	switch e {
+	case MeetingProviderGoogleCalendar:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for NotificationKind.
 const (
 	NotificationKindAssigned      NotificationKind = "assigned"
 	NotificationKindDm            NotificationKind = "dm"
+	NotificationKindMeeting       NotificationKind = "meeting"
 	NotificationKindMention       NotificationKind = "mention"
 	NotificationKindTaskCommented NotificationKind = "task_commented"
 	NotificationKindTaskMoved     NotificationKind = "task_moved"
@@ -358,6 +422,8 @@ func (e NotificationKind) Valid() bool {
 	case NotificationKindAssigned:
 		return true
 	case NotificationKindDm:
+		return true
+	case NotificationKindMeeting:
 		return true
 	case NotificationKindMention:
 		return true
@@ -831,6 +897,21 @@ func (e CardDue) Valid() bool {
 	case CardDueToday:
 		return true
 	case CardDueWeek:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for IntegrationProvider.
+const (
+	IntegrationProviderGoogleCalendar IntegrationProvider = "google_calendar"
+)
+
+// Valid indicates whether the value is a known member of the IntegrationProvider enum.
+func (e IntegrationProvider) Valid() bool {
+	switch e {
+	case IntegrationProviderGoogleCalendar:
 		return true
 	default:
 		return false
@@ -1511,6 +1592,21 @@ type ChatHit struct {
 	Message ChatMessage `json:"message"`
 }
 
+// ChatMeeting defines model for ChatMeeting.
+type ChatMeeting struct {
+	Attendees   int             `json:"attendees"`
+	EndsAt      time.Time       `json:"endsAt"`
+	Kind        ChatMeetingKind `json:"kind"`
+	LeadMinutes int             `json:"leadMinutes"`
+	Link        *string         `json:"link,omitempty"`
+	Location    *string         `json:"location,omitempty"`
+	StartsAt    time.Time       `json:"startsAt"`
+	Title       string          `json:"title"`
+}
+
+// ChatMeetingKind defines model for ChatMeeting.Kind.
+type ChatMeetingKind string
+
 // ChatMembersInput defines model for ChatMembersInput.
 type ChatMembersInput struct {
 	UserIds []openapi_types.UUID `json:"userIds"`
@@ -1532,6 +1628,9 @@ type ChatMessage struct {
 	Files       []ChatFile         `json:"files"`
 	Id          openapi_types.UUID `json:"id"`
 	LastReplyAt *time.Time         `json:"lastReplyAt"`
+
+	// Meeting A calendar meeting reminder
+	Meeting *ChatMeeting `json:"meeting"`
 
 	// MentionAll @channel, @here or @everyone
 	MentionAll bool                `json:"mentionAll"`
@@ -1734,6 +1833,60 @@ type FieldError struct {
 	Params *map[string]interface{} `json:"params,omitempty"`
 }
 
+// IntegrationConnect defines model for IntegrationConnect.
+type IntegrationConnect struct {
+	Url string `json:"url"`
+}
+
+// IntegrationEntry defines model for IntegrationEntry.
+type IntegrationEntry struct {
+	AccountEmail string `json:"accountEmail"`
+
+	// ChannelId A chat channel that also gets the reminder
+	ChannelId *openapi_types.UUID `json:"channelId"`
+
+	// Configured The server has credentials for this provider
+	Configured bool `json:"configured"`
+	Connected  bool `json:"connected"`
+
+	// Enabled Active; a paused connection keeps its account but does nothing
+	Enabled    bool       `json:"enabled"`
+	LastError  string     `json:"lastError"`
+	LastSyncAt *time.Time `json:"lastSyncAt"`
+
+	// LeadMinutes How many minutes before a meeting the reminder fires
+	LeadMinutes int                      `json:"leadMinutes"`
+	NotifyBell  bool                     `json:"notifyBell"`
+	Provider    IntegrationEntryProvider `json:"provider"`
+
+	// Status error means the account must be connected again
+	Status IntegrationEntryStatus `json:"status"`
+}
+
+// IntegrationEntryProvider defines model for IntegrationEntry.Provider.
+type IntegrationEntryProvider string
+
+// IntegrationEntryStatus error means the account must be connected again
+type IntegrationEntryStatus string
+
+// IntegrationList defines model for IntegrationList.
+type IntegrationList struct {
+	Items       []IntegrationEntry `json:"items"`
+	LeadChoices []int              `json:"leadChoices"`
+}
+
+// IntegrationPatch defines model for IntegrationPatch.
+type IntegrationPatch struct {
+	// ChannelId Also post reminders in this channel
+	ChannelId *openapi_types.UUID `json:"channelId,omitempty"`
+
+	// ClearChannel Stop posting reminders in a channel
+	ClearChannel *bool `json:"clearChannel,omitempty"`
+	Enabled      *bool `json:"enabled,omitempty"`
+	LeadMinutes  *int  `json:"leadMinutes,omitempty"`
+	NotifyBell   *bool `json:"notifyBell,omitempty"`
+}
+
 // Invite defines model for Invite.
 type Invite struct {
 	CreatedAt time.Time          `json:"createdAt"`
@@ -1784,6 +1937,29 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// Meeting defines model for Meeting.
+type Meeting struct {
+	// Attendees Invited addresses
+	Attendees []string           `json:"attendees"`
+	EndsAt    time.Time          `json:"endsAt"`
+	Id        openapi_types.UUID `json:"id"`
+	Location  string             `json:"location"`
+	Provider  MeetingProvider    `json:"provider"`
+	StartsAt  time.Time          `json:"startsAt"`
+	Title     string             `json:"title"`
+
+	// Url The video call
+	Url string `json:"url"`
+}
+
+// MeetingProvider defines model for Meeting.Provider.
+type MeetingProvider string
+
+// MeetingList defines model for MeetingList.
+type MeetingList struct {
+	Items []Meeting `json:"items"`
+}
+
 // Member defines model for Member.
 type Member struct {
 	JoinedAt time.Time  `json:"joinedAt"`
@@ -1819,6 +1995,9 @@ type Notification struct {
 	CreatedAt time.Time           `json:"createdAt"`
 	Id        openapi_types.UUID  `json:"id"`
 	Kind      NotificationKind    `json:"kind"`
+
+	// Link An outside address it leads to (a meeting's video call)
+	Link      *string             `json:"link"`
 	MessageId *openapi_types.UUID `json:"messageId"`
 	ProjectId *openapi_types.UUID `json:"projectId"`
 	Read      bool                `json:"read"`
@@ -2499,6 +2678,9 @@ type ColumnId = openapi_types.UUID
 // CommentId defines model for CommentId.
 type CommentId = openapi_types.UUID
 
+// IntegrationProvider defines model for IntegrationProvider.
+type IntegrationProvider string
+
 // ItemId defines model for ItemId.
 type ItemId = openapi_types.UUID
 
@@ -2584,6 +2766,13 @@ type ListChatMessagesParams struct {
 	// Before Id of the oldest message already loaded; returns the page before it
 	Before *openapi_types.UUID `form:"before,omitempty" json:"before,omitempty"`
 	Limit  *int                `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// IntegrationCallbackParams defines parameters for IntegrationCallback.
+type IntegrationCallbackParams struct {
+	Code  *string `form:"code,omitempty" json:"code,omitempty"`
+	State *string `form:"state,omitempty" json:"state,omitempty"`
+	Error *string `form:"error,omitempty" json:"error,omitempty"`
 }
 
 // ExportWikiNodeParams defines parameters for ExportWikiNode.
@@ -2880,6 +3069,9 @@ type OpenChatDirectJSONRequestBody = ChatDirectInput
 
 // SetChatStatusJSONRequestBody defines body for SetChatStatus for application/json ContentType.
 type SetChatStatusJSONRequestBody = ChatStatusInput
+
+// UpdateIntegrationJSONRequestBody defines body for UpdateIntegration for application/json ContentType.
+type UpdateIntegrationJSONRequestBody = IntegrationPatch
 
 // CreateInviteJSONRequestBody defines body for CreateInvite for application/json ContentType.
 type CreateInviteJSONRequestBody = CreateInviteRequest

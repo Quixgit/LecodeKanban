@@ -26,6 +26,7 @@ tags:
   - name: wiki
   - name: chat
   - name: notifications
+  - name: integrations
   - name: activity
   - name: realtime
   - name: system
@@ -1685,6 +1686,99 @@ paths:
       summary: Tell the server the caller has the app open
       responses:
         "204": { description: Recorded }
+  /workspaces/{workspaceId}/integrations:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [integrations]
+      operationId: listIntegrations
+      summary: What can be connected and where each stands for the caller
+      responses:
+        "200":
+          description: The catalogue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IntegrationList" }
+  /workspaces/{workspaceId}/integrations/meetings:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [integrations]
+      operationId: listMeetings
+      summary: The caller's next calendar meetings, soonest first
+      responses:
+        "200":
+          description: Upcoming meetings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeetingList" }
+  /workspaces/{workspaceId}/integrations/{provider}/connect:
+    parameters:
+      - { $ref: "#/components/parameters/WorkspaceId" }
+      - { $ref: "#/components/parameters/IntegrationProvider" }
+    post:
+      tags: [integrations]
+      operationId: connectIntegration
+      summary: Start connecting an account; returns where to send the browser
+      responses:
+        "200":
+          description: The authorisation address
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IntegrationConnect" }
+        "409": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/integrations/{provider}:
+    parameters:
+      - { $ref: "#/components/parameters/WorkspaceId" }
+      - { $ref: "#/components/parameters/IntegrationProvider" }
+    patch:
+      tags: [integrations]
+      operationId: updateIntegration
+      summary: Activate or pause a connection and change its reminders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/IntegrationPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IntegrationEntry" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [integrations]
+      operationId: disconnectIntegration
+      summary: Forget the account and its cached events
+      responses:
+        "204": { description: Disconnected }
+  /workspaces/{workspaceId}/integrations/{provider}/sync:
+    parameters:
+      - { $ref: "#/components/parameters/WorkspaceId" }
+      - { $ref: "#/components/parameters/IntegrationProvider" }
+    post:
+      tags: [integrations]
+      operationId: syncIntegration
+      summary: Refresh the connection now
+      responses:
+        "200":
+          description: Refreshed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IntegrationEntry" }
+  /integrations/{provider}/callback:
+    parameters:
+      - { $ref: "#/components/parameters/IntegrationProvider" }
+    get:
+      tags: [integrations]
+      operationId: integrationCallback
+      summary: Where the provider sends the browser back (redirects to the Integrations page)
+      security: []
+      parameters:
+        - { name: code, in: query, required: false, schema: { type: string } }
+        - { name: state, in: query, required: false, schema: { type: string } }
+        - { name: error, in: query, required: false, schema: { type: string } }
+      responses:
+        "302": { description: Redirect }
   /workspaces/{workspaceId}/notifications:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -2024,6 +2118,11 @@ components:
   securitySchemes:
     cookieAuth: { type: apiKey, in: cookie, name: lk_at }
   parameters:
+    IntegrationProvider:
+      name: provider
+      in: path
+      required: true
+      schema: { type: string, enum: [google_calendar] }
     ChatChannelId:
       name: channelId
       in: path
@@ -2921,12 +3020,75 @@ components:
       properties:
         events: { type: array, items: { $ref: "#/components/schemas/WikiAuditEvent" } }
         next: { type: integer, format: int64, nullable: true, description: Cursor for the next page; null at the end }
-    Notification:
+    IntegrationEntry:
       type: object
-      required: [id, kind, title, body, actor, cardId, projectId, channelId, messageId, createdAt, read]
+      required: [provider, configured, connected, enabled, accountEmail, leadMinutes, notifyBell, channelId, status, lastError, lastSyncAt]
+      properties:
+        provider: { type: string, enum: [google_calendar] }
+        configured: { type: boolean, description: The server has credentials for this provider }
+        connected: { type: boolean }
+        enabled: { type: boolean, description: Active; a paused connection keeps its account but does nothing }
+        accountEmail: { type: string }
+        leadMinutes: { type: integer, description: How many minutes before a meeting the reminder fires }
+        notifyBell: { type: boolean }
+        channelId: { type: string, format: uuid, nullable: true, description: A chat channel that also gets the reminder }
+        status: { type: string, enum: [connected, error], description: error means the account must be connected again }
+        lastError: { type: string }
+        lastSyncAt: { type: string, format: date-time, nullable: true }
+    IntegrationList:
+      type: object
+      required: [items, leadChoices]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/IntegrationEntry" } }
+        leadChoices: { type: array, items: { type: integer } }
+    IntegrationPatch:
+      type: object
+      properties:
+        enabled: { type: boolean }
+        leadMinutes: { type: integer }
+        notifyBell: { type: boolean }
+        channelId: { type: string, format: uuid, description: Also post reminders in this channel }
+        clearChannel: { type: boolean, description: Stop posting reminders in a channel }
+    IntegrationConnect:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+    Meeting:
+      type: object
+      required: [id, provider, title, startsAt, endsAt, location, url, attendees]
       properties:
         id: { type: string, format: uuid }
-        kind: { type: string, enum: [assigned, task_moved, task_updated, task_commented, mention, dm] }
+        provider: { type: string, enum: [google_calendar] }
+        title: { type: string }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        location: { type: string }
+        url: { type: string, description: The video call, or the event itself }
+        attendees: { type: array, items: { type: string }, description: Invited addresses }
+    MeetingList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Meeting" } }
+    ChatMeeting:
+      type: object
+      required: [kind, title, startsAt, endsAt, leadMinutes, attendees]
+      properties:
+        kind: { type: string, enum: [meeting] }
+        title: { type: string }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        location: { type: string }
+        link: { type: string }
+        leadMinutes: { type: integer }
+        attendees: { type: integer }
+    Notification:
+      type: object
+      required: [id, kind, title, body, actor, cardId, projectId, channelId, messageId, link, createdAt, read]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [assigned, task_moved, task_updated, task_commented, mention, dm, meeting] }
         title: { type: string, description: What happened, as a short line }
         body: { type: string, description: Extra detail such as the start of a message }
         actor: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
@@ -2934,6 +3096,7 @@ components:
         projectId: { type: string, format: uuid, nullable: true }
         channelId: { type: string, format: uuid, nullable: true }
         messageId: { type: string, format: uuid, nullable: true }
+        link: { type: string, nullable: true, description: An outside address it leads to (a meeting's video call) }
         createdAt: { type: string, format: date-time }
         read: { type: boolean }
     NotificationPage:
@@ -3012,7 +3175,7 @@ components:
         users: { type: array, items: { type: string, format: uuid } }
     ChatMessage:
       type: object
-      required: [id, channelId, parentId, author, body, event, deleted, mentions, mentionAll, reactions, files, pinned, saved, replyCount, replyPeople, lastReplyAt, createdAt, editedAt]
+      required: [id, channelId, parentId, author, body, event, meeting, deleted, mentions, mentionAll, reactions, files, pinned, saved, replyCount, replyPeople, lastReplyAt, createdAt, editedAt]
       properties:
         id: { type: string, format: uuid }
         channelId: { type: string, format: uuid }
@@ -3020,6 +3183,7 @@ components:
         author: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
         body: { type: string, description: "Markdown; mentions are written as @[Name](user-id). Empty when deleted" }
         event: { allOf: [{ $ref: "#/components/schemas/ChatEvent" }], nullable: true, description: A task update (feed messages) }
+        meeting: { allOf: [{ $ref: "#/components/schemas/ChatMeeting" }], nullable: true, description: A calendar meeting reminder }
         deleted: { type: boolean }
         mentions: { type: array, items: { $ref: "#/components/schemas/PersonRef" } }
         mentionAll: { type: boolean, description: "@channel, @here or @everyone" }

@@ -397,5 +397,13 @@
       "today": "Today",
       "week": "This week"
     }
+  },
+  "meeting": {
+    "label": "Meeting",
+    "startsIn": "Starts in {{minutes}} min",
+    "startsAt": "Starts at {{time}}",
+    "join": "Join",
+    "now": "Starting now",
+    "app": "Calendar"
   }
 }

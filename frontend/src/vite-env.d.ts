@@ -2,7 +2,6 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
-  readonly VITE_TEAM_MEETING_URL?: string;
   readonly VITE_GMAIL_INBOX_URL?: string;
 }
 

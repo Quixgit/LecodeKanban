@@ -121,5 +121,10 @@
     "too_many_files": "A message can have at most {{max}} files.",
     "feed_readonly": "Only task updates appear in this channel. Reply in a thread to discuss one.",
     "bad_status": "That status isn't valid. Check the icon, the text length and the end time."
+  },
+  "integrations": {
+    "not_connected": "Google Calendar isn't connected.",
+    "not_configured": "Google isn't set up on this server.",
+    "bad_state": "That sign-in link expired. Start again from Integrations."
   }
 }

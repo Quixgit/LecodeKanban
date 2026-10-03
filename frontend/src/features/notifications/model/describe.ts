@@ -1,6 +1,7 @@
 import {
   ArrowRightLeft,
   AtSign,
+  CalendarClock,
   MessageSquare,
   PencilLine,
   Send,
@@ -16,14 +17,16 @@ export const KIND_ICONS: Record<NotificationKind, LucideIcon> = {
   task_commented: MessageSquare,
   mention: AtSign,
   dm: Send,
+  meeting: CalendarClock,
 };
 
 /** Where a notification leads: a task's window, or a conversation. */
-export type Target = { card: string } | { channel: string } | null;
+export type Target = { card: string } | { channel: string } | { link: string } | null;
 
 export function targetOf(n: AppNotification): Target {
   if (n.cardId) return { card: n.cardId };
   if (n.channelId) return { channel: n.channelId };
+  if (n.link) return { link: n.link };
   return null;
 }
 
@@ -35,6 +38,7 @@ export function soundFor(n: AppNotification): 'task' | 'notify' | undefined {
     case 'task_moved':
     case 'task_updated':
     case 'task_commented':
+    case 'meeting':
       return 'notify';
     default:
       return undefined;

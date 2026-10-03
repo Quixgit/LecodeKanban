@@ -238,6 +238,18 @@ Base URL: `/api/v1`
 | PUT | `/chat/messages/{messageId}/reactions/{key}` | session |  | 200 |  |
 | DELETE | `/chat/messages/{messageId}/reactions/{key}` | session |  | 200 |  |
 
+## integrations
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/integrations` | session |  | 200 | What can be connected and where each stands for the caller |
+| GET | `/workspaces/{workspaceId}/integrations/meetings` | session |  | 200 | The caller's next calendar meetings, soonest first |
+| POST | `/workspaces/{workspaceId}/integrations/{provider}/connect` | session |  | 200, 409 Error | Start connecting an account; returns where to send the browser |
+| PATCH | `/workspaces/{workspaceId}/integrations/{provider}` | session | IntegrationPatch | 200, 422 Error | Activate or pause a connection and change its reminders |
+| DELETE | `/workspaces/{workspaceId}/integrations/{provider}` | session |  | 204 | Forget the account and its cached events |
+| POST | `/workspaces/{workspaceId}/integrations/{provider}/sync` | session |  | 200 | Refresh the connection now |
+| GET | `/integrations/{provider}/callback` | public |  | 302 | Where the provider sends the browser back (redirects to the Integrations page) |
+
 ## notifications
 
 | Method | Path | Auth | Request | Responses | Summary |
@@ -349,7 +361,14 @@ Base URL: `/api/v1`
 - **WikiFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string
 - **WikiAuditEvent** — `id`: integer, `kind`: string, `actorId`: string \| null, `nodeId`: string \| null, `data`: object, `at`: string
 - **WikiAuditPage** — `events`: array, `next`: integer \| null
-- **Notification** — `id`: string, `kind`: string, `title`: string, `body`: string, `actor`: object \| null, `cardId`: string \| null, `projectId`: string \| null, `channelId`: string \| null, `messageId`: string \| null, `createdAt`: string, `read`: boolean
+- **IntegrationEntry** — `provider`: string, `configured`: boolean, `connected`: boolean, `enabled`: boolean, `accountEmail`: string, `leadMinutes`: integer, `notifyBell`: boolean, `channelId`: string \| null, `status`: string, `lastError`: string, `lastSyncAt`: string \| null
+- **IntegrationList** — `items`: array, `leadChoices`: array
+- **IntegrationPatch** — `enabled?`: boolean, `leadMinutes?`: integer, `notifyBell?`: boolean, `channelId?`: string, `clearChannel?`: boolean
+- **IntegrationConnect** — `url`: string
+- **Meeting** — `id`: string, `provider`: string, `title`: string, `startsAt`: string, `endsAt`: string, `location`: string, `url`: string, `attendees`: array
+- **MeetingList** — `items`: array
+- **ChatMeeting** — `kind`: string, `title`: string, `startsAt`: string, `endsAt`: string, `location?`: string, `link?`: string, `leadMinutes`: integer, `attendees`: integer
+- **Notification** — `id`: string, `kind`: string, `title`: string, `body`: string, `actor`: object \| null, `cardId`: string \| null, `projectId`: string \| null, `channelId`: string \| null, `messageId`: string \| null, `link`: string \| null, `createdAt`: string, `read`: boolean
 - **NotificationPage** — `items`: array, `unread`: integer, `next`: string \| null
 - **NotificationsReadInput** — `ids?`: array, `all?`: boolean
 - **ChatChannel** — `id`: string, `workspaceId`: string, `kind`: string, `name`: string \| null, `topic`: string, `joined`: boolean, `muted`: boolean, `starred`: boolean, `feed`: boolean, `feedProjectId`: string \| null, `feedEvents`: array, `unread`: integer, `mentions`: integer, `memberCount`: integer, `lastMessageAt`: string \| null, `people`: array
@@ -359,7 +378,7 @@ Base URL: `/api/v1`
 - **ChatMembersInput** — `userIds`: array
 - **ChatMuteInput** — `muted`: boolean
 - **ChatReaction** — `key`: string, `count`: integer, `mine`: boolean, `users`: array
-- **ChatMessage** — `id`: string, `channelId`: string, `parentId`: string \| null, `author`: object \| null, `body`: string, `event`: object \| null, `deleted`: boolean, `mentions`: array, `mentionAll`: boolean, `reactions`: array, `files`: array, `pinned`: boolean, `saved`: boolean, `replyCount`: integer, `replyPeople`: array, `lastReplyAt`: string \| null, `createdAt`: string, `editedAt`: string \| null
+- **ChatMessage** — `id`: string, `channelId`: string, `parentId`: string \| null, `author`: object \| null, `body`: string, `event`: object \| null, `meeting`: object \| null, `deleted`: boolean, `mentions`: array, `mentionAll`: boolean, `reactions`: array, `files`: array, `pinned`: boolean, `saved`: boolean, `replyCount`: integer, `replyPeople`: array, `lastReplyAt`: string \| null, `createdAt`: string, `editedAt`: string \| null
 - **ChatMessagePage** — `messages`: array, `hasMore`: boolean
 - **ChatMessageInput** — `body`: string, `parentId?`: string \| null, `fileIds?`: array
 - **ChatFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string, `createdAt`: string

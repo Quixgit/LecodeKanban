@@ -152,6 +152,17 @@ sql:
         overrides: *overrides
   - engine: postgresql
     schema: migrations
+    queries: internal/modules/integrations/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/integrations/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides
+  - engine: postgresql
+    schema: migrations
     queries: internal/modules/timetracking/repository/queries.sql
     gen:
       go:

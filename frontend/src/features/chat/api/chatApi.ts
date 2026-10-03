@@ -10,6 +10,7 @@ export type ChatReaction = components['schemas']['ChatReaction'];
 export type ChatStatus = components['schemas']['ChatStatus'];
 export type ChatStatusInput = components['schemas']['ChatStatusInput'];
 export type ChatEvent = components['schemas']['ChatEvent'];
+export type ChatMeeting = components['schemas']['ChatMeeting'];
 export type ChatFile = components['schemas']['ChatFile'];
 export type ChatHit = components['schemas']['ChatHit'];
 

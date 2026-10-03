@@ -34,13 +34,13 @@ func ptrID(n uuid.NullUUID) *uuid.UUID {
 func toDomain(n store.Notification) domain.Notification {
 	return domain.Notification{ID: n.ID, UserID: n.UserID, WorkspaceID: n.WorkspaceID, Kind: domain.Kind(n.Kind),
 		ActorID: ptrID(n.ActorID), CardID: ptrID(n.CardID), ProjectID: ptrID(n.ProjectID), ChannelID: ptrID(n.ChannelID),
-		MessageID: ptrID(n.MessageID), Title: n.Title, Body: n.Body, CreatedAt: n.CreatedAt, ReadAt: n.ReadAt}
+		MessageID: ptrID(n.MessageID), Title: n.Title, Body: n.Body, Link: deref(n.Link), CreatedAt: n.CreatedAt, ReadAt: n.ReadAt}
 }
 
 func (r *Repo) Insert(ctx context.Context, n domain.Notification) (domain.Notification, error) {
 	row, err := r.q.InsertNotification(ctx, store.InsertNotificationParams{UserID: n.UserID, WorkspaceID: n.WorkspaceID,
 		Kind: string(n.Kind), ActorID: nullID(n.ActorID), CardID: nullID(n.CardID), ProjectID: nullID(n.ProjectID),
-		ChannelID: nullID(n.ChannelID), MessageID: nullID(n.MessageID), Title: n.Title, Body: n.Body})
+		ChannelID: nullID(n.ChannelID), MessageID: nullID(n.MessageID), Title: n.Title, Body: n.Body, Link: optional(n.Link)})
 	if err != nil {
 		return domain.Notification{}, err
 	}
@@ -71,4 +71,18 @@ func (r *Repo) MarkRead(ctx context.Context, user, ws uuid.UUID, ids []uuid.UUID
 
 func (r *Repo) MarkAllRead(ctx context.Context, user, ws uuid.UUID) error {
 	return r.q.MarkAllNotificationsRead(ctx, store.MarkAllNotificationsReadParams{UserID: user, WorkspaceID: ws})
+}
+
+func deref(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
+
+func optional(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
