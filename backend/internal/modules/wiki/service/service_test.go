@@ -684,3 +684,49 @@ func TestMoveDepthCountsWholeSubtree(t *testing.T) {
 	w2 := e.node(t, e.alice, sp.ID, nil, domain.KindPage, "V")
 	must(e.svc.MoveNode(ctx, e.alice, w2.ID, service.MoveInput{ParentID: &y.ID})) // a leaf fits at depth 3
 }
+
+// An independently trashed page that inherited "private" from a folder must stay private when that
+// folder is purged, by hand or by the expiry job (the parent link is gone by then).
+func TestPurgedParentKeepsInheritedVisibility(t *testing.T) {
+	for _, mode := range []string{"manual", "expiry"} {
+		t.Run(mode, func(t *testing.T) {
+			e := setup(t)
+			ctx := context.Background()
+			sp := e.space(t, e.alice, domain.Workspace, domain.RoleEditor)
+			f := e.node(t, e.alice, sp.ID, nil, domain.KindFolder, "Private folder")
+			must(e.svc.SetVisibility(ctx, e.alice, service.Target{SpaceID: sp.ID, NodeID: &f.ID}, domain.Private, ""))
+			p := e.node(t, e.alice, sp.ID, &f.ID, domain.KindPage, "Page")
+			ok(t, e.svc.DeleteNode(ctx, e.alice, p.ID))
+			ok(t, e.svc.DeleteNode(ctx, e.alice, f.ID))
+			if mode == "manual" {
+				ok(t, e.svc.PurgeNode(ctx, e.alice, f.ID))
+			} else {
+				if _, err := tdb.Pool.Exec(ctx, `UPDATE wiki_nodes SET deleted_at = now() - interval '31 days' WHERE id = $1`, f.ID); err != nil {
+					t.Fatal(err)
+				}
+				if n := must(e.svc.PurgeExpired(ctx)); n != 1 {
+					t.Fatalf("purged %d roots, want 1", n)
+				}
+			}
+			res := must(e.svc.RestoreNode(ctx, e.alice, p.ID))
+			if res.Node.Visibility != domain.Private || res.Access.Visibility != domain.Private {
+				t.Fatalf("restored page must stay private, got %q / %q", res.Node.Visibility, res.Access.Visibility)
+			}
+			_, err := e.svc.Node(ctx, e.bob, p.ID)
+			mustCode(t, err, domain.ErrNotFound)
+		})
+	}
+}
+
+func TestRestoreRejectsExpiredTrash(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	sp := e.space(t, e.alice, domain.Private, "")
+	p := e.node(t, e.alice, sp.ID, nil, domain.KindPage, "Old")
+	ok(t, e.svc.DeleteNode(ctx, e.alice, p.ID))
+	if _, err := tdb.Pool.Exec(ctx, `UPDATE wiki_nodes SET deleted_at = now() - interval '31 days' WHERE id = $1`, p.ID); err != nil {
+		t.Fatal(err)
+	}
+	_, err := e.svc.RestoreNode(ctx, e.alice, p.ID)
+	mustCode(t, err, domain.ErrNotFound)
+}

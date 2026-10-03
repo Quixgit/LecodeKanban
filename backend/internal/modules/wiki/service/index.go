@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/wiki/domain"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/wiki/repository"
 )
 
 // index holds a whole space in memory so many nodes can be resolved with two queries; it backs
@@ -18,11 +19,15 @@ type index struct {
 }
 
 func (s *Service) buildIndex(ctx context.Context, sp domain.Space) (*index, error) {
-	rows, err := s.repo.SpaceNodes(ctx, sp.ID)
+	return loadIndex(ctx, s.repo, sp)
+}
+
+func loadIndex(ctx context.Context, repo *repository.Repo, sp domain.Space) (*index, error) {
+	rows, err := repo.SpaceNodes(ctx, sp.ID)
 	if err != nil {
 		return nil, err
 	}
-	perms, err := s.repo.SpacePermissions(ctx, sp.ID)
+	perms, err := repo.SpacePermissions(ctx, sp.ID)
 	if err != nil {
 		return nil, err
 	}

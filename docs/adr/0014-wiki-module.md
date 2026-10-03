@@ -59,7 +59,10 @@ listed/restorable, for 30 days (a maintenance job purges later, expired entries 
 Restore returns the subtree to its place, or to the space root when its parent is trashed or purged;
 a relocated node that inherited its visibility gets that effective visibility written explicitly, so
 restoring never silently widens access. `parent_id` is `ON DELETE SET NULL` so purging a parent keeps
-independently trashed children restorable.
+independently trashed children restorable. Before any purge (manual or by the expiry job) such
+survivors that still inherit their visibility get the effective one written explicitly, so a purge
+never turns a private page into a workspace-visible one. The 30-day window is also enforced on
+restore itself, not only by the cleanup job.
 
 **Teams.** Grants support `principal_kind = team` and the Authorizer resolves team membership through
 the `Teams` port, but the product has no teams yet: `cmd/server/wire.go` wires an adapter that answers

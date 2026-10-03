@@ -243,9 +243,10 @@ func (r *Repo) PurgeTrashRoot(ctx context.Context, root uuid.UUID) error {
 	return r.q.PurgeTrashRoot(ctx, uuid.NullUUID{UUID: root, Valid: true})
 }
 
-// PurgeExpired permanently removes trash older than the cutoff and returns how many rows went.
-func (r *Repo) PurgeExpired(ctx context.Context, cutoff time.Time) (int64, error) {
-	return r.q.PurgeExpiredTrash(ctx, &cutoff)
+// ExpiredTrashRoots lists trash roots deleted before the cutoff, oldest first.
+func (r *Repo) ExpiredTrashRoots(ctx context.Context, cutoff time.Time) ([]domain.Node, error) {
+	rows, err := r.q.ListExpiredTrashRoots(ctx, &cutoff)
+	return toNodes(rows), err
 }
 
 func (r *Repo) GrantedNodes(ctx context.Context, ws, user uuid.UUID, teams []uuid.UUID) ([]domain.Node, error) {

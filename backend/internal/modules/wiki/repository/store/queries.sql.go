@@ -448,6 +448,54 @@ func (q *Queries) ListChainPermissions(ctx context.Context, arg ListChainPermiss
 	return items, nil
 }
 
+const listExpiredTrashRoots = `-- name: ListExpiredTrashRoots :many
+SELECT id, workspace_id, space_id, parent_id, kind, title, icon, cover, rank, depth, path, visibility, workspace_role, owner_id, created_by, created_at, updated_at, deleted_at, deleted_by, trash_root_id FROM wiki_nodes
+WHERE deleted_at IS NOT NULL AND id = trash_root_id AND deleted_at < $1
+ORDER BY deleted_at, id
+`
+
+// Trash roots past the retention cutoff; purged one by one so survivors keep their visibility.
+func (q *Queries) ListExpiredTrashRoots(ctx context.Context, deletedAt *time.Time) ([]WikiNode, error) {
+	rows, err := q.db.Query(ctx, listExpiredTrashRoots, deletedAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []WikiNode{}
+	for rows.Next() {
+		var i WikiNode
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.SpaceID,
+			&i.ParentID,
+			&i.Kind,
+			&i.Title,
+			&i.Icon,
+			&i.Cover,
+			&i.Rank,
+			&i.Depth,
+			&i.Path,
+			&i.Visibility,
+			&i.WorkspaceRole,
+			&i.OwnerID,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.DeletedBy,
+			&i.TrashRootID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listFavoriteNodes = `-- name: ListFavoriteNodes :many
 SELECT n.id, n.workspace_id, n.space_id, n.parent_id, n.kind, n.title, n.icon, n.cover, n.rank, n.depth, n.path, n.visibility, n.workspace_role, n.owner_id, n.created_by, n.created_at, n.updated_at, n.deleted_at, n.deleted_by, n.trash_root_id FROM wiki_favorites f
 JOIN wiki_nodes n ON n.id = f.node_id
@@ -951,21 +999,6 @@ func (q *Queries) PlaceNode(ctx context.Context, arg PlaceNodeParams) (WikiNode,
 		&i.TrashRootID,
 	)
 	return i, err
-}
-
-const purgeExpiredTrash = `-- name: PurgeExpiredTrash :execrows
-DELETE FROM wiki_nodes n
-WHERE n.trash_root_id IN (
-    SELECT r.id FROM wiki_nodes r WHERE r.id = r.trash_root_id AND r.deleted_at < $1
-)
-`
-
-func (q *Queries) PurgeExpiredTrash(ctx context.Context, deletedAt *time.Time) (int64, error) {
-	result, err := q.db.Exec(ctx, purgeExpiredTrash, deletedAt)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
 }
 
 const purgeTrashRoot = `-- name: PurgeTrashRoot :exec

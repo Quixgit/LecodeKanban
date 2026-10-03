@@ -27,6 +27,8 @@ type Querier interface {
 	ListAudit(ctx context.Context, arg ListAuditParams) ([]WikiAudit, error)
 	// Grants of the space (node_id IS NULL) and of the given nodes: one chain.
 	ListChainPermissions(ctx context.Context, arg ListChainPermissionsParams) ([]WikiPermission, error)
+	// Trash roots past the retention cutoff; purged one by one so survivors keep their visibility.
+	ListExpiredTrashRoots(ctx context.Context, deletedAt *time.Time) ([]WikiNode, error)
 	ListFavoriteNodes(ctx context.Context, arg ListFavoriteNodesParams) ([]WikiNode, error)
 	// Nodes (live) holding a direct grant for the user or one of their teams, not owned by them.
 	ListGrantedNodes(ctx context.Context, arg ListGrantedNodesParams) ([]WikiNode, error)
@@ -39,7 +41,6 @@ type Querier interface {
 	ListTrashRoots(ctx context.Context, arg ListTrashRootsParams) ([]WikiNode, error)
 	MoveGrantsToSpace(ctx context.Context, arg MoveGrantsToSpaceParams) error
 	PlaceNode(ctx context.Context, arg PlaceNodeParams) (WikiNode, error)
-	PurgeExpiredTrash(ctx context.Context, deletedAt *time.Time) (int64, error)
 	// Permanent removal of a trashed subtree; independently trashed descendants (other roots) survive.
 	PurgeTrashRoot(ctx context.Context, trashRootID uuid.NullUUID) error
 	// Rewrites the descendants of a moved node: swaps the path prefix, shifts depth, follows the space.

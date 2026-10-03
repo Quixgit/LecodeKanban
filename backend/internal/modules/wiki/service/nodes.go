@@ -423,6 +423,9 @@ func (s *Service) RestoreNode(ctx context.Context, user, id uuid.UUID) (NodeView
 	if n.TrashRootID == nil || *n.TrashRootID != n.ID {
 		return NodeView{}, apperr.New(domain.ErrNotTrashed, "node is not a trash root")
 	}
+	if s.expired(n) {
+		return NodeView{}, errGone()
+	}
 	relocate := true
 	if n.ParentID != nil {
 		if p, err := s.repo.Node(ctx, *n.ParentID); err == nil && !p.Deleted() {
@@ -491,7 +494,7 @@ func (s *Service) PurgeNode(ctx context.Context, user, id uuid.UUID) error {
 		return apperr.New(domain.ErrNotTrashed, "node is not a trash root")
 	}
 	return s.repo.InTx(ctx, func(r *repository.Repo) error {
-		if err := r.PurgeTrashRoot(ctx, n.ID); err != nil {
+		if err := purgeRoot(ctx, r, n); err != nil {
 			return err
 		}
 		return s.audit(ctx, r, n.WorkspaceID, &n.SpaceID, &n.ID, user, domain.AuditNodePurged, map[string]any{"title": n.Title})

@@ -86,11 +86,11 @@ ORDER BY deleted_at DESC, id;
 -- name: PurgeTrashRoot :exec
 DELETE FROM wiki_nodes WHERE trash_root_id = $1;
 
--- name: PurgeExpiredTrash :execrows
-DELETE FROM wiki_nodes n
-WHERE n.trash_root_id IN (
-    SELECT r.id FROM wiki_nodes r WHERE r.id = r.trash_root_id AND r.deleted_at < $1
-);
+-- Trash roots past the retention cutoff; purged one by one so survivors keep their visibility.
+-- name: ListExpiredTrashRoots :many
+SELECT * FROM wiki_nodes
+WHERE deleted_at IS NOT NULL AND id = trash_root_id AND deleted_at < $1
+ORDER BY deleted_at, id;
 
 -- name: UpsertPermission :one
 INSERT INTO wiki_permissions (workspace_id, space_id, node_id, principal_kind, principal_id, role, created_by)

@@ -195,8 +195,3 @@ func pathIDs(path string) []uuid.UUID {
 func (s *Service) audit(ctx context.Context, r *repository.Repo, ws uuid.UUID, space, node *uuid.UUID, actor uuid.UUID, kind string, data map[string]any) error {
 	return r.Audit(ctx, domain.AuditEvent{WorkspaceID: ws, SpaceID: space, NodeID: node, ActorID: &actor, Kind: kind, Data: data})
 }
-
-// PurgeExpired permanently removes trash older than the retention period (maintenance job).
-func (s *Service) PurgeExpired(ctx context.Context) (int64, error) {
-	return s.repo.PurgeExpired(ctx, s.now().Add(-domain.TrashRetention))
-}
