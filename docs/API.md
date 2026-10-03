@@ -361,7 +361,7 @@ Base URL: `/api/v1`
 - **WikiFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string
 - **WikiAuditEvent** — `id`: integer, `kind`: string, `actorId`: string \| null, `nodeId`: string \| null, `data`: object, `at`: string
 - **WikiAuditPage** — `events`: array, `next`: integer \| null
-- **IntegrationEntry** — `provider`: string, `configured`: boolean, `connected`: boolean, `enabled`: boolean, `accountEmail`: string, `leadMinutes`: integer, `notifyBell`: boolean, `channelId`: string \| null, `status`: string, `lastError`: string, `lastSyncAt`: string \| null
+- **IntegrationEntry** — `provider`: string, `configured`: boolean, `redirectUri`: string, `connected`: boolean, `enabled`: boolean, `accountEmail`: string, `leadMinutes`: integer, `notifyBell`: boolean, `channelId`: string \| null, `status`: string, `lastError`: string, `lastSyncAt`: string \| null
 - **IntegrationList** — `items`: array, `leadChoices`: array
 - **IntegrationPatch** — `enabled?`: boolean, `leadMinutes?`: integer, `notifyBell?`: boolean, `channelId?`: string, `clearChannel?`: boolean
 - **IntegrationConnect** — `url`: string

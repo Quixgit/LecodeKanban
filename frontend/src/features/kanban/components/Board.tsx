@@ -71,6 +71,8 @@ export interface BoardProps {
 
 /** Expanded columns share the width evenly (never narrower than this); collapsed ones are a slim rail. */
 const COL_MIN = '17rem';
+/** A column never grows past this, so a board with one or two columns does not stretch its cards across the screen. */
+const COL_MAX = '26rem';
 const COLLAPSED = '3.5rem';
 
 const dropAnimation: DropAnimation = {
@@ -142,6 +144,7 @@ export const Board = forwardRef<BoardHandle, BoardProps>(function Board(p, ref) 
   ].join(' ');
   const expanded = p.columns.filter((c) => !p.collapsed.includes(c.key)).length;
   const boardMinWidth = `calc(${expanded} * ${COL_MIN} + ${p.columns.length - expanded} * ${COLLAPSED} + ${Math.max(p.columns.length - 1, 0)} * 0.75rem)`;
+  const boardMaxWidth = `calc(${expanded} * ${COL_MAX} + ${p.columns.length - expanded} * ${COLLAPSED} + ${Math.max(p.columns.length - 1, 0)} * 0.75rem + ${p.canManageColumns ? '9rem' : '0rem'})`;
   const openIn = (column: string) => {
     for (const lane of p.lanes) {
       const h = quickAdds.current[containerId(lane.key, column)];
@@ -168,7 +171,10 @@ export const Board = forwardRef<BoardHandle, BoardProps>(function Board(p, ref) 
           onKeyDown={onKeyDown}
           className="max-h-[calc(100dvh-15rem)] min-h-[24rem] snap-x snap-proximity overflow-auto rounded-2xl"
         >
-          <div className="flex min-w-full flex-col gap-6" style={{ minWidth: boardMinWidth }}>
+          <div
+            className="flex w-full flex-col gap-6"
+            style={{ minWidth: boardMinWidth, maxWidth: boardMaxWidth }}
+          >
             <div
               role="presentation"
               data-stuck={scrolled}

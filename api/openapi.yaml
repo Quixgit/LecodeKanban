@@ -3022,10 +3022,11 @@ components:
         next: { type: integer, format: int64, nullable: true, description: Cursor for the next page; null at the end }
     IntegrationEntry:
       type: object
-      required: [provider, configured, connected, enabled, accountEmail, leadMinutes, notifyBell, channelId, status, lastError, lastSyncAt]
+      required: [provider, configured, redirectUri, connected, enabled, accountEmail, leadMinutes, notifyBell, channelId, status, lastError, lastSyncAt]
       properties:
         provider: { type: string, enum: [google_calendar] }
         configured: { type: boolean, description: The server has credentials for this provider }
+        redirectUri: { type: string, description: The address to register with the provider's OAuth app (shown in the setup guide) }
         connected: { type: boolean }
         enabled: { type: boolean, description: Active; a paused connection keeps its account but does nothing }
         accountEmail: { type: string }

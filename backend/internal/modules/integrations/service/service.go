@@ -111,6 +111,7 @@ func (s *Service) hint(ctx context.Context, ws, user uuid.UUID) {
 type Entry struct {
 	Provider    domain.Provider
 	Configured  bool
+	RedirectURI string
 	Integration *domain.Integration
 }
 
@@ -124,7 +125,7 @@ func (s *Service) Catalog(ctx context.Context, user, ws uuid.UUID) ([]Entry, err
 	}
 	out := make([]Entry, 0, len(domain.Providers))
 	for _, p := range domain.Providers {
-		e := Entry{Provider: p, Configured: s.cal.Configured()}
+		e := Entry{Provider: p, Configured: s.cal.Configured(), RedirectURI: s.RedirectURL(p)}
 		for i := range have {
 			if have[i].Provider == p {
 				e.Integration = &have[i]

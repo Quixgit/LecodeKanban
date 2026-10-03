@@ -3053,6 +3053,8 @@ export interface components {
             provider: "google_calendar";
             /** @description The server has credentials for this provider */
             configured: boolean;
+            /** @description The address to register with the provider's OAuth app (shown in the setup guide) */
+            redirectUri: string;
             connected: boolean;
             /** @description Active; a paused connection keeps its account but does nothing */
             enabled: boolean;

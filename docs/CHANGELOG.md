@@ -4,6 +4,13 @@
 
 ### Changed
 
+- **Integrations page**: services are cards in a grid (no longer one stretched card). Each card has an
+  **Active** switch and a **Settings** button that opens a side panel; a provider the server cannot use yet
+  says **Needs setup**, and **How to set up** shows the exact steps and the redirect address to copy (also in
+  `docs/INTEGRATIONS.md`). Disconnecting asks inside the panel.
+- **Kanban of a single status** (Tasks → To Do and the like): the lone column no longer stretches its cards
+  across the whole screen; columns grow only up to a sensible width.
+- Presence and status dots next to avatars are smaller.
 - **Task window**: one Comments conversation (the card chat) replaces the separate comment list and Chat
   tab; the old comment UI and its client code are removed (the comments API and stored comments stay in the
   backend). The window can expand to full screen (remembered per browser; three columns on wide screens:

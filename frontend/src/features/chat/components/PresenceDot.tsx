@@ -8,7 +8,7 @@ const DOT: Record<Exclude<Presence, 'offline'>, string> = {
   online: 'bg-available',
   busy: 'bg-progress',
   dnd: 'bg-danger',
-  away: 'border-2 border-border-strong bg-surface',
+  away: 'border-[1.5px] border-border-strong bg-surface',
 };
 
 /** An avatar with a dot: green online, amber busy, red do-not-disturb, hollow away. */
@@ -35,11 +35,12 @@ export function PersonAvatar({
           role="img"
           aria-label={t(`status.kinds.${presence}`)}
           className={cn(
-            'absolute -bottom-0.5 -right-0.5 grid size-2.5 place-items-center rounded-full ring-2 ring-surface',
+            'absolute -bottom-px -right-px grid place-items-center rounded-full ring-[1.5px] ring-surface',
+            size === 'lg' || size === 'xl' ? 'size-2.5' : 'size-2',
             DOT[presence],
           )}
         >
-          {presence === 'dnd' && <span className="h-px w-1.5 bg-white" aria-hidden />}
+          {presence === 'dnd' && <span className="h-px w-1 bg-white" aria-hidden />}
         </span>
       )}
     </span>
