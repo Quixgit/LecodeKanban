@@ -161,3 +161,14 @@ sql:
         emit_interface: true
         emit_empty_slices: true
         overrides: *overrides
+  - engine: postgresql
+    schema: migrations
+    queries: internal/modules/chat/repository/queries.sql
+    gen:
+      go:
+        package: store
+        out: internal/modules/chat/repository/store
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_empty_slices: true
+        overrides: *overrides

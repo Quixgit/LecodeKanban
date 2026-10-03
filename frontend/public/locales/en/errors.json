@@ -53,7 +53,8 @@
     "project_key": "Use 2–6 capital letters or digits, starting with a letter.",
     "date_order": "The deadline can't be before the start date.",
     "count": "Select between {{min}} and {{max}} items.",
-    "icon_key": "Choose an icon from the list."
+    "icon_key": "Choose an icon from the list.",
+    "channel_name": "Use lowercase letters, digits, dashes and underscores (up to 40)."
   },
   "boards": {
     "not_found": "Board not found.",
@@ -106,5 +107,15 @@
     "content_too_large": "This page is too large to save.",
     "no_file": "Choose a file to upload.",
     "too_many_files": "A page can hold at most {{max}} files."
+  },
+  "chat": {
+    "not_found": "This channel or message doesn't exist or you don't have access to it.",
+    "forbidden": "You can't do that here.",
+    "name_taken": "A channel with this name already exists.",
+    "thread_depth": "Threads are one level deep: reply to the original message.",
+    "bad_reaction": "That reaction isn't available.",
+    "dm_members": "Direct messages need 1 to 7 other people from this workspace.",
+    "not_member": "Join the channel first.",
+    "message_deleted": "This message was deleted."
   }
 }

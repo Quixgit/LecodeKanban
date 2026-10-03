@@ -193,6 +193,29 @@ Base URL: `/api/v1`
 | --- | --- | --- | --- | --- | --- |
 | GET | `/i18n/error-codes` | public |  | 200 |  |
 
+## chat
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/chat/channels` | session |  | 200 | Channels the caller can see, with unread and mention counts |
+| POST | `/workspaces/{workspaceId}/chat/channels` | session | ChatChannelInput | 201, 409 Error, 422 Error |  |
+| POST | `/workspaces/{workspaceId}/chat/direct` | session | ChatDirectInput | 200, 422 Error | Open (or create) the direct conversation with the given people |
+| PATCH | `/chat/channels/{channelId}` | session | ChatChannelPatch | 200, 409 Error, 422 Error |  |
+| DELETE | `/chat/channels/{channelId}` | session |  | 204 | Archive a channel (creator or workspace admin) |
+| GET | `/chat/channels/{channelId}/members` | session |  | 200 |  |
+| POST | `/chat/channels/{channelId}/members` | session | ChatMembersInput | 204 |  |
+| POST | `/chat/channels/{channelId}/join` | session |  | 200 |  |
+| POST | `/chat/channels/{channelId}/leave` | session |  | 204 |  |
+| POST | `/chat/channels/{channelId}/read` | session |  | 204 | Mark the channel as read up to now |
+| PUT | `/chat/channels/{channelId}/mute` | session | ChatMuteInput | 204 |  |
+| GET | `/chat/channels/{channelId}/messages` | session |  | 200 | A page of top-level messages, oldest first within the page |
+| POST | `/chat/channels/{channelId}/messages` | session | ChatMessageInput | 201, 422 Error | Send a message, or a reply when parentId is set |
+| PATCH | `/chat/messages/{messageId}` | session | ChatBodyInput | 200, 422 Error |  |
+| DELETE | `/chat/messages/{messageId}` | session |  | 204 |  |
+| GET | `/chat/messages/{messageId}/thread` | session |  | 200 |  |
+| PUT | `/chat/messages/{messageId}/reactions/{key}` | session |  | 200 |  |
+| DELETE | `/chat/messages/{messageId}/reactions/{key}` | session |  | 200 |  |
+
 ## Schemas
 
 - **ErrorResponse** — `error`: object
@@ -297,3 +320,14 @@ Base URL: `/api/v1`
 - **WikiFile** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `url`: string
 - **WikiAuditEvent** — `id`: integer, `kind`: string, `actorId`: string \| null, `nodeId`: string \| null, `data`: object, `at`: string
 - **WikiAuditPage** — `events`: array, `next`: integer \| null
+- **ChatChannel** — `id`: string, `workspaceId`: string, `kind`: string, `name`: string \| null, `topic`: string, `joined`: boolean, `muted`: boolean, `unread`: integer, `mentions`: integer, `memberCount`: integer, `lastMessageAt`: string \| null, `people`: array
+- **ChatChannelInput** — `name`: string, `topic?`: string, `private?`: boolean, `memberIds?`: array
+- **ChatChannelPatch** — `name?`: string, `topic?`: string
+- **ChatDirectInput** — `userIds`: array
+- **ChatMembersInput** — `userIds`: array
+- **ChatMuteInput** — `muted`: boolean
+- **ChatReaction** — `key`: string, `count`: integer, `mine`: boolean, `users`: array
+- **ChatMessage** — `id`: string, `channelId`: string, `parentId`: string \| null, `author`: object \| null, `body`: string, `deleted`: boolean, `mentions`: array, `reactions`: array, `replyCount`: integer, `lastReplyAt`: string \| null, `createdAt`: string, `editedAt`: string \| null
+- **ChatMessagePage** — `messages`: array, `hasMore`: boolean
+- **ChatMessageInput** — `body`: string, `parentId?`: string \| null
+- **ChatBodyInput** — `body`: string

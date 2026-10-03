@@ -30,6 +30,27 @@ func (e BulkCardActionAction) Valid() bool {
 	}
 }
 
+// Defines values for ChatChannelKind.
+const (
+	ChatChannelKindDm      ChatChannelKind = "dm"
+	ChatChannelKindPrivate ChatChannelKind = "private"
+	ChatChannelKindPublic  ChatChannelKind = "public"
+)
+
+// Valid indicates whether the value is a known member of the ChatChannelKind enum.
+func (e ChatChannelKind) Valid() bool {
+	switch e {
+	case ChatChannelKindDm:
+		return true
+	case ChatChannelKindPrivate:
+		return true
+	case ChatChannelKindPublic:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for InviteRole.
 const (
 	InviteRoleAdmin  InviteRole = "admin"
@@ -1035,6 +1056,106 @@ type ChangePasswordRequest struct {
 	NewPassword     string  `json:"newPassword"`
 }
 
+// ChatBodyInput defines model for ChatBodyInput.
+type ChatBodyInput struct {
+	Body string `json:"body"`
+}
+
+// ChatChannel defines model for ChatChannel.
+type ChatChannel struct {
+	Id            openapi_types.UUID `json:"id"`
+	Joined        bool               `json:"joined"`
+	Kind          ChatChannelKind    `json:"kind"`
+	LastMessageAt *time.Time         `json:"lastMessageAt"`
+	MemberCount   int                `json:"memberCount"`
+
+	// Mentions Of those
+	Mentions int  `json:"mentions"`
+	Muted    bool `json:"muted"`
+
+	// Name Null for direct messages
+	Name *string `json:"name"`
+
+	// People Participants of a direct message
+	People []PersonRef `json:"people"`
+	Topic  string      `json:"topic"`
+
+	// Unread Messages from others since the caller last read
+	Unread      int                `json:"unread"`
+	WorkspaceId openapi_types.UUID `json:"workspaceId"`
+}
+
+// ChatChannelKind defines model for ChatChannel.Kind.
+type ChatChannelKind string
+
+// ChatChannelInput defines model for ChatChannelInput.
+type ChatChannelInput struct {
+	MemberIds *[]openapi_types.UUID `json:"memberIds,omitempty"`
+	Name      string                `json:"name"`
+	Private   *bool                 `json:"private,omitempty"`
+	Topic     *string               `json:"topic,omitempty"`
+}
+
+// ChatChannelPatch defines model for ChatChannelPatch.
+type ChatChannelPatch struct {
+	Name  *string `json:"name,omitempty"`
+	Topic *string `json:"topic,omitempty"`
+}
+
+// ChatDirectInput defines model for ChatDirectInput.
+type ChatDirectInput struct {
+	// UserIds The other participants
+	UserIds []openapi_types.UUID `json:"userIds"`
+}
+
+// ChatMembersInput defines model for ChatMembersInput.
+type ChatMembersInput struct {
+	UserIds []openapi_types.UUID `json:"userIds"`
+}
+
+// ChatMessage defines model for ChatMessage.
+type ChatMessage struct {
+	Author *PersonRef `json:"author"`
+
+	// Body Markdown; mentions are written as @[Name](user-id). Empty when deleted
+	Body        string              `json:"body"`
+	ChannelId   openapi_types.UUID  `json:"channelId"`
+	CreatedAt   time.Time           `json:"createdAt"`
+	Deleted     bool                `json:"deleted"`
+	EditedAt    *time.Time          `json:"editedAt"`
+	Id          openapi_types.UUID  `json:"id"`
+	LastReplyAt *time.Time          `json:"lastReplyAt"`
+	Mentions    []PersonRef         `json:"mentions"`
+	ParentId    *openapi_types.UUID `json:"parentId"`
+	Reactions   []ChatReaction      `json:"reactions"`
+	ReplyCount  int                 `json:"replyCount"`
+}
+
+// ChatMessageInput defines model for ChatMessageInput.
+type ChatMessageInput struct {
+	Body     string              `json:"body"`
+	ParentId *openapi_types.UUID `json:"parentId,omitempty"`
+}
+
+// ChatMessagePage defines model for ChatMessagePage.
+type ChatMessagePage struct {
+	HasMore  bool          `json:"hasMore"`
+	Messages []ChatMessage `json:"messages"`
+}
+
+// ChatMuteInput defines model for ChatMuteInput.
+type ChatMuteInput struct {
+	Muted bool `json:"muted"`
+}
+
+// ChatReaction defines model for ChatReaction.
+type ChatReaction struct {
+	Count int                  `json:"count"`
+	Key   string               `json:"key"`
+	Mine  bool                 `json:"mine"`
+	Users []openapi_types.UUID `json:"users"`
+}
+
 // ChecklistItem defines model for ChecklistItem.
 type ChecklistItem struct {
 	CompletedAt *time.Time         `json:"completedAt"`
@@ -1855,6 +1976,12 @@ type CardQuery = string
 // CardStatus defines model for CardStatus.
 type CardStatus = TaskStatus
 
+// ChatChannelId defines model for ChatChannelId.
+type ChatChannelId = openapi_types.UUID
+
+// ChatMessageId defines model for ChatMessageId.
+type ChatMessageId = openapi_types.UUID
+
 // ColumnId defines model for ColumnId.
 type ColumnId = openapi_types.UUID
 
@@ -1934,6 +2061,13 @@ type CardActivityParams struct {
 // UploadAttachmentMultipartBody defines parameters for UploadAttachment.
 type UploadAttachmentMultipartBody struct {
 	File openapi_types.File `json:"file"`
+}
+
+// ListChatMessagesParams defines parameters for ListChatMessages.
+type ListChatMessagesParams struct {
+	// Before Id of the oldest message already loaded; returns the page before it
+	Before *openapi_types.UUID `form:"before,omitempty" json:"before,omitempty"`
+	Limit  *int                `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // UploadWikiFileMultipartBody defines parameters for UploadWikiFile.
@@ -2086,6 +2220,21 @@ type MoveCardJSONRequestBody = CardMove
 // LogTimeJSONRequestBody defines body for LogTime for application/json ContentType.
 type LogTimeJSONRequestBody = TimeLogInput
 
+// UpdateChatChannelJSONRequestBody defines body for UpdateChatChannel for application/json ContentType.
+type UpdateChatChannelJSONRequestBody = ChatChannelPatch
+
+// AddChatMembersJSONRequestBody defines body for AddChatMembers for application/json ContentType.
+type AddChatMembersJSONRequestBody = ChatMembersInput
+
+// PostChatMessageJSONRequestBody defines body for PostChatMessage for application/json ContentType.
+type PostChatMessageJSONRequestBody = ChatMessageInput
+
+// MuteChatChannelJSONRequestBody defines body for MuteChatChannel for application/json ContentType.
+type MuteChatChannelJSONRequestBody = ChatMuteInput
+
+// EditChatMessageJSONRequestBody defines body for EditChatMessage for application/json ContentType.
+type EditChatMessageJSONRequestBody = ChatBodyInput
+
 // UpdateChecklistItemJSONRequestBody defines body for UpdateChecklistItem for application/json ContentType.
 type UpdateChecklistItemJSONRequestBody = ChecklistItemPatch
 
@@ -2157,6 +2306,12 @@ type CreateCardJSONRequestBody = CardInput
 
 // BulkCardsJSONRequestBody defines body for BulkCards for application/json ContentType.
 type BulkCardsJSONRequestBody = BulkCardAction
+
+// CreateChatChannelJSONRequestBody defines body for CreateChatChannel for application/json ContentType.
+type CreateChatChannelJSONRequestBody = ChatChannelInput
+
+// OpenChatDirectJSONRequestBody defines body for OpenChatDirect for application/json ContentType.
+type OpenChatDirectJSONRequestBody = ChatDirectInput
 
 // CreateInviteJSONRequestBody defines body for CreateInvite for application/json ContentType.
 type CreateInviteJSONRequestBody = CreateInviteRequest

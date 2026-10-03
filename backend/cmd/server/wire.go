@@ -20,6 +20,7 @@ import (
 	authevents "github.com/reliabilix/lecodekanban/backend/internal/modules/auth/events"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/cards"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/comments"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/i18n"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/projects"
@@ -97,6 +98,8 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 		Users: usersMod.Service})
 	wikiMod := wiki.New(wiki.Deps{Pool: pool, Workspaces: wsMod.Service, Teams: noTeams{}, Projects: projectsMod.Service,
 		Storage: storage, MaxUploadBytes: cfg.AttachmentMaxBytes()})
+	chatMod := chat.New(chat.Deps{Pool: pool, Workspaces: wsMod.Service, Users: usersMod.Service,
+		Hints: realtime.NewPublisher(pool, log)})
 	activityMod := activity.New(pool, cardsMod.Service, usersMod.Service)
 	hub := realtime.NewHub(cfg.DatabaseURL, log)
 
@@ -157,6 +160,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			attachmentsMod.HTTP.PrivateRoutes(r)
 			timeMod.HTTP.PrivateRoutes(r)
 			wikiMod.HTTP.PrivateRoutes(r)
+			chatMod.HTTP.PrivateRoutes(r)
 			activityMod.HTTP.PrivateRoutes(r)
 			r.Get("/workspaces/{workspaceId}/events", hub.Handler(
 				func(r *http.Request) (uuid.UUID, error) {
