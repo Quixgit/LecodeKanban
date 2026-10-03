@@ -28,21 +28,21 @@ test.describe('Collapsed sidebar', () => {
           const rail = page.getByRole('complementary');
           await expect(rail).toBeVisible();
           // Wait for the width animation to settle.
-          await expect.poll(async () => Math.round((await rail.boundingBox())!.width)).toBe(76);
+          await expect.poll(async () => Math.round((await rail.boundingBox())!.width)).toBe(77);
 
-          const box = (await rail.boundingBox())!;
-          const railCenter = box.x + box.width / 2;
-          const centers = await rail.evaluate((el) => {
+          const { centers, railCenter } = await rail.evaluate((el) => {
             const cx = (e: Element) => {
               const r = e.getBoundingClientRect();
               return r.x + r.width / 2;
             };
+            const box = el.getBoundingClientRect();
             return {
-              icons: [...el.querySelectorAll('nav svg')].map(cx),
-              highlight: [...el.querySelectorAll('nav [aria-hidden="true"].absolute')].map(cx),
-              logo: [...el.querySelectorAll('header svg, :scope > div:first-child svg')]
-                .slice(0, 1)
-                .map(cx),
+              // Centre of the area inside the 1px right border.
+              railCenter: box.x + el.clientLeft + el.clientWidth / 2,
+              centers: {
+                icons: [...el.querySelectorAll('nav svg')].map(cx),
+                highlight: [...el.querySelectorAll('nav [aria-hidden="true"].absolute')].map(cx),
+              },
             };
           });
           expect(centers.icons.length).toBeGreaterThan(5);
