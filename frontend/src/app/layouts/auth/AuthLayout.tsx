@@ -7,7 +7,7 @@ import { Skeleton } from '@/shared/ui';
 import { LanguageSwitcher } from '../app-shell/header/LanguageSwitcher';
 import { ThemeToggle } from '../app-shell/header/ThemeToggle';
 import { BrandLogo } from '../app-shell/sidebar/BrandLogo';
-import { BrandPanel } from './BrandPanel';
+import { AuthBackdrop, BrandPanel } from './BrandPanel';
 
 function FormSkeleton() {
   return (
@@ -21,44 +21,43 @@ function FormSkeleton() {
   );
 }
 
-/** Split screen: form on the left, animated brand panel on the right (lg+). */
+/** One shared backdrop: the sign-in card on the left, the product pitch on the right (lg+). */
 export function AuthLayout() {
   const location = useLocation();
   const changeLanguage = useChangeLanguage();
   return (
-    <div className="grid min-h-dvh grid-cols-1 bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-      <div className="flex flex-col px-6 py-6 sm:px-10">
-        <header className="flex items-center justify-between">
-          <Link to="/" className="rounded-lg">
-            <BrandLogo collapsed={false} />
-          </Link>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <LanguageSwitcher onChange={changeLanguage} />
-          </div>
-        </header>
-        <main className="flex flex-1 items-center justify-center py-10">
-          <div className="w-full max-w-[420px]">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={location.pathname}
-                variants={pageTransition}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <Suspense fallback={<FormSkeleton />}>
-                  <Outlet />
-                </Suspense>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </main>
-        <footer className="text-center text-xs text-text-faint">
-          © {new Date().getFullYear()} LecodeKanban
-        </footer>
-      </div>
-      <BrandPanel />
+    <div className="relative isolate flex min-h-dvh flex-col bg-bg">
+      <AuthBackdrop />
+      <header className="mx-auto flex w-full max-w-[1240px] items-center justify-between px-6 py-6 sm:px-10">
+        <Link to="/" className="rounded-lg">
+          <BrandLogo collapsed={false} />
+        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <LanguageSwitcher onChange={changeLanguage} />
+        </div>
+      </header>
+      <main className="mx-auto grid w-full max-w-[1240px] flex-1 grid-cols-1 items-center gap-12 px-6 pb-10 sm:px-10 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:justify-between lg:gap-16">
+        <div className="mx-auto w-full max-w-[460px] rounded-3xl border border-border bg-surface/90 p-7 shadow-lg backdrop-blur-sm sm:p-9">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={location.pathname}
+              variants={pageTransition}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <Suspense fallback={<FormSkeleton />}>
+                <Outlet />
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        <BrandPanel />
+      </main>
+      <footer className="pb-6 text-center text-xs text-text-muted">
+        © {new Date().getFullYear()} LecodeKanban
+      </footer>
     </div>
   );
 }

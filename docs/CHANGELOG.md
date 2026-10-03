@@ -48,8 +48,14 @@
   conversations (Ctrl+Shift+F), channel tabs (Messages, Pins, Files), online dots, "is typing…",
   reply avatars on thread summaries. Migration `00015_chat_extras`.
 
+- **Notification sounds**: short, synthesised signals (no audio files) for new chat messages, mentions,
+  new tasks and new comments, played only for what is relevant (not your own actions, muted
+  channels or the conversation you are reading). Volume, per-kind switches and previews live in the
+  bell menu.
+
 ### Fixed
 
+- Sign-in pages: one shared board-themed backdrop instead of a white half and a green half; the form sits in a card, the pitch and mini board on the same background; works in light and dark and on phones; the social sign-in buttons no longer squeeze their labels.
 - Segmented controls (card tabs, view switcher) no longer keep a closed drawer or dialog mounted after a
   tab was changed: the sliding thumb uses a CSS transition instead of a shared framer layout.
 - Docs: the space strip scrolls instead of squeezing the page tree when there are many spaces.
