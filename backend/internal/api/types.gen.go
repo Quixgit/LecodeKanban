@@ -57,6 +57,33 @@ func (e ChatChannelKind) Valid() bool {
 	}
 }
 
+// Defines values for ChatEventKind.
+const (
+	ChatEventKindCommented ChatEventKind = "commented"
+	ChatEventKindCreated   ChatEventKind = "created"
+	ChatEventKindDeleted   ChatEventKind = "deleted"
+	ChatEventKindMoved     ChatEventKind = "moved"
+	ChatEventKindUpdated   ChatEventKind = "updated"
+)
+
+// Valid indicates whether the value is a known member of the ChatEventKind enum.
+func (e ChatEventKind) Valid() bool {
+	switch e {
+	case ChatEventKindCommented:
+		return true
+	case ChatEventKindCreated:
+		return true
+	case ChatEventKindDeleted:
+		return true
+	case ChatEventKindMoved:
+		return true
+	case ChatEventKindUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for InviteRole.
 const (
 	InviteRoleAdmin  InviteRole = "admin"
@@ -1105,11 +1132,16 @@ type ChatBodyInput struct {
 
 // ChatChannel defines model for ChatChannel.
 type ChatChannel struct {
-	Id            openapi_types.UUID `json:"id"`
-	Joined        bool               `json:"joined"`
-	Kind          ChatChannelKind    `json:"kind"`
-	LastMessageAt *time.Time         `json:"lastMessageAt"`
-	MemberCount   int                `json:"memberCount"`
+	// Feed Receives task updates; only replies can be posted
+	Feed bool `json:"feed"`
+
+	// FeedProjectId The one project the feed follows; null means all
+	FeedProjectId *openapi_types.UUID `json:"feedProjectId"`
+	Id            openapi_types.UUID  `json:"id"`
+	Joined        bool                `json:"joined"`
+	Kind          ChatChannelKind     `json:"kind"`
+	LastMessageAt *time.Time          `json:"lastMessageAt"`
+	MemberCount   int                 `json:"memberCount"`
 
 	// Mentions Of those
 	Mentions int  `json:"mentions"`
@@ -1133,16 +1165,24 @@ type ChatChannelKind string
 
 // ChatChannelInput defines model for ChatChannelInput.
 type ChatChannelInput struct {
-	MemberIds *[]openapi_types.UUID `json:"memberIds,omitempty"`
-	Name      string                `json:"name"`
-	Private   *bool                 `json:"private,omitempty"`
-	Topic     *string               `json:"topic,omitempty"`
+	// Feed Make it a task feed
+	Feed          *bool                 `json:"feed,omitempty"`
+	FeedProjectId *openapi_types.UUID   `json:"feedProjectId,omitempty"`
+	MemberIds     *[]openapi_types.UUID `json:"memberIds,omitempty"`
+	Name          string                `json:"name"`
+	Private       *bool                 `json:"private,omitempty"`
+	Topic         *string               `json:"topic,omitempty"`
 }
 
 // ChatChannelPatch defines model for ChatChannelPatch.
 type ChatChannelPatch struct {
-	Name  *string `json:"name,omitempty"`
-	Topic *string `json:"topic,omitempty"`
+	// Feed Turn the task feed on or off
+	Feed *bool `json:"feed,omitempty"`
+
+	// FeedProjectId Used with feed; null means all projects
+	FeedProjectId *openapi_types.UUID `json:"feedProjectId,omitempty"`
+	Name          *string             `json:"name,omitempty"`
+	Topic         *string             `json:"topic,omitempty"`
 }
 
 // ChatDirectInput defines model for ChatDirectInput.
@@ -1150,6 +1190,37 @@ type ChatDirectInput struct {
 	// UserIds The other participants
 	UserIds []openapi_types.UUID `json:"userIds"`
 }
+
+// ChatEvent defines model for ChatEvent.
+type ChatEvent struct {
+	CardId  openapi_types.UUID `json:"cardId"`
+	Changes *[]struct {
+		Added   *[]string `json:"added,omitempty"`
+		Field   string    `json:"field"`
+		From    *string   `json:"from,omitempty"`
+		Removed *[]string `json:"removed,omitempty"`
+		To      *string   `json:"to,omitempty"`
+	} `json:"changes,omitempty"`
+	Column *string `json:"column,omitempty"`
+
+	// Excerpt Start of a new comment
+	Excerpt *string `json:"excerpt,omitempty"`
+
+	// From Previous status of a move
+	From        *string            `json:"from,omitempty"`
+	Kind        ChatEventKind      `json:"kind"`
+	Number      int                `json:"number"`
+	ProjectId   openapi_types.UUID `json:"projectId"`
+	ProjectKey  string             `json:"projectKey"`
+	ProjectName string             `json:"projectName"`
+	Title       string             `json:"title"`
+
+	// To New status of a move
+	To *string `json:"to,omitempty"`
+}
+
+// ChatEventKind defines model for ChatEvent.Kind.
+type ChatEventKind string
 
 // ChatFile defines model for ChatFile.
 type ChatFile struct {
@@ -1177,11 +1248,14 @@ type ChatMessage struct {
 	Author *PersonRef `json:"author"`
 
 	// Body Markdown; mentions are written as @[Name](user-id). Empty when deleted
-	Body        string             `json:"body"`
-	ChannelId   openapi_types.UUID `json:"channelId"`
-	CreatedAt   time.Time          `json:"createdAt"`
-	Deleted     bool               `json:"deleted"`
-	EditedAt    *time.Time         `json:"editedAt"`
+	Body      string             `json:"body"`
+	ChannelId openapi_types.UUID `json:"channelId"`
+	CreatedAt time.Time          `json:"createdAt"`
+	Deleted   bool               `json:"deleted"`
+	EditedAt  *time.Time         `json:"editedAt"`
+
+	// Event A task update (feed messages)
+	Event       *ChatEvent         `json:"event"`
 	Files       []ChatFile         `json:"files"`
 	Id          openapi_types.UUID `json:"id"`
 	LastReplyAt *time.Time         `json:"lastReplyAt"`

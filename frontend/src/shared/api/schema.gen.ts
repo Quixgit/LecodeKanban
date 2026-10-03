@@ -2881,6 +2881,13 @@ export interface components {
             joined: boolean;
             muted: boolean;
             starred: boolean;
+            /** @description Receives task updates; only replies can be posted */
+            feed: boolean;
+            /**
+             * Format: uuid
+             * @description The one project the feed follows; null means all
+             */
+            feedProjectId: string | null;
             /** @description Messages from others since the caller last read */
             unread: number;
             /** @description Of those */
@@ -2895,11 +2902,22 @@ export interface components {
             name: string;
             topic?: string;
             private?: boolean;
+            /** @description Make it a task feed */
+            feed?: boolean;
+            /** Format: uuid */
+            feedProjectId?: string | null;
             memberIds?: string[];
         };
         ChatChannelPatch: {
             name?: string;
             topic?: string;
+            /** @description Turn the task feed on or off */
+            feed?: boolean;
+            /**
+             * Format: uuid
+             * @description Used with feed; null means all projects
+             */
+            feedProjectId?: string | null;
         };
         ChatDirectInput: {
             /** @description The other participants */
@@ -2927,6 +2945,8 @@ export interface components {
             author: components["schemas"]["PersonRef"] | null;
             /** @description Markdown; mentions are written as @[Name](user-id). Empty when deleted */
             body: string;
+            /** @description A task update (feed messages) */
+            event: components["schemas"]["ChatEvent"] | null;
             deleted: boolean;
             mentions: components["schemas"]["PersonRef"][];
             /** @description @channel, @here or @everyone */
@@ -2968,6 +2988,32 @@ export interface components {
             url: string;
             /** Format: date-time */
             createdAt: string;
+        };
+        ChatEvent: {
+            /** @enum {string} */
+            kind: "created" | "moved" | "updated" | "deleted" | "commented";
+            /** Format: uuid */
+            projectId: string;
+            projectKey: string;
+            projectName: string;
+            /** Format: uuid */
+            cardId: string;
+            number: number;
+            title: string;
+            /** @description Previous status of a move */
+            from?: string;
+            /** @description New status of a move */
+            to?: string;
+            column?: string;
+            /** @description Start of a new comment */
+            excerpt?: string;
+            changes?: {
+                field: string;
+                from?: string;
+                to?: string;
+                added?: string[];
+                removed?: string[];
+            }[];
         };
         ChatHit: {
             message: components["schemas"]["ChatMessage"];

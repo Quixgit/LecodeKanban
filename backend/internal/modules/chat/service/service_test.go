@@ -2,12 +2,15 @@ package service_test
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 
+	carddomain "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat/service"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
@@ -350,7 +353,7 @@ func TestProjectAndCardConversations(t *testing.T) {
 	// Their shape is fixed.
 	mustCode(t, c.Leave(ctx, w.anna, pc.ID), domain.ErrDMMembers)
 	mustCode(t, c.Archive(ctx, w.owner, pc.ID), domain.ErrForbidden)
-	_, err = c.Update(ctx, w.anna, pc.ID, nil, nil)
+	_, err = c.Update(ctx, w.anna, pc.ID, nil, nil, nil)
 	mustCode(t, err, domain.ErrForbidden)
 }
 
@@ -612,3 +615,109 @@ func TestSearchModifiersAndEmojiReactions(t *testing.T) {
 		}
 	}
 }
+
+func TestTaskFeeds(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	chat.RegisterFeeds(w.e.Bus, c)
+	core := w.e.Project(w.owner, w.ws, "Core")
+	other := w.e.Project(w.owner, w.ws, "Other")
+
+	all, err := c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "tasks", Feed: true})
+	if err != nil || !all.Feed || all.FeedProjectID != nil {
+		t.Fatalf("feed channel: %+v %v", all, err)
+	}
+	onlyCore, _ := c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "core-tasks", Feed: true, FeedProjectID: &core})
+	if onlyCore.FeedProjectID == nil || *onlyCore.FeedProjectID != core {
+		t.Fatalf("project feed: %+v", onlyCore)
+	}
+	_, err = c.CreateChannel(ctx, w.anna, w.ws, service.ChannelInput{Name: "bad", Feed: true, FeedProjectID: ptrUUID(uuid.New())})
+	mustCode(t, err, apperr.Validation)
+	_, _ = c.Join(ctx, w.ben, all.ID)
+
+	card := w.e.Card(w.ben, w.ws, core, "Fix login")
+	w.e.Card(w.ben, w.ws, other, "Unrelated")
+	done := carddomain.Done
+	cur, _ := w.e.Cards.Get(ctx, w.ben, card.ID)
+	moved, err := w.e.Cards.Move(ctx, w.ben, card.ID, carddomain.Move{Version: cur.Version, Status: &done})
+	if err != nil {
+		t.Fatal(err)
+	}
+	high := carddomain.High
+	title := "Fix login flow"
+	if _, err := w.e.Cards.Update(ctx, w.ben, card.ID, carddomain.Patch{Version: moved.Version, Priority: &high, Title: &title,
+		AssigneeIDs: &[]uuid.UUID{w.anna}}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.e.Comments.Create(ctx, w.ben, card.ID, "Looks good to me"); err != nil {
+		t.Fatal(err)
+	}
+
+	page, err := c.Messages(ctx, w.anna, all.ID, nil, 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kinds := []string{}
+	for _, m := range page.Messages {
+		var ev struct {
+			Kind, ProjectKey, Title string
+			Changes                 []struct{ Field string }
+		}
+		if err := json.Unmarshal(m.Event, &ev); err != nil || m.Author == nil || m.Author.ID != w.ben {
+			t.Fatalf("event message: %+v err=%v", m, err)
+		}
+		kinds = append(kinds, ev.Kind)
+		if ev.ProjectKey == "" {
+			t.Fatalf("project key missing: %s", m.Event)
+		}
+		if ev.Kind == "updated" && len(ev.Changes) < 3 {
+			t.Fatalf("changes = %+v", ev.Changes)
+		}
+	}
+	// created (two projects), moved, updated, commented
+	if len(kinds) != 5 {
+		t.Fatalf("feed kinds = %v", kinds)
+	}
+	core2, _ := c.Messages(ctx, w.anna, onlyCore.ID, nil, 50)
+	if len(core2.Messages) != 4 { // the other project's task is not followed
+		t.Fatalf("project feed has %d messages", len(core2.Messages))
+	}
+	if !strings.Contains(string(page.Messages[len(page.Messages)-1].Event), "Anna") && !strings.Contains(string(page.Messages[len(page.Messages)-2].Event), "Anna") {
+		t.Fatal("assignee names must be resolved")
+	}
+
+	// People who read a feed see unread counts; it takes replies but not top-level posts.
+	st, _ := c.Channels(ctx, w.anna, w.ws)
+	for _, x := range st {
+		if x.ID == all.ID && (x.Unread == 0 || !x.Feed) {
+			t.Fatalf("feed state: %+v", x)
+		}
+	}
+	_, err = c.Post(ctx, w.anna, all.ID, nil, "chatting here", nil)
+	mustCode(t, err, domain.ErrFeedOnly)
+	if _, err := c.Post(ctx, w.anna, all.ID, &page.Messages[0].ID, "on it", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	// Turning a feed off stops it; ordinary channels can become feeds.
+	plain, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("plain", false))
+	on, err := c.Update(ctx, w.anna, plain.ID, nil, nil, &service.FeedPatch{On: true})
+	if err != nil || !on.Feed {
+		t.Fatalf("enable: %+v %v", on, err)
+	}
+	if _, err = c.Update(ctx, w.anna, all.ID, nil, nil, &service.FeedPatch{On: false}); err != nil {
+		t.Fatal(err)
+	}
+	before, _ := c.Messages(ctx, w.anna, all.ID, nil, 50)
+	w.e.Card(w.ben, w.ws, core, "After switching off")
+	after, _ := c.Messages(ctx, w.anna, all.ID, nil, 50)
+	if len(after.Messages) != len(before.Messages) {
+		t.Fatal("a feed that was switched off must stay quiet")
+	}
+	if _, err := c.Post(ctx, w.anna, all.ID, nil, "now it is a normal channel", nil); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func ptrUUID(id uuid.UUID) *uuid.UUID { return &id }

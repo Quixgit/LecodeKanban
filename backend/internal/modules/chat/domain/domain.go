@@ -47,7 +47,10 @@ type Channel struct {
 	Topic       string
 	DMKey       string
 	// RefID is the project or card of a scoped conversation.
-	RefID         *uuid.UUID
+	RefID *uuid.UUID
+	// Feed channels receive task updates; FeedProjectID narrows them to one project (nil: all).
+	Feed          bool
+	FeedProjectID *uuid.UUID
 	CreatedBy     *uuid.UUID
 	CreatedAt     time.Time
 	LastMessageAt *time.Time
@@ -80,7 +83,9 @@ type Message struct {
 	Body      string
 	Mentions  []uuid.UUID
 	// MentionAll is set by @channel, @here or @everyone: every member counts as mentioned.
-	MentionAll  bool
+	MentionAll bool
+	// Event is the structured payload of a task update (a feed message), nil for ordinary messages.
+	Event       []byte
 	ReplyCount  int
 	LastReplyAt *time.Time
 	CreatedAt   time.Time
@@ -209,6 +214,7 @@ var (
 	ErrDMMembers    = apperr.Define("chat.dm_members", http.StatusUnprocessableEntity)
 	ErrNotMember    = apperr.Define("chat.not_member", http.StatusForbidden)
 	ErrDeleted      = apperr.Define("chat.message_deleted", http.StatusConflict)
+	ErrFeedOnly     = apperr.Define("chat.feed_readonly", http.StatusForbidden)
 	ErrNoFile       = apperr.Define("chat.no_file", http.StatusBadRequest)
 	ErrTooManyFiles = apperr.Define("chat.too_many_files", http.StatusUnprocessableEntity)
 )

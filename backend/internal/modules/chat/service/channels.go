@@ -99,6 +99,9 @@ type ChannelInput struct {
 	Topic     string
 	Private   bool
 	MemberIDs []uuid.UUID
+	// Feed makes it a task feed; FeedProjectID narrows it to one project (nil: all projects).
+	Feed          bool
+	FeedProjectID *uuid.UUID
 }
 
 func validateTopic(v *validation.V, topic string) {
@@ -127,9 +130,16 @@ func (s *Service) CreateChannel(ctx context.Context, user, ws uuid.UUID, in Chan
 	if err != nil {
 		return ChannelView{}, err
 	}
+	var feedProject *uuid.UUID
+	if in.Feed {
+		if feedProject, err = s.feedProject(ctx, ws, in.FeedProjectID); err != nil {
+			return ChannelView{}, err
+		}
+	}
 	var created domain.Channel
 	err = s.repo.InTx(ctx, func(r *repository.Repo) error {
-		ch, err := r.CreateChannel(ctx, domain.Channel{WorkspaceID: ws, Kind: kind, Name: in.Name, Topic: in.Topic, CreatedBy: &user})
+		ch, err := r.CreateChannel(ctx, domain.Channel{WorkspaceID: ws, Kind: kind, Name: in.Name, Topic: in.Topic, CreatedBy: &user,
+			Feed: in.Feed, FeedProjectID: feedProject})
 		if err != nil {
 			return err
 		}
@@ -330,7 +340,13 @@ func (s *Service) Members(ctx context.Context, user, channel uuid.UUID) ([]users
 }
 
 // Update renames a channel or changes its topic; any member may.
-func (s *Service) Update(ctx context.Context, user, channel uuid.UUID, name, topic *string) (ChannelView, error) {
+// FeedPatch turns a channel's task feed on or off.
+type FeedPatch struct {
+	On        bool
+	ProjectID *uuid.UUID
+}
+
+func (s *Service) Update(ctx context.Context, user, channel uuid.UUID, name, topic *string, feed *FeedPatch) (ChannelView, error) {
 	ch, member, err := s.access(ctx, user, channel, true)
 	if err != nil {
 		return ChannelView{}, err
@@ -356,6 +372,15 @@ func (s *Service) Update(ctx context.Context, user, channel uuid.UUID, name, top
 	updated, err := s.repo.UpdateChannel(ctx, ch.ID, newName, newTopic)
 	if err != nil {
 		return ChannelView{}, err
+	}
+	if feed != nil {
+		project, err := s.feedProject(ctx, ch.WorkspaceID, feed.ProjectID)
+		if err != nil {
+			return ChannelView{}, err
+		}
+		if updated, err = s.repo.SetFeed(ctx, ch.ID, feed.On, project); err != nil {
+			return ChannelView{}, err
+		}
 	}
 	s.hint(ctx, "chat.channel", ch.WorkspaceID, user, ch.ID, nil)
 	return s.channelView(ctx, user, updated)

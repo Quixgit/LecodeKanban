@@ -3,6 +3,7 @@ package http
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"mime"
@@ -103,7 +104,7 @@ func people(us []usersdomain.User) []api.PersonRef {
 
 func toChannel(v service.ChannelView) api.ChatChannel {
 	out := api.ChatChannel{Id: v.ID, WorkspaceId: v.WorkspaceID, Kind: api.ChatChannelKind(v.Kind), Topic: v.Topic,
-		Joined: v.Joined, Muted: v.Muted, Starred: v.Starred, Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
+		Joined: v.Joined, Muted: v.Muted, Starred: v.Starred, Feed: v.Feed, FeedProjectId: v.FeedProjectID, Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
 		LastMessageAt: v.LastMessageAt, People: people(v.People)}
 	if v.Name != "" {
 		n := v.Name
@@ -119,6 +120,12 @@ func toMessage(v service.MessageView) api.ChatMessage {
 		Files: make([]api.ChatFile, len(v.Files)), Pinned: v.Pinned, Saved: v.Saved, ReplyPeople: people(v.ReplyPeople)}
 	for i, f := range v.Files {
 		out.Files[i] = toFile(f)
+	}
+	if len(v.Event) > 0 {
+		var ev api.ChatEvent
+		if json.Unmarshal(v.Event, &ev) == nil {
+			out.Event = &ev
+		}
 	}
 	if v.Author != nil {
 		p := person(*v.Author)
@@ -166,6 +173,9 @@ func (h *Handler) createChannel(w http.ResponseWriter, r *http.Request) error {
 	if in.MemberIds != nil {
 		si.MemberIDs = *in.MemberIds
 	}
+	if in.Feed != nil {
+		si.Feed, si.FeedProjectID = *in.Feed, in.FeedProjectId
+	}
 	v, err := h.svc.CreateChannel(r.Context(), userID(r), ws, si)
 	if err != nil {
 		return err
@@ -200,7 +210,11 @@ func (h *Handler) updateChannel(w http.ResponseWriter, r *http.Request) error {
 	if err := httpx.DecodeJSON(w, r, &in); err != nil {
 		return err
 	}
-	v, err := h.svc.Update(r.Context(), userID(r), id, in.Name, in.Topic)
+	var feed *service.FeedPatch
+	if in.Feed != nil {
+		feed = &service.FeedPatch{On: *in.Feed, ProjectID: in.FeedProjectId}
+	}
+	v, err := h.svc.Update(r.Context(), userID(r), id, in.Name, in.Topic, feed)
 	if err != nil {
 		return err
 	}

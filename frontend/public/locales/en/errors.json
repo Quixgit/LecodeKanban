@@ -118,6 +118,7 @@
     "not_member": "Join the channel first.",
     "message_deleted": "This message was deleted.",
     "no_file": "Choose a file to upload, or the attachment is no longer available.",
-    "too_many_files": "A message can have at most {{max}} files."
+    "too_many_files": "A message can have at most {{max}} files.",
+    "feed_readonly": "Only task updates appear in this channel. Reply in a thread to discuss one."
   }
 }
