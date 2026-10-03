@@ -42,7 +42,7 @@ export function ChannelView() {
   const channel = ctx.channels.find((c) => c.id === channelId);
   const m = useChatMutations(ctx.workspaceId);
   const msgs = useMessages(channel?.id);
-  const members = useChannelMembers(channel?.id, channel?.kind === 'dm');
+  const members = useChannelMembers(channel?.id);
   const [details, setDetails] = useState(false);
   const [removing, setRemoving] = useState<ChatMessage | null>(null);
 
@@ -214,11 +214,12 @@ export function ChannelView() {
             ) : (
               <Composer
                 draftKey={`c:${channel.id}`}
-                label={t('composer.label', { name: title })}
+                label={t('composer.label', { name: channel.name ? `#${title}` : title })}
                 placeholder={t('composer.placeholder', {
                   name: channel.name ? `#${title}` : title,
                 })}
                 members={ctx.members}
+                hint={!showThread}
                 autoFocus
                 onSend={(body) =>
                   m.post.mutateAsync({ channel: channel.id, body }).catch((e) => {

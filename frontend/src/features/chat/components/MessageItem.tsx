@@ -42,7 +42,7 @@ function useTimeFormat() {
   const { i18n } = useTranslation('chat');
   return {
     short: (iso: string) =>
-      new Intl.DateTimeFormat(i18n.language, { hour: '2-digit', minute: '2-digit' }).format(
+      new Intl.DateTimeFormat(i18n.language, { hour: 'numeric', minute: '2-digit' }).format(
         new Date(iso),
       ),
     full: (iso: string) =>
@@ -185,7 +185,7 @@ export const MessageItem = memo(function MessageItem({
       <div className="w-9 shrink-0 pt-0.5">
         {compact ? (
           <span
-            className="hidden select-none pt-1 text-right text-2xs text-text-faint group-hover/msg:block"
+            className="hidden select-none whitespace-nowrap pt-1 text-center text-2xs text-text-muted group-hover/msg:block"
             title={time.full(m.createdAt)}
           >
             {time.short(m.createdAt)}
@@ -230,14 +230,14 @@ export const MessageItem = memo(function MessageItem({
               <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
                 {t('message.cancel')}
               </Button>
-              <span className="text-2xs text-text-faint">{t('message.editHint')}</span>
+              <span className="text-2xs text-text-muted">{t('message.editHint')}</span>
             </div>
           </div>
         ) : (
           <div className="[&>div>p:first-child]:mt-0 [&>div>p:last-child]:mb-0">
             <Markdown source={m.body} />
             {m.editedAt && (
-              <span className="text-2xs text-text-faint" title={time.full(m.editedAt)}>
+              <span className="text-2xs text-text-muted" title={time.full(m.editedAt)}>
                 {t('message.edited')}
               </span>
             )}

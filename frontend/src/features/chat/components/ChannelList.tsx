@@ -116,9 +116,9 @@ export function ChannelList({
               }
             >
               {joined.length === 0 ? (
-                <p className="px-3 py-2 text-xs text-text-muted">
+                <li className="px-3 py-2 text-xs text-text-muted">
                   {q ? t('sidebar.noMatch') : t('sidebar.noChannels')}
-                </p>
+                </li>
               ) : (
                 joined.map((c) => <Row key={c.id} c={c} me={me} active={c.id === activeId} />)
               )}
@@ -129,9 +129,9 @@ export function ChannelList({
               onToggle={() => toggle('direct')}
             >
               {direct.length === 0 ? (
-                <p className="px-3 py-2 text-xs text-text-muted">
+                <li className="px-3 py-2 text-xs text-text-muted">
                   {q ? t('sidebar.noMatch') : t('sidebar.noDirect')}
-                </p>
+                </li>
               ) : (
                 direct.map((c) => <Row key={c.id} c={c} me={me} active={c.id === activeId} />)
               )}

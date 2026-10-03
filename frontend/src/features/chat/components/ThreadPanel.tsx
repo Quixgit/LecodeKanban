@@ -106,6 +106,7 @@ export function ThreadPanel({
           <Composer
             draftKey={`t:${rootId}`}
             focusKey={rootId}
+            hint={false}
             label={t('thread.composerLabel')}
             placeholder={t('thread.placeholder')}
             members={members}

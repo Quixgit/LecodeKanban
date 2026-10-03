@@ -46,3 +46,18 @@ Facts about what was checked, with how. Update on every phase.
   was judged before `https://` was added; many spaces squeezed the tree to zero height.
 - Not covered yet: orphaned uploaded files are not cleaned up; real-time co-editing (W4); card
   references and search (W5); mobile layout checked by code only.
+
+## Chat
+
+- Go: table-style service tests against PostgreSQL (`chat/service`): channel and DM access (private
+  channels answer not-found, viewers read but cannot post, outsiders get nothing), auto-join on
+  post, one-level threads and reply counters, reactions (closed set, idempotent), edit/delete rules
+  with tombstones, unread and mention counts, cursor pagination, change hints; `-race`, vet, gofmt.
+- Browser (Playwright against the real stack, two users): channel create → join → post → thread
+  reply → reaction → edit → delete with live updates on the other side; DM with unread badges in the
+  channel list and the main menu, cleared on open; axe wcag2a/2aa on the page, the open thread and the
+  channel details dialog. Screenshots checked in light, dark and 390 px.
+- Not covered yet: typing indicators and online presence, file attachments and message search in
+  chat, push/email notifications for mentions, message history search, load test with large channels
+  (history is paged by 40, not virtualised), realtime hints carry channel ids to every workspace
+  member's stream (data is always fetched through the authorised API).

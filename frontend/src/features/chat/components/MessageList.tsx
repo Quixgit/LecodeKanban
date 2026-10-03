@@ -109,7 +109,7 @@ export function MessageList({
               </div>
             )}
             {!hasOlder && (
-              <p className="px-5 pb-2 text-center text-xs text-text-faint">{t('list.start')}</p>
+              <p className="px-5 pb-2 text-center text-xs text-text-muted">{t('list.start')}</p>
             )}
             <ul>
               {feed.map((item) =>

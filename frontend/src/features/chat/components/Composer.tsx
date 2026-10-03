@@ -22,6 +22,8 @@ interface Props {
   disabled?: boolean;
   /** Focuses the field again when this changes (e.g. after opening a thread). */
   focusKey?: string;
+  /** Shows the "Enter to send" reminder; hide it where the composer is narrow. */
+  hint?: boolean;
 }
 
 /** Slack-style composer: Enter sends, Shift+Enter breaks the line, "@" picks a teammate. */
@@ -34,6 +36,7 @@ export function Composer({
   autoFocus,
   disabled,
   focusKey,
+  hint = true,
 }: Props) {
   const { t } = useTranslation('chat');
   const area = useRef<HTMLTextAreaElement>(null);
@@ -165,8 +168,6 @@ export function Composer({
           maxLength={MAX_LEN}
           disabled={disabled}
           aria-label={label}
-          aria-autocomplete="list"
-          aria-expanded={open}
           placeholder={placeholder}
           onChange={(e) => {
             setText(e.target.value);
@@ -213,10 +214,12 @@ export function Composer({
               <AtSign />
             </IconButton>
           </Tooltip>
-          <span className="ml-auto hidden items-center gap-1 pr-2 text-2xs text-text-faint sm:flex">
-            <Kbd>Enter</Kbd> {t('composer.send')} <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd>{' '}
-            {t('composer.newLine')}
-          </span>
+          {hint && (
+            <span className="ml-auto hidden items-center gap-1 whitespace-nowrap pr-2 text-2xs text-text-muted sm:flex">
+              <Kbd>Enter</Kbd> {t('composer.send')} <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd>{' '}
+              {t('composer.newLine')}
+            </span>
+          )}
           <Tooltip content={t('composer.sendLabel')}>
             <IconButton
               label={t('composer.sendLabel')}
@@ -225,7 +228,7 @@ export function Composer({
               disabled={!body || sending || disabled}
               onClick={() => void send()}
               className={cn(
-                'ml-auto sm:ml-0',
+                hint ? 'ml-auto sm:ml-0' : 'ml-auto',
                 body &&
                   !sending &&
                   '!bg-primary-solid !text-on-primary hover:!bg-primary-solid-hover',

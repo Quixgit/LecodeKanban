@@ -28,6 +28,13 @@
   interval and "verified", full width, project links), eight built-in and custom templates, files
   with sandboxed downloads; migration `00012_wiki_content`.
 
+- **Team chat** (ADR 0016): `/chat` with public and private channels, direct and group
+  conversations (and notes to self), one-level threads, @mentions, eight outline-icon reactions
+  (no emoji), edit and delete, per-channel unread and mention counts with a badge on the Chat menu
+  item, mute, browse and join, topic and member management, drafts kept per conversation, live
+  updates over the existing SSE stream, uk/en, light/dark, keyboard flow (Enter sends, Shift+Enter
+  breaks the line). New module `chat` and migration `00013_chat`.
+
 ### Fixed
 
 - Docs: the space strip scrolls instead of squeezing the page tree when there are many spaces.
