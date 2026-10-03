@@ -1394,6 +1394,29 @@ paths:
               schema: { $ref: "#/components/schemas/WikiFile" }
         "403": { $ref: "#/components/responses/Error" }
         "413": { $ref: "#/components/responses/Error" }
+  /wiki/spaces/{spaceId}/export:
+    parameters: [{ $ref: "#/components/parameters/WikiSpaceId" }]
+    get:
+      tags: [wiki]
+      operationId: exportWikiSpace
+      summary: Download every page of the space the caller can read, as a zip of Markdown or HTML files
+      parameters:
+        - { name: format, in: query, schema: { type: string, enum: [md, html], default: md } }
+      responses:
+        "200": { description: A zip with the folder structure, an index and the attachments }
+        "404": { $ref: "#/components/responses/Error" }
+  /wiki/nodes/{nodeId}/export:
+    parameters: [{ $ref: "#/components/parameters/WikiNodeId" }]
+    get:
+      tags: [wiki]
+      operationId: exportWikiNode
+      summary: Download a page (one file when it has no attachments, else a zip) or, with subtree, a folder and everything below it
+      parameters:
+        - { name: format, in: query, schema: { type: string, enum: [md, html], default: md } }
+        - { name: subtree, in: query, schema: { type: boolean, default: false } }
+      responses:
+        "200": { description: A Markdown or HTML file, or a zip }
+        "404": { $ref: "#/components/responses/Error" }
   /wiki/files/{fileId}/content:
     parameters: [{ name: fileId, in: path, required: true, schema: { type: string, format: uuid } }]
     get:

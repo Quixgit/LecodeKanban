@@ -53,6 +53,8 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Get("/wiki/nodes/{nodeId}/content", httpx.H(h.getContent))
 	r.Put("/wiki/nodes/{nodeId}/content", httpx.H(h.saveContent))
 	r.Post("/wiki/nodes/{nodeId}/files", httpx.H(h.uploadFile))
+	r.Get("/wiki/spaces/{spaceId}/export", httpx.H(h.exportSpace))
+	r.Get("/wiki/nodes/{nodeId}/export", httpx.H(h.exportNode))
 	r.Get("/wiki/files/{fileId}/content", httpx.H(h.downloadFile))
 	r.Get("/workspaces/{workspaceId}/wiki/templates", httpx.H(h.templates))
 	r.Post("/workspaces/{workspaceId}/wiki/templates", httpx.H(h.createTemplate))

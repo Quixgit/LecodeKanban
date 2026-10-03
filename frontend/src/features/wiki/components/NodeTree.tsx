@@ -12,6 +12,7 @@ import {
   Share2,
   Star,
   Trash2,
+  Download,
 } from 'lucide-react';
 import {
   memo,
@@ -31,6 +32,9 @@ import {
   DropdownContent,
   DropdownItem,
   DropdownSeparator,
+  DropdownSub,
+  DropdownSubContent,
+  DropdownSubTrigger,
   DropdownTrigger,
   IconButton,
 } from '@/shared/ui';
@@ -58,6 +62,7 @@ export interface NodeActions {
   onShare: (node: WikiNode) => void;
   onFavorite: (node: WikiNode) => void;
   onCopyLink: (node: WikiNode) => void;
+  onExport: (node: WikiNode, format: 'md' | 'html') => void;
   onKeyboardMove: (node: WikiNode, placement: Placement, action: string) => void;
 }
 
@@ -297,6 +302,7 @@ const TreeRow = memo(function TreeRow({
   onShare,
   onFavorite,
   onCopyLink,
+  onExport,
 }: RowProps) {
   const { t } = useTranslation('wiki');
   const { node } = row;
@@ -483,6 +489,20 @@ const TreeRow = memo(function TreeRow({
                     <Copy />
                     {t('menu.copyLink')}
                   </DropdownItem>
+                  <DropdownSub>
+                    <DropdownSubTrigger>
+                      <Download />
+                      {t('menu.export')}
+                    </DropdownSubTrigger>
+                    <DropdownSubContent>
+                      <DropdownItem onSelect={() => onExport(node, 'md')}>
+                        {t('menu.exportMarkdown')}
+                      </DropdownItem>
+                      <DropdownItem onSelect={() => onExport(node, 'html')}>
+                        {t('menu.exportHtml')}
+                      </DropdownItem>
+                    </DropdownSubContent>
+                  </DropdownSub>
                   {editable && <DropdownSeparator />}
                   {editable && (
                     <DropdownItem danger onSelect={() => onDelete(node)}>

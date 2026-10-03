@@ -615,6 +615,42 @@ func (e OauthStartParamsProvider) Valid() bool {
 	}
 }
 
+// Defines values for ExportWikiNodeParamsFormat.
+const (
+	ExportWikiNodeParamsFormatHtml ExportWikiNodeParamsFormat = "html"
+	ExportWikiNodeParamsFormatMd   ExportWikiNodeParamsFormat = "md"
+)
+
+// Valid indicates whether the value is a known member of the ExportWikiNodeParamsFormat enum.
+func (e ExportWikiNodeParamsFormat) Valid() bool {
+	switch e {
+	case ExportWikiNodeParamsFormatHtml:
+		return true
+	case ExportWikiNodeParamsFormatMd:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ExportWikiSpaceParamsFormat.
+const (
+	ExportWikiSpaceParamsFormatHtml ExportWikiSpaceParamsFormat = "html"
+	ExportWikiSpaceParamsFormatMd   ExportWikiSpaceParamsFormat = "md"
+)
+
+// Valid indicates whether the value is a known member of the ExportWikiSpaceParamsFormat enum.
+func (e ExportWikiSpaceParamsFormat) Valid() bool {
+	switch e {
+	case ExportWikiSpaceParamsFormatHtml:
+		return true
+	case ExportWikiSpaceParamsFormatMd:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListCardsParamsDue.
 const (
 	ListCardsParamsDueMonth   ListCardsParamsDue = "month"
@@ -2124,6 +2160,15 @@ type ListChatMessagesParams struct {
 	Limit  *int                `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// ExportWikiNodeParams defines parameters for ExportWikiNode.
+type ExportWikiNodeParams struct {
+	Format  *ExportWikiNodeParamsFormat `form:"format,omitempty" json:"format,omitempty"`
+	Subtree *bool                       `form:"subtree,omitempty" json:"subtree,omitempty"`
+}
+
+// ExportWikiNodeParamsFormat defines parameters for ExportWikiNode.
+type ExportWikiNodeParamsFormat string
+
 // UploadWikiFileMultipartBody defines parameters for UploadWikiFile.
 type UploadWikiFileMultipartBody struct {
 	File openapi_types.File `json:"file"`
@@ -2135,6 +2180,14 @@ type ListWikiAuditParams struct {
 	Before *int64 `form:"before,omitempty" json:"before,omitempty"`
 	Limit  *int   `form:"limit,omitempty" json:"limit,omitempty"`
 }
+
+// ExportWikiSpaceParams defines parameters for ExportWikiSpace.
+type ExportWikiSpaceParams struct {
+	Format *ExportWikiSpaceParamsFormat `form:"format,omitempty" json:"format,omitempty"`
+}
+
+// ExportWikiSpaceParamsFormat defines parameters for ExportWikiSpace.
+type ExportWikiSpaceParamsFormat string
 
 // ListCardsParams defines parameters for ListCards.
 type ListCardsParams struct {

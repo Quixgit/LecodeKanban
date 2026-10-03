@@ -53,6 +53,16 @@
   channels or the conversation you are reading). Volume, per-kind switches and previews live in the
   bell menu.
 
+- **Docs export**: download a page as Markdown or HTML (one file, or a zip when it has attachments), a
+  folder with everything below it, or a whole space as a zip with the folder structure, an index and
+  the attachments. Done on the server from the stored document (tables, code, callouts, math,
+  links between pages and images all convert), so it includes only what the caller may read.
+- **Chat search like Slack**: one search entry, with `in:#channel`, `from:@person`, `has:link`,
+  `has:file`, `is:thread`, `with:me` modifiers (typed or as chips), a date filter, "jump to"
+  conversations and people. Emoji picker (search, categories, skin tones, frequently used) for
+  messages and reactions; creating a channel can add people at once; a sound on/off toggle sits next to
+  "new message". Migration `00016_chat_emoji`.
+
 ### Fixed
 
 - Sign-in pages: one shared board-themed backdrop instead of a white half and a green half; the form sits in a card, the pitch and mini board on the same background; works in light and dark and on phones; the social sign-in buttons no longer squeeze their labels.

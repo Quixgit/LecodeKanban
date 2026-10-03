@@ -49,7 +49,10 @@
     "unfavorite": "Remove from favorites",
     "share": "Share",
     "copyLink": "Copy link",
-    "delete": "Delete"
+    "delete": "Delete",
+    "export": "Export",
+    "exportMarkdown": "As Markdown (.md)",
+    "exportHtml": "As HTML"
   },
   "breadcrumbs": {
     "label": "Breadcrumbs",
@@ -125,7 +128,11 @@
       "bookmark": "Bookmark",
       "calendar": "Calendar",
       "flag": "Flag"
-    }
+    },
+    "export": "Export",
+    "exportAll": "Export all pages",
+    "exportMarkdown": "Markdown files (.zip)",
+    "exportHtml": "HTML pages (.zip)"
   },
   "empty": {
     "noSpacesTitle": "Start your knowledge base",

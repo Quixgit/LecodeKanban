@@ -1349,6 +1349,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/wiki/spaces/{spaceId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        /** Download every page of the space the caller can read, as a zip of Markdown or HTML files */
+        get: operations["exportWikiSpace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wiki/nodes/{nodeId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        /** Download a page (one file when it has no attachments, else a zip) or, with subtree, a folder and everything below it */
+        get: operations["exportWikiNode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/wiki/files/{fileId}/content": {
         parameters: {
             query?: never;
@@ -5487,6 +5525,53 @@ export interface operations {
             };
             403: components["responses"]["Error"];
             413: components["responses"]["Error"];
+        };
+    };
+    exportWikiSpace: {
+        parameters: {
+            query?: {
+                format?: "md" | "html";
+            };
+            header?: never;
+            path: {
+                spaceId: components["parameters"]["WikiSpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A zip with the folder structure */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    exportWikiNode: {
+        parameters: {
+            query?: {
+                format?: "md" | "html";
+                subtree?: boolean;
+            };
+            header?: never;
+            path: {
+                nodeId: components["parameters"]["WikiNodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A Markdown or HTML file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["Error"];
         };
     };
     getWikiFile: {
