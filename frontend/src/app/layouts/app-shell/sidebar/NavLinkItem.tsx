@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { matchPath, NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/shared/lib/cn';
 import { collapse, fade, transition } from '@/shared/motion';
+import { useChatUnread } from '@/features/chat';
+import { useCurrentWorkspace } from '@/features/workspaces';
 import { Tooltip } from '@/shared/ui';
 import { CollapsedFlyout } from './CollapsedFlyout';
 import type { NavItem } from '../navigation';
@@ -11,6 +13,36 @@ import { useSidebarStore } from '../sidebarStore';
 import { SubNav } from './SubNav';
 
 const ACTIVE_LAYOUT_ID = 'sidebar-active-item';
+
+/** Unread chat count: a pill beside the label, or a dot on the icon when the rail is collapsed. */
+function ChatBadge({ collapsed }: { collapsed: boolean }) {
+  const { t } = useTranslation('chat');
+  const { workspace } = useCurrentWorkspace();
+  const { total, mentions } = useChatUnread(workspace?.id);
+  if (total === 0) return null;
+  const tone = mentions > 0 ? 'bg-danger text-white' : 'bg-primary-solid text-on-primary';
+  if (collapsed) {
+    return (
+      <span
+        role="status"
+        aria-label={t('sidebar.unread', { count: total })}
+        className={cn('absolute -right-1 -top-1 size-2.5 rounded-full ring-2 ring-surface', tone)}
+      />
+    );
+  }
+  return (
+    <span
+      role="status"
+      aria-label={t('sidebar.unread', { count: total })}
+      className={cn(
+        'grid h-5 min-w-5 shrink-0 place-items-center rounded-full px-1.5 text-2xs font-semibold tabular-nums',
+        tone,
+      )}
+    >
+      {total > 99 ? '99+' : total}
+    </span>
+  );
+}
 
 function ActiveHighlight() {
   return (
@@ -71,6 +103,7 @@ export function NavLinkItem({ item, collapsed }: { item: NavItem; collapsed: boo
               {/* Fixed 20px slot: the icon keeps its x while the rail collapses and expands. */}
               <span className="relative grid size-5 shrink-0 place-items-center">
                 <Icon className="size-5 stroke-[1.6]" aria-hidden />
+                {item.key === 'chat' && collapsed && <ChatBadge collapsed />}
               </span>
               <AnimatePresence initial={false}>
                 {!collapsed && (
@@ -85,6 +118,7 @@ export function NavLinkItem({ item, collapsed }: { item: NavItem; collapsed: boo
                   </motion.span>
                 )}
               </AnimatePresence>
+              {item.key === 'chat' && !collapsed && <ChatBadge collapsed={false} />}
             </>
           </NavLink>
         </Tooltip>

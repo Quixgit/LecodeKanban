@@ -25,6 +25,13 @@ export function keysFor(m: RealtimeMessage): QueryKeyPrefix[] {
         ['labels', ws],
         ['cards', ws],
       ];
+    case 'chat':
+      return [
+        ['chat', 'channels', ws],
+        ...(m.channelId ? [['chat', 'messages', m.channelId] as const] : []),
+        ['chat', 'thread'],
+        ...(m.channelId ? [['chat', 'members', m.channelId] as const] : []),
+      ];
     case 'columns':
       return [['boardColumns'], ['cards', ws]];
     default:
@@ -34,7 +41,7 @@ export function keysFor(m: RealtimeMessage): QueryKeyPrefix[] {
 
 /** Everything a client may have missed (listener reconnect or dropped messages). */
 export function resyncKeys(ws: string): QueryKeyPrefix[] {
-  return [['cards', ws], ['projects', ws], ['labels', ws], ['boardColumns'], ['card']];
+  return [['cards', ws], ['projects', ws], ['labels', ws], ['boardColumns'], ['card'], ['chat']];
 }
 
 /** De-duplicates prefixes (by JSON) so a burst of hints triggers one refetch each. */

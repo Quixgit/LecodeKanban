@@ -24,6 +24,7 @@ tags:
   - name: attachments
   - name: time
   - name: wiki
+  - name: chat
   - name: activity
   - name: realtime
   - name: system
@@ -1527,10 +1528,243 @@ paths:
                 type: array
                 items: { type: string }
 
+  /workspaces/{workspaceId}/chat/channels:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [chat]
+      operationId: listChatChannels
+      summary: Channels the caller can see, with unread and mention counts
+      responses:
+        "200":
+          description: Public channels plus the caller's private channels and direct messages
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ChatChannel" } }
+    post:
+      tags: [chat]
+      operationId: createChatChannel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatChannelInput" }
+      responses:
+        "201":
+          description: Created; the caller is a member
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatChannel" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/chat/direct:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    post:
+      tags: [chat]
+      operationId: openChatDirect
+      summary: Open (or create) the direct conversation with the given people
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatDirectInput" }
+      responses:
+        "200":
+          description: The conversation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatChannel" }
+        "422": { $ref: "#/components/responses/Error" }
+  /chat/channels/{channelId}:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    patch:
+      tags: [chat]
+      operationId: updateChatChannel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatChannelPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatChannel" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [chat]
+      operationId: archiveChatChannel
+      summary: Archive a channel (creator or workspace admin)
+      responses:
+        "204": { description: Archived }
+  /chat/channels/{channelId}/members:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    get:
+      tags: [chat]
+      operationId: listChatMembers
+      responses:
+        "200":
+          description: People in the channel
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/PersonRef" } }
+    post:
+      tags: [chat]
+      operationId: addChatMembers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatMembersInput" }
+      responses:
+        "204": { description: Added }
+  /chat/channels/{channelId}/join:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    post:
+      tags: [chat]
+      operationId: joinChatChannel
+      responses:
+        "200":
+          description: Joined
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatChannel" }
+  /chat/channels/{channelId}/leave:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    post:
+      tags: [chat]
+      operationId: leaveChatChannel
+      responses:
+        "204": { description: Left }
+  /chat/channels/{channelId}/read:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    post:
+      tags: [chat]
+      operationId: markChatRead
+      summary: Mark the channel as read up to now
+      responses:
+        "204": { description: Marked }
+  /chat/channels/{channelId}/mute:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    put:
+      tags: [chat]
+      operationId: muteChatChannel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatMuteInput" }
+      responses:
+        "204": { description: Saved }
+  /chat/channels/{channelId}/messages:
+    parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
+    get:
+      tags: [chat]
+      operationId: listChatMessages
+      summary: A page of top-level messages, oldest first within the page
+      parameters:
+        - name: before
+          in: query
+          description: Id of the oldest message already loaded; returns the page before it
+          schema: { type: string, format: uuid }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        "200":
+          description: Newest page when `before` is omitted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatMessagePage" }
+    post:
+      tags: [chat]
+      operationId: postChatMessage
+      summary: Send a message, or a reply when parentId is set
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatMessageInput" }
+      responses:
+        "201":
+          description: Sent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatMessage" }
+        "422": { $ref: "#/components/responses/Error" }
+  /chat/messages/{messageId}:
+    parameters: [{ $ref: "#/components/parameters/ChatMessageId" }]
+    patch:
+      tags: [chat]
+      operationId: editChatMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatBodyInput" }
+      responses:
+        "200":
+          description: Edited
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatMessage" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [chat]
+      operationId: deleteChatMessage
+      responses:
+        "204": { description: Deleted }
+  /chat/messages/{messageId}/thread:
+    parameters: [{ $ref: "#/components/parameters/ChatMessageId" }]
+    get:
+      tags: [chat]
+      operationId: getChatThread
+      responses:
+        "200":
+          description: The root message followed by its replies, oldest first
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ChatMessage" } }
+  /chat/messages/{messageId}/reactions/{key}:
+    parameters:
+      - { $ref: "#/components/parameters/ChatMessageId" }
+      - name: key
+        in: path
+        required: true
+        schema: { type: string, enum: [thumbs-up, heart, check, party-popper, eyes, laugh, flame, lightbulb] }
+    put:
+      tags: [chat]
+      operationId: addChatReaction
+      responses:
+        "200":
+          description: Reacted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatMessage" }
+    delete:
+      tags: [chat]
+      operationId: removeChatReaction
+      responses:
+        "200":
+          description: Reaction removed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatMessage" }
 components:
   securitySchemes:
     cookieAuth: { type: apiKey, in: cookie, name: lk_at }
   parameters:
+    ChatChannelId:
+      name: channelId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ChatMessageId:
+      name: messageId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
     Provider:
       name: provider
       in: path
@@ -2116,6 +2350,8 @@ components:
         projectId: { type: string, format: uuid }
         cardId: { type: string, format: uuid }
         actorId: { type: string, format: uuid }
+        channelId: { type: string, format: uuid, description: Chat hints only }
+        messageId: { type: string, format: uuid, description: Chat hints only }
     CardPage:
       type: object
       required: [items, total, page, pageSize]
@@ -2415,5 +2651,90 @@ components:
       properties:
         events: { type: array, items: { $ref: "#/components/schemas/WikiAuditEvent" } }
         next: { type: integer, format: int64, nullable: true, description: Cursor for the next page; null at the end }
+    ChatChannel:
+      type: object
+      required: [id, workspaceId, kind, name, topic, joined, muted, unread, mentions, memberCount, lastMessageAt, people]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        kind: { type: string, enum: [public, private, dm] }
+        name: { type: string, nullable: true, description: Null for direct messages }
+        topic: { type: string }
+        joined: { type: boolean }
+        muted: { type: boolean }
+        unread: { type: integer, description: Messages from others since the caller last read }
+        mentions: { type: integer, description: Of those, how many mention the caller }
+        memberCount: { type: integer }
+        lastMessageAt: { type: string, format: date-time, nullable: true }
+        people: { type: array, items: { $ref: "#/components/schemas/PersonRef" }, description: Participants of a direct message }
+    ChatChannelInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        topic: { type: string, maxLength: 250 }
+        private: { type: boolean }
+        memberIds: { type: array, items: { type: string, format: uuid } }
+    ChatChannelPatch:
+      type: object
+      properties:
+        name: { type: string, maxLength: 60 }
+        topic: { type: string, maxLength: 250 }
+    ChatDirectInput:
+      type: object
+      required: [userIds]
+      properties:
+        userIds: { type: array, maxItems: 7, items: { type: string, format: uuid }, description: The other participants }
+    ChatMembersInput:
+      type: object
+      required: [userIds]
+      properties:
+        userIds: { type: array, minItems: 1, maxItems: 50, items: { type: string, format: uuid } }
+    ChatMuteInput:
+      type: object
+      required: [muted]
+      properties:
+        muted: { type: boolean }
+    ChatReaction:
+      type: object
+      required: [key, count, mine, users]
+      properties:
+        key: { type: string }
+        count: { type: integer }
+        mine: { type: boolean }
+        users: { type: array, items: { type: string, format: uuid } }
+    ChatMessage:
+      type: object
+      required: [id, channelId, parentId, author, body, deleted, mentions, reactions, replyCount, lastReplyAt, createdAt, editedAt]
+      properties:
+        id: { type: string, format: uuid }
+        channelId: { type: string, format: uuid }
+        parentId: { type: string, format: uuid, nullable: true }
+        author: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
+        body: { type: string, description: "Markdown; mentions are written as @[Name](user-id). Empty when deleted" }
+        deleted: { type: boolean }
+        mentions: { type: array, items: { $ref: "#/components/schemas/PersonRef" } }
+        reactions: { type: array, items: { $ref: "#/components/schemas/ChatReaction" } }
+        replyCount: { type: integer }
+        lastReplyAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        editedAt: { type: string, format: date-time, nullable: true }
+    ChatMessagePage:
+      type: object
+      required: [messages, hasMore]
+      properties:
+        messages: { type: array, items: { $ref: "#/components/schemas/ChatMessage" } }
+        hasMore: { type: boolean }
+    ChatMessageInput:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 8000 }
+        parentId: { type: string, format: uuid, nullable: true }
+    ChatBodyInput:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 8000 }
 security:
   - cookieAuth: []

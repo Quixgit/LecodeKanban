@@ -92,7 +92,7 @@ test.describe('Docs', () => {
 
     // The target opens so the dropped page stays in view.
     await expect(page.getByRole('treeitem', { name: /Beta/ })).toBeVisible();
-    expect(await level(page, 'Beta')).toBe('2');
+    await expect.poll(() => level(page, 'Beta')).toBe('2');
 
     // Arrow keys walk the tree; the active descendant follows.
     const tree = page.getByRole('tree');

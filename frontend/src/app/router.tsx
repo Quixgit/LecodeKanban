@@ -28,6 +28,13 @@ const DocsPageRoute = lazy(() =>
 const DocsTrashRoute = lazy(() =>
   import('@/pages/docs/DocsRoutes').then((m) => ({ default: m.DocsTrashRoute })),
 );
+const ChatPage = lazy(() => import('@/pages/ChatPage'));
+const ChatHomeRoute = lazy(() =>
+  import('@/pages/chat/ChatRoutes').then((m) => ({ default: m.ChatHomeRoute })),
+);
+const ChatChannelRoute = lazy(() =>
+  import('@/pages/chat/ChatRoutes').then((m) => ({ default: m.ChatChannelRoute })),
+);
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
@@ -89,6 +96,15 @@ export const routes: RouteObject[] = [
               { path: 's/:spaceId', element: <DocsSpaceRoute /> },
               { path: 'p/:nodeId', element: <DocsPageRoute /> },
               { path: 'trash', element: <DocsTrashRoute /> },
+            ],
+          },
+          {
+            path: 'chat',
+            handle: page('chat'),
+            element: <ChatPage />,
+            children: [
+              { index: true, element: <ChatHomeRoute /> },
+              { path: ':channelId', element: <ChatChannelRoute /> },
             ],
           },
           upcoming('performance', 'performance'),

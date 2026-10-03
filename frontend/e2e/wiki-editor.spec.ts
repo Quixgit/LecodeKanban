@@ -111,7 +111,7 @@ test.describe('Docs editor', () => {
     await dialog.getByRole('textbox').fill('example.com/runbook');
     await dialog.getByRole('button', { name: 'Apply' }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(editor.locator('a[href="https://example.com/runbook"]')).toBeVisible();
+    await expect(editor.locator('a[href="https://example.com/runbook"]').first()).toBeVisible();
     await waitSaved(page);
   });
 
@@ -156,9 +156,17 @@ test.describe('Docs editor', () => {
     await addNode(page, 'page', 'Target page');
     const target = page.getByRole('textbox', { name: 'Page content' });
     await expect(target).toBeVisible({ timeout: 30_000 });
-    await page.getByRole('button', { name: 'More actions' }).last().click();
+    await expect(page.getByRole('textbox', { name: 'Page title' })).toHaveValue('Target page');
+    const importItem = page.getByRole('menuitem', { name: 'Import Markdown file…' });
+    // The page header re-renders while the new page loads; reopen the menu until it sticks.
+    await expect(async () => {
+      if (!(await importItem.isVisible())) {
+        await page.getByRole('button', { name: 'More actions' }).last().click();
+      }
+      await expect(importItem).toBeVisible({ timeout: 1_000 });
+    }).toPass({ timeout: 15_000 });
     const chooser = page.waitForEvent('filechooser');
-    await page.getByRole('menuitem', { name: 'Import Markdown file…' }).click();
+    await importItem.click();
     await (
       await chooser
     ).setFiles({ name: 'in.md', mimeType: 'text/markdown', buffer: Buffer.from(text) });

@@ -22,7 +22,10 @@ export function SpaceStrip({
 }) {
   const { t } = useTranslation('wiki');
   return (
-    <nav aria-label={t('spaces.label')} className="flex flex-wrap items-center gap-1.5 px-3 py-2">
+    <nav
+      aria-label={t('spaces.label')}
+      className="flex max-h-28 shrink-0 flex-wrap items-center gap-1.5 overflow-y-auto px-3 py-2"
+    >
       {spaces.map((s) => (
         <SpaceButton key={s.id} space={s} active={s.id === activeId} />
       ))}

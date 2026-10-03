@@ -19,8 +19,25 @@
   share dialog (visibility, people, effective access), space settings, trash, uk/en, outline Lucide
   icons only (no emoji), demo seed data.
 
+- **Docs editor, phase W3** (ADR 0015): TipTap page editor in its own `features/wiki-editor`
+  module (lazy chunk) with Markdown shortcuts, paste and import/export, slash menu, bubble menu,
+  tables, task lists, callouts, toggles, code blocks (highlighting, HCL, live Mermaid preview),
+  math, YouTube, image and file uploads, outline, shortcuts dialog, autosave with offline retry and
+  conflict handling. Backend: versioned page content with a server-side document allow-list
+  (unsafe links, scripts and non-https images are refused), page properties (status, tags, review
+  interval and "verified", full width, project links), eight built-in and custom templates, files
+  with sandboxed downloads; migration `00012_wiki_content`.
+
+- **Team chat** (ADR 0016): `/chat` with public and private channels, direct and group
+  conversations (and notes to self), one-level threads, @mentions, eight outline-icon reactions
+  (no emoji), edit and delete, per-channel unread and mention counts with a badge on the Chat menu
+  item, mute, browse and join, topic and member management, drafts kept per conversation, live
+  updates over the existing SSE stream, uk/en, light/dark, keyboard flow (Enter sends, Shift+Enter
+  breaks the line). New module `chat` and migration `00013_chat`.
+
 ### Fixed
 
+- Docs: the space strip scrolls instead of squeezing the page tree when there are many spaces.
 - Collapsed sidebar: icons and the active highlight are centred on the rail; Tasks sub-items open as
   a keyboard-accessible flyout with counts.
 - Kanban toolbar stays on one row at ≥ 1280 px (overflow menu below); header subtitle wraps instead

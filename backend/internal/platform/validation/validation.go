@@ -14,23 +14,24 @@ import (
 
 // Field error codes (translated client-side under errors:validation.<code>).
 const (
-	Required  = "required"
-	Email     = "email"
-	MinLength = "min_length"
-	MaxLength = "max_length"
-	OneOf     = "one_of"
-	Weak      = "password_weak"
-	Range     = "range"       // number outside {min,max}
-	NotMember = "not_member"  // user is not a member of the workspace
-	NotFound  = "not_found"   // referenced entity does not exist (in this workspace)
-	KeyFormat = "project_key" // project key format
-	DateOrder = "date_order"  // end date before start date
-	Count     = "count"       // list length outside {min,max}
-	IconKey   = "icon_key"    // icon is not a lowercase-kebab key such as "book-open"
+	Required    = "required"
+	Email       = "email"
+	MinLength   = "min_length"
+	MaxLength   = "max_length"
+	OneOf       = "one_of"
+	Weak        = "password_weak"
+	Range       = "range"        // number outside {min,max}
+	NotMember   = "not_member"   // user is not a member of the workspace
+	NotFound    = "not_found"    // referenced entity does not exist (in this workspace)
+	KeyFormat   = "project_key"  // project key format
+	DateOrder   = "date_order"   // end date before start date
+	Count       = "count"        // list length outside {min,max}
+	IconKey     = "icon_key"     // icon is not a lowercase-kebab key such as "book-open"
+	ChannelName = "channel_name" // chat channel name has characters outside a-z, 0-9, "-" and "_"
 )
 
 // All lists every field-error code (used to verify translations).
-var All = []string{Required, Email, MinLength, MaxLength, OneOf, Weak, Range, NotMember, NotFound, KeyFormat, DateOrder, Count, IconKey}
+var All = []string{Required, Email, MinLength, MaxLength, OneOf, Weak, Range, NotMember, NotFound, KeyFormat, DateOrder, Count, IconKey, ChannelName}
 
 // V collects field errors; the zero value is ready to use.
 type V struct{ fields []apperr.FieldError }

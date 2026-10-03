@@ -11,6 +11,7 @@ import enShowcase from '../../public/locales/en/showcase.json';
 import enTeam from '../../public/locales/en/team.json';
 import enWiki from '../../public/locales/en/wiki.json';
 import enWikiEditor from '../../public/locales/en/wikiEditor.json';
+import enChat from '../../public/locales/en/chat.json';
 import ukAuth from '../../public/locales/uk/auth.json';
 import ukCommon from '../../public/locales/uk/common.json';
 import ukErrors from '../../public/locales/uk/errors.json';
@@ -22,6 +23,7 @@ import ukShowcase from '../../public/locales/uk/showcase.json';
 import ukTeam from '../../public/locales/uk/team.json';
 import ukWiki from '../../public/locales/uk/wiki.json';
 import ukWikiEditor from '../../public/locales/uk/wikiEditor.json';
+import ukChat from '../../public/locales/uk/chat.json';
 
 export const testResources = {
   en: {
@@ -36,6 +38,7 @@ export const testResources = {
     showcase: enShowcase,
     wiki: enWiki,
     wikiEditor: enWikiEditor,
+    chat: enChat,
   },
   uk: {
     common: ukCommon,
@@ -49,6 +52,7 @@ export const testResources = {
     showcase: ukShowcase,
     wiki: ukWiki,
     wikiEditor: ukWikiEditor,
+    chat: ukChat,
   },
 };
 
