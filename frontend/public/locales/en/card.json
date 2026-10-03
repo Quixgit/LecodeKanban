@@ -17,6 +17,7 @@
   "tabs": {
     "label": "Task details",
     "comments": "Comments ({{count}})",
+    "chat": "Chat",
     "activity": "Activity"
   },
   "fields": {

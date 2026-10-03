@@ -30,6 +30,7 @@ export function keysFor(m: RealtimeMessage): QueryKeyPrefix[] {
         ['chat', 'channels', ws],
         ...(m.channelId ? [['chat', 'messages', m.channelId] as const] : []),
         ['chat', 'thread'],
+        ['chat', 'scope'],
         ...(m.channelId ? [['chat', 'members', m.channelId] as const] : []),
       ];
     case 'columns':

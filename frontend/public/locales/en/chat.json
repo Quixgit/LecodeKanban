@@ -160,5 +160,17 @@
     "title": "Conversation not found",
     "description": "It may have been archived, or you may not have access to it.",
     "back": "Back to chat"
+  },
+  "scope": {
+    "projectChat": "Project chat",
+    "cardChat": "Chat",
+    "projectEmptyTitle": "No messages in this project yet",
+    "cardEmptyTitle": "No messages about this task yet",
+    "emptyDescription": "Start the conversation. Everyone in the workspace can read and reply.",
+    "projectPlaceholder": "Message the project team",
+    "cardPlaceholder": "Message about this task",
+    "composerLabel": "Write a message",
+    "retry": "Try again",
+    "cardTab": "Chat"
   }
 }

@@ -22,6 +22,7 @@ export const chatKeys = {
   channels: (ws: string) => ['chat', 'channels', ws] as const,
   messages: (channel: string) => ['chat', 'messages', channel] as const,
   thread: (root: string) => ['chat', 'thread', root] as const,
+  scope: (kind: string, id: string) => ['chat', 'scope', kind, id] as const,
   members: (channel: string) => ['chat', 'members', channel] as const,
 };
 
@@ -158,11 +159,15 @@ export function useChatMutations(ws: string) {
     }),
     markRead: useMutation({
       mutationFn: chatApi.markRead,
-      onSuccess: (_d, id) =>
+      onSuccess: (_d, id) => {
         // Clear the badge immediately; the realtime hint confirms it.
         qc.setQueryData<ChatChannel[]>(chatKeys.channels(ws), (d) =>
           d?.map((c) => (c.id === id ? { ...c, unread: 0, mentions: 0 } : c)),
-        ),
+        );
+        qc.setQueriesData<ChatChannel>({ queryKey: ['chat', 'scope'] }, (d) =>
+          d?.id === id ? { ...d, unread: 0, mentions: 0 } : d,
+        );
+      },
     }),
     post: useMutation({
       mutationFn: (v: { channel: string; body: string; parentId?: string }) =>

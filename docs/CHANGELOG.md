@@ -35,8 +35,17 @@
   updates over the existing SSE stream, uk/en, light/dark, keyboard flow (Enter sends, Shift+Enter
   breaks the line). New module `chat` and migration `00013_chat`.
 
+- **Chat inside the Kanban**: the board of a project has a "Project chat" drawer (unread badge on the
+  toolbar button) and every card has a "Chat" tab, using the same feed, threads, reactions and
+  mentions as `/chat`. One conversation per project or card, created on first use; they never show
+  in the channel list. Migration `00014_chat_scopes`.
+- **Email through Mailgun** (ADR 0017): `LK_MAIL_PROVIDER=mailgun` sends invitations and the
+  email-confirmation message through the Mailgun HTTP API (SMTP stays the default for development).
+
 ### Fixed
 
+- Segmented controls (card tabs, view switcher) no longer keep a closed drawer or dialog mounted after a
+  tab was changed: the sliding thumb uses a CSS transition instead of a shared framer layout.
 - Docs: the space strip scrolls instead of squeezing the page tree when there are many spaces.
 - Collapsed sidebar: icons and the active highlight are centred on the rail; Tasks sub-items open as
   a keyboard-accessible flyout with counts.

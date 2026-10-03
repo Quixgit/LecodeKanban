@@ -30,6 +30,10 @@ export const chatApi = {
         body: { userIds },
       }),
     ),
+  openProjectChat: (projectId: string) =>
+    unwrap(api.POST('/projects/{projectId}/chat', { params: { path: { projectId } } })),
+  openCardChat: (cardId: string) =>
+    unwrap(api.POST('/cards/{cardId}/chat', { params: { path: { cardId } } })),
   updateChannel: (id: string, body: ChatChannelPatch) =>
     unwrap(api.PATCH('/chat/channels/{channelId}', { ...channel(id), body })),
   archiveChannel: (id: string) => unwrap(api.DELETE('/chat/channels/{channelId}', channel(id))),

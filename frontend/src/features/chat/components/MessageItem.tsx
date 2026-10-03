@@ -168,7 +168,6 @@ export const MessageItem = memo(function MessageItem({
 
   return (
     <motion.li
-      layout="position"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={transition.ui}

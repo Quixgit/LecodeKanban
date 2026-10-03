@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
-import { expect, LISA, signIn, test } from './fixtures';
+import { expect, LISA, openKanban, signIn, test } from './fixtures';
 import { stamp } from './wikiHelpers';
 
 const slug = () => `e2e-${stamp().toLowerCase()}`;
@@ -142,5 +142,71 @@ test.describe('Chat', () => {
       .withTags(['wcag2a', 'wcag2aa'])
       .analyze();
     expect(dialogResults.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
+  });
+});
+
+test.describe('Chat in the Kanban', () => {
+  test('a card has a chat tab and its project has a chat drawer, with live unread badges', async ({
+    page,
+    browser,
+  }) => {
+    const text = `card note ${stamp()}`;
+    await signIn(page);
+    const workspaces = (await (await page.request.get('/api/v1/workspaces')).json()) as {
+      id: string;
+    }[];
+    const ws = workspaces[0]!.id;
+    const projects = (await (
+      await page.request.get(`/api/v1/workspaces/${ws}/projects?pageSize=5`)
+    ).json()) as {
+      items: { id: string; name: string }[];
+    };
+    const project = projects.items[0]!;
+
+    // The card's chat tab.
+    await openKanban(page);
+    await page.goto(`/tasks?projectId=${project.id}`);
+    await page.locator('article').first().click();
+    const drawer = page.getByRole('dialog');
+    await drawer.getByRole('radio', { name: 'Chat' }).click();
+    const box = drawer.getByRole('textbox', { name: 'Write a message' });
+    await box.fill(text);
+    await box.press('Enter');
+    await expect(drawer.getByRole('listitem').filter({ hasText: text })).toBeVisible();
+    await drawer.getByRole('button', { name: 'Close' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+
+    // The project chat: Lisa writes, Peter sees the badge on the toolbar button without reloading.
+    const lisaCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const lisa = await lisaCtx.newPage();
+    await signIn(lisa, 'en', 'light', LISA);
+    await openKanban(lisa);
+    await lisa.goto(`/tasks?projectId=${project.id}`);
+    await lisa.getByRole('button', { name: 'Project chat' }).click();
+    const lbox = lisa.getByRole('dialog').getByRole('textbox', { name: 'Write a message' });
+    const hello = `board note ${stamp()}`;
+    await lbox.fill(hello);
+    await lbox.press('Enter');
+    await expect(lisa.getByRole('dialog').getByText(hello)).toBeVisible();
+
+    await expect(
+      page.getByRole('button', { name: 'Project chat' }).locator('..').getByRole('status'),
+    ).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.getByRole('button', { name: 'Project chat' }).click();
+    await expect(page.getByRole('dialog').getByText(hello)).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Project chat' }).locator('..').getByRole('status'),
+    ).toHaveCount(0, {
+      timeout: 15_000,
+    });
+
+    const results = await new AxeBuilder({ page })
+      .include('[role=dialog]')
+      .withTags(['wcag2a', 'wcag2aa'])
+      .analyze();
+    expect(results.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
+    await lisaCtx.close();
   });
 });

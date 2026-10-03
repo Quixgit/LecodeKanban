@@ -53,6 +53,7 @@ type Config struct {
 	AttachmentMaxMB int    `env:"LK_ATTACHMENT_MAX_MB" envDefault:"25"`
 
 	SMTP SMTPConfig
+	Mail MailConfig
 
 	GoogleClientID     string `env:"LK_GOOGLE_CLIENT_ID"`
 	GoogleClientSecret string `env:"LK_GOOGLE_CLIENT_SECRET"`
@@ -71,6 +72,20 @@ type SMTPConfig struct {
 	From     string `env:"LK_SMTP_FROM" envDefault:"LecodeKanban <no-reply@lecodekanban.local>"`
 	// TLS: "none" (dev / Mailpit), "starttls" or "tls".
 	TLS string `env:"LK_SMTP_TLS" envDefault:"none"`
+}
+
+// MailConfig selects how transactional email leaves the server. "smtp" uses LK_SMTP_* (Mailpit in
+// development, or any provider's SMTP relay); "mailgun" posts to the Mailgun HTTP API, which works
+// from hosts that block outbound SMTP ports.
+type MailConfig struct {
+	Provider      string `env:"LK_MAIL_PROVIDER" envDefault:"smtp"`
+	MailgunAPIKey string `env:"LK_MAILGUN_API_KEY"`
+	// MailgunDomain is the sending domain verified in Mailgun, e.g. mg.example.com.
+	MailgunDomain string `env:"LK_MAILGUN_DOMAIN"`
+	// MailgunRegion is "us" (api.mailgun.net) or "eu" (api.eu.mailgun.net).
+	MailgunRegion string `env:"LK_MAILGUN_REGION" envDefault:"us"`
+	// MailgunFrom defaults to LK_SMTP_FROM; its address must belong to MailgunDomain.
+	MailgunFrom string `env:"LK_MAILGUN_FROM"`
 }
 
 // Load parses the environment and validates the result, aggregating every problem
@@ -126,6 +141,18 @@ func (c *Config) validate() error {
 	if c.Env == EnvProduction && c.SMTP.TLS == "none" && c.SMTP.Username != "" {
 		errs = append(errs, errors.New("refusing to send SMTP credentials without TLS in production"))
 	}
+	switch c.Mail.Provider {
+	case "smtp":
+	case "mailgun":
+		if c.Mail.MailgunAPIKey == "" || c.Mail.MailgunDomain == "" {
+			errs = append(errs, errors.New("LK_MAIL_PROVIDER=mailgun needs LK_MAILGUN_API_KEY and LK_MAILGUN_DOMAIN"))
+		}
+		if c.Mail.MailgunRegion != "us" && c.Mail.MailgunRegion != "eu" {
+			errs = append(errs, errors.New("LK_MAILGUN_REGION must be us|eu"))
+		}
+	default:
+		errs = append(errs, errors.New("LK_MAIL_PROVIDER must be smtp|mailgun"))
+	}
 	if (c.GoogleClientID == "") != (c.GoogleClientSecret == "") {
 		errs = append(errs, errors.New("set both LK_GOOGLE_CLIENT_ID and LK_GOOGLE_CLIENT_SECRET, or neither"))
 	}
@@ -165,7 +192,7 @@ func (c *Config) Redacted() map[string]any {
 	return map[string]any{
 		"env": c.Env, "http_addr": c.HTTPAddr, "metrics_addr": c.MetricsAddr, "public_url": c.PublicURL,
 		"cookie_secure": c.CookieSecure, "embedded_worker": c.EmbeddedWorker,
-		"smtp_host": c.SMTP.Host, "smtp_port": c.SMTP.Port, "smtp_tls": c.SMTP.TLS,
+		"mail_provider": c.Mail.Provider, "smtp_host": c.SMTP.Host, "smtp_port": c.SMTP.Port, "smtp_tls": c.SMTP.TLS,
 		"google_oauth": c.GoogleClientID != "", "github_oauth": c.GitHubClientID != "",
 	}
 }

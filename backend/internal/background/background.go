@@ -20,7 +20,7 @@ import (
 // Run processes jobs and periodic maintenance until ctx is cancelled.
 func Run(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) error {
 	w := jobs.NewWorker(pool, log, 4)
-	w.Handle(mailer.JobKind, mailer.JobHandler(mailer.NewSMTPSender(cfg.SMTP)))
+	w.Handle(mailer.JobKind, mailer.JobHandler(mailer.NewSender(cfg)))
 
 	go maintenance(ctx, pool, log)
 	return w.Run(ctx)

@@ -19,6 +19,8 @@ export interface DrawerProps {
   children?: ReactNode;
   footer?: ReactNode;
   width?: 'md' | 'lg' | 'xl';
+  /** No padding and no scrolling: the content manages its own (an embedded chat, for example). */
+  flush?: boolean;
 }
 
 const widths = { md: 'max-w-md', lg: 'max-w-xl', xl: 'max-w-3xl' } as const;
@@ -33,6 +35,7 @@ export function Drawer({
   children,
   footer,
   width = 'lg',
+  flush,
 }: DrawerProps) {
   const { t } = useTranslation();
   const restoreFocus = useRestoreFocus(open);
@@ -78,7 +81,14 @@ export function Drawer({
                     </Dialog.Close>
                   </div>
                 </header>
-                <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
+                <div
+                  className={cn(
+                    'min-h-0 flex-1',
+                    flush ? 'overflow-hidden' : 'overflow-y-auto px-6 py-5',
+                  )}
+                >
+                  {children}
+                </div>
                 {footer && (
                   <footer className="border-t border-border-subtle px-6 py-4">{footer}</footer>
                 )}
