@@ -163,12 +163,12 @@ test.describe('Chat in the Kanban', () => {
     };
     const project = projects.items[0]!;
 
-    // The card's chat tab.
+    // The card's conversation (the Comments tab).
     await openKanban(page);
     await page.goto(`/tasks?projectId=${project.id}`);
     await page.locator('article').first().click();
     const drawer = page.getByRole('dialog');
-    await drawer.getByRole('radio', { name: 'Chat' }).click();
+    await expect(drawer.getByRole('radio', { name: 'Comments' })).toBeChecked();
     const box = drawer.getByRole('textbox', { name: 'Write a message' });
     await box.fill(text);
     await box.press('Enter');

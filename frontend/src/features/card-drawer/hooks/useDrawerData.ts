@@ -10,7 +10,6 @@ import { drawerApi, type ChecklistItem, type ChecklistItemPatch } from '../api/d
 
 export const drawerKeys = {
   checklist: (id: string) => [...cardKeys.one(id), 'checklist'] as const,
-  comments: (id: string) => [...cardKeys.one(id), 'comments'] as const,
   attachments: (id: string) => [...cardKeys.one(id), 'attachments'] as const,
   activity: (id: string) => [...cardKeys.one(id), 'activity'] as const,
   columns: (projectId: string) => ['boardColumns', projectId] as const,
@@ -63,25 +62,6 @@ export function useChecklist(cardId: string, workspaceId: string) {
     onSuccess: () => refresh(key, ['projects', workspaceId]),
   });
   return { list, add, update, remove };
-}
-
-export function useComments(cardId: string, workspaceId: string) {
-  const key = drawerKeys.comments(cardId);
-  const refresh = useRefresh(cardId, workspaceId);
-  const list = useQuery({ queryKey: key, queryFn: () => drawerApi.comments(cardId) });
-  const add = useMutation({
-    mutationFn: (body: string) => drawerApi.addComment(cardId, body),
-    onSuccess: () => refresh(key),
-  });
-  const edit = useMutation({
-    mutationFn: (v: { id: string; body: string }) => drawerApi.editComment(v.id, v.body),
-    onSuccess: () => refresh(key),
-  });
-  const remove = useMutation({
-    mutationFn: (id: string) => drawerApi.deleteComment(id),
-    onSuccess: () => refresh(key),
-  });
-  return { list, add, edit, remove };
 }
 
 export function useAttachments(cardId: string, workspaceId: string) {

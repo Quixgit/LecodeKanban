@@ -1,14 +1,16 @@
 import {
   CheckSquare,
-  Clock,
   FileText,
   Link2,
   ListTree,
+  Maximize2,
+  Minimize2,
   Paperclip,
   SearchX,
   Trash2,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useCard } from '@/features/cards';
@@ -24,12 +26,12 @@ import {
   toast,
 } from '@/shared/ui';
 import { useCardEditor } from '../hooks/useCardEditor';
+import { useCardDrawerStore } from '../store/drawerStore';
 import { ActivityFeed } from './ActivityFeed';
 import { Attachments } from './Attachments';
 import { CardFields } from './CardFields';
 import { Checklist } from './Checklist';
 import { CardChat } from '@/features/chat';
-import { Comments } from './Comments';
 import { DescriptionEditor } from './DescriptionEditor';
 import { Subtasks } from './Subtasks';
 import { TitleEditor } from './TitleEditor';
@@ -38,13 +40,21 @@ function Section({
   icon,
   title,
   children,
+  boxed = true,
 }: {
   icon: ReactNode;
   title: string;
   children: ReactNode;
+  /** A soft frame around the block; the description stays open on the page. */
+  boxed?: boolean;
 }) {
   return (
-    <section className="flex flex-col gap-3">
+    <section
+      className={cn(
+        'flex flex-col gap-3',
+        boxed && 'rounded-xl border border-border-subtle bg-surface-muted/50 p-4',
+      )}
+    >
       <h3 className="flex items-center gap-2 text-sm font-semibold text-text [&_svg]:size-4 [&_svg]:text-text-muted">
         {icon}
         {title}
@@ -54,7 +64,7 @@ function Section({
   );
 }
 
-type Tab = 'comments' | 'chat' | 'activity';
+type Tab = 'comments' | 'activity';
 
 /** Slide-in card detail, opened from any view through ?card=<id> (shareable links). */
 export function CardDrawer({ currentUserId }: { currentUserId: string }) {
@@ -69,6 +79,7 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
   const editor = useCardEditor(card, ws);
   const [tab, setTab] = useState<Tab>('comments');
   const [confirm, setConfirm] = useState(false);
+  const { expanded, setExpanded } = useCardDrawerStore();
   const editable = !!workspace && workspace.role !== 'viewer';
   const isAdmin = workspace?.role === 'owner' || workspace?.role === 'admin';
 
@@ -103,11 +114,20 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
         open={!!id}
         onOpenChange={(o) => !o && close()}
         width="xl"
+        expanded={expanded}
         title={card ? card.key : t('loading')}
         description={card ? card.project.name : undefined}
         actions={
           card && (
             <>
+              <IconButton
+                variant="ghost"
+                size="sm"
+                label={expanded ? t('collapse') : t('expand')}
+                onClick={() => setExpanded(!expanded)}
+              >
+                {expanded ? <Minimize2 /> : <Maximize2 />}
+              </IconButton>
               <IconButton
                 variant="ghost"
                 size="sm"
@@ -139,13 +159,20 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
         ) : !card ? (
           <EmptyState icon={<SearchX />} title={t('notFound')} description={t('notFoundHint')} />
         ) : (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_15rem]">
-            <div className="flex min-w-0 flex-col gap-7">
+          <div
+            className={cn(
+              'mx-auto grid w-full grid-cols-1 gap-x-8 gap-y-7',
+              expanded
+                ? 'max-w-[110rem] lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_17rem]'
+                : 'lg:grid-cols-[minmax(0,1fr)_17rem]',
+            )}
+          >
+            <div className="flex min-w-0 flex-col gap-6">
               {card.parent && (
                 <button
                   type="button"
                   onClick={() => open(card.parent!.id)}
-                  className="-mb-4 flex w-fit items-center gap-1.5 text-sm text-text-secondary hover:text-text"
+                  className="-mb-3 flex w-fit items-center gap-1.5 text-sm text-text-secondary hover:text-text"
                 >
                   <ListTree className="size-4" aria-hidden />
                   <span className="tabular">{card.parent.key}</span>
@@ -157,7 +184,7 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
                 editable={editable}
                 onSave={(title) => editor.update.mutate({ title })}
               />
-              <Section icon={<FileText />} title={t('description.title')}>
+              <Section boxed={false} icon={<FileText />} title={t('description.title')}>
                 <DescriptionEditor
                   value={card.description}
                   editable={editable}
@@ -173,14 +200,6 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
               <Section icon={<CheckSquare />} title={t('checklist.title')}>
                 <Checklist cardId={card.id} workspaceId={ws} editable={editable} />
               </Section>
-              <Section icon={<Clock />} title={t('time:title')}>
-                <TimeTracker
-                  cardId={card.id}
-                  editable={editable}
-                  currentUserId={currentUserId}
-                  isAdmin={isAdmin}
-                />
-              </Section>
               <Section icon={<Paperclip />} title={t('attachments.title')}>
                 <Attachments
                   cardId={card.id}
@@ -189,37 +208,55 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
                   canDelete={(a) => editable && (isAdmin || a.uploadedBy?.id === currentUserId)}
                 />
               </Section>
-              <section className="flex flex-col gap-4">
-                <SegmentedControl<Tab>
-                  label={t('tabs.label')}
-                  value={tab}
-                  onChange={setTab}
-                  className="w-fit"
-                  options={[
-                    { value: 'comments', label: t('tabs.comments', { count: card.commentCount }) },
-                    { value: 'chat', label: t('tabs.chat') },
-                    { value: 'activity', label: t('tabs.activity') },
-                  ]}
-                />
-                {tab === 'comments' ? (
-                  <Comments
-                    cardId={card.id}
-                    workspaceId={ws}
-                    members={members}
-                    currentUserId={currentUserId}
-                    canComment={editable}
-                    isAdmin={isAdmin}
-                  />
-                ) : tab === 'chat' ? (
-                  <div className="h-[28rem] overflow-hidden rounded-xl border border-border-subtle">
-                    <CardChat cardId={card.id} />
-                  </div>
-                ) : (
-                  <ActivityFeed cardId={card.id} workspaceId={ws} members={members} />
-                )}
-              </section>
             </div>
-            <aside className="lg:border-l lg:border-border-subtle lg:pl-6">
+            <section
+              className={cn(
+                'flex min-w-0 flex-col gap-4 lg:col-start-1',
+                expanded &&
+                  'xl:sticky xl:top-0 xl:col-start-2 xl:row-start-1 xl:h-[calc(100dvh-9rem)] xl:self-start',
+              )}
+            >
+              <SegmentedControl<Tab>
+                label={t('tabs.label')}
+                value={tab}
+                onChange={setTab}
+                className="w-fit"
+                options={[
+                  { value: 'comments', label: t('tabs.comments') },
+                  { value: 'activity', label: t('tabs.activity') },
+                ]}
+              />
+              {tab === 'comments' ? (
+                <div
+                  className={cn(
+                    'overflow-hidden rounded-xl border border-border-subtle',
+                    expanded ? 'h-[32rem] xl:h-auto xl:min-h-0 xl:flex-1' : 'h-[28rem]',
+                  )}
+                >
+                  <CardChat cardId={card.id} />
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    expanded && 'xl:scroll-quiet xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:pr-1',
+                  )}
+                >
+                  <ActivityFeed cardId={card.id} workspaceId={ws} members={members} />
+                </div>
+              )}
+            </section>
+            <aside
+              className={cn(
+                'flex flex-col gap-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:border-l lg:border-border-subtle lg:pl-6',
+                expanded && 'xl:col-start-3 xl:row-span-1',
+              )}
+            >
+              <TimeTracker
+                cardId={card.id}
+                editable={editable}
+                currentUserId={currentUserId}
+                isAdmin={isAdmin}
+              />
               <CardFields
                 card={card}
                 workspaceId={ws}
