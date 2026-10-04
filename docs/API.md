@@ -60,6 +60,8 @@ Base URL: `/api/v1`
 | GET | `/workspaces/{workspaceId}/settings` | session |  | 200 | The workspace's rules and feature switches (any member) |
 | PATCH | `/workspaces/{workspaceId}/settings` | session | WorkspaceSettingsPatch | 200, 403 Error, 422 Error | Change settings (administrators); changes are written to the audit log |
 | GET | `/workspaces/{workspaceId}/audit` | session |  | 200 | The latest administrator actions (administrators) |
+| GET | `/workspaces/{workspaceId}/mail` | session |  | 200 | How email leaves this server, the queue, and the latest emails to this workspace's people (administrators) |
+| POST | `/workspaces/{workspaceId}/mail/test` | session |  | 202 | Send a test email to the caller (administrators) |
 | GET | `/workspaces/{workspaceId}/members` | session |  | 200 |  |
 | GET | `/workspaces/{workspaceId}/members/{userId}` | session |  | 200, 404 Error | A teammate's profile card |
 | PATCH | `/workspaces/{workspaceId}/members/{userId}` | session | UpdateMemberRequest | 204, 403 Error, 409 Error |  |
@@ -324,11 +326,13 @@ Base URL: `/api/v1`
 - **WorkspaceSettings** — `description`: string, `inviteBy`: string, `inviteDays`: integer, `defaultInviteRole`: InviteRole, `allowedDomains`: array, `projectCreateBy`: string, `channelCreateBy`: string, `broadcastBy`: string, `defaultPriority`: string, `requireDueDate`: boolean, `weekStart`: integer, `features`: WorkspaceFeatures
 - **WorkspaceSettingsPatch** — `description?`: string, `inviteBy?`: string, `inviteDays?`: integer, `defaultInviteRole?`: InviteRole, `allowedDomains?`: array, `projectCreateBy?`: string, `channelCreateBy?`: string, `broadcastBy?`: string, `defaultPriority?`: string, `requireDueDate?`: boolean, `weekStart?`: integer, `features?`: WorkspaceFeatures
 - **AuditEntry** — `id`: string, `actor`: object \| null, `action`: string, `details`: object, `at`: string
+- **MailItem** — `id`: integer, `recipient`: string, `subject`: string, `status`: string, `attempts`: integer, `error`: string \| null, `at`: string
+- **MailStatus** — `provider`: string, `host`: string, `from`: string, `capturing`: boolean, `waiting`: integer, `failed`: integer, `recent`: array
 - **MemberUser** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null
 - **MemberProfile** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `role`: Role, `joinedAt`: string, `jobTitle`: string, `pronouns`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
 - **Member** — `user`: MemberUser, `role`: Role, `joinedAt`: string
 - **UpdateMemberRequest** — `role`: Role
-- **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string
+- **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string, `link?`: string
 - **CreateInviteRequest** — `email`: string, `role`: InviteRole
 - **InvitePreview** — `workspaceName`: string, `inviterName`: string \| null, `email`: string, `role`: InviteRole, `expired`: boolean, `accepted`: boolean
 - **TaskStatus**: `todo` | `in_progress` | `in_review` | `done`

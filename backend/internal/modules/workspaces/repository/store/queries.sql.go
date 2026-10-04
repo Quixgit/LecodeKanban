@@ -370,6 +370,60 @@ func (q *Queries) ListOpenInvites(ctx context.Context, workspaceID uuid.UUID) ([
 	return items, nil
 }
 
+const listWorkspaceMail = `-- name: ListWorkspaceMail :many
+SELECT j.id, j.status, j.attempts, j.max_attempts, COALESCE(j.last_error, '')::text AS last_error, j.created_at,
+       COALESCE(j.payload->>'to', '')::text AS recipient, COALESCE(j.payload->>'subject', '')::text AS subject
+FROM jobs j
+WHERE j.kind = 'mail.send'
+  AND lower(j.payload->>'to') IN (
+      SELECT lower(u.email) FROM workspace_members m JOIN users u ON u.id = m.user_id WHERE m.workspace_id = $1
+      UNION
+      SELECT lower(email) FROM workspace_invites WHERE workspace_id = $1)
+ORDER BY j.id DESC
+LIMIT 20
+`
+
+type ListWorkspaceMailRow struct {
+	ID          int64
+	Status      string
+	Attempts    int32
+	MaxAttempts int32
+	LastError   string
+	CreatedAt   time.Time
+	Recipient   string
+	Subject     string
+}
+
+// The latest emails addressed to people of this workspace (members and invited addresses).
+func (q *Queries) ListWorkspaceMail(ctx context.Context, workspaceID uuid.UUID) ([]ListWorkspaceMailRow, error) {
+	rows, err := q.db.Query(ctx, listWorkspaceMail, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListWorkspaceMailRow{}
+	for rows.Next() {
+		var i ListWorkspaceMailRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Status,
+			&i.Attempts,
+			&i.MaxAttempts,
+			&i.LastError,
+			&i.CreatedAt,
+			&i.Recipient,
+			&i.Subject,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listWorkspacesForUser = `-- name: ListWorkspacesForUser :many
 SELECT w.id, w.name, w.slug, w.created_at, m.role,
        (SELECT count(*) FROM workspace_members mm WHERE mm.workspace_id = w.id)::int AS member_count
@@ -413,6 +467,24 @@ func (q *Queries) ListWorkspacesForUser(ctx context.Context, userID uuid.UUID) (
 		return nil, err
 	}
 	return items, nil
+}
+
+const mailQueueCounts = `-- name: MailQueueCounts :one
+SELECT count(*) FILTER (WHERE status IN ('pending', 'running'))::int AS waiting,
+       count(*) FILTER (WHERE status = 'failed' AND created_at > now() - interval '7 days')::int AS failed
+FROM jobs WHERE kind = 'mail.send'
+`
+
+type MailQueueCountsRow struct {
+	Waiting int32
+	Failed  int32
+}
+
+func (q *Queries) MailQueueCounts(ctx context.Context) (MailQueueCountsRow, error) {
+	row := q.db.QueryRow(ctx, mailQueueCounts)
+	var i MailQueueCountsRow
+	err := row.Scan(&i.Waiting, &i.Failed)
+	return i, err
 }
 
 const markInviteAccepted = `-- name: MarkInviteAccepted :exec

@@ -214,6 +214,14 @@ Facts about what was checked, with how. Update on every phase.
   time format and date format preferences are not offered because they would not apply everywhere.
 - Migrations 00026 (profile) and 00027 (settings) must both be applied; apply them in order.
 
+## Email delivery page
+
+- Go: `workspaces/service` TestMailStatusAndTestMail (only emails to the workspace's people are listed, newest first with
+  their error; counts; admins only; test mail goes to the admin only; Mailpit/localhost is flagged as a test inbox, real
+  providers are not; the invitation link is returned on creation).
+- Browser: the page (axe), the test-inbox warning, a test email appears in the list, the invitation link in the invite
+  dialog.
+- The page cannot change the mail settings: credentials stay in `.env` by design.
 ## Dashboard trend chips, chat menu, header and split view
 
 - Go: temporary mute round-trips, shows its end, is refused for a past time or a level other than muted, lifts to

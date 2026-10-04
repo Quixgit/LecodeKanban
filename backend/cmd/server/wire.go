@@ -41,6 +41,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/wiki"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
+	wssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/authtoken"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/config"
@@ -83,7 +84,8 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	})
 	usersHTTP = usersMod.NewHTTP(authMod.Service, authMod.Service)
 
-	wsMod := workspaces.New(workspaces.Deps{Pool: pool, Bus: bus, Users: usersMod.Service, PublicURL: cfg.PublicURL})
+	wsMod := workspaces.New(workspaces.Deps{Pool: pool, Bus: bus, Users: usersMod.Service, PublicURL: cfg.PublicURL,
+		Mail: mailInfo(cfg)})
 	i18nMod := i18n.New()
 
 	boardsMod := boards.New(pool, wsMod.Service, bus)
@@ -297,4 +299,16 @@ func (g githubCards) MoveTo(ctx context.Context, actor, id uuid.UUID, status str
 func (g githubCards) Create(ctx context.Context, actor, ws, project uuid.UUID, title, description string) (githubsvc.CardInfo, error) {
 	v, err := g.cards.Create(ctx, actor, ws, carddomain.NewCard{ProjectID: project, Title: title, Description: description})
 	return githubInfo(v), err
+}
+
+// mailInfo says, for the admin centre, how this server sends email (never the credentials).
+func mailInfo(cfg *config.Config) wssvc.MailInfo {
+	if cfg.Mail.Provider == "mailgun" {
+		from := cfg.Mail.MailgunFrom
+		if from == "" {
+			from = cfg.SMTP.From
+		}
+		return wssvc.MailInfo{Provider: "mailgun", Host: cfg.Mail.MailgunDomain, From: from}
+	}
+	return wssvc.MailInfo{Provider: "smtp", Host: cfg.SMTP.Host, From: cfg.SMTP.From}
 }

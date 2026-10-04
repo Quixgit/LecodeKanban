@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail } from 'lucide-react';
+import { Copy, Mail } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -38,6 +39,7 @@ export function InviteDialog({
   const errorText = useErrorText();
   const { invite } = useWorkspaceMutations(workspace.id);
   const roles = invitableRoles(actorRole);
+  const [sent, setSent] = useState<{ email: string; link: string } | null>(null);
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { email: '', role: 'member' },
@@ -48,6 +50,7 @@ export function InviteDialog({
     if (!o) {
       form.reset();
       invite.reset();
+      setSent(null);
     }
   };
 
@@ -55,9 +58,11 @@ export function InviteDialog({
     invite.mutate(
       { email: v.email, role: v.role as InviteRole },
       {
-        onSuccess: () => {
+        onSuccess: (inv) => {
           toast.success(t('invite.sent', { email: v.email }));
-          close(false);
+          // Email can fail to arrive; the link lets the admin hand it over some other way.
+          if (inv?.link) setSent({ email: v.email, link: inv.link });
+          else close(false);
         },
         onError: (err) => {
           const f = isApiError(err) ? err.field('email') : undefined;
@@ -82,47 +87,78 @@ export function InviteDialog({
       title={t('invite.title', { workspace: workspace.name })}
       description={t('invite.description')}
       footer={
-        <>
-          <Button variant="secondary" onClick={() => close(false)}>
-            {t('common:actions.cancel')}
-          </Button>
-          <Button type="submit" form="invite-form" loading={invite.isPending}>
-            {t('invite.submit')}
-          </Button>
-        </>
+        sent ? (
+          <Button onClick={() => close(false)}>{t('invite.done')}</Button>
+        ) : (
+          <>
+            <Button variant="secondary" onClick={() => close(false)}>
+              {t('common:actions.cancel')}
+            </Button>
+            <Button type="submit" form="invite-form" loading={invite.isPending}>
+              {t('invite.submit')}
+            </Button>
+          </>
+        )
       }
     >
-      <form id="invite-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-        <FormAlert>{generalError}</FormAlert>
-        <Field label={t('invite.email')} error={fe(form.formState.errors.email?.message)}>
-          <Input
-            type="email"
-            autoFocus
-            leadingIcon={<Mail />}
-            placeholder="teammate@company.com"
-            {...form.register('email')}
-          />
-        </Field>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-text" id="invite-role-label">
-            {t('invite.role')}
-          </span>
-          <Controller
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <Select
-                label={t('invite.role')}
-                value={field.value}
-                onValueChange={field.onChange}
-                className="w-full justify-between"
-                options={roles.map((r) => ({ value: r, label: t(`roles.${r}`) }))}
-              />
-            )}
-          />
-          <p className="text-xs text-text-muted">{t(`roleHints.${form.watch('role')}`)}</p>
+      {sent ? (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-text">{t('invite.sent', { email: sent.email })}</p>
+          <p className="text-sm text-text-muted">{t('invite.linkHint')}</p>
+          <div className="flex items-center gap-2">
+            <Input
+              readOnly
+              value={sent.link}
+              aria-label={t('invite.link')}
+              onFocus={(e) => e.currentTarget.select()}
+            />
+            <Button
+              variant="secondary"
+              onClick={() =>
+                navigator.clipboard
+                  .writeText(sent.link)
+                  .then(() => toast.success(t('invite.copied')))
+                  .catch(() => toast.error(t('invite.copyFailed')))
+              }
+            >
+              <Copy />
+              {t('invite.copy')}
+            </Button>
+          </div>
         </div>
-      </form>
+      ) : (
+        <form id="invite-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+          <FormAlert>{generalError}</FormAlert>
+          <Field label={t('invite.email')} error={fe(form.formState.errors.email?.message)}>
+            <Input
+              type="email"
+              autoFocus
+              leadingIcon={<Mail />}
+              placeholder="teammate@company.com"
+              {...form.register('email')}
+            />
+          </Field>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-text" id="invite-role-label">
+              {t('invite.role')}
+            </span>
+            <Controller
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <Select
+                  label={t('invite.role')}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="w-full justify-between"
+                  options={roles.map((r) => ({ value: r, label: t(`roles.${r}`) }))}
+                />
+              )}
+            />
+            <p className="text-xs text-text-muted">{t(`roleHints.${form.watch('role')}`)}</p>
+          </div>
+        </form>
+      )}
     </Modal>
   );
 }

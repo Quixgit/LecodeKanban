@@ -18,6 +18,8 @@ type Deps struct {
 	Bus       *eventbus.Bus
 	Users     service.Users
 	PublicURL string
+	// Mail says how email leaves the server (shown to administrators; no secrets).
+	Mail service.MailInfo
 }
 
 type Module struct {
@@ -29,6 +31,6 @@ func New(d Deps) *Module {
 	mail := func(ctx context.Context, m mailer.Message, key string) error {
 		return mailer.Enqueue(ctx, d.Pool, m, key)
 	}
-	svc := service.New(repository.New(d.Pool), d.Users, d.Bus, mail, d.PublicURL)
+	svc := service.New(repository.New(d.Pool), d.Users, d.Bus, mail, d.PublicURL).WithMailInfo(d.Mail)
 	return &Module{Service: svc, HTTP: transport.NewHandler(svc)}
 }

@@ -28,7 +28,10 @@ type Querier interface {
 	ListAudit(ctx context.Context, arg ListAuditParams) ([]ListAuditRow, error)
 	ListMembers(ctx context.Context, workspaceID uuid.UUID) ([]ListMembersRow, error)
 	ListOpenInvites(ctx context.Context, workspaceID uuid.UUID) ([]WorkspaceInvite, error)
+	// The latest emails addressed to people of this workspace (members and invited addresses).
+	ListWorkspaceMail(ctx context.Context, workspaceID uuid.UUID) ([]ListWorkspaceMailRow, error)
 	ListWorkspacesForUser(ctx context.Context, userID uuid.UUID) ([]ListWorkspacesForUserRow, error)
+	MailQueueCounts(ctx context.Context) (MailQueueCountsRow, error)
 	MarkInviteAccepted(ctx context.Context, id uuid.UUID) error
 	PutSettings(ctx context.Context, arg PutSettingsParams) error
 	RemoveMember(ctx context.Context, arg RemoveMemberParams) error
