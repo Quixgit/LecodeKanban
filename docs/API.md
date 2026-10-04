@@ -111,6 +111,19 @@ Base URL: `/api/v1`
 | PATCH | `/checklist-items/{itemId}` | session | ChecklistItemPatch | 200 |  |
 | DELETE | `/checklist-items/{itemId}` | session |  | 204 |  |
 
+## customFields
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/custom-fields` | session |  | 200 | Custom fields of the workspace, in display order |
+| POST | `/workspaces/{workspaceId}/custom-fields` | session | CustomFieldInput | 201, 409 Error, 422 Error | Define a field (workspace administrators) |
+| PUT | `/workspaces/{workspaceId}/custom-fields/order` | session |  | 204 |  |
+| POST | `/workspaces/{workspaceId}/custom-fields/values` | session |  | 200 | Values of many cards at once (for the board); up to 500 cards |
+| PATCH | `/custom-fields/{fieldId}` | session | CustomFieldPatch | 200 |  |
+| DELETE | `/custom-fields/{fieldId}` | session |  | 204 |  |
+| GET | `/cards/{cardId}/field-values` | session |  | 200 |  |
+| PUT | `/cards/{cardId}/field-values/{fieldId}` | session | CardFieldValueInput | 204, 422 Error | Set a value (null or an empty value clears it) |
+
 ## comments
 
 | Method | Path | Auth | Request | Responses | Summary |
@@ -326,6 +339,13 @@ Base URL: `/api/v1`
 - **CardPatch** — `version`: integer, `title?`: string, `description?`: string, `priority?`: Priority, `dueDate?`: string \| null, `assigneeIds?`: array, `labelIds?`: array
 - **CardMove** — `version`: integer, `columnId?`: string, `status?`: TaskStatus, `afterId?`: string \| null, `beforeId?`: string \| null
 - **CardBoard** — `items`: array, `truncated`: boolean
+- **FieldOption** — `id`: string, `label`: string, `tone`: Tone
+- **CustomFieldKind**: `text` | `number` | `date` | `select` | `checkbox` | `url`
+- **CustomField** — `id`: string, `name`: string, `description`: string, `kind`: CustomFieldKind, `options`: array, `showOnCard`: boolean, `position`: integer
+- **CustomFieldInput** — `name`: string, `description?`: string, `kind`: CustomFieldKind, `options?`: array, `showOnCard?`: boolean
+- **CustomFieldPatch** — `name?`: string, `description?`: string, `options?`: array, `showOnCard?`: boolean
+- **CardFieldValue** — `cardId`: string, `fieldId`: string, `value`: object
+- **CardFieldValueInput** — `value`: object \| null
 - **Label** — `id`: string, `name`: string, `tone`: Tone
 - **LabelInput** — `name`: string, `tone?`: Tone
 - **LabelPatch** — `name?`: string, `tone?`: Tone

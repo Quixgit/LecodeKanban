@@ -21,6 +21,7 @@ tags:
   - name: boards
   - name: cards
   - name: comments
+  - name: customFields
   - name: attachments
   - name: time
   - name: wiki
@@ -863,6 +864,121 @@ paths:
       operationId: deleteLabel
       responses:
         "204": { description: Deleted (removed from every card) }
+  /workspaces/{workspaceId}/custom-fields:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [customFields]
+      operationId: listCustomFields
+      summary: Custom fields of the workspace, in display order
+      responses:
+        "200":
+          description: Fields
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CustomField" } }
+    post:
+      tags: [customFields]
+      operationId: createCustomField
+      summary: Define a field (workspace administrators)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomFieldInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomField" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/custom-fields/order:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    put:
+      tags: [customFields]
+      operationId: reorderCustomFields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ids]
+              properties:
+                ids: { type: array, items: { type: string, format: uuid } }
+      responses:
+        "204": { description: Saved }
+  /workspaces/{workspaceId}/custom-fields/values:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    post:
+      tags: [customFields]
+      operationId: listCardFieldValues
+      summary: Values of many cards at once (for the board); up to 500 cards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cardIds]
+              properties:
+                cardIds: { type: array, items: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Values
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CardFieldValue" } }
+  /custom-fields/{fieldId}:
+    parameters:
+      - { name: fieldId, in: path, required: true, schema: { type: string, format: uuid } }
+    patch:
+      tags: [customFields]
+      operationId: updateCustomField
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomFieldPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomField" }
+    delete:
+      tags: [customFields]
+      operationId: deleteCustomField
+      responses:
+        "204": { description: Deleted, together with every card's value for it }
+  /cards/{cardId}/field-values:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    get:
+      tags: [customFields]
+      operationId: getCardFieldValues
+      responses:
+        "200":
+          description: The card's values
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CardFieldValue" } }
+  /cards/{cardId}/field-values/{fieldId}:
+    parameters:
+      - { $ref: "#/components/parameters/CardId" }
+      - { name: fieldId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      tags: [customFields]
+      operationId: setCardFieldValue
+      summary: Set a value (null or an empty value clears it)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CardFieldValueInput" }
+      responses:
+        "204": { description: Saved }
+        "422": { $ref: "#/components/responses/Error" }
   /cards/{cardId}/checklist:
     parameters: [{ $ref: "#/components/parameters/CardId" }]
     get:
@@ -2779,6 +2895,55 @@ components:
       properties:
         items: { type: array, items: { $ref: "#/components/schemas/Card" } }
         truncated: { type: boolean, description: More cards match than were returned }
+    FieldOption:
+      type: object
+      required: [id, label, tone]
+      properties:
+        id: { type: string, description: Stable id; leave empty for a new option }
+        label: { type: string, maxLength: 40 }
+        tone: { $ref: "#/components/schemas/Tone" }
+    CustomFieldKind:
+      type: string
+      enum: [text, number, date, select, checkbox, url]
+    CustomField:
+      type: object
+      required: [id, name, description, kind, options, showOnCard, position]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        kind: { $ref: "#/components/schemas/CustomFieldKind" }
+        options: { type: array, items: { $ref: "#/components/schemas/FieldOption" } }
+        showOnCard: { type: boolean, description: Shown as a chip on the board card }
+        position: { type: integer }
+    CustomFieldInput:
+      type: object
+      required: [name, kind]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        description: { type: string, maxLength: 200 }
+        kind: { $ref: "#/components/schemas/CustomFieldKind" }
+        options: { type: array, items: { $ref: "#/components/schemas/FieldOption" } }
+        showOnCard: { type: boolean }
+    CustomFieldPatch:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        description: { type: string, maxLength: 200 }
+        options: { type: array, items: { $ref: "#/components/schemas/FieldOption" } }
+        showOnCard: { type: boolean }
+    CardFieldValue:
+      type: object
+      required: [cardId, fieldId, value]
+      properties:
+        cardId: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        value: { description: "A string (text, url, date YYYY-MM-DD, select option id), a number or a boolean by field kind" }
+    CardFieldValueInput:
+      type: object
+      required: [value]
+      properties:
+        value: { nullable: true, description: Same shape as CardFieldValue.value; null clears }
     Label:
       type: object
       required: [id, name, tone]

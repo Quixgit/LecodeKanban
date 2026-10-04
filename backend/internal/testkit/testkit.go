@@ -24,6 +24,8 @@ import (
 	chatsvc "github.com/reliabilix/lecodekanban/backend/internal/modules/chat/service"
 	commentsrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/comments/repository"
 	commentssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/comments/service"
+	fieldsrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/customfields/repository"
+	fieldssvc "github.com/reliabilix/lecodekanban/backend/internal/modules/customfields/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/notifications"
 	notifrepo "github.com/reliabilix/lecodekanban/backend/internal/modules/notifications/repository"
 	notifsvc "github.com/reliabilix/lecodekanban/backend/internal/modules/notifications/service"
@@ -52,6 +54,7 @@ type Env struct {
 	Projects    *projectssvc.Service
 	Cards       *cardssvc.Service
 	Comments    *commentssvc.Service
+	Fields      *fieldssvc.Service
 	Chat        *chatsvc.Service
 	Notices     *notifsvc.Service
 	Attachments *attachsvc.Service
@@ -97,6 +100,7 @@ func New(t testing.TB, pool *pgxpool.Pool) *Env {
 	projects.SetCardCounter(cards)
 	boards.SetCardCounter(cards)
 	comments := commentssvc.New(commentsrepo.New(pool), cards, ws, users, bus)
+	fields := fieldssvc.New(fieldsrepo.New(pool), cards, ws)
 	disk, err := local.New(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
@@ -110,7 +114,7 @@ func New(t testing.TB, pool *pgxpool.Pool) *Env {
 	notifications.Register(bus, notices, cards)
 	reactions.Register(bus, reactions.Deps{Projects: projects, Cards: cards, Activity: activity, Realtime: hints})
 	return &Env{T: t, Bus: bus, Users: users, Workspaces: ws, Boards: boards, Projects: projects, Cards: cards,
-		Comments: comments, Chat: chat, Notices: notices, Attachments: attachments, Activity: activity, Time: timeTracking, Hints: hints}
+		Comments: comments, Fields: fields, Chat: chat, Notices: notices, Attachments: attachments, Activity: activity, Time: timeTracking, Hints: hints}
 }
 
 // User creates a user.
