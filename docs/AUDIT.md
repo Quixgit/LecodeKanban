@@ -179,3 +179,8 @@ Facts about what was checked, with how. Update on every phase.
   task, values survive reload, chips on the board, delete.
 - Not covered: filter or sort the board by a field; field changes in the activity feed; templates per project;
   a viewer's read-only view in the browser (covered in Go).
+
+## Dashboard trends
+
+- Go: `trend` (no baseline gives null, +50%, -75%), stats follow the requested period. Unit: MetricCard shows the
+  fallback and never +0.00%. Browser: checked by screenshot on the demo data (+164.00% for new tasks).

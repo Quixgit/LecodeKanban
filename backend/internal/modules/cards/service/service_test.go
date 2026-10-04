@@ -320,6 +320,10 @@ func TestStats(t *testing.T) {
 	if len(st.Daily) != 7 {
 		t.Fatalf("daily len %d", len(st.Daily))
 	}
+	// The KPIs follow the selected period.
+	if st14, err := f.Cards.Stats(f.ctx, f.viewer, f.ws, 14); err != nil || st14.KPIs.CreatedThisWeek != 2 || len(st14.Daily) != 14 {
+		t.Fatalf("14-day stats: %+v %v", st14.KPIs, err)
+	}
 	last := st.Daily[6].Counts
 	if last[domain.Todo] != 1 || last[domain.InReview] != 1 || last[domain.Done] != 1 {
 		t.Fatalf("today's transitions %v", last)

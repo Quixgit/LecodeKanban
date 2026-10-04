@@ -56,12 +56,15 @@ func (h *Handler) bulk(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// trend compares two periods. With nothing to compare against there is no percentage (null),
+// instead of a misleading +0.00%.
 func trend(cur, prev int) api.Trend {
-	pct := 0.0
+	t := api.Trend{Value: cur, Previous: prev}
 	if prev > 0 {
-		pct = float64(cur-prev) * 100 / float64(prev)
+		pct := float32(float64(cur-prev) * 100 / float64(prev))
+		t.ChangePct = &pct
 	}
-	return api.Trend{Value: cur, Previous: prev, ChangePct: float32(pct)}
+	return t
 }
 
 func (h *Handler) stats(w http.ResponseWriter, r *http.Request) error {

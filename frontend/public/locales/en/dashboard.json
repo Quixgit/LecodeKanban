@@ -1,12 +1,16 @@
 {
   "kpi": {
     "active": "Active Tasks",
-    "completed": "Completed This Week",
-    "created": "New This Week",
+    "completed": "Completed",
+    "created": "New",
     "overdue": "Overdue Tasks",
     "inReview": "in review",
-    "vsLastWeek": "Than last week",
-    "open": "open of {{total}}"
+    "vsLastWeek": "vs the previous {{days}} days",
+    "open": "open of {{total}}",
+    "period": "last {{days}} days",
+    "noBaseline": "New",
+    "noBaselineHint": "Nothing to compare with in the previous {{days}} days",
+    "noChange": "No change"
   },
   "activity": {
     "title": "Recent Activity Feed",

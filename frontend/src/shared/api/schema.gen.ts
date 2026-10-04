@@ -3196,8 +3196,8 @@ export interface components {
         Trend: {
             value: number;
             previous: number;
-            /** @description Percent change vs previous period (0 when previous is 0) */
-            changePct: number;
+            /** @description Percent change vs the previous period; null when the previous period had nothing to compare */
+            changePct: number | null;
         };
         DashboardStats: {
             active: number;
