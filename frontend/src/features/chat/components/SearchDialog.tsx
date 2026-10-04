@@ -71,6 +71,8 @@ export function Snippet({ text, q }: { text: string; q: string }) {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Text to start the search with, e.g. "in:#general ". */
+  initialText?: string;
   workspaceId: string;
   me: string;
   meName: string;
@@ -94,12 +96,13 @@ function SearchBody({
   channels,
   members,
   activeId,
+  initialText,
 }: Props) {
   const { t, i18n } = useTranslation('chat');
   const navigate = useNavigate();
   const m = useChatMutations(workspaceId);
   const input = useRef<HTMLInputElement>(null);
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initialText ?? '');
   const [filters, setFilters] = useState<SearchFilters>({});
   const [debounced, setDebounced] = useState('');
   const [highlight, setHighlight] = useState(0);

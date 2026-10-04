@@ -617,32 +617,60 @@ test.describe('Status', () => {
     await expect(page.getByRole('menuitem', { name: 'Remove star' })).toBeVisible();
     await page.getByRole('menuitem', { name: 'Remove star' }).click();
 
-    // Channel details opens the details dialog.
+    // Channel details opens the details window; its tabs hold members and notifications.
     await row.click({ button: 'right' });
     await page.getByRole('menuitem', { name: 'Channel details' }).click();
-    await page.getByRole('menuitem', { name: 'About this channel' }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.getByRole('menuitem', { name: 'View channel details' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('radio', { name: 'About' })).toBeChecked();
+    await dialog.getByRole('radio', { name: /^Members/ }).click();
+    await expect(dialog.getByRole('button', { name: /Open .*profile/ }).first()).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
 
-    // Just mentions keeps it in place; mute and hide moves it to the Muted section.
+    // Notification choices are right in the menu; "Just mentions" keeps the channel in place.
     await row.click({ button: 'right' });
-    await page.getByRole('menuitem', { name: 'Notify you about…' }).click();
     await page.getByRole('menuitemradio', { name: /Just mentions/ }).click();
     await row.click({ button: 'right' });
-    await page.getByRole('menuitem', { name: 'Notify you about…' }).click();
     await expect(page.getByRole('menuitemradio', { name: /Just mentions/ })).toBeChecked();
-    await page.getByRole('menuitemradio', { name: /Mute and hide/ }).click();
+    await page.keyboard.press('Escape');
+
+    // A temporary mute moves it to Muted with its end time, and can be lifted again.
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'More options' }).click();
+    await page.getByRole('menuitem', { name: '1 hour' }).click();
     await expect(page.getByRole('button', { name: 'Muted' })).toBeVisible();
-    await expect(row).toHaveCount(0);
     await page.getByRole('button', { name: 'Muted' }).click();
     await expect(row).toBeVisible();
-
-    // Back to all messages, then leave with confirmation.
     await row.click({ button: 'right' });
-    await page.getByRole('menuitem', { name: 'Notify you about…' }).click();
+    await expect(page.getByText(/Muted until/)).toBeVisible();
     await page.getByRole('menuitemradio', { name: /All new posts/ }).click();
-    await expect(page.getByRole('button', { name: 'Muted' })).toHaveCount(0);
+    await row.click({ button: 'right' });
+    await expect(page.getByRole('menuitemradio', { name: /All new posts/ })).toBeChecked();
+    await expect(page.getByText(/Muted until/)).toHaveCount(0);
+    await page.keyboard.press('Escape');
+
+    // Mute and hide moves it to the Muted section for good.
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitemradio', { name: /Mute and hide/ }).click();
+    await expect(page.getByRole('button', { name: 'Muted' })).toBeVisible();
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitemradio', { name: /All new posts/ }).click();
+    await row.click({ button: 'right' });
+    await expect(page.getByRole('menuitemradio', { name: /All new posts/ })).toBeChecked();
+    await expect(page.getByText(/Muted until/)).toHaveCount(0);
+    await page.keyboard.press('Escape');
+
+    // Open in split view shows a second conversation next to the open one; the close button removes it.
+    await page.goto('/chat');
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Open in split view' }).click();
+    const pane = page.getByRole('region', { name: 'Second conversation' });
+    await expect(pane.getByRole('heading', { name })).toBeVisible();
+    await pane.getByRole('button', { name: 'Close split view' }).click();
+    await expect(pane).toHaveCount(0);
+
+    // Leave with confirmation.
     await row.click({ button: 'right' });
     await page.getByRole('menuitem', { name: 'Leave channel' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Leave channel' }).click();
@@ -669,6 +697,10 @@ test.describe('Status', () => {
 
     // The channel's member list opens it too.
     await page.getByRole('button', { name: 'Channel details' }).first().click();
+    await page
+      .getByRole('dialog')
+      .getByRole('radio', { name: /^Members/ })
+      .click();
     await page
       .getByRole('dialog')
       .getByRole('button', { name: /Open .*profile/ })

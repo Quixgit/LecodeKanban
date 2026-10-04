@@ -884,15 +884,35 @@ func TestNotifyLevels(t *testing.T) {
 		t.Fatalf("default level = %q", got)
 	}
 	for _, want := range []string{"mentions", "muted", "all"} {
-		if err := c.SetNotify(ctx, w.ben, ch.ID, want); err != nil {
+		if err := c.SetNotify(ctx, w.ben, ch.ID, want, nil); err != nil {
 			t.Fatal(err)
 		}
 		if got := level(); got != want {
 			t.Fatalf("level = %q, want %q", got, want)
 		}
 	}
-	mustCode(t, c.SetNotify(ctx, w.ben, ch.ID, "loud"), "chat.bad_level")
-	mustCode(t, c.SetNotify(ctx, w.outsider, ch.ID, "muted"), "chat.not_found")
+	mustCode(t, c.SetNotify(ctx, w.ben, ch.ID, "loud", nil), "chat.bad_level")
+
+	// A temporary mute shows as muted, with its end, and needs a sensible end time.
+	soon := time.Now().Add(time.Hour)
+	if err := c.SetNotify(ctx, w.ben, ch.ID, "muted", &soon); err != nil {
+		t.Fatal(err)
+	}
+	st, _ := c.Channels(ctx, w.ben, w.ws)
+	if st[0].Notify != "muted" || st[0].MutedUntil == nil || !st[0].MutedUntil.After(time.Now()) {
+		t.Fatalf("temporary mute: %+v", st[0])
+	}
+	past := time.Now().Add(-time.Minute)
+	mustCode(t, c.SetNotify(ctx, w.ben, ch.ID, "muted", &past), "chat.bad_level")
+	mustCode(t, c.SetNotify(ctx, w.ben, ch.ID, "all", &soon), "chat.bad_level")
+	if err := c.SetNotify(ctx, w.ben, ch.ID, "all", nil); err != nil {
+		t.Fatal(err)
+	}
+	st, _ = c.Channels(ctx, w.ben, w.ws)
+	if st[0].Notify != "all" || st[0].MutedUntil != nil {
+		t.Fatalf("lifted: %+v", st[0])
+	}
+	mustCode(t, c.SetNotify(ctx, w.outsider, ch.ID, "muted", nil), "chat.not_found")
 }
 
 func TestWorkspacePolicies(t *testing.T) {

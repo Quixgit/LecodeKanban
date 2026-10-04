@@ -1,6 +1,6 @@
 import * as ContextPrimitive from '@radix-ui/react-context-menu';
 import { Check, ChevronRight } from 'lucide-react';
-import { forwardRef, type ComponentPropsWithoutRef, type ElementRef } from 'react';
+import { forwardRef, type ComponentPropsWithoutRef, type ElementRef, type ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
 export const ContextMenu = ContextPrimitive.Root;
@@ -41,19 +41,28 @@ export const ContextMenuItem = forwardRef<
 ));
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-/** A choice with a description under it, ticked when it is the current value. */
+/** A choice ticked when it is the current value; the tick sits on the left, like a native menu. */
 export const ContextMenuRadioItem = forwardRef<
   ElementRef<typeof ContextPrimitive.RadioItem>,
   ComponentPropsWithoutRef<typeof ContextPrimitive.RadioItem>
 >(({ className, children, ...props }, ref) => (
-  <ContextPrimitive.RadioItem ref={ref} className={cn(itemBase, 'pr-8', className)} {...props}>
-    {children}
-    <ContextPrimitive.ItemIndicator className="absolute right-2.5 flex">
+  <ContextPrimitive.RadioItem
+    ref={ref}
+    className={cn(itemBase, 'pl-8 data-[state=checked]:text-primary-ink', className)}
+    {...props}
+  >
+    <ContextPrimitive.ItemIndicator className="absolute left-2.5 flex">
       <Check className="!text-primary" />
     </ContextPrimitive.ItemIndicator>
+    {children}
   </ContextPrimitive.RadioItem>
 ));
 ContextMenuRadioItem.displayName = 'ContextMenuRadioItem';
+
+/** The key hint at the right edge of an item, such as "⌘ opt click". */
+export function ContextMenuShortcut({ children }: { children: ReactNode }) {
+  return <span className="ml-auto pl-4 text-xs text-text-muted">{children}</span>;
+}
 
 export const ContextMenuSubTrigger = forwardRef<
   ElementRef<typeof ContextPrimitive.SubTrigger>,

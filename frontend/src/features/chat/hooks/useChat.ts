@@ -210,7 +210,8 @@ export function useChatMutations(ws: string) {
       },
     }),
     setNotify: useMutation({
-      mutationFn: (v: { id: string; level: ChatNotifyLevel }) => chatApi.setNotify(v.id, v.level),
+      mutationFn: (v: { id: string; level: ChatNotifyLevel; until?: string }) =>
+        chatApi.setNotify(v.id, v.level, v.until),
       onSuccess: channels,
     }),
     markRead: useMutation({
