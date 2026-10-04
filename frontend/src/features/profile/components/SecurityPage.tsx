@@ -21,6 +21,7 @@ import {
   toast,
 } from '@/shared/ui';
 import type { Device } from '../api/profileApi';
+import { TwoFactorCard } from './TwoFactorCard';
 import { useChangePassword, useDeviceMutations, useDevices } from '../hooks/useProfile';
 import { describeDevice, type DeviceKind } from '../model/device';
 import { changePasswordSchema, type ChangePasswordValues } from '../model/schemas';
@@ -230,6 +231,7 @@ export function SecurityPage() {
   return (
     <div className="flex flex-col gap-6">
       <ChangePassword />
+      <TwoFactorCard />
       <Devices />
     </div>
   );

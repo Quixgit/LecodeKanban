@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Two-step verification (2FA)**: Profile → Security → turn on with any authenticator app (QR code or key), get
+  8 one-time recovery codes, sign in with password + code, turn off with password + code, make new recovery codes.
+  Accounts with it on cannot sign in with Google/GitHub (use email and password). Needs migration `00030`
+  (ADR 0025).
+
+### Added
+
 - **Roles & permissions** (Settings → Roles): about 25 permissions in groups. Change what Admin, Member and Viewer
   may do (and reset to defaults), or create custom roles (start blank or from a role), assign them in Team, delete
   them. The Owner keeps everything. The old "who can invite / create projects / create channels / @channel"

@@ -59,3 +59,29 @@ func TestContext(t *testing.T) {
 		t.Fatal("principal round-trip failed")
 	}
 }
+
+func TestScopedTokensAreNotAccessTokens(t *testing.T) {
+	m := NewManager([]byte("0123456789abcdef0123456789abcdef"), time.Minute)
+	uid := uuid.New()
+	tok, _, err := m.IssueScoped(uid, "mfa", time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, err := m.VerifyScoped(tok, "mfa"); err != nil || got != uid {
+		t.Fatalf("scoped: %v %v", got, err)
+	}
+	if _, err := m.Verify(tok); err == nil {
+		t.Fatal("a scoped token must not work as an access token")
+	}
+	if _, err := m.VerifyScoped(tok, "other"); err == nil {
+		t.Fatal("wrong scope")
+	}
+	access, _, _ := m.Issue(Principal{UserID: uid, SessionID: uuid.New()})
+	if _, err := m.VerifyScoped(access, "mfa"); err == nil {
+		t.Fatal("an access token must not work as a scoped token")
+	}
+	expired, _, _ := m.IssueScoped(uid, "mfa", -time.Minute)
+	if _, err := m.VerifyScoped(expired, "mfa"); err == nil {
+		t.Fatal("expired")
+	}
+}

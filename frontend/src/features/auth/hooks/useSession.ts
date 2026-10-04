@@ -52,6 +52,14 @@ export function useLogin() {
   return useMutation({ mutationFn: (c: Credentials) => authApi.login(c), onSuccess: onSignedIn });
 }
 
+export function useLoginTwoFactor() {
+  const onSignedIn = useOnSignedIn();
+  return useMutation({
+    mutationFn: (v: { token: string; code: string }) => authApi.loginTwoFactor(v.token, v.code),
+    onSuccess: onSignedIn,
+  });
+}
+
 export function useRegister() {
   const onSignedIn = useOnSignedIn();
   return useMutation({

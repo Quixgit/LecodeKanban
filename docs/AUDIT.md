@@ -237,3 +237,11 @@ Facts about what was checked, with how. Update on every phase.
   attachments, comments, cards, labels, boards, custom fields, GitHub, audit.
 - Unit: `can()`, invitable roles. Browser: Settings → Roles (axe, toggle + reset, create + delete a custom role).
 - Not covered: a module-level permission test in the browser for every action (covered by Go authz tests).
+
+## Two-step verification
+
+- Go: TOTP against RFC 6238 vectors; scoped tokens are not access tokens; full life cycle (setup, wrong/right code,
+  replayed code refused, recovery code once, regenerate, disable needs password + code), lock-out after repeated wrong codes.
+- Unit: login form asks for the code. Browser: register, turn on (axe on the dialog), wrong code, sign in with a code,
+  with a recovery code, turn off.
+- Not covered: admin policy to require 2FA; reset when both phone and recovery codes are lost.
