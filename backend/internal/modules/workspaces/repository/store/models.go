@@ -424,6 +424,8 @@ type User struct {
 	LockedUntil      *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+	AvatarKey        *string
+	AvatarType       *string
 }
 
 type UserDirectory struct {

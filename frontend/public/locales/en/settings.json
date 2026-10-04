@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "label": "Settings sections",
+    "profile": "Profile",
+    "security": "Security",
+    "preferences": "Preferences"
+  },
+  "avatar": {
+    "title": "Profile photo",
+    "description": "Shown next to your name for your teammates.",
+    "hint": "Drop a photo here or choose one. PNG, JPEG, WebP or GIF; it is cropped to a square.",
+    "upload": "Upload a photo",
+    "change": "Change photo",
+    "remove": "Remove",
+    "saving": "Saving the photo",
+    "saved": "Photo updated",
+    "removed": "Photo removed",
+    "badType": "Choose a PNG, JPEG, WebP or GIF picture.",
+    "tooBig": "That picture is too large (up to 12 MB).",
+    "unreadable": "That file could not be read as a picture."
+  },
+  "profile": {
+    "title": "Personal information",
+    "description": "Your name is what teammates see on tasks, comments and chat.",
+    "name": "Full name",
+    "email": "Email",
+    "emailUnverifiedHint": "Confirm your address to receive invitations and reminders.",
+    "verified": "Email verified",
+    "unverified": "Email not verified",
+    "resend": "Resend the link",
+    "verificationSent": "Verification link sent to {{email}}",
+    "memberSince": "Member since {{date}}",
+    "save": "Save changes",
+    "reset": "Discard",
+    "saved": "Profile saved"
+  },
+  "signin": {
+    "title": "Sign-in methods",
+    "description": "How you can get into this account.",
+    "password": "Password",
+    "set": "Set",
+    "notSet": "Not set",
+    "google": "Google",
+    "github": "GitHub",
+    "linked": "Linked",
+    "notLinked": "Not linked"
+  },
+  "password": {
+    "title": "Change password",
+    "titleSet": "Set a password",
+    "description": "Choose a strong password you do not use anywhere else.",
+    "descriptionSet": "You signed in with a provider. Add a password to also sign in with your email.",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Repeat the new password",
+    "rules": "At least 10 characters, with 3 of: lower case, upper case, digits, symbols.",
+    "submit": "Change password",
+    "submitSet": "Set password",
+    "changed": "Password changed. Other devices were signed out.",
+    "created": "Password set",
+    "signsOut": "Changing your password signs out every other device."
+  },
+  "devices": {
+    "title": "Where you are signed in",
+    "description": "Sign out of any device you do not recognise.",
+    "current": "This device",
+    "active": "active {{when}}",
+    "signOut": "Sign out",
+    "signOutNamed": "Sign out {{name}}",
+    "signedOut": "Device signed out",
+    "signOutOthers": "Sign out of all other devices",
+    "othersSignedOut": "Signed out everywhere else",
+    "browserOn": "{{browser}} on {{os}}",
+    "unknown": "Unknown device",
+    "loadFailed": "Couldn't load your devices"
+  },
+  "language": {
+    "title": "Language",
+    "description": "The interface language. It follows you across devices."
+  },
+  "theme": {
+    "title": "Appearance",
+    "description": "Light, dark, or match your device.",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Device"
+  },
+  "sounds": {
+    "title": "Notification sounds",
+    "description": "Short signals for new messages, mentions and tasks. Kept on this device."
+  }
+}

@@ -45,3 +45,21 @@ SELECT provider FROM user_identities WHERE user_id = $1 ORDER BY provider;
 -- name: RevokeOtherUserRefreshTokens :exec
 UPDATE refresh_tokens SET revoked_at = now()
 WHERE user_id = @user_id AND family_id <> @keep_family_id AND revoked_at IS NULL;
+
+-- name: ListUserSessions :many
+-- One row per sign-in (a family of rotated refresh tokens) that is still usable.
+SELECT family_id,
+       min(created_at)::timestamptz AS started_at,
+       max(created_at)::timestamptz AS last_seen_at,
+       (array_agg(user_agent ORDER BY created_at DESC))[1]::text AS user_agent,
+       (array_agg(ip ORDER BY created_at DESC))[1]::text AS ip
+FROM refresh_tokens
+WHERE user_id = @user_id
+GROUP BY family_id
+HAVING bool_or(revoked_at IS NULL AND expires_at > now() AND replaced_by IS NULL)
+ORDER BY max(created_at) DESC
+LIMIT 50;
+
+-- name: RevokeUserRefreshFamily :execrows
+UPDATE refresh_tokens SET revoked_at = now()
+WHERE user_id = @user_id AND family_id = @family_id AND revoked_at IS NULL;

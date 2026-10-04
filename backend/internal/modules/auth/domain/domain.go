@@ -45,6 +45,7 @@ var (
 	ErrInvalidCredentials    = apperr.Define("auth.invalid_credentials", http.StatusUnauthorized)
 	ErrAccountLocked         = apperr.Define("auth.account_locked", http.StatusLocked)
 	ErrSessionExpired        = apperr.Define("auth.session_expired", http.StatusUnauthorized)
+	ErrSessionNotFound       = apperr.Define("auth.session_not_found", http.StatusNotFound)
 	ErrTokenInvalid          = apperr.Define("auth.token_invalid", http.StatusBadRequest)
 	ErrCurrentPassword       = apperr.Define("auth.current_password_incorrect", http.StatusUnprocessableEntity)
 	ErrProviderNotConfigured = apperr.Define("auth.provider_not_configured", http.StatusNotFound)

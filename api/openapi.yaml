@@ -208,6 +208,78 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/User" }
         "422": { $ref: "#/components/responses/Error" }
+  /users/me/avatar:
+    post:
+      tags: [users]
+      operationId: uploadAvatar
+      summary: Upload a profile picture (PNG, JPEG, WebP or GIF, up to 2 MB)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "413": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [users]
+      operationId: removeAvatar
+      summary: Remove the profile picture
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+  /users/{userId}/avatar:
+    parameters: [{ name: userId, in: path, required: true, schema: { type: string, format: uuid } }]
+    get:
+      tags: [users]
+      operationId: getAvatar
+      summary: A user's uploaded profile picture (signed-in users only)
+      responses:
+        "200":
+          description: The image
+          content:
+            image/*:
+              schema: { type: string, format: binary }
+        "404": { $ref: "#/components/responses/Error" }
+  /users/me/sessions:
+    get:
+      tags: [users]
+      operationId: listDevices
+      summary: Where the caller is signed in
+      responses:
+        "200":
+          description: Devices, most recently active first
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceList" }
+  /users/me/sessions/revoke-others:
+    post:
+      tags: [users]
+      operationId: signOutOtherDevices
+      summary: Sign out everywhere except this device
+      responses:
+        "204": { description: Signed out }
+  /users/me/sessions/{sessionId}:
+    parameters: [{ name: sessionId, in: path, required: true, schema: { type: string, format: uuid } }]
+    delete:
+      tags: [users]
+      operationId: signOutDevice
+      summary: Sign one device out
+      responses:
+        "204": { description: Signed out }
+        "404": { $ref: "#/components/responses/Error" }
   /users/me/password:
     post:
       tags: [users]
@@ -2412,6 +2484,21 @@ components:
       properties:
         currentPassword: { type: string, description: Required when the account already has a password }
         newPassword: { type: string }
+    Device:
+      type: object
+      required: [id, startedAt, lastSeenAt, userAgent, ip, current]
+      properties:
+        id: { type: string, format: uuid }
+        startedAt: { type: string, format: date-time }
+        lastSeenAt: { type: string, format: date-time, description: When the sign-in was last renewed }
+        userAgent: { type: string }
+        ip: { type: string }
+        current: { type: boolean, description: This is the device making the request }
+    DeviceList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Device" } }
     UpdateProfileRequest:
       type: object
       properties:

@@ -4,6 +4,7 @@ package http
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -41,6 +42,9 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/users/me", httpx.H(h.getMe))
 	r.Patch("/users/me", httpx.H(h.updateMe))
 	r.Post("/users/me/password", httpx.H(h.changePassword))
+	r.Post("/users/me/avatar", httpx.H(h.uploadAvatar))
+	r.Delete("/users/me/avatar", httpx.H(h.removeAvatar))
+	r.Get("/users/{userId}/avatar", httpx.H(h.avatar))
 }
 
 // Present converts a user into the API DTO, including linked providers.
@@ -129,5 +133,60 @@ func (h *Handler) changePassword(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	httpx.NoContent(w)
+	return nil
+}
+
+func (h *Handler) uploadAvatar(w http.ResponseWriter, r *http.Request) error {
+	r.Body = http.MaxBytesReader(w, r.Body, service.MaxAvatarBytes+(256<<10))
+	if err := r.ParseMultipartForm(service.MaxAvatarBytes); err != nil {
+		return apperr.New(domain.ErrAvatarTooLarge, "picture is too large")
+	}
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		return apperr.New(domain.ErrBadAvatar, "a file is required")
+	}
+	defer func() { _ = file.Close() }()
+	p, _ := authtoken.FromContext(r.Context())
+	u, err := h.svc.SetAvatar(r.Context(), p.UserID, file)
+	if err != nil {
+		return err
+	}
+	return h.writeUser(w, r, u)
+}
+
+func (h *Handler) removeAvatar(w http.ResponseWriter, r *http.Request) error {
+	p, _ := authtoken.FromContext(r.Context())
+	u, err := h.svc.RemoveAvatar(r.Context(), p.UserID)
+	if err != nil {
+		return err
+	}
+	return h.writeUser(w, r, u)
+}
+
+func (h *Handler) writeUser(w http.ResponseWriter, r *http.Request, u domain.User) error {
+	out, err := h.Present(r.Context(), u)
+	if err != nil {
+		return err
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
+	return nil
+}
+
+// avatar serves a picture to signed-in users. The address carries a version, so it can be cached for good.
+func (h *Handler) avatar(w http.ResponseWriter, r *http.Request) error {
+	id, err := uuid.Parse(chi.URLParam(r, "userId"))
+	if err != nil {
+		return apperr.New(domain.ErrNotFound, "no picture")
+	}
+	f, kind, err := h.svc.OpenAvatar(r.Context(), id)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = f.Close() }()
+	w.Header().Set("Content-Type", kind)
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; sandbox")
+	http.ServeContent(w, r, "", time.Time{}, f)
 	return nil
 }

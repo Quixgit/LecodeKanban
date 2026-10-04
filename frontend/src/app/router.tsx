@@ -1,5 +1,5 @@
 import { lazy, type ReactNode } from 'react';
-import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import { GuestOnly, RequireAuth } from '@/features/auth';
 import { AppShell } from './layouts/app-shell/AppShell';
 import type { RouteHandle } from './layouts/app-shell/header/PageTitle';
@@ -12,6 +12,18 @@ const ShowcasePage = lazy(() => import('@/pages/ShowcasePage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const TeamPage = lazy(() => import('@/pages/TeamPage'));
 const IntegrationsPage = lazy(() => import('@/pages/IntegrationsPage'));
+const SettingsLayout = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.SettingsLayoutRoute })),
+);
+const ProfileRoute = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.ProfileRoute })),
+);
+const SecurityRoute = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.SecurityRoute })),
+);
+const PreferencesRoute = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.PreferencesRoute })),
+);
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage'));
 const CalendarPage = lazy(() => import('@/pages/CalendarPage'));
@@ -120,8 +132,17 @@ export const routes: RouteObject[] = [
           upcoming('help', 'help'),
           { path: 'team', handle: page('team'), element: <TeamPage /> },
           { path: 'integrations', handle: page('integrations'), element: <IntegrationsPage /> },
-          upcoming('settings', 'settings'),
-          upcoming('settings/profile', 'settings'),
+          {
+            path: 'settings',
+            handle: page('settings'),
+            element: <SettingsLayout />,
+            children: [
+              { index: true, element: <Navigate to="profile" replace /> },
+              { path: 'profile', element: <ProfileRoute /> },
+              { path: 'security', element: <SecurityRoute /> },
+              { path: 'preferences', element: <PreferencesRoute /> },
+            ],
+          },
           { path: 'ui-kit', handle: page('uiKit'), element: <ShowcasePage /> },
           { path: '*', handle: page('notFound'), element: <NotFoundPage /> },
         ],

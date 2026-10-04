@@ -1851,6 +1851,24 @@ type DashboardStats struct {
 	Total             int             `json:"total"`
 }
 
+// Device defines model for Device.
+type Device struct {
+	// Current This is the device making the request
+	Current bool               `json:"current"`
+	Id      openapi_types.UUID `json:"id"`
+	Ip      string             `json:"ip"`
+
+	// LastSeenAt When the sign-in was last renewed
+	LastSeenAt time.Time `json:"lastSeenAt"`
+	StartedAt  time.Time `json:"startedAt"`
+	UserAgent  string    `json:"userAgent"`
+}
+
+// DeviceList defines model for DeviceList.
+type DeviceList struct {
+	Items []Device `json:"items"`
+}
+
 // EmailRequest defines model for EmailRequest.
 type EmailRequest struct {
 	Email string `json:"email"`
@@ -2914,6 +2932,11 @@ type IntegrationCallbackParams struct {
 	Error *string `form:"error,omitempty" json:"error,omitempty"`
 }
 
+// UploadAvatarMultipartBody defines parameters for UploadAvatar.
+type UploadAvatarMultipartBody struct {
+	File openapi_types.File `json:"file"`
+}
+
 // ExportWikiNodeParams defines parameters for ExportWikiNode.
 type ExportWikiNodeParams struct {
 	Format  *ExportWikiNodeParamsFormat `form:"format,omitempty" json:"format,omitempty"`
@@ -3151,6 +3174,9 @@ type CreateColumnJSONRequestBody = ColumnInput
 
 // UpdateMeJSONRequestBody defines body for UpdateMe for application/json ContentType.
 type UpdateMeJSONRequestBody = UpdateProfileRequest
+
+// UploadAvatarMultipartRequestBody defines body for UploadAvatar for multipart/form-data ContentType.
+type UploadAvatarMultipartRequestBody UploadAvatarMultipartBody
 
 // ChangePasswordJSONRequestBody defines body for ChangePassword for application/json ContentType.
 type ChangePasswordJSONRequestBody = ChangePasswordRequest

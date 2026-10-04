@@ -1,10 +1,16 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/attachments/storage/local"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users/events"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users/repository"
@@ -104,5 +110,87 @@ func TestLoginFailureCounters(t *testing.T) {
 	got, _ := s.Get(ctx, u.ID)
 	if got.AvatarURL == nil || *got.AvatarURL != "https://a.test/1.png" {
 		t.Fatal("avatar must only be set when empty")
+	}
+}
+
+// pictureBytes returns a tiny valid image of the given kind.
+func pictureBytes(kind string) []byte {
+	switch kind {
+	case "png":
+		return []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfe\xa7\x9a\xa0\xa0\x00\x00\x00\x00IEND\xaeB`\x82")
+	case "jpeg":
+		return []byte("\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xd9")
+	}
+	return nil
+}
+
+func TestAvatars(t *testing.T) {
+	s, bus := setup(t)
+	dir := t.TempDir()
+	disk, err := local.New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.WithAvatars(disk)
+	ctx := context.Background()
+	u, _ := s.Create(ctx, domain.NewUser{Email: "pic@example.com", Name: "Pic"})
+	other, _ := s.Create(ctx, domain.NewUser{Email: "other@example.com", Name: "Other"})
+	var changed int
+	eventbus.Subscribe(bus, func(context.Context, events.ProfileUpdated) error { changed++; return nil })
+
+	if _, _, err := s.OpenAvatar(ctx, u.ID); !apperr.IsCode(err, domain.ErrNotFound) {
+		t.Fatalf("no picture yet: %v", err)
+	}
+	// Only real pictures: the type comes from the bytes, so a script named .png is refused.
+	if _, err := s.SetAvatar(ctx, u.ID, bytes.NewReader([]byte("<svg onload=alert(1)>"))); !apperr.IsCode(err, domain.ErrBadAvatar) {
+		t.Fatalf("svg accepted: %v", err)
+	}
+	if _, err := s.SetAvatar(ctx, u.ID, bytes.NewReader(make([]byte, service.MaxAvatarBytes+1))); !apperr.IsCode(err, domain.ErrAvatarTooLarge) {
+		t.Fatalf("oversized picture: %v", err)
+	}
+
+	got, err := s.SetAvatar(ctx, u.ID, bytes.NewReader(pictureBytes("png")))
+	if err != nil || got.AvatarURL == nil || !strings.HasPrefix(*got.AvatarURL, "/api/v1/users/"+u.ID.String()+"/avatar?v=") || changed != 1 {
+		t.Fatalf("set avatar: %+v %v changed=%d", got, err, changed)
+	}
+	f, kind, err := s.OpenAvatar(ctx, u.ID)
+	if err != nil || kind != "image/png" {
+		t.Fatalf("open: %v %q", err, kind)
+	}
+	b, _ := io.ReadAll(f)
+	_ = f.Close()
+	if !bytes.Equal(b, pictureBytes("png")) {
+		t.Fatal("stored bytes differ")
+	}
+
+	// A new picture replaces the old one, with a new address and without leaving the old file behind.
+	first := *got.AvatarURL
+	got, err = s.SetAvatar(ctx, u.ID, bytes.NewReader(pictureBytes("jpeg")))
+	if err != nil || *got.AvatarURL == first {
+		t.Fatalf("replace: %+v %v", got, err)
+	}
+	if _, kind, _ := s.OpenAvatar(ctx, u.ID); kind != "image/jpeg" {
+		t.Fatalf("type after replace: %q", kind)
+	}
+	files := 0
+	_ = filepath.WalkDir(dir, func(_ string, d os.DirEntry, _ error) error {
+		if d != nil && !d.IsDir() {
+			files++
+		}
+		return nil
+	})
+	if files != 1 {
+		t.Fatalf("%d files on disk after replacing, want 1", files)
+	}
+	if _, _, err := s.OpenAvatar(ctx, other.ID); !apperr.IsCode(err, domain.ErrNotFound) {
+		t.Fatalf("somebody else's picture: %v", err)
+	}
+
+	got, err = s.RemoveAvatar(ctx, u.ID)
+	if err != nil || got.AvatarURL != nil {
+		t.Fatalf("remove: %+v %v", got, err)
+	}
+	if _, _, err := s.OpenAvatar(ctx, u.ID); !apperr.IsCode(err, domain.ErrNotFound) {
+		t.Fatalf("after remove: %v", err)
 	}
 }
