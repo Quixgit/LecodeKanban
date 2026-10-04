@@ -2,7 +2,7 @@ import { Check, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button, Modal } from '@/shared/ui';
-import { PRESETS, isDefault, isHex } from '../model/theme';
+import { DEFAULT_THEME, PRESETS, isDefault, isHex } from '../model/theme';
 import { useChatThemeStore } from '../store/chatThemeStore';
 
 function ColorField({
@@ -22,7 +22,7 @@ function ColorField({
         <input
           type="color"
           aria-label={label}
-          value={isHex(value) ? value : '#000000'}
+          value={isHex(value) ? value : DEFAULT_THEME.sidebar}
           onChange={(e) => onChange(e.target.value)}
           className="size-8 cursor-pointer rounded-md border border-border bg-transparent p-0.5"
         />
