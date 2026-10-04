@@ -168,6 +168,7 @@ type ChatMember struct {
 	LastReadAt   time.Time
 	Muted        bool
 	MentionsOnly bool
+	MutedUntil   *time.Time
 }
 
 type ChatMessage struct {

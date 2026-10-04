@@ -43,6 +43,10 @@ interface Props {
   onBrowse: () => void;
   onNewMessage: () => void;
   onSearch: () => void;
+  /** Opens a channel in the second pane (also on opt/alt + click). */
+  onSplit?: (channelId: string) => void;
+  /** Starts a search limited to one channel. */
+  onSearchIn?: (channel: ChatChannel) => void;
   online: ReadonlySet<string>;
   statuses: ReadonlyMap<string, ChatStatus>;
 }
@@ -61,6 +65,8 @@ export function ChannelList({
   onCreate,
   onBrowse,
   onNewMessage,
+  onSplit,
+  onSearchIn,
 }: Props) {
   const { t } = useTranslation('chat');
   const collapsed = useChatUiStore((s) => s.collapsed);
@@ -123,6 +129,8 @@ export function ChannelList({
                     c={c}
                     me={me}
                     workspaceId={workspaceId}
+                    onSplit={onSplit}
+                    onSearchIn={onSearchIn}
                     active={c.id === activeId}
                     online={online}
                     statuses={statuses}
@@ -167,6 +175,8 @@ export function ChannelList({
                     c={c}
                     me={me}
                     workspaceId={workspaceId}
+                    onSplit={onSplit}
+                    onSearchIn={onSearchIn}
                     active={c.id === activeId}
                     online={online}
                     statuses={statuses}
@@ -188,6 +198,8 @@ export function ChannelList({
                     c={c}
                     me={me}
                     workspaceId={workspaceId}
+                    onSplit={onSplit}
+                    onSearchIn={onSearchIn}
                     active={c.id === activeId}
                     online={online}
                     statuses={statuses}
@@ -208,6 +220,8 @@ export function ChannelList({
                     c={c}
                     me={me}
                     workspaceId={workspaceId}
+                    onSplit={onSplit}
+                    onSearchIn={onSearchIn}
                     active={c.id === activeId}
                     online={online}
                     statuses={statuses}
@@ -267,6 +281,8 @@ function Row({
   active,
   online,
   statuses,
+  onSplit,
+  onSearchIn,
 }: {
   c: ChatChannel;
   me: string;
@@ -274,6 +290,8 @@ function Row({
   active: boolean;
   online: ReadonlySet<string>;
   statuses: ReadonlyMap<string, ChatStatus>;
+  onSplit?: (channelId: string) => void;
+  onSearchIn?: (channel: ChatChannel) => void;
 }) {
   const { t } = useTranslation('chat');
   const title = channelTitle(c, me, t('list.you'));
@@ -282,7 +300,14 @@ function Row({
   const others = c.people.filter((p) => p.id !== me);
   return (
     <li>
-      <ChannelContextMenu channel={c} workspaceId={workspaceId} title={title} active={active}>
+      <ChannelContextMenu
+        channel={c}
+        workspaceId={workspaceId}
+        title={title}
+        active={active}
+        onSplit={onSplit}
+        onSearchIn={onSearchIn}
+      >
         <NavLink
           to={`/chat/${c.id}`}
           aria-current={active ? 'page' : undefined}

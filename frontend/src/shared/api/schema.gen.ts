@@ -3991,6 +3991,11 @@ export interface components {
              * @enum {string}
              */
             notify: "all" | "mentions" | "muted";
+            /**
+             * Format: date-time
+             * @description Set while a temporary mute is in effect
+             */
+            mutedUntil: string | null;
             starred: boolean;
             /** @description Receives task updates; only replies can be posted */
             feed: boolean;
@@ -4046,6 +4051,11 @@ export interface components {
         ChatNotifyInput: {
             /** @enum {string} */
             level: "all" | "mentions" | "muted";
+            /**
+             * Format: date-time
+             * @description With level muted: the mute lifts at this time (within a year)
+             */
+            until?: string;
         };
         ChatReaction: {
             key: string;

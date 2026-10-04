@@ -64,14 +64,14 @@ export function DashboardView() {
             value={<CountUp value={s.completedThisWeek.value} />}
             trend={s.completedThisWeek.changePct}
             trendLabel={label}
-            trendEmpty={s.completedThisWeek.value > 0 ? t('kpi.noBaseline') : t('kpi.noChange')}
+            delta={s.completedThisWeek.value - s.completedThisWeek.previous}
           />
           <MetricCard
             title={`${t('kpi.created')} · ${period}`}
             value={<CountUp value={s.createdThisWeek.value} />}
             trend={s.createdThisWeek.changePct}
             trendLabel={label}
-            trendEmpty={s.createdThisWeek.value > 0 ? t('kpi.noBaseline') : t('kpi.noChange')}
+            delta={s.createdThisWeek.value - s.createdThisWeek.previous}
           />
           <MetricCard
             title={t('kpi.overdue')}

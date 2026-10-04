@@ -3902,7 +3902,7 @@ components:
         all: { type: boolean, description: Mark every notification in the workspace }
     ChatChannel:
       type: object
-      required: [id, workspaceId, kind, name, topic, joined, muted, notify, starred, feed, feedProjectId, feedEvents, unread, mentions, memberCount, lastMessageAt, people]
+      required: [id, workspaceId, kind, name, topic, joined, muted, notify, mutedUntil, starred, feed, feedProjectId, feedEvents, unread, mentions, memberCount, lastMessageAt, people]
       properties:
         id: { type: string, format: uuid }
         workspaceId: { type: string, format: uuid }
@@ -3912,6 +3912,7 @@ components:
         joined: { type: boolean }
         muted: { type: boolean }
         notify: { type: string, enum: [all, mentions, muted], description: Per-member notification level; muted also hides the channel from the sidebar }
+        mutedUntil: { type: string, format: date-time, nullable: true, description: Set while a temporary mute is in effect }
         starred: { type: boolean }
         feed: { type: boolean, description: Receives task updates; only replies can be posted }
         feedProjectId: { type: string, format: uuid, nullable: true, description: The one project the feed follows; null means all }
@@ -3955,6 +3956,7 @@ components:
       required: [level]
       properties:
         level: { type: string, enum: [all, mentions, muted] }
+        until: { type: string, format: date-time, description: "With level muted: the mute lifts at this time (within a year)" }
     ChatReaction:
       type: object
       required: [key, count, mine, users]

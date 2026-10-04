@@ -38,7 +38,8 @@ UPDATE chat_channels SET last_message_at = $2 WHERE id = $1;
 -- name: ListChannelStates :many
 SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
-       COALESCE(m.muted, false)::boolean AS muted,
+       (COALESCE(m.muted, false) OR COALESCE(m.muted_until > now(), false))::boolean AS muted,
+       COALESCE(CASE WHEN m.muted_until > now() THEN m.muted_until END, to_timestamp(0))::timestamptz AS muted_until,
        COALESCE(m.mentions_only, false)::boolean AS mentions_only,
        (st.user_id IS NOT NULL)::boolean AS starred,
        (SELECT count(*) FROM chat_messages x
@@ -61,7 +62,8 @@ ORDER BY c.name NULLS LAST, c.last_message_at DESC NULLS LAST, c.id;
 -- name: GetChannelState :one
 SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
-       COALESCE(m.muted, false)::boolean AS muted,
+       (COALESCE(m.muted, false) OR COALESCE(m.muted_until > now(), false))::boolean AS muted,
+       COALESCE(CASE WHEN m.muted_until > now() THEN m.muted_until END, to_timestamp(0))::timestamptz AS muted_until,
        COALESCE(m.mentions_only, false)::boolean AS mentions_only,
        (st.user_id IS NOT NULL)::boolean AS starred,
        (SELECT count(*) FROM chat_messages x
@@ -97,7 +99,8 @@ SELECT * FROM chat_members WHERE channel_id = ANY (sqlc.arg('ids')::uuid[]) ORDE
 UPDATE chat_members SET last_read_at = now() WHERE channel_id = $1 AND user_id = $2;
 
 -- name: SetNotify :exec
-UPDATE chat_members SET muted = $3, mentions_only = $4 WHERE channel_id = $1 AND user_id = $2;
+UPDATE chat_members SET muted = @muted, mentions_only = @mentions_only, muted_until = sqlc.narg(muted_until)
+WHERE channel_id = @channel_id AND user_id = @user_id;
 
 -- name: InsertMessage :one
 INSERT INTO chat_messages (channel_id, author_id, parent_id, body, mentions, mention_all)

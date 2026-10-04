@@ -213,3 +213,11 @@ Facts about what was checked, with how. Update on every phase.
 - Not covered: switching a module off does not block its API (documented in ADR 0023); no data export yet;
   time format and date format preferences are not offered because they would not apply everywhere.
 - Migrations 00026 (profile) and 00027 (settings) must both be applied; apply them in order.
+
+## Dashboard trend chips, chat menu, header and split view
+
+- Go: temporary mute round-trips, shows its end, is refused for a past time or a level other than muted, lifts to
+  "all". Unit: MetricCard (percentage, absolute delta, flat zero), mute end times (hour, tomorrow 9:00, next Monday).
+- Browser: menu (axe) with details / copy / star / inline notification levels / temporary mute / mute and hide / split
+  view / leave; member list on the new Members tab.
+- Not covered: "Edit default preferences" from the Slack menu (we have no per-user notification defaults page yet).
