@@ -194,7 +194,7 @@ func TestUpdateAndArchive(t *testing.T) {
 	mustCode(t, err, domain.ErrNotFound)
 }
 
-func TestProjectCreationPolicy(t *testing.T) {
+func TestProjectCreationPermission(t *testing.T) {
 	tdb.Reset(t)
 	e := testkit.New(t, tdb.Pool)
 	ctx := context.Background()
@@ -205,11 +205,17 @@ func TestProjectCreationPolicy(t *testing.T) {
 	if _, err := e.Projects.Create(ctx, member, ws, service.CreateInput{Name: "Open"}, "en"); err != nil {
 		t.Fatalf("members create projects by default: %v", err)
 	}
-	if _, err := e.Workspaces.UpdateSettings(ctx, owner, ws, wsdomain.SettingsPatch{ProjectCreateBy: ptr(wsdomain.ByAdmins)}); err != nil {
+	var keep []wsdomain.Permission
+	for _, p := range wsdomain.RoleDefaults(wsdomain.RoleMember) {
+		if p != wsdomain.PermProjectCreate {
+			keep = append(keep, p)
+		}
+	}
+	if err := e.Workspaces.SetRolePermissions(ctx, owner, ws, wsdomain.RoleMember, keep); err != nil {
 		t.Fatal(err)
 	}
 	_, err := e.Projects.Create(ctx, member, ws, service.CreateInput{Name: "Closed"}, "en")
-	mustCode(t, err, wsdomain.ErrPolicy)
+	mustCode(t, err, wsdomain.ErrInsufficientRole)
 	if _, err := e.Projects.Create(ctx, owner, ws, service.CreateInput{Name: "By owner"}, "en"); err != nil {
 		t.Fatalf("administrators still can: %v", err)
 	}
