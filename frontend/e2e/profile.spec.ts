@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, signIn, test } from './fixtures';
+import { expect, LISA, signIn, test } from './fixtures';
 
 const PASSWORD = process.env.E2E_PASSWORD ?? '';
 const TEMP = 'Temp-Passw0rd-2026!';
@@ -26,11 +26,11 @@ test.describe('Profile settings', () => {
     // The name: save is off until something changes; the new name shows in the header at once.
     const name = page.getByLabel('Full name');
     const save = page.getByRole('button', { name: 'Save changes' });
-    await expect(save).toBeDisabled();
+    await expect(save).toHaveCount(0); // appears once something changes
     const original = await name.inputValue();
     const renamed = original.endsWith(' Jr') ? original.slice(0, -3) : `${original} Jr`;
     await name.fill(renamed);
-    await expect(save).toBeEnabled();
+    await expect(save).toBeVisible();
     await save.click();
     await expect(page.getByText('Profile saved')).toBeVisible();
     await expect(
@@ -53,12 +53,12 @@ test.describe('Profile settings', () => {
     await expect(
       page.getByRole('button', { name: 'Account menu' }).locator('img[src*="/avatar?v="]'),
     ).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Remove' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Remove', exact: true })).toBeVisible();
     await page
       .locator('input[type=file]')
       .setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('hello') });
     await expect(page.getByText('Choose a PNG, JPEG, WebP or GIF picture.')).toBeVisible();
-    await page.getByRole('button', { name: 'Remove' }).click();
+    await page.getByRole('button', { name: 'Remove', exact: true }).click();
     await expect(page.getByText('Photo removed')).toBeVisible();
     await expect(
       page.getByRole('button', { name: 'Account menu' }).locator('img[src*="/avatar?v="]'),
@@ -157,5 +157,95 @@ test.describe('Profile settings', () => {
     await expect(page).toHaveURL(/\/profile\/security$/);
     await page.goto('/settings/profile');
     await expect(page).toHaveURL(/\/profile$/);
+  });
+
+  test('background, links, skills, working hours and the teammate card', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await signIn(page);
+    await page.goto('/profile');
+    const main = page.getByRole('main');
+
+    // The background: a ready-made one, then an uploaded picture, then back to the default.
+    await main.getByRole('button', { name: 'Change background' }).click();
+    await page.getByRole('radio', { name: 'Sunset' }).click();
+    await expect(page.getByRole('radio', { name: 'Sunset' })).toBeChecked();
+    await page.locator('input[type=file][aria-label="Upload a picture"]').setInputFiles({
+      name: 'bg.png',
+      mimeType: 'image/png',
+      buffer: PNG,
+    });
+    await expect(page.getByText('Background updated')).toBeVisible({ timeout: 15_000 });
+    await expect(main.locator('[style*="/cover?v="]')).toBeVisible();
+    await page.getByRole('button', { name: 'Reset' }).click();
+    await expect(main.locator('[style*="/cover?v="]')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+
+    // Links, skills, hours and pronouns; the server tidies the addresses.
+    await main.getByLabel('Pronouns').fill('they/them');
+    await main.getByLabel('Job title').fill('Product designer');
+    await main.getByLabel('LinkedIn').fill('peter-g');
+    await main.getByLabel('Telegram').fill('@pg');
+    await main.getByRole('button', { name: 'Save changes' }).click();
+    await expect(main.getByText(/Choose one of the available options/)).toBeVisible();
+    await main.getByLabel('Telegram').fill('@peter_designs');
+    await main.getByLabel('Website').fill('example.com/peter');
+    await main.getByLabel('Working day starts').fill('09:00');
+    await main.getByLabel('Working day ends').fill('17:00');
+    const skills = main.getByLabel('Skills');
+    await skills.fill('Figma');
+    await skills.press('Enter');
+    await skills.pressSequentially('Planning,');
+    await expect(main.getByRole('button', { name: 'Remove Planning' })).toBeVisible();
+    await main.getByRole('button', { name: 'Save changes' }).click();
+    await expect(page.getByText('Profile saved')).toBeVisible();
+    await page.reload();
+    await expect(main.getByLabel('LinkedIn')).toHaveValue('https://www.linkedin.com/in/peter-g');
+    await expect(main.getByLabel('Telegram')).toHaveValue('peter_designs');
+    await expect(main.getByLabel('Website')).toHaveValue('https://example.com/peter');
+    await expect(main.getByRole('button', { name: 'Remove Figma' })).toBeVisible();
+
+    // Another person opens the card from the Team page and sees all of it.
+    const other = await page
+      .context()
+      .browser()!
+      .newContext({ viewport: { width: 1440, height: 900 } });
+    const lisa = await other.newPage();
+    await signIn(lisa, 'en', 'light', LISA);
+    await lisa.goto('/team');
+    await lisa
+      .getByRole('button', { name: /Open Peter Gabrielle.*profile/ })
+      .first()
+      .click();
+    const card = lisa.getByRole('dialog');
+    await expect(card.getByText('Product designer')).toBeVisible();
+    await expect(card.getByRole('link', { name: '@peter_designs' })).toHaveAttribute(
+      'href',
+      'https://t.me/peter_designs',
+    );
+    await expect(card.getByText('Figma')).toBeVisible();
+    const axe = await new AxeBuilder({ page: lisa })
+      .include('[role=dialog]')
+      .withTags(['wcag2a', 'wcag2aa'])
+      .analyze();
+    expect(axe.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
+    await card.getByRole('button', { name: 'Send message' }).click();
+    await expect(lisa).toHaveURL(/\/chat\/[0-9a-f-]{36}$/);
+    await other.close();
+
+    // Put the profile back the way it was.
+    await main.getByLabel('Pronouns').fill('');
+    for (const label of [
+      'Job title',
+      'LinkedIn',
+      'Telegram',
+      'Website',
+      'Working day starts',
+      'Working day ends',
+    ])
+      await main.getByLabel(label).fill('');
+    await main.getByRole('button', { name: 'Remove Figma' }).click();
+    await main.getByRole('button', { name: 'Remove Planning' }).click();
+    await main.getByRole('button', { name: 'Save changes' }).click();
+    await expect(page.getByText('Profile saved')).toBeVisible();
   });
 });

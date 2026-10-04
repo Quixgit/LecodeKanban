@@ -23,6 +23,7 @@ export const NAMESPACES = [
   'profile',
   'fields',
   'settings',
+  'memberCard',
   'showcase',
 ] as const;
 export type Namespace = (typeof NAMESPACES)[number];

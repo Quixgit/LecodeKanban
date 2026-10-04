@@ -17,6 +17,17 @@ export const profileApi = {
       }),
     );
   },
+  uploadCover: (file: Blob) => {
+    const form = new FormData();
+    form.append('file', file, 'cover.jpg');
+    return unwrap(
+      api.POST('/users/me/cover', {
+        body: { file: file as unknown as string },
+        bodySerializer: () => form,
+      }),
+    );
+  },
+  removeCover: () => unwrap(api.DELETE('/users/me/cover')),
   removeAvatar: () => unwrap(api.DELETE('/users/me/avatar')),
   changePassword: (body: { currentPassword?: string; newPassword: string }) =>
     unwrap(api.POST('/users/me/password', { body })),

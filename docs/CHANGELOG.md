@@ -27,6 +27,16 @@
 
 ### Added
 
+- **Profile background**: pick one of eight ready-made backgrounds or upload your own picture (cropped to a wide strip
+  in the browser); it shows in the profile header and on your teammate card.
+- **More about you** on the profile: pronouns, LinkedIn, Telegram, website, working hours, skills (tags) and an
+  introduction. Addresses are tidied on save (`peter-g` becomes the full LinkedIn address, `@name` or `t.me/name`
+  becomes the bare name) and wrong ones are refused. A save bar appears when something changed.
+- **Teammate card**: click a name or avatar in a chat message, an @mention, the channel's member list or the Team
+  page to see who someone is: background, role, position, local time and whether they are in working hours, how to
+  reach them (email, phone, Telegram, LinkedIn, website), skills, about, and a *Send message* button. Visible to people
+  in the same workspace. API: `GET /workspaces/{id}/members/{userId}`.
+
 - **Settings is now the admin centre** (sidebar → Settings): an overview of every area with live counts, and a
   section list with an animated highlight. Sections: *General* (workspace name, address, delete with typed
   confirmation for the owner), *Custom fields*, *Labels* (create, recolour, rename, delete); *Members & roles* and

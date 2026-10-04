@@ -1,6 +1,7 @@
 import { BellOff, ClipboardList, LogOut, Plus, Trash2 } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { OpenMemberCard } from '@/features/member-card';
 import type { Member } from '@/shared/api';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { Button, ConfirmDialog, Field, Input, Modal, Select, Switch, toast } from '@/shared/ui';
@@ -240,7 +241,13 @@ function Details({
                     size="sm"
                   />
                   <span className="truncate text-base text-text">
-                    {p.name}
+                    <OpenMemberCard
+                      userId={p.id}
+                      label={t('message.openProfile', { name: p.name })}
+                      className="font-medium"
+                    >
+                      {p.name}
+                    </OpenMemberCard>
                     {p.id === me && <span className="text-text-muted"> ({t('list.you')})</span>}
                     <StatusBadge
                       status={statuses.get(p.id)}

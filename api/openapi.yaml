@@ -2703,7 +2703,7 @@ components:
         workStart: { type: string, description: "HH:MM; send with workEnd, both empty clears" }
         workEnd: { type: string }
         skills: { type: array, maxItems: 10, items: { type: string, maxLength: 30 } }
-        coverPreset: { type: string, description: "A preset id; empty keeps the current choice, a preset replaces an uploaded cover" }
+        coverPreset: { type: string, description: "A preset id (a preset replaces an uploaded cover); empty clears the preset" }
     Role:
       type: string
       enum: [owner, admin, member, viewer]

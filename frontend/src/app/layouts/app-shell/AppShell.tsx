@@ -9,6 +9,7 @@ import {
   VerificationBanner,
 } from '@/features/auth';
 import { CommandPalette } from '@/features/command-palette';
+import { MemberCardDialog } from '@/features/member-card';
 import { useNotificationSounds } from '@/features/notification-sounds';
 import { useMeetingToasts } from '@/features/notifications';
 import { usePresenceHeartbeat } from '@/features/chat';
@@ -49,6 +50,7 @@ export function AppShell() {
         {t('a11y.skipToContent')}
       </a>
       <Sidebar />
+      <MemberCardDialog />
       <MobileNav />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header viewer={viewer} />

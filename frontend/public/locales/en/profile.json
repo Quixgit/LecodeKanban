@@ -45,7 +45,13 @@
     "useDevice": "Use this device's time zone",
     "bio": "About you",
     "bioPlaceholder": "A few words about what you do and how you like to work.",
-    "bioCount": "{{count}} / {{max}}"
+    "bioCount": "{{count}} / {{max}}",
+    "pronouns": "Pronouns",
+    "pronounsHint": "Optional. Shown on your profile card.",
+    "workStart": "Working day starts",
+    "workEnd": "Working day ends",
+    "workHint": "Teammates see when you are usually online.",
+    "unsaved": "You have unsaved changes"
   },
   "signin": {
     "title": "Sign-in methods",
@@ -86,5 +92,43 @@
     "browserOn": "{{browser}} on {{os}}",
     "unknown": "Unknown device",
     "loadFailed": "Couldn't load your devices"
+  },
+  "links": {
+    "title": "Links",
+    "description": "Where teammates can find you outside the platform.",
+    "linkedin": "LinkedIn",
+    "linkedinHint": "A profile address or just your handle.",
+    "telegram": "Telegram",
+    "telegramHint": "@name or a t.me link.",
+    "website": "Website"
+  },
+  "about": {
+    "title": "Introduction",
+    "description": "A short introduction and what you are good at."
+  },
+  "skills": {
+    "title": "Skills",
+    "hint": "Press Enter after each one. Up to 10.",
+    "placeholder": "e.g. Figma, Go, Planning",
+    "remove": "Remove {{name}}",
+    "full": "You can add up to {{max}}"
+  },
+  "cover": {
+    "change": "Change background",
+    "presets": "Backgrounds",
+    "upload": "Upload a picture",
+    "reset": "Reset",
+    "hint": "A wide picture works best. It is cropped to a strip.",
+    "saved": "Background updated",
+    "names": {
+      "aurora": "Aurora",
+      "ocean": "Ocean",
+      "sunset": "Sunset",
+      "forest": "Forest",
+      "lavender": "Lavender",
+      "slate": "Slate",
+      "dawn": "Dawn",
+      "mint": "Mint"
+    }
   }
 }

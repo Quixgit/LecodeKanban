@@ -648,4 +648,34 @@ test.describe('Status', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Leave channel' }).click();
     await expect(row).toHaveCount(0);
   });
+
+  test('click a name in the chat to see who it is', async ({ page }) => {
+    const name = slug();
+    await signIn(page);
+    await createChannel(page, name);
+    await send(page, /^Message #/, 'Hello from me');
+    await expect(message(page, 'Hello from me')).toBeVisible();
+    await message(page, 'Hello from me')
+      .getByRole('button', { name: /Open .*profile/ })
+      .first()
+      .click();
+    const card = page.getByRole('dialog');
+    await expect(card.getByRole('heading', { name: /Peter Gabrielle/ })).toBeVisible();
+    await expect(card.getByRole('link', { name: /@demo.lecodekanban.test|peter@/ })).toBeVisible();
+    // Your own card has no "Send message".
+    await expect(card.getByRole('button', { name: 'Send message' })).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+
+    // The channel's member list opens it too.
+    await page.getByRole('button', { name: 'Channel details' }).first().click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Open .*profile/ })
+      .first()
+      .click();
+    await expect(
+      page.getByRole('dialog').getByRole('heading', { name: /Peter Gabrielle/ }),
+    ).toBeVisible();
+  });
 });

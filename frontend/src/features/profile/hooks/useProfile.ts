@@ -18,6 +18,11 @@ export function useProfileMutations() {
       mutationFn: (file: Blob) => profileApi.uploadAvatar(file),
       onSuccess: setUser,
     }),
+    uploadCover: useMutation({
+      mutationFn: (file: Blob) => profileApi.uploadCover(file),
+      onSuccess: setUser,
+    }),
+    removeCover: useMutation({ mutationFn: profileApi.removeCover, onSuccess: setUser }),
     removeAvatar: useMutation({ mutationFn: profileApi.removeAvatar, onSuccess: setUser }),
   };
 }
