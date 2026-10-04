@@ -11,3 +11,4 @@ export { RulesPage } from './components/RulesPage';
 export { SettingsLayout } from './components/SettingsLayout';
 export { useFeatureEnabled, useWorkspaceSettings, type FeatureKey } from './hooks/useSettings';
 export { RolesPage } from './components/RolesPage';
+export { GROUPS, SECTIONS } from './model/sections';

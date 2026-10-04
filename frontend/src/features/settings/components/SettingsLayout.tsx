@@ -13,7 +13,7 @@ export function SettingsLayout() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 lg:flex-row lg:items-start lg:gap-6">
       <nav
         aria-label={t('nav.label')}
-        className="rounded-2xl border border-border-subtle bg-surface p-2 shadow-card lg:sticky lg:top-4 lg:w-64 lg:shrink-0"
+        className="rounded-2xl border border-border-subtle bg-surface p-2 shadow-card lg:sticky lg:top-4 lg:w-64 lg:shrink-0 lg:group-data-[layout=rail]/shell:hidden"
       >
         <div className="flex gap-1 overflow-x-auto lg:flex-col lg:gap-4 lg:overflow-visible lg:p-1">
           {GROUPS.map((group) => (
