@@ -13,6 +13,8 @@ import (
 type Deps struct {
 	Pool *pgxpool.Pool
 	Bus  *eventbus.Bus
+	// Storage enables profile pictures (nil: no uploads).
+	Storage service.Storage
 }
 
 type Module struct {
@@ -21,7 +23,11 @@ type Module struct {
 }
 
 func New(d Deps) *Module {
-	return &Module{Service: service.New(repository.New(d.Pool), d.Bus)}
+	svc := service.New(repository.New(d.Pool), d.Bus)
+	if d.Storage != nil {
+		svc.WithAvatars(d.Storage)
+	}
+	return &Module{Service: svc}
 }
 
 // NewHTTP builds the transport once the auth module (provider lister, password changer) exists.

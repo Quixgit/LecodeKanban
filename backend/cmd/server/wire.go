@@ -67,7 +67,11 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	tokens := authtoken.NewManager(cfg.SecretKeyBytes(), cfg.AccessTTL)
 	m := metrics.New()
 
-	usersMod := users.New(users.Deps{Pool: pool, Bus: bus})
+	storage, err := local.New(cfg.AttachmentsDir)
+	if err != nil {
+		return nil, err
+	}
+	usersMod := users.New(users.Deps{Pool: pool, Bus: bus, Storage: storage})
 
 	// users' HTTP layer needs auth (providers, password change) and auth needs users' presenter;
 	// the closure breaks the construction cycle without either package importing the other.
@@ -101,10 +105,6 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 
 	commentsMod := comments.New(comments.Deps{Pool: pool, Bus: bus, Cards: cardsMod.Service,
 		Workspaces: wsMod.Service, Users: usersMod.Service})
-	storage, err := local.New(cfg.AttachmentsDir)
-	if err != nil {
-		return nil, err
-	}
 	attachmentsMod := attachments.New(attachments.Deps{Pool: pool, Bus: bus, Storage: storage,
 		MaxBytes: cfg.AttachmentMaxBytes(), Cards: cardsMod.Service, Workspaces: wsMod.Service, Users: usersMod.Service})
 	timeMod := timetracking.New(timetracking.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service,

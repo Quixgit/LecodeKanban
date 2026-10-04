@@ -159,3 +159,30 @@ func (r *Repo) LinkIdentity(ctx context.Context, userID uuid.UUID, provider, pro
 func (r *Repo) ListProviders(ctx context.Context, userID uuid.UUID) ([]string, error) {
 	return r.q.ListIdentityProviders(ctx, userID)
 }
+
+// SessionRow is one signed-in device.
+type SessionRow struct {
+	ID         uuid.UUID
+	StartedAt  time.Time
+	LastSeenAt time.Time
+	UserAgent  string
+	IP         string
+}
+
+func (r *Repo) Sessions(ctx context.Context, userID uuid.UUID) ([]SessionRow, error) {
+	rows, err := r.q.ListUserSessions(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]SessionRow, len(rows))
+	for i, x := range rows {
+		out[i] = SessionRow{ID: x.FamilyID, StartedAt: x.StartedAt, LastSeenAt: x.LastSeenAt, UserAgent: x.UserAgent, IP: x.Ip}
+	}
+	return out, nil
+}
+
+// RevokeUserFamily signs one of the person's devices out; it reports whether there was one.
+func (r *Repo) RevokeUserFamily(ctx context.Context, userID, family uuid.UUID) (bool, error) {
+	n, err := r.q.RevokeUserRefreshFamily(ctx, store.RevokeUserRefreshFamilyParams{UserID: userID, FamilyID: family})
+	return n > 0, err
+}

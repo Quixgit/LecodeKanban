@@ -20,9 +20,12 @@ type Querier interface {
 	GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte) (RefreshToken, error)
 	InvalidateUserTokens(ctx context.Context, arg InvalidateUserTokensParams) error
 	ListIdentityProviders(ctx context.Context, userID uuid.UUID) ([]string, error)
+	// One row per sign-in (a family of rotated refresh tokens) that is still usable.
+	ListUserSessions(ctx context.Context, userID uuid.UUID) ([]ListUserSessionsRow, error)
 	MarkRefreshTokenRotated(ctx context.Context, arg MarkRefreshTokenRotatedParams) error
 	RevokeOtherUserRefreshTokens(ctx context.Context, arg RevokeOtherUserRefreshTokensParams) error
 	RevokeRefreshFamily(ctx context.Context, familyID uuid.UUID) error
+	RevokeUserRefreshFamily(ctx context.Context, arg RevokeUserRefreshFamilyParams) (int64, error)
 	RevokeUserRefreshTokens(ctx context.Context, userID uuid.UUID) error
 }
 

@@ -27,11 +27,15 @@ type Repository interface {
 	RecordLoginFailure(ctx context.Context, id uuid.UUID, threshold int, lock time.Duration) (int, *time.Time, error)
 	ResetLoginFailures(ctx context.Context, id uuid.UUID) error
 	SetAvatarIfEmpty(ctx context.Context, id uuid.UUID, url string) error
+	Avatar(ctx context.Context, id uuid.UUID) (key, contentType string, ok bool, err error)
+	SetUploadedAvatar(ctx context.Context, id uuid.UUID, url, key, contentType string) error
+	ClearAvatar(ctx context.Context, id uuid.UUID) error
 }
 
 type Service struct {
-	repo Repository
-	bus  *eventbus.Bus
+	repo    Repository
+	bus     *eventbus.Bus
+	storage Storage
 }
 
 func New(repo Repository, bus *eventbus.Bus) *Service { return &Service{repo: repo, bus: bus} }

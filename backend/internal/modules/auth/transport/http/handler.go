@@ -74,6 +74,9 @@ func (h *Handler) PublicRoutes(r chi.Router) {
 // PrivateRoutes require an authenticated principal.
 func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Get("/auth/session", httpx.H(h.session))
+	r.Get("/users/me/sessions", httpx.H(h.devices))
+	r.Post("/users/me/sessions/revoke-others", httpx.H(h.signOutOthers))
+	r.Delete("/users/me/sessions/{sessionId}", httpx.H(h.signOutDevice))
 	r.With(middleware.RateLimit("email", h.lim.Email)).Post("/auth/verify-email/resend", httpx.H(h.resend))
 }
 
@@ -291,4 +294,40 @@ func (h *Handler) oauthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	h.cookies.clearOAuth(w)
 	http.Redirect(w, r, h.publicURL+st.Next, http.StatusFound)
+}
+
+func (h *Handler) devices(w http.ResponseWriter, r *http.Request) error {
+	p, _ := authtoken.FromContext(r.Context())
+	ds, err := h.svc.Devices(r.Context(), p.UserID, p.SessionID)
+	if err != nil {
+		return err
+	}
+	out := api.DeviceList{Items: make([]api.Device, len(ds))}
+	for i, d := range ds {
+		out.Items[i] = api.Device{Id: d.ID, StartedAt: d.StartedAt, LastSeenAt: d.LastSeenAt, UserAgent: d.UserAgent, Ip: d.IP, Current: d.Current}
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
+	return nil
+}
+
+func (h *Handler) signOutDevice(w http.ResponseWriter, r *http.Request) error {
+	p, _ := authtoken.FromContext(r.Context())
+	id, err := uuid.Parse(chi.URLParam(r, "sessionId"))
+	if err != nil {
+		return apperr.New(domain.ErrSessionNotFound, "session not found")
+	}
+	if err := h.svc.SignOutDevice(r.Context(), p.UserID, id); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
+	return nil
+}
+
+func (h *Handler) signOutOthers(w http.ResponseWriter, r *http.Request) error {
+	p, _ := authtoken.FromContext(r.Context())
+	if err := h.svc.SignOutOtherDevices(r.Context(), p.UserID, p.SessionID); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
+	return nil
 }

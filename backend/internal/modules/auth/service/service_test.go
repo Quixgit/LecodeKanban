@@ -333,3 +333,67 @@ func TestOAuthLogin(t *testing.T) {
 	_, err = e.svc.OAuthLogin(ctx, domain.ProviderProfile{Provider: "github"}, "en", client)
 	mustCode(t, err, domain.ErrOAuthFailed)
 }
+
+func TestDevices(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	phone := domain.Client{IP: "10.0.0.7", UserAgent: "Mozilla/5.0 (iPhone) Safari"}
+	a := register(t, e, "devices@example.com")
+	b, err := e.svc.Login(ctx, "devices@example.com", pw, phone)
+	if err != nil {
+		t.Fatal(err)
+	}
+	other := register(t, e, "someone@example.com")
+
+	list, err := e.svc.Devices(ctx, a.UserID, a.FamilyID)
+	if err != nil || len(list) != 2 {
+		t.Fatalf("devices: %+v %v", list, err)
+	}
+	var current, remote *service.Device
+	for i := range list {
+		if list[i].Current {
+			current = &list[i]
+		} else {
+			remote = &list[i]
+		}
+	}
+	if current == nil || current.ID != a.FamilyID || current.UserAgent != "test" {
+		t.Fatalf("current device: %+v", list)
+	}
+	if remote == nil || remote.ID != b.FamilyID || remote.IP != "10.0.0.7" || remote.UserAgent != phone.UserAgent {
+		t.Fatalf("other device: %+v", list)
+	}
+
+	// Rotating the refresh token keeps one row per sign-in.
+	rotated, err := e.svc.Refresh(ctx, b.RefreshToken, phone)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if list, _ = e.svc.Devices(ctx, a.UserID, a.FamilyID); len(list) != 2 {
+		t.Fatalf("rotation made %d devices", len(list))
+	}
+
+	// Somebody else's session cannot be signed out; your own can, and then it can no longer refresh.
+	mustCode(t, e.svc.SignOutDevice(ctx, other.UserID, b.FamilyID), domain.ErrSessionNotFound)
+	if err := e.svc.SignOutDevice(ctx, a.UserID, b.FamilyID); err != nil {
+		t.Fatal(err)
+	}
+	_, err = e.svc.Refresh(ctx, rotated.RefreshToken, phone)
+	mustCode(t, err, domain.ErrSessionExpired)
+	mustCode(t, e.svc.SignOutDevice(ctx, a.UserID, b.FamilyID), domain.ErrSessionNotFound)
+
+	// "Sign out everywhere else" keeps only the current device.
+	c, _ := e.svc.Login(ctx, "devices@example.com", pw, phone)
+	if err := e.svc.SignOutOtherDevices(ctx, a.UserID, a.FamilyID); err != nil {
+		t.Fatal(err)
+	}
+	if list, _ = e.svc.Devices(ctx, a.UserID, a.FamilyID); len(list) != 1 || !list[0].Current {
+		t.Fatalf("after signing out the others: %+v", list)
+	}
+	if _, err := e.svc.Refresh(ctx, c.RefreshToken, phone); err == nil {
+		t.Fatal("an ended session refreshed")
+	}
+	if _, err := e.svc.Refresh(ctx, a.RefreshToken, client); err != nil {
+		t.Fatalf("the current device must stay signed in: %v", err)
+	}
+}

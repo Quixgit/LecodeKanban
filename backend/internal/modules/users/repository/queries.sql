@@ -41,3 +41,12 @@ WHERE id = $1 AND (failed_login_count <> 0 OR locked_until IS NOT NULL);
 
 -- name: SetAvatarIfEmpty :exec
 UPDATE users SET avatar_url = @avatar_url WHERE id = @id AND avatar_url IS NULL;
+
+-- name: GetAvatar :one
+SELECT avatar_key, avatar_type FROM users WHERE id = $1;
+
+-- name: SetUploadedAvatar :exec
+UPDATE users SET avatar_url = @avatar_url, avatar_key = @avatar_key, avatar_type = @avatar_type WHERE id = @id;
+
+-- name: ClearAvatar :exec
+UPDATE users SET avatar_url = NULL, avatar_key = NULL, avatar_type = NULL WHERE id = @id;

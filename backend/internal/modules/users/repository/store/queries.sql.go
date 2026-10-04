@@ -12,10 +12,19 @@ import (
 	"github.com/google/uuid"
 )
 
+const clearAvatar = `-- name: ClearAvatar :exec
+UPDATE users SET avatar_url = NULL, avatar_key = NULL, avatar_type = NULL WHERE id = $1
+`
+
+func (q *Queries) ClearAvatar(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, clearAvatar, id)
+	return err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, name, password_hash, locale, email_verified_at, avatar_url)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at
+RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type
 `
 
 type CreateUserParams struct {
@@ -49,12 +58,30 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.LockedUntil,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AvatarKey,
+		&i.AvatarType,
 	)
 	return i, err
 }
 
+const getAvatar = `-- name: GetAvatar :one
+SELECT avatar_key, avatar_type FROM users WHERE id = $1
+`
+
+type GetAvatarRow struct {
+	AvatarKey  *string
+	AvatarType *string
+}
+
+func (q *Queries) GetAvatar(ctx context.Context, id uuid.UUID) (GetAvatarRow, error) {
+	row := q.db.QueryRow(ctx, getAvatar, id)
+	var i GetAvatarRow
+	err := row.Scan(&i.AvatarKey, &i.AvatarType)
+	return i, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at FROM users WHERE email = $1
+SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -72,12 +99,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.LockedUntil,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AvatarKey,
+		&i.AvatarType,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at FROM users WHERE id = $1
+SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -95,12 +124,14 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.LockedUntil,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AvatarKey,
+		&i.AvatarType,
 	)
 	return i, err
 }
 
 const getUsersByIDs = `-- name: GetUsersByIDs :many
-SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at FROM users WHERE id = ANY($1::uuid[]) ORDER BY name
+SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type FROM users WHERE id = ANY($1::uuid[]) ORDER BY name
 `
 
 func (q *Queries) GetUsersByIDs(ctx context.Context, ids []uuid.UUID) ([]User, error) {
@@ -124,6 +155,8 @@ func (q *Queries) GetUsersByIDs(ctx context.Context, ids []uuid.UUID) ([]User, e
 			&i.LockedUntil,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.AvatarKey,
+			&i.AvatarType,
 		); err != nil {
 			return nil, err
 		}
@@ -136,7 +169,7 @@ func (q *Queries) GetUsersByIDs(ctx context.Context, ids []uuid.UUID) ([]User, e
 }
 
 const markEmailVerified = `-- name: MarkEmailVerified :one
-UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()) WHERE id = $1 RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at
+UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()) WHERE id = $1 RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type
 `
 
 func (q *Queries) MarkEmailVerified(ctx context.Context, id uuid.UUID) (User, error) {
@@ -154,6 +187,8 @@ func (q *Queries) MarkEmailVerified(ctx context.Context, id uuid.UUID) (User, er
 		&i.LockedUntil,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AvatarKey,
+		&i.AvatarType,
 	)
 	return i, err
 }
@@ -225,12 +260,33 @@ func (q *Queries) SetPasswordHash(ctx context.Context, arg SetPasswordHashParams
 	return err
 }
 
+const setUploadedAvatar = `-- name: SetUploadedAvatar :exec
+UPDATE users SET avatar_url = $1, avatar_key = $2, avatar_type = $3 WHERE id = $4
+`
+
+type SetUploadedAvatarParams struct {
+	AvatarUrl  *string
+	AvatarKey  *string
+	AvatarType *string
+	ID         uuid.UUID
+}
+
+func (q *Queries) SetUploadedAvatar(ctx context.Context, arg SetUploadedAvatarParams) error {
+	_, err := q.db.Exec(ctx, setUploadedAvatar,
+		arg.AvatarUrl,
+		arg.AvatarKey,
+		arg.AvatarType,
+		arg.ID,
+	)
+	return err
+}
+
 const updateUserProfile = `-- name: UpdateUserProfile :one
 UPDATE users
 SET name   = COALESCE($1, name),
     locale = COALESCE($2, locale)
 WHERE id = $3
-RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at
+RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type
 `
 
 type UpdateUserProfileParams struct {
@@ -254,6 +310,8 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		&i.LockedUntil,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AvatarKey,
+		&i.AvatarType,
 	)
 	return i, err
 }

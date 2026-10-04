@@ -199,6 +199,54 @@ func (q *Queries) ListIdentityProviders(ctx context.Context, userID uuid.UUID) (
 	return items, nil
 }
 
+const listUserSessions = `-- name: ListUserSessions :many
+SELECT family_id,
+       min(created_at)::timestamptz AS started_at,
+       max(created_at)::timestamptz AS last_seen_at,
+       (array_agg(user_agent ORDER BY created_at DESC))[1]::text AS user_agent,
+       (array_agg(ip ORDER BY created_at DESC))[1]::text AS ip
+FROM refresh_tokens
+WHERE user_id = $1
+GROUP BY family_id
+HAVING bool_or(revoked_at IS NULL AND expires_at > now() AND replaced_by IS NULL)
+ORDER BY max(created_at) DESC
+`
+
+type ListUserSessionsRow struct {
+	FamilyID   uuid.UUID
+	StartedAt  time.Time
+	LastSeenAt time.Time
+	UserAgent  string
+	Ip         string
+}
+
+// One row per sign-in (a family of rotated refresh tokens) that is still usable.
+func (q *Queries) ListUserSessions(ctx context.Context, userID uuid.UUID) ([]ListUserSessionsRow, error) {
+	rows, err := q.db.Query(ctx, listUserSessions, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListUserSessionsRow{}
+	for rows.Next() {
+		var i ListUserSessionsRow
+		if err := rows.Scan(
+			&i.FamilyID,
+			&i.StartedAt,
+			&i.LastSeenAt,
+			&i.UserAgent,
+			&i.Ip,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markRefreshTokenRotated = `-- name: MarkRefreshTokenRotated :exec
 UPDATE refresh_tokens SET revoked_at = now(), replaced_by = $1 WHERE id = $2
 `
@@ -235,6 +283,24 @@ UPDATE refresh_tokens SET revoked_at = now() WHERE family_id = $1 AND revoked_at
 func (q *Queries) RevokeRefreshFamily(ctx context.Context, familyID uuid.UUID) error {
 	_, err := q.db.Exec(ctx, revokeRefreshFamily, familyID)
 	return err
+}
+
+const revokeUserRefreshFamily = `-- name: RevokeUserRefreshFamily :execrows
+UPDATE refresh_tokens SET revoked_at = now()
+WHERE user_id = $1 AND family_id = $2 AND revoked_at IS NULL
+`
+
+type RevokeUserRefreshFamilyParams struct {
+	UserID   uuid.UUID
+	FamilyID uuid.UUID
+}
+
+func (q *Queries) RevokeUserRefreshFamily(ctx context.Context, arg RevokeUserRefreshFamilyParams) (int64, error) {
+	result, err := q.db.Exec(ctx, revokeUserRefreshFamily, arg.UserID, arg.FamilyID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const revokeUserRefreshTokens = `-- name: RevokeUserRefreshTokens :exec

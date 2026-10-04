@@ -38,6 +38,8 @@ type Repository interface {
 	RevokeFamily(ctx context.Context, family uuid.UUID) error
 	RevokeAllForUser(ctx context.Context, userID uuid.UUID) error
 	RevokeOthersForUser(ctx context.Context, userID, keepFamily uuid.UUID) error
+	Sessions(ctx context.Context, userID uuid.UUID) ([]repository.SessionRow, error)
+	RevokeUserFamily(ctx context.Context, userID, family uuid.UUID) (bool, error)
 	DeleteExpired(ctx context.Context) error
 	IssueUserToken(ctx context.Context, userID uuid.UUID, purpose string, hash []byte, exp time.Time) (uuid.UUID, error)
 	ConsumeUserToken(ctx context.Context, purpose string, hash []byte) (uuid.UUID, error)

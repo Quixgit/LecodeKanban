@@ -134,3 +134,21 @@ func (r *Repo) ResetLoginFailures(ctx context.Context, id uuid.UUID) error {
 func (r *Repo) SetAvatarIfEmpty(ctx context.Context, id uuid.UUID, url string) error {
 	return r.q.SetAvatarIfEmpty(ctx, store.SetAvatarIfEmptyParams{ID: id, AvatarUrl: &url})
 }
+
+// Avatar returns where an uploaded picture is stored; ok is false when the user has none.
+func (r *Repo) Avatar(ctx context.Context, id uuid.UUID) (key, contentType string, ok bool, err error) {
+	row, err := r.q.GetAvatar(ctx, id)
+	if err != nil {
+		return "", "", false, notFound(err)
+	}
+	if row.AvatarKey == nil || row.AvatarType == nil {
+		return "", "", false, nil
+	}
+	return *row.AvatarKey, *row.AvatarType, true, nil
+}
+
+func (r *Repo) SetUploadedAvatar(ctx context.Context, id uuid.UUID, url, key, contentType string) error {
+	return r.q.SetUploadedAvatar(ctx, store.SetUploadedAvatarParams{ID: id, AvatarUrl: &url, AvatarKey: &key, AvatarType: &contentType})
+}
+
+func (r *Repo) ClearAvatar(ctx context.Context, id uuid.UUID) error { return r.q.ClearAvatar(ctx, id) }

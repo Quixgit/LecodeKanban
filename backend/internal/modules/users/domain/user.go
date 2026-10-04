@@ -65,4 +65,8 @@ type ProfilePatch struct {
 var (
 	ErrNotFound   = apperr.Define("users.not_found", http.StatusNotFound)
 	ErrEmailTaken = apperr.Define("users.email_taken", http.StatusConflict)
+	// ErrBadAvatar: the file is not a PNG, JPEG, WebP or GIF picture.
+	ErrBadAvatar = apperr.Define("users.bad_avatar", http.StatusUnprocessableEntity)
+	// ErrAvatarTooLarge: the picture is over the size limit.
+	ErrAvatarTooLarge = apperr.Define("users.avatar_too_large", http.StatusRequestEntityTooLarge)
 )
