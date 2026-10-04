@@ -12,7 +12,7 @@ GOLANGCI ?= golangci-lint
 ENV := set -a; [ -f .env ] && . ./.env; set +a;
 
 .PHONY: help install deps-up deps-down dev dev-api dev-web migrate-up migrate-down migrate-status \
-        migrate-create seed gen gen-check build test test-backend test-frontend cover lint lint-backend \
+        migrate-create seed adduser gen gen-check build test test-backend test-frontend cover lint lint-backend \
         lint-frontend fmt check clean deploy deploy-ps deploy-logs deploy-down e2e e2e-up e2e-down
 
 help: ## Show available targets
@@ -81,6 +81,9 @@ migrate-status: ## Show migration status
 
 seed: ## Load demo data (people, projects, tasks, history); add RESET=1 to recreate
 	$(ENV) cd $(BE) && go run ./cmd/seed $(if $(RESET),-reset,)
+
+adduser: ## Create accounts: make adduser WS="Workspace name" EMAILS="a@x.com b@x.com" [ROLE=member] [LOCALE=en]
+	$(ENV) cd $(BE) && go run ./cmd/adduser -workspace "$(WS)" -role $(or $(ROLE),member) -locale $(or $(LOCALE),en) $(EMAILS)
 
 migrate-create: ## Create a migration: make migrate-create name=add_boards
 	@test -n "$(name)" || (echo "usage: make migrate-create name=<snake_case>" && exit 1)
