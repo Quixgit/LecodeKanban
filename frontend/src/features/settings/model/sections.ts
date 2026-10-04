@@ -3,6 +3,7 @@ import {
   Flag,
   KeyRound,
   History,
+  Mail,
   LayoutDashboard,
   ListPlus,
   SlidersHorizontal,
@@ -24,7 +25,8 @@ export type SectionKey =
   | 'fields'
   | 'labels'
   | 'integrations'
-  | 'audit';
+  | 'audit'
+  | 'email';
 
 export interface Section {
   key: SectionKey;
@@ -46,6 +48,7 @@ export const SECTIONS: readonly Section[] = [
   { key: 'fields', to: '/settings/fields', icon: ListPlus, group: 'work' },
   { key: 'labels', to: '/settings/labels', icon: Tags, group: 'work' },
   { key: 'integrations', to: '/integrations', icon: Blocks, group: 'work', external: true },
+  { key: 'email', to: '/settings/email', icon: Mail, group: 'system' },
   { key: 'audit', to: '/settings/audit', icon: History, group: 'system' },
 ];
 

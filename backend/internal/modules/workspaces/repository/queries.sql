@@ -120,3 +120,20 @@ UPDATE workspace_members SET custom_role_id = @custom_role_id, role = @role WHER
 
 -- name: CountMembersOfRole :one
 SELECT count(*)::int FROM workspace_members WHERE workspace_id = $1 AND role = $2 AND custom_role_id IS NULL;
+-- name: ListWorkspaceMail :many
+-- The latest emails addressed to people of this workspace (members and invited addresses).
+SELECT j.id, j.status, j.attempts, j.max_attempts, COALESCE(j.last_error, '')::text AS last_error, j.created_at,
+       COALESCE(j.payload->>'to', '')::text AS recipient, COALESCE(j.payload->>'subject', '')::text AS subject
+FROM jobs j
+WHERE j.kind = 'mail.send'
+  AND lower(j.payload->>'to') IN (
+      SELECT lower(u.email) FROM workspace_members m JOIN users u ON u.id = m.user_id WHERE m.workspace_id = @workspace_id
+      UNION
+      SELECT lower(email) FROM workspace_invites WHERE workspace_id = @workspace_id)
+ORDER BY j.id DESC
+LIMIT 20;
+
+-- name: MailQueueCounts :one
+SELECT count(*) FILTER (WHERE status IN ('pending', 'running'))::int AS waiting,
+       count(*) FILTER (WHERE status = 'failed' AND created_at > now() - interval '7 days')::int AS failed
+FROM jobs WHERE kind = 'mail.send';

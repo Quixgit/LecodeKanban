@@ -37,6 +37,7 @@ type Service struct {
 	users     Users
 	bus       *eventbus.Bus
 	mail      MailQueue
+	mailInfo  MailInfo
 	publicURL string
 	now       func() time.Time
 }

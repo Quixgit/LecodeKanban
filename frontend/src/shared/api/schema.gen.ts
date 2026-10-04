@@ -531,6 +531,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/mail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** How email leaves this server, the queue, and the latest emails to this workspace's people (administrators) */
+        get: operations["getMailStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/mail/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a test email to the caller (administrators) */
+        post: operations["sendTestMail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/members": {
         parameters: {
             query?: never;
@@ -2942,6 +2980,32 @@ export interface components {
             id: string;
             name: string;
         };
+        MailItem: {
+            /** Format: int64 */
+            id: number;
+            recipient: string;
+            subject: string;
+            /** @enum {string} */
+            status: "pending" | "running" | "done" | "failed";
+            attempts: number;
+            error: string | null;
+            /** Format: date-time */
+            at: string;
+        };
+        MailStatus: {
+            /** @enum {string} */
+            provider: "smtp" | "mailgun";
+            /** @description SMTP host or Mailgun domain */
+            host: string;
+            from: string;
+            /** @description True when mail is only collected in a test inbox and never delivered */
+            capturing: boolean;
+            /** @description Emails queued or being sent */
+            waiting: number;
+            /** @description Emails that failed for good in the last 7 days */
+            failed: number;
+            recent: components["schemas"]["MailItem"][];
+        };
         MemberUser: {
             /** Format: uuid */
             id: string;
@@ -2992,6 +3056,8 @@ export interface components {
             expiresAt: string;
             /** Format: date-time */
             createdAt: string;
+            /** @description The invitation address; present only in the response that creates the invitation */
+            link?: string;
         };
         CreateInviteRequest: {
             /** @description Email address (validated server-side) */
@@ -5142,6 +5208,48 @@ export interface operations {
                 content?: never;
             };
             403: components["responses"]["Error"];
+        };
+    };
+    getMailStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MailStatus"];
+                };
+            };
+        };
+    };
+    sendTestMail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Queued */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     listMembers: {

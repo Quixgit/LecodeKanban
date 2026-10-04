@@ -540,6 +540,26 @@ paths:
       responses:
         "204": { description: Saved }
         "403": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/mail:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [workspaces]
+      operationId: getMailStatus
+      summary: How email leaves this server, the queue, and the latest emails to this workspace's people (administrators)
+      responses:
+        "200":
+          description: Status
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MailStatus" }
+  /workspaces/{workspaceId}/mail/test:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    post:
+      tags: [workspaces]
+      operationId: sendTestMail
+      summary: Send a test email to the caller (administrators)
+      responses:
+        "202": { description: Queued }
   /workspaces/{workspaceId}/members:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -2954,6 +2974,28 @@ components:
       properties:
         id: { type: string, format: uuid }
         name: { type: string }
+    MailItem:
+      type: object
+      required: [id, recipient, subject, status, attempts, error, at]
+      properties:
+        id: { type: integer, format: int64 }
+        recipient: { type: string }
+        subject: { type: string }
+        status: { type: string, enum: [pending, running, done, failed] }
+        attempts: { type: integer }
+        error: { type: string, nullable: true }
+        at: { type: string, format: date-time }
+    MailStatus:
+      type: object
+      required: [provider, host, from, capturing, waiting, failed, recent]
+      properties:
+        provider: { type: string, enum: [smtp, mailgun] }
+        host: { type: string, description: SMTP host or Mailgun domain }
+        from: { type: string }
+        capturing: { type: boolean, description: True when mail is only collected in a test inbox and never delivered }
+        waiting: { type: integer, description: Emails queued or being sent }
+        failed: { type: integer, description: Emails that failed for good in the last 7 days }
+        recent: { type: array, items: { $ref: "#/components/schemas/MailItem" } }
     MemberUser:
       type: object
       required: [id, name, email, avatarUrl]
@@ -3008,6 +3050,7 @@ components:
         role: { $ref: "#/components/schemas/InviteRole" }
         expiresAt: { type: string, format: date-time }
         createdAt: { type: string, format: date-time }
+        link: { type: string, description: "The invitation address; present only in the response that creates the invitation" }
     CreateInviteRequest:
       type: object
       required: [email, role]

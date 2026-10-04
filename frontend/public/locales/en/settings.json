@@ -52,6 +52,10 @@
     "roles": {
       "title": "Roles & permissions",
       "description": "Choose exactly what each role may do, or create your own roles."
+    },
+    "email": {
+      "title": "Email",
+      "description": "Is email leaving the server? Delivery method, the queue, the latest emails and a test."
     }
   },
   "overview": {
@@ -361,5 +365,38 @@
       "title": "Delete the workspace",
       "description": "Only the owner; cannot be given to others."
     }
+  },
+  "email": {
+    "test": "Send me a test email",
+    "testQueued": "Test email queued. It appears below in a few seconds.",
+    "adminsOnly": "Only administrators can see email delivery.",
+    "capturingTitle": "Emails are not reaching real inboxes",
+    "capturingBody": "This server sends email to a test inbox (such as Mailpit), so invitations, reminders and password resets are collected there and never delivered. Connect a real provider below, then restart the API and worker.",
+    "queueBody_one": "{{count}} email is waiting to be sent. If this number does not go down, the background worker is not running.",
+    "queueBody_other": "{{count}} emails are waiting to be sent. If this number does not go down, the background worker is not running.",
+    "deliveryTitle": "Delivery",
+    "deliveryDescription": "How this server sends email.",
+    "method": "Method",
+    "server": "SMTP server",
+    "domain": "Sending domain",
+    "from": "Sender",
+    "queue": "Queue",
+    "queueHint": "Waiting now, and failed for good in the last 7 days.",
+    "waiting_one": "{{count}} waiting",
+    "waiting_other": "{{count}} waiting",
+    "failed_one": "{{count}} failed",
+    "failed_other": "{{count}} failed",
+    "recentTitle": "Latest emails",
+    "recentDescription": "Emails to people of this workspace, newest first.",
+    "none": "No emails yet. Send a test email to see how it goes.",
+    "status": {
+      "done": "Sent",
+      "failed": "Failed",
+      "pending": "Waiting",
+      "running": "Sending"
+    },
+    "setupTitle": "Connect a mail provider",
+    "setupDescription": "Set these in the server's .env file (secrets stay out of the browser).",
+    "setupAfter": "Then run: docker compose up -d api worker. Use “Send me a test email” to check."
   }
 }

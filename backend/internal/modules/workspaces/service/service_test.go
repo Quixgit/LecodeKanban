@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -478,5 +479,59 @@ func TestRolesAndPermissions(t *testing.T) {
 		if !seen[a] {
 			t.Errorf("audit log lacks %s", a)
 		}
+	}
+}
+
+func TestMailStatusAndTestMail(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	owner := e.user(t, "Owner", "owner@example.com", "en")
+	member := e.user(t, "Member", "member@example.com", "en")
+	_ = e.user(t, "Stranger", "stranger@example.org", "en")
+	ws, _ := e.svc.Create(ctx, owner, "Team")
+	if _, err := e.svc.Invite(ctx, owner, ws.ID, "member@example.com", domain.RoleMember); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.svc.Accept(ctx, member, e.inviteToken(t)); err != nil {
+		t.Fatal(err)
+	}
+	e.svc.WithMailInfo(service.MailInfo{Provider: "smtp", Host: "mailpit", From: "LecodeKanban <no-reply@lecodekanban.local>"})
+
+	// Emails to this workspace's people are listed; mail to people elsewhere is not.
+	add := func(to, status, lastErr string) {
+		_, err := tdb.Pool.Exec(ctx, `INSERT INTO jobs (kind, payload, status, last_error) VALUES ('mail.send', jsonb_build_object('to', $1::text, 'subject', 'Hello'), $2, NULLIF($3, ''))`, to, status, lastErr)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	add("member@example.com", "done", "")
+	add("Owner@Example.com", "failed", "535 authentication failed")
+	add("stranger@example.org", "done", "")
+	st, err := e.svc.MailStatus(ctx, owner, ws.ID)
+	if err != nil || len(st.Recent) != 2 || st.Failed != 1 || st.Waiting != 0 || !st.Info.Capturing() {
+		t.Fatalf("status: %+v %v", st, err)
+	}
+	if st.Recent[0].Recipient != "Owner@Example.com" || st.Recent[0].Error == "" {
+		t.Fatalf("newest first with its error: %+v", st.Recent)
+	}
+	_, err = e.svc.MailStatus(ctx, member, ws.ID)
+	mustCode(t, err, domain.ErrInsufficientRole)
+
+	// The test email goes to the administrator only.
+	before := len(e.mails)
+	if err := e.svc.SendTestMail(ctx, owner, ws.ID); err != nil || len(e.mails) != before+1 || e.mails[before].To != "owner@example.com" {
+		t.Fatalf("test mail: %v %+v", err, e.mails)
+	}
+	mustCode(t, e.svc.SendTestMail(ctx, member, ws.ID), domain.ErrInsufficientRole)
+
+	// Real delivery settings are not flagged as a test inbox.
+	if (service.MailInfo{Provider: "mailgun", Host: "mg.example.com", From: "A <a@mg.example.com>"}).Capturing() ||
+		(service.MailInfo{Provider: "smtp", Host: "smtp.example.com", From: "A <a@example.com>"}).Capturing() {
+		t.Fatal("real providers are not capturing")
+	}
+	// The invitation address is returned when an invitation is created.
+	inv, err := e.svc.Invite(ctx, owner, ws.ID, "new@example.com", domain.RoleViewer)
+	if err != nil || !strings.HasPrefix(inv.Link, "http://app.test/invite/") {
+		t.Fatalf("invite link: %q %v", inv.Link, err)
 	}
 }

@@ -67,6 +67,8 @@ Base URL: `/api/v1`
 | DELETE | `/workspaces/{workspaceId}/roles/{roleKey}` | session |  | 204 | Delete a custom role; its people go back to the built-in role it ranked as |
 | POST | `/workspaces/{workspaceId}/roles/{roleKey}/reset` | session |  | 204 | Put a built-in role back to its default permissions |
 | PUT | `/workspaces/{workspaceId}/members/{userId}/custom-role` | session |  | 204, 403 Error | Give a member a custom role, or null to go back to their built-in role |
+| GET | `/workspaces/{workspaceId}/mail` | session |  | 200 | How email leaves this server, the queue, and the latest emails to this workspace's people (administrators) |
+| POST | `/workspaces/{workspaceId}/mail/test` | session |  | 202 | Send a test email to the caller (administrators) |
 | GET | `/workspaces/{workspaceId}/members` | session |  | 200 |  |
 | GET | `/workspaces/{workspaceId}/members/{userId}` | session |  | 200, 404 Error | A teammate's profile card |
 | PATCH | `/workspaces/{workspaceId}/members/{userId}` | session | UpdateMemberRequest | 204, 403 Error, 409 Error |  |
@@ -337,11 +339,13 @@ Base URL: `/api/v1`
 - **RoleInput** — `name`: string, `description?`: string, `base`: string, `permissions`: array
 - **PermissionsInput** — `permissions`: array
 - **RoleRef** — `id`: string, `name`: string
+- **MailItem** — `id`: integer, `recipient`: string, `subject`: string, `status`: string, `attempts`: integer, `error`: string \| null, `at`: string
+- **MailStatus** — `provider`: string, `host`: string, `from`: string, `capturing`: boolean, `waiting`: integer, `failed`: integer, `recent`: array
 - **MemberUser** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null
 - **MemberProfile** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `role`: Role, `joinedAt`: string, `jobTitle`: string, `pronouns`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
 - **Member** — `user`: MemberUser, `role`: Role, `customRole`: object \| null, `joinedAt`: string
 - **UpdateMemberRequest** — `role`: Role
-- **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string
+- **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string, `link?`: string
 - **CreateInviteRequest** — `email`: string, `role`: InviteRole
 - **InvitePreview** — `workspaceName`: string, `inviterName`: string \| null, `email`: string, `role`: InviteRole, `expired`: boolean, `accepted`: boolean
 - **TaskStatus**: `todo` | `in_progress` | `in_review` | `done`

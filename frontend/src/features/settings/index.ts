@@ -1,5 +1,6 @@
 export { AccessPage } from './components/AccessPage';
 export { AuditPage } from './components/AuditPage';
+export { EmailPage } from './components/EmailPage';
 export { FeatureGate } from './components/FeatureGate';
 export { FeaturesPage } from './components/FeaturesPage';
 export { FieldsPage } from './components/FieldsPage';

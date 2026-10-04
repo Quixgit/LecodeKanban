@@ -45,11 +45,17 @@
   },
   "invite": {
     "title": "Invite to {{workspace}}",
-    "description": "They'll receive an email with a link to join. Invitations expire after 7 days.",
+    "description": "They'll receive an email with a link to join. Invitations expire after the number of days set in Settings → Access.",
     "email": "Email address",
     "role": "Role",
     "submit": "Send invitation",
-    "sent": "Invitation sent to {{email}}"
+    "sent": "Invitation sent to {{email}}",
+    "done": "Done",
+    "linkHint": "If the email does not arrive, send this link yourself. Anyone with the link can join with this address.",
+    "link": "Invitation link",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "copyFailed": "Couldn't copy the link"
   },
   "pending": {
     "title": "Pending invitations",

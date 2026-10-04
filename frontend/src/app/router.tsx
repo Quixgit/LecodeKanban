@@ -43,6 +43,9 @@ const SettingsRoles = lazy(() =>
 const SettingsRules = lazy(() =>
   import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.RulesRoute })),
 );
+const SettingsEmail = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.EmailRoute })),
+);
 const SettingsAudit = lazy(() =>
   import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.AuditRoute })),
 );
@@ -206,6 +209,7 @@ export const routes: RouteObject[] = [
               { path: 'rules', element: <SettingsRules /> },
               { path: 'fields', element: <SettingsFields /> },
               { path: 'labels', element: <SettingsLabels /> },
+              { path: 'email', element: <SettingsEmail /> },
               { path: 'audit', element: <SettingsAudit /> },
             ],
           },

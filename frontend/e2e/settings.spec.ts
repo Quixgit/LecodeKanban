@@ -1,9 +1,10 @@
+import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, openKanban, signIn, test } from './fixtures';
 
 const stamp = () => Date.now().toString(36);
 
-async function axeClean(page: import('@playwright/test').Page) {
+async function axeClean(page: Page) {
   // Cards fade in one after another; contrast is measured on the settled page.
   await page.waitForTimeout(700);
   const axe = await new AxeBuilder({ page })
@@ -260,5 +261,36 @@ test.describe('Settings admin centre', () => {
     await main.getByRole('button', { name: 'Delete role' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete role' }).click();
     await expect(list.getByRole('button', { name: new RegExp(name) })).toHaveCount(0);
+  });
+
+  test('email delivery page and the invitation link', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page);
+    const main = page.getByRole('main');
+    await page.goto('/settings/email');
+    await expect(main.getByRole('heading', { name: 'Delivery' })).toBeVisible();
+    await expect(main.getByText('SMTP', { exact: true })).toBeVisible();
+    // The local stack sends to a test inbox, which the page says plainly.
+    await expect(main.getByRole('alert')).toContainText('not reaching real inboxes');
+    await main.getByRole('button', { name: 'Send me a test email' }).click();
+    await expect(page.getByText(/Test email queued/)).toBeVisible();
+    await expect(main.getByText('LecodeKanban: test email').first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await axeClean(page);
+
+    // Inviting shows the link next to "sent", for when the email does not arrive.
+    await page.goto('/team');
+    await page
+      .getByRole('button', { name: /Invite/ })
+      .first()
+      .click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Email address').fill(`e2e-${stamp()}@example.com`);
+    await dialog.getByRole('button', { name: 'Send invitation' }).click();
+    await expect(dialog.getByLabel('Invitation link')).toHaveValue(/\/invite\/[A-Za-z0-9_-]+$/);
+    await dialog.getByRole('button', { name: 'Done' }).click();
+    // Revoke it again so the list stays tidy.
+    await page.getByRole('button', { name: 'Revoke' }).first().click();
   });
 });

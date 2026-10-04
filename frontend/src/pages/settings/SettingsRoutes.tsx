@@ -1,6 +1,7 @@
 import {
   AccessPage,
   AuditPage,
+  EmailPage,
   FeaturesPage,
   FieldsPage,
   GeneralPage,
@@ -21,3 +22,4 @@ export const FieldsRoute = FieldsPage;
 export const LabelsRoute = LabelsPage;
 export const AuditRoute = AuditPage;
 export const RolesRoute = RolesPage;
+export const EmailRoute = EmailPage;

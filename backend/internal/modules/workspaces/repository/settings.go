@@ -62,3 +62,13 @@ func (r *Repo) Audit(ctx context.Context, ws uuid.UUID, limit int) ([]domain.Aud
 	}
 	return out, nil
 }
+
+// MailOverview returns the email queue counts and the latest emails for a workspace's people.
+func (r *Repo) MailOverview(ctx context.Context, ws uuid.UUID) (store.MailQueueCountsRow, []store.ListWorkspaceMailRow, error) {
+	counts, err := r.q.MailQueueCounts(ctx)
+	if err != nil {
+		return counts, nil, err
+	}
+	rows, err := r.q.ListWorkspaceMail(ctx, ws)
+	return counts, rows, err
+}

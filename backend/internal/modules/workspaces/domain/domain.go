@@ -47,6 +47,8 @@ type Invite struct {
 	ExpiresAt   time.Time
 	AcceptedAt  *time.Time
 	CreatedAt   time.Time
+	// Link is the invitation address; it is known only when the invitation is created.
+	Link string
 }
 
 type InvitePreview struct {

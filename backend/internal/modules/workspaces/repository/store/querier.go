@@ -35,7 +35,10 @@ type Querier interface {
 	ListMembers(ctx context.Context, workspaceID uuid.UUID) ([]ListMembersRow, error)
 	ListOpenInvites(ctx context.Context, workspaceID uuid.UUID) ([]WorkspaceInvite, error)
 	ListRoleOverrides(ctx context.Context, workspaceID uuid.UUID) ([]ListRoleOverridesRow, error)
+	// The latest emails addressed to people of this workspace (members and invited addresses).
+	ListWorkspaceMail(ctx context.Context, workspaceID uuid.UUID) ([]ListWorkspaceMailRow, error)
 	ListWorkspacesForUser(ctx context.Context, userID uuid.UUID) ([]ListWorkspacesForUserRow, error)
+	MailQueueCounts(ctx context.Context) (MailQueueCountsRow, error)
 	MarkInviteAccepted(ctx context.Context, id uuid.UUID) error
 	MemberAccess(ctx context.Context, arg MemberAccessParams) (MemberAccessRow, error)
 	PutRoleOverride(ctx context.Context, arg PutRoleOverrideParams) error
