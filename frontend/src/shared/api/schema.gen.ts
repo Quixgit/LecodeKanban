@@ -409,6 +409,45 @@ export interface paths {
         patch: operations["updateWorkspace"];
         trace?: never;
     };
+    "/workspaces/{workspaceId}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** The workspace's rules and feature switches (any member) */
+        get: operations["getWorkspaceSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change settings (administrators); changes are written to the audit log */
+        patch: operations["updateWorkspaceSettings"];
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** The latest administrator actions (administrators) */
+        get: operations["listWorkspaceAudit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/members": {
         parameters: {
             query?: never;
@@ -2725,6 +2764,72 @@ export interface components {
         WorkspaceInput: {
             name: string;
         };
+        WorkspaceFeatures: {
+            chat: boolean;
+            docs: boolean;
+            time: boolean;
+            calendar: boolean;
+            integrations: boolean;
+        };
+        WorkspaceSettings: {
+            description: string;
+            /**
+             * @description Who may invite people
+             * @enum {string}
+             */
+            inviteBy: "admins" | "members";
+            /** @description How long an invitation stays valid */
+            inviteDays: number;
+            defaultInviteRole: components["schemas"]["InviteRole"];
+            /** @description Only addresses of these domains may be invited; empty allows any */
+            allowedDomains: string[];
+            /** @enum {string} */
+            projectCreateBy: "admins" | "members";
+            /** @enum {string} */
+            channelCreateBy: "admins" | "members";
+            /**
+             * @description Who may notify a whole channel with @channel
+             * @enum {string}
+             */
+            broadcastBy: "everyone" | "admins";
+            /** @enum {string} */
+            defaultPriority: "low" | "medium" | "high";
+            requireDueDate: boolean;
+            /** @description 0 Sunday */
+            weekStart: number;
+            features: components["schemas"]["WorkspaceFeatures"];
+        };
+        WorkspaceSettingsPatch: {
+            description?: string;
+            /** @enum {string} */
+            inviteBy?: "admins" | "members";
+            inviteDays?: number;
+            defaultInviteRole?: components["schemas"]["InviteRole"];
+            allowedDomains?: string[];
+            /** @enum {string} */
+            projectCreateBy?: "admins" | "members";
+            /** @enum {string} */
+            channelCreateBy?: "admins" | "members";
+            /** @enum {string} */
+            broadcastBy?: "everyone" | "admins";
+            /** @enum {string} */
+            defaultPriority?: "low" | "medium" | "high";
+            requireDueDate?: boolean;
+            weekStart?: number;
+            features?: components["schemas"]["WorkspaceFeatures"];
+        };
+        AuditEntry: {
+            /** Format: uuid */
+            id: string;
+            actor: components["schemas"]["PersonRef"] | null;
+            /** @description e.g. settings.updated, member.role_changed, member.removed, invite.sent, invite.revoked, workspace.renamed */
+            action: string;
+            details: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            at: string;
+        };
         MemberUser: {
             /** Format: uuid */
             id: string;
@@ -4663,6 +4768,78 @@ export interface operations {
                 };
             };
             403: components["responses"]["Error"];
+        };
+    };
+    getWorkspaceSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceSettings"];
+                };
+            };
+        };
+    };
+    updateWorkspaceSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceSettingsPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceSettings"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    listWorkspaceAudit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Entries, newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEntry"][];
+                };
+            };
         };
     };
     listMembers: {

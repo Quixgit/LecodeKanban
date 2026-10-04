@@ -92,6 +92,19 @@ func (s *Service) Post(ctx context.Context, user, channel uuid.UUID, parent *uui
 			return MessageView{}, apperr.New(domain.ErrDeleted, "message was deleted")
 		}
 	}
+	if domain.MentionsAll(body) {
+		role, err := s.ws.Authorize(ctx, ch.WorkspaceID, user, wsdomain.PermView)
+		if err != nil {
+			return MessageView{}, err
+		}
+		policy, err := s.ws.Policy(ctx, ch.WorkspaceID)
+		if err != nil {
+			return MessageView{}, err
+		}
+		if policy.BroadcastBy == wsdomain.ByAdmins && !role.Can(wsdomain.PermUpdate) {
+			return MessageView{}, apperr.New(wsdomain.ErrPolicy, "only administrators may notify everyone with @channel")
+		}
+	}
 	mentions, err := s.members(ctx, ch.WorkspaceID, domain.ParseMentions(body))
 	if err != nil {
 		return MessageView{}, err

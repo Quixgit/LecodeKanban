@@ -616,6 +616,15 @@ type Workspace struct {
 	UpdatedAt time.Time
 }
 
+type WorkspaceAudit struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	ActorID     uuid.NullUUID
+	Action      string
+	Details     []byte
+	At          time.Time
+}
+
 type WorkspaceInvite struct {
 	ID          uuid.UUID
 	WorkspaceID uuid.UUID
@@ -633,4 +642,10 @@ type WorkspaceMember struct {
 	UserID      uuid.UUID
 	Role        string
 	JoinedAt    time.Time
+}
+
+type WorkspaceSetting struct {
+	WorkspaceID uuid.UUID
+	Data        []byte
+	UpdatedAt   time.Time
 }

@@ -4,6 +4,7 @@ import { GuestOnly, RequireAuth } from '@/features/auth';
 import { AppShell } from './layouts/app-shell/AppShell';
 import type { RouteHandle } from './layouts/app-shell/header/PageTitle';
 import { BootSplash } from './layouts/BootSplash';
+import { FeatureGate } from '@/features/settings';
 import { AuthLayout } from './layouts/auth/AuthLayout';
 import { RouteError } from './layouts/RouteError';
 
@@ -29,6 +30,18 @@ const SettingsOverview = lazy(() =>
 );
 const SettingsGeneral = lazy(() =>
   import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.GeneralRoute })),
+);
+const SettingsFeatures = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.FeaturesRoute })),
+);
+const SettingsAccess = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.AccessRoute })),
+);
+const SettingsRules = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.RulesRoute })),
+);
+const SettingsAudit = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.AuditRoute })),
 );
 const SettingsFields = lazy(() =>
   import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.FieldsRoute })),
@@ -115,13 +128,25 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, handle: page('dashboard'), element: <DashboardPage /> },
           { path: 'projects', handle: page('projects'), element: <ProjectsPage /> },
-          { path: 'calendar', handle: page('calendar'), element: <CalendarPage /> },
+          {
+            path: 'calendar',
+            handle: page('calendar'),
+            element: (
+              <FeatureGate feature="calendar">
+                <CalendarPage />
+              </FeatureGate>
+            ),
+          },
           { path: 'tasks', handle: page('tasks'), element: <TasksPage /> },
           { path: 'tasks/:status', handle: page('tasks'), element: <TasksPage /> },
           {
             path: 'docs',
             handle: page('docs'),
-            element: <DocsPage />,
+            element: (
+              <FeatureGate feature="docs">
+                <DocsPage />
+              </FeatureGate>
+            ),
             children: [
               { index: true, element: <DocsHomeRoute /> },
               { path: 's/:spaceId', element: <DocsSpaceRoute /> },
@@ -132,7 +157,11 @@ export const routes: RouteObject[] = [
           {
             path: 'chat',
             handle: page('chat'),
-            element: <ChatPage />,
+            element: (
+              <FeatureGate feature="chat">
+                <ChatPage />
+              </FeatureGate>
+            ),
             children: [
               { index: true, element: <ChatHomeRoute /> },
               { path: 'threads', element: <ChatThreadsRoute /> },
@@ -143,7 +172,15 @@ export const routes: RouteObject[] = [
           upcoming('performance', 'performance'),
           upcoming('help', 'help'),
           { path: 'team', handle: page('team'), element: <TeamPage /> },
-          { path: 'integrations', handle: page('integrations'), element: <IntegrationsPage /> },
+          {
+            path: 'integrations',
+            handle: page('integrations'),
+            element: (
+              <FeatureGate feature="integrations">
+                <IntegrationsPage />
+              </FeatureGate>
+            ),
+          },
           {
             path: 'profile',
             handle: page('profile'),
@@ -160,8 +197,12 @@ export const routes: RouteObject[] = [
             children: [
               { index: true, element: <SettingsOverview /> },
               { path: 'general', element: <SettingsGeneral /> },
+              { path: 'features', element: <SettingsFeatures /> },
+              { path: 'access', element: <SettingsAccess /> },
+              { path: 'rules', element: <SettingsRules /> },
               { path: 'fields', element: <SettingsFields /> },
               { path: 'labels', element: <SettingsLabels /> },
+              { path: 'audit', element: <SettingsAudit /> },
             ],
           },
           // The person's own pages moved to /profile.

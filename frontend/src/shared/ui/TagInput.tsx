@@ -1,7 +1,6 @@
 import { X } from 'lucide-react';
 import { useState, type KeyboardEvent } from 'react';
-import { useTranslation } from 'react-i18next';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '../lib/cn';
 
 interface Props {
   id?: string;
@@ -11,7 +10,12 @@ interface Props {
   maxLength: number;
   placeholder?: string;
   'aria-describedby'?: string;
+  'aria-label'?: string;
   invalid?: boolean;
+  /** Accessible name of a tag's remove button. */
+  removeLabel: (tag: string) => string;
+  /** Shown instead of the placeholder once `max` tags are in. */
+  fullPlaceholder?: string;
 }
 
 /** Type a word and press Enter or a comma to add it as a tag; Backspace on an empty box removes the last. */
@@ -23,9 +27,10 @@ export function TagInput({
   maxLength,
   placeholder,
   invalid,
+  removeLabel,
+  fullPlaceholder,
   ...rest
 }: Props) {
-  const { t } = useTranslation('profile');
   const [draft, setDraft] = useState('');
 
   const add = (raw: string) => {
@@ -59,7 +64,7 @@ export function TagInput({
           {tag}
           <button
             type="button"
-            aria-label={t('skills.remove', { name: tag })}
+            aria-label={removeLabel(tag)}
             onClick={() => onChange(value.filter((v) => v !== tag))}
             className="grid size-5 place-items-center rounded-full outline-none hover:bg-primary-soft focus-visible:shadow-focus"
           >
@@ -72,7 +77,7 @@ export function TagInput({
         value={draft}
         maxLength={maxLength}
         disabled={value.length >= max}
-        placeholder={value.length >= max ? t('skills.full', { max }) : placeholder}
+        placeholder={value.length >= max ? fullPlaceholder : placeholder}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={onKey}
         onBlur={() => add(draft)}

@@ -5,12 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import type { Command } from '@/features/command-palette';
 import { useLanguage } from '@/shared/i18n';
 import { useTheme } from '@/shared/theme';
-import { navigation } from './navigation';
+import { useNavigation } from './useNavigation';
 
 /** Global commands: jump to any page, switch theme / language. */
 export function useShellCommands(): Command[] {
   const { t } = useTranslation(['nav', 'common']);
   const navigate = useNavigate();
+  const navigation = useNavigation();
   const { resolved, toggle } = useTheme();
   const { language, setLanguage } = useLanguage();
 
@@ -68,5 +69,5 @@ export function useShellCommands(): Command[] {
         run: () => void setLanguage(language === 'en' ? 'uk' : 'en'),
       },
     ];
-  }, [t, navigate, resolved, toggle, language, setLanguage]);
+  }, [t, navigate, navigation, resolved, toggle, language, setLanguage]);
 }

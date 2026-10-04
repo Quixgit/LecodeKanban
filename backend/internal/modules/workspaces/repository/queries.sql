@@ -64,3 +64,16 @@ DELETE FROM workspace_invites WHERE workspace_id = @workspace_id AND id = @id AN
 
 -- name: MarkInviteAccepted :exec
 UPDATE workspace_invites SET accepted_at = now() WHERE id = $1;
+
+-- name: GetSettings :one
+SELECT data FROM workspace_settings WHERE workspace_id = $1;
+
+-- name: PutSettings :exec
+INSERT INTO workspace_settings (workspace_id, data) VALUES (@workspace_id, @data)
+ON CONFLICT (workspace_id) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
+
+-- name: AddAudit :exec
+INSERT INTO workspace_audit (workspace_id, actor_id, action, details) VALUES (@workspace_id, @actor_id, @action, @details);
+
+-- name: ListAudit :many
+SELECT id, actor_id, action, details, at FROM workspace_audit WHERE workspace_id = $1 ORDER BY at DESC, id LIMIT $2;

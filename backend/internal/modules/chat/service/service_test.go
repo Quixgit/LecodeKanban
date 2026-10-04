@@ -894,3 +894,32 @@ func TestNotifyLevels(t *testing.T) {
 	mustCode(t, c.SetNotify(ctx, w.ben, ch.ID, "loud"), "chat.bad_level")
 	mustCode(t, c.SetNotify(ctx, w.outsider, ch.ID, "muted"), "chat.not_found")
 }
+
+func TestWorkspacePolicies(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	// Channel creation can be limited to administrators (owners count as administrators).
+	if _, err := w.e.Workspaces.UpdateSettings(ctx, w.owner, w.ws, wsdomain.SettingsPatch{ChannelCreateBy: ptrOf(wsdomain.ByAdmins),
+		BroadcastBy: ptrOf(wsdomain.ByAdmins)}); err != nil {
+		t.Fatal(err)
+	}
+	_, err := c.CreateChannel(ctx, w.anna, w.ws, chatInput("members-only", false))
+	mustCode(t, err, wsdomain.ErrPolicy)
+	ch, err := c.CreateChannel(ctx, w.owner, w.ws, chatInput("official", false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = c.Join(ctx, w.anna, ch.ID)
+	// @channel is for administrators only; ordinary messages are fine.
+	_, err = c.Post(ctx, w.anna, ch.ID, nil, "@channel everyone!", nil)
+	mustCode(t, err, wsdomain.ErrPolicy)
+	if _, err := c.Post(ctx, w.anna, ch.ID, nil, "just a message", nil); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Post(ctx, w.owner, ch.ID, nil, "@channel standup", nil); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func ptrOf[T any](v T) *T { return &v }

@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useCard } from '@/features/cards';
 import { GithubCardPanel } from '@/features/integrations';
+import { useFeatureEnabled } from '@/features/settings';
 import { TimeTracker } from '@/features/time-tracking';
 import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import {
@@ -69,6 +70,7 @@ type Tab = 'comments' | 'activity';
 
 /** Slide-in card detail, opened from any view through ?card=<id> (shareable links). */
 export function CardDrawer({ currentUserId }: { currentUserId: string }) {
+  const timeOn = useFeatureEnabled('time');
   const { t } = useTranslation(['card', 'time']);
   const [params, setParams] = useSearchParams();
   const id = params.get('card') ?? undefined;
@@ -253,12 +255,14 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
                 expanded && 'xl:col-start-3 xl:row-span-1',
               )}
             >
-              <TimeTracker
-                cardId={card.id}
-                editable={editable}
-                currentUserId={currentUserId}
-                isAdmin={isAdmin}
-              />
+              {timeOn && (
+                <TimeTracker
+                  cardId={card.id}
+                  editable={editable}
+                  currentUserId={currentUserId}
+                  isAdmin={isAdmin}
+                />
+              )}
               <CardFields
                 card={card}
                 workspaceId={ws}

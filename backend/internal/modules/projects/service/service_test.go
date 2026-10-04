@@ -193,3 +193,24 @@ func TestUpdateAndArchive(t *testing.T) {
 	_, err = e.Projects.Get(ctx, owner, p.ID)
 	mustCode(t, err, domain.ErrNotFound)
 }
+
+func TestProjectCreationPolicy(t *testing.T) {
+	tdb.Reset(t)
+	e := testkit.New(t, tdb.Pool)
+	ctx := context.Background()
+	owner := e.User("Owner", "o@example.com")
+	member := e.User("Member", "m@example.com")
+	ws := e.Workspace(owner, map[uuid.UUID]wsdomain.Role{member: wsdomain.RoleMember}, tdb.Pool)
+
+	if _, err := e.Projects.Create(ctx, member, ws, service.CreateInput{Name: "Open"}, "en"); err != nil {
+		t.Fatalf("members create projects by default: %v", err)
+	}
+	if _, err := e.Workspaces.UpdateSettings(ctx, owner, ws, wsdomain.SettingsPatch{ProjectCreateBy: ptr(wsdomain.ByAdmins)}); err != nil {
+		t.Fatal(err)
+	}
+	_, err := e.Projects.Create(ctx, member, ws, service.CreateInput{Name: "Closed"}, "en")
+	mustCode(t, err, wsdomain.ErrPolicy)
+	if _, err := e.Projects.Create(ctx, owner, ws, service.CreateInput{Name: "By owner"}, "en"); err != nil {
+		t.Fatalf("administrators still can: %v", err)
+	}
+}

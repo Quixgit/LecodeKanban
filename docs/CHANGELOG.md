@@ -34,6 +34,19 @@
 
 ### Added
 
+- **Admin centre redesigned and extended**: one card of grouped sections (Workspace, People, Work, System) with an
+  animated highlight, tiles with a short status on the overview, and every setting as a row with its control, saved
+  at once. New sections:
+  - **Modules**: switch Chat, Docs, Calendar, Time tracking and Integrations off for the workspace (hidden from the
+    menu, pages say "switched off", data is kept).
+  - **Access & invitations**: who can invite (admins or every member), default role, invitation lifetime (1-30 days) and
+    allowed email domains.
+  - **Rules & defaults**: who creates projects and channels, who may use @channel, default task priority, require a due
+    date, and the calendar week start (Monday or Sunday).
+  - **General**: now also a workspace description.
+  - **Audit log**: who changed settings, roles, invitations or the workspace name, and when.
+  Rules are enforced by the server, not only hidden in the interface (ADR 0023).
+
 - **Profile background**: pick one of eight ready-made backgrounds or upload your own picture (cropped to a wide strip
   in the browser); it shows in the profile header and on your teammate card.
 - **More about you** on the profile: pronouns, LinkedIn, Telegram, website, working hours, skills (tags) and an

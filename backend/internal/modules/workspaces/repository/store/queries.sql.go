@@ -12,6 +12,27 @@ import (
 	"github.com/google/uuid"
 )
 
+const addAudit = `-- name: AddAudit :exec
+INSERT INTO workspace_audit (workspace_id, actor_id, action, details) VALUES ($1, $2, $3, $4)
+`
+
+type AddAuditParams struct {
+	WorkspaceID uuid.UUID
+	ActorID     uuid.NullUUID
+	Action      string
+	Details     []byte
+}
+
+func (q *Queries) AddAudit(ctx context.Context, arg AddAuditParams) error {
+	_, err := q.db.Exec(ctx, addAudit,
+		arg.WorkspaceID,
+		arg.ActorID,
+		arg.Action,
+		arg.Details,
+	)
+	return err
+}
+
 const addMember = `-- name: AddMember :exec
 INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, $3)
 ON CONFLICT (workspace_id, user_id) DO NOTHING
@@ -211,6 +232,17 @@ func (q *Queries) GetMemberRole(ctx context.Context, arg GetMemberRoleParams) (s
 	return role, err
 }
 
+const getSettings = `-- name: GetSettings :one
+SELECT data FROM workspace_settings WHERE workspace_id = $1
+`
+
+func (q *Queries) GetSettings(ctx context.Context, workspaceID uuid.UUID) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getSettings, workspaceID)
+	var data []byte
+	err := row.Scan(&data)
+	return data, err
+}
+
 const getWorkspace = `-- name: GetWorkspace :one
 SELECT id, name, slug, created_by, created_at, updated_at FROM workspaces WHERE id = $1
 `
@@ -227,6 +259,49 @@ func (q *Queries) GetWorkspace(ctx context.Context, id uuid.UUID) (Workspace, er
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const listAudit = `-- name: ListAudit :many
+SELECT id, actor_id, action, details, at FROM workspace_audit WHERE workspace_id = $1 ORDER BY at DESC, id LIMIT $2
+`
+
+type ListAuditParams struct {
+	WorkspaceID uuid.UUID
+	Limit       int32
+}
+
+type ListAuditRow struct {
+	ID      uuid.UUID
+	ActorID uuid.NullUUID
+	Action  string
+	Details []byte
+	At      time.Time
+}
+
+func (q *Queries) ListAudit(ctx context.Context, arg ListAuditParams) ([]ListAuditRow, error) {
+	rows, err := q.db.Query(ctx, listAudit, arg.WorkspaceID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAuditRow{}
+	for rows.Next() {
+		var i ListAuditRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ActorID,
+			&i.Action,
+			&i.Details,
+			&i.At,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listMembers = `-- name: ListMembers :many
@@ -346,6 +421,21 @@ UPDATE workspace_invites SET accepted_at = now() WHERE id = $1
 
 func (q *Queries) MarkInviteAccepted(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, markInviteAccepted, id)
+	return err
+}
+
+const putSettings = `-- name: PutSettings :exec
+INSERT INTO workspace_settings (workspace_id, data) VALUES ($1, $2)
+ON CONFLICT (workspace_id) DO UPDATE SET data = EXCLUDED.data, updated_at = now()
+`
+
+type PutSettingsParams struct {
+	WorkspaceID uuid.UUID
+	Data        []byte
+}
+
+func (q *Queries) PutSettings(ctx context.Context, arg PutSettingsParams) error {
+	_, err := q.db.Exec(ctx, putSettings, arg.WorkspaceID, arg.Data)
 	return err
 }
 

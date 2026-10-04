@@ -112,8 +112,16 @@ func validateTopic(v *validation.V, topic string) {
 
 // CreateChannel creates a public or private channel; the creator joins it.
 func (s *Service) CreateChannel(ctx context.Context, user, ws uuid.UUID, in ChannelInput) (ChannelView, error) {
-	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent); err != nil {
+	role, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent)
+	if err != nil {
 		return ChannelView{}, err
+	}
+	policy, err := s.ws.Policy(ctx, ws)
+	if err != nil {
+		return ChannelView{}, err
+	}
+	if policy.ChannelCreateBy == wsdomain.ByAdmins && !role.Can(wsdomain.PermUpdate) {
+		return ChannelView{}, apperr.New(wsdomain.ErrPolicy, "only administrators may create channels")
 	}
 	in.Name = domain.NormalizeName(in.Name)
 	var v validation.V

@@ -91,13 +91,23 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewC
 	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent); err != nil {
 		return View{}, err
 	}
+	policy, err := s.ws.Policy(ctx, ws)
+	if err != nil {
+		return View{}, err
+	}
 	if in.Priority == "" {
-		in.Priority = domain.Medium
+		in.Priority = domain.Priority(policy.DefaultPriority)
+		if !in.Priority.Valid() {
+			in.Priority = domain.Medium
+		}
 	}
 	if in.Status == "" {
 		in.Status = domain.Todo
 	}
 	var v validation.V
+	if policy.RequireDueDate && in.DueDate == nil {
+		v.Add("dueDate", validation.Required, nil)
+	}
 	validateFields(&v, &in.Title, &in.Description, &in.Priority)
 	if !in.Status.Valid() {
 		v.OneOf("status", string(in.Status), "todo", "in_progress", "in_review", "done")

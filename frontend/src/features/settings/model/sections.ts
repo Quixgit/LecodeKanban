@@ -1,20 +1,34 @@
 import {
   Blocks,
+  Flag,
+  History,
   LayoutDashboard,
   ListPlus,
   SlidersHorizontal,
   Tags,
+  ToggleRight,
+  UserCog,
   Users,
   type LucideIcon,
 } from 'lucide-react';
 
-export type SectionKey = 'overview' | 'general' | 'fields' | 'labels' | 'members' | 'integrations';
+export type SectionKey =
+  | 'overview'
+  | 'general'
+  | 'features'
+  | 'access'
+  | 'members'
+  | 'rules'
+  | 'fields'
+  | 'labels'
+  | 'integrations'
+  | 'audit';
 
 export interface Section {
   key: SectionKey;
   to: string;
   icon: LucideIcon;
-  group: 'workspace' | 'tasks' | 'access';
+  group: 'workspace' | 'people' | 'work' | 'system';
   /** Sections that live on another page of the app open it instead of a settings page. */
   external?: boolean;
 }
@@ -22,10 +36,14 @@ export interface Section {
 export const SECTIONS: readonly Section[] = [
   { key: 'overview', to: '/settings', icon: LayoutDashboard, group: 'workspace' },
   { key: 'general', to: '/settings/general', icon: SlidersHorizontal, group: 'workspace' },
-  { key: 'fields', to: '/settings/fields', icon: ListPlus, group: 'tasks' },
-  { key: 'labels', to: '/settings/labels', icon: Tags, group: 'tasks' },
-  { key: 'members', to: '/team', icon: Users, group: 'access', external: true },
-  { key: 'integrations', to: '/integrations', icon: Blocks, group: 'access', external: true },
+  { key: 'features', to: '/settings/features', icon: ToggleRight, group: 'workspace' },
+  { key: 'access', to: '/settings/access', icon: UserCog, group: 'people' },
+  { key: 'members', to: '/team', icon: Users, group: 'people', external: true },
+  { key: 'rules', to: '/settings/rules', icon: Flag, group: 'work' },
+  { key: 'fields', to: '/settings/fields', icon: ListPlus, group: 'work' },
+  { key: 'labels', to: '/settings/labels', icon: Tags, group: 'work' },
+  { key: 'integrations', to: '/integrations', icon: Blocks, group: 'work', external: true },
+  { key: 'audit', to: '/settings/audit', icon: History, group: 'system' },
 ];
 
-export const GROUPS = ['workspace', 'tasks', 'access'] as const;
+export const GROUPS = ['workspace', 'people', 'work', 'system'] as const;

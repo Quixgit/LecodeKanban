@@ -5,20 +5,20 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { cn } from '@/shared/lib/cn';
 import { GROUPS, SECTIONS } from '../model/sections';
 
-/** The admin centre shell: grouped sections on the left (a scrolling strip on narrow screens). */
+/** The admin centre shell: one card of grouped sections on the left (a scrolling strip on narrow screens). */
 export function SettingsLayout() {
   const { t } = useTranslation('settings');
   const reduce = useReducedMotion();
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 lg:flex-row lg:gap-8">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 lg:flex-row lg:items-start lg:gap-6">
       <nav
         aria-label={t('nav.label')}
-        className="lg:sticky lg:top-4 lg:w-60 lg:shrink-0 lg:self-start"
+        className="rounded-2xl border border-border-subtle bg-surface p-2 shadow-card lg:sticky lg:top-4 lg:w-64 lg:shrink-0"
       >
-        <div className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:gap-5 lg:overflow-visible lg:pb-0">
+        <div className="flex gap-1 overflow-x-auto lg:flex-col lg:gap-4 lg:overflow-visible lg:p-1">
           {GROUPS.map((group) => (
             <div key={group} className="flex shrink-0 gap-1 lg:flex-col">
-              <p className="hidden px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-text-muted lg:block">
+              <p className="hidden px-2 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-text-muted lg:block">
                 {t(`groups.${group}`)}
               </p>
               {SECTIONS.filter((s) => s.group === group).map(
@@ -29,36 +29,48 @@ export function SettingsLayout() {
                     end={key === 'overview'}
                     className={({ isActive }) =>
                       cn(
-                        'relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium outline-none transition-colors duration-micro focus-visible:shadow-focus',
+                        'relative flex items-center gap-2.5 rounded-xl px-2 py-1.5 text-sm font-medium outline-none transition-colors duration-micro focus-visible:shadow-focus',
                         isActive && !external
                           ? 'text-primary-ink'
-                          : 'text-text-secondary hover:bg-surface-muted hover:text-text',
+                          : 'text-text-secondary hover:text-text',
                       )
                     }
                   >
-                    {({ isActive }) => (
-                      <>
-                        {isActive && !external && (
-                          <motion.span
-                            layoutId="settings-active"
-                            transition={
-                              reduce
-                                ? { duration: 0 }
-                                : { type: 'spring', stiffness: 500, damping: 40 }
-                            }
-                            className="absolute inset-0 rounded-lg bg-primary-subtle ring-1 ring-primary-border"
-                          />
-                        )}
-                        <Icon className="relative size-4 stroke-[1.7]" aria-hidden />
-                        <span className="relative">{t(`sections.${key}.title`)}</span>
-                        {external && (
-                          <ArrowUpRight
-                            className="relative ml-auto size-3.5 text-text-faint"
-                            aria-hidden
-                          />
-                        )}
-                      </>
-                    )}
+                    {({ isActive }) => {
+                      const on = isActive && !external;
+                      return (
+                        <>
+                          {on && (
+                            <motion.span
+                              layoutId="settings-active"
+                              transition={
+                                reduce
+                                  ? { duration: 0 }
+                                  : { type: 'spring', stiffness: 500, damping: 40 }
+                              }
+                              className="absolute inset-0 rounded-xl border border-primary-border bg-primary-subtle"
+                            />
+                          )}
+                          <span
+                            className={cn(
+                              'relative grid size-8 shrink-0 place-items-center rounded-lg transition-colors duration-micro [&_svg]:size-4 [&_svg]:stroke-[1.7]',
+                              on
+                                ? 'bg-surface text-primary-ink'
+                                : 'bg-surface-muted text-text-muted',
+                            )}
+                          >
+                            <Icon aria-hidden />
+                          </span>
+                          <span className="relative">{t(`sections.${key}.title`)}</span>
+                          {external && (
+                            <ArrowUpRight
+                              className="relative ml-auto size-3.5 text-text-faint"
+                              aria-hidden
+                            />
+                          )}
+                        </>
+                      );
+                    }}
                   </NavLink>
                 ),
               )}

@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { RolePill, useCurrentWorkspace, useWorkspaceMutations } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
-import { Button, Field, Input, Modal, SettingsCard, Skeleton, toast } from '@/shared/ui';
+import { Button, Field, Input, Modal, SettingsCard, Skeleton, Textarea, toast } from '@/shared/ui';
+import { useSaver } from '../hooks/useSaver';
+import { useWorkspaceSettings } from '../hooks/useSettings';
 import { SectionHeader } from './SectionHeader';
 
 /** Workspace name, address and the delete button (owners only). */
@@ -27,6 +29,10 @@ function GeneralForm({
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [typed, setTyped] = useState('');
+  const settings = useWorkspaceSettings(workspace.id);
+  const saver = useSaver(workspace.id);
+  const [about, setAbout] = useState<string | null>(null);
+  const aboutValue = about ?? settings.data?.description ?? '';
   const canEdit = workspace.role === 'owner' || workspace.role === 'admin';
   const isOwner = workspace.role === 'owner';
   const dirty = name.trim() !== workspace.name && name.trim() !== '';
@@ -76,6 +82,32 @@ function GeneralForm({
           </p>
         </SettingsCard>
       </form>
+
+      <SettingsCard
+        title={t('general.aboutTitle')}
+        description={t('general.aboutDescription')}
+        footer={
+          canEdit ? (
+            <Button
+              loading={saver.saving}
+              disabled={about === null || about === (settings.data?.description ?? '')}
+              onClick={() => saver.save({ description: aboutValue }, () => setAbout(null))}
+            >
+              {t('general.saveAbout')}
+            </Button>
+          ) : undefined
+        }
+      >
+        <Field label={t('general.description')} hint={`${aboutValue.length} / 300`}>
+          <Textarea
+            rows={3}
+            maxLength={300}
+            readOnly={!canEdit}
+            value={aboutValue}
+            onChange={(e) => setAbout(e.target.value)}
+          />
+        </Field>
+      </SettingsCard>
 
       <section
         aria-label={t('general.dangerTitle')}

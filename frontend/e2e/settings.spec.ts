@@ -21,7 +21,17 @@ test.describe('Settings admin centre', () => {
     await expect(page).toHaveURL(/\/settings$/);
     const main = page.getByRole('main');
     await expect(main.getByText('Admin centre')).toBeVisible();
-    for (const name of ['General', 'Custom fields', 'Labels', 'Members & roles', 'Integrations'])
+    for (const name of [
+      'General',
+      'Modules',
+      'Access & invitations',
+      'Members & roles',
+      'Rules & defaults',
+      'Custom fields',
+      'Labels',
+      'Integrations',
+      'Audit log',
+    ])
       await expect(main.locator('ul').getByRole('link', { name: new RegExp(name) })).toBeVisible();
     await axeClean(page);
 
@@ -149,5 +159,69 @@ test.describe('Settings admin centre', () => {
       await page.getByRole('dialog').getByRole('button', { name: 'Delete field' }).click();
       await expect(main.getByText(f, { exact: true })).toHaveCount(0);
     }
+  });
+
+  test('modules, access rules, defaults and the audit log', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page);
+    const main = page.getByRole('main');
+    const sidebar = page.getByRole('navigation', { name: 'Main menu' }).first();
+
+    // Switching a module off removes it from the menu and closes its page; switching on brings it back.
+    await page.goto('/settings/features');
+    const calendar = main.getByRole('switch', { name: 'Calendar' });
+    await expect(calendar).toBeChecked();
+    await calendar.click();
+    await expect(page.getByText('Saved').first()).toBeVisible();
+    await expect(
+      page.locator('aside, nav').getByRole('link', { name: 'Calendar', exact: true }),
+    ).toHaveCount(0);
+    await page.goto('/calendar');
+    await expect(page.getByText('This part is switched off')).toBeVisible();
+    await page.goto('/settings/features');
+    await main.getByRole('switch', { name: 'Calendar' }).click();
+    await page.goto('/calendar');
+    await expect(page.getByText('This part is switched off')).toHaveCount(0);
+    void sidebar;
+
+    // Access: open invitations to every member, add an allowed domain, then put both back.
+    await page.goto('/settings/access');
+    await main.getByRole('combobox', { name: 'Who can invite' }).click();
+    await page.getByRole('option', { name: 'Every member' }).click();
+    await expect(page.getByText('Saved').first()).toBeVisible();
+    const domains = main.getByLabel('Allowed email domains');
+    await domains.fill('Example.org');
+    await domains.press('Enter');
+    await expect(main.getByRole('button', { name: 'Remove example.org' })).toBeVisible();
+    await page.reload();
+    await expect(main.getByRole('combobox', { name: 'Who can invite' })).toContainText(
+      'Every member',
+    );
+    await expect(main.getByRole('button', { name: 'Remove example.org' })).toBeVisible();
+    await expect(page.getByRole('main')).toBeVisible();
+    await axeClean(page);
+
+    // Rules: the calendar week can start on Sunday.
+    await page.goto('/settings/rules');
+    await main.getByRole('combobox', { name: 'Week starts on' }).click();
+    await page.getByRole('option', { name: 'Sunday' }).click();
+    await expect(page.getByText('Saved').first()).toBeVisible();
+    await page.goto('/calendar');
+    await expect(page.getByText(/^Sun/).first()).toBeVisible();
+    await expect(page.getByText(/^Mon/).first()).toBeVisible();
+
+    // The audit log lists what changed and who did it; then everything goes back to the defaults.
+    await page.goto('/settings/audit');
+    await expect(main.getByText(/changed settings: .*who can invite/).first()).toBeVisible();
+    await expect(main.getByText('Peter Gabrielle').first()).toBeVisible();
+    await axeClean(page);
+    await page.goto('/settings/access');
+    await main.getByRole('combobox', { name: 'Who can invite' }).click();
+    await page.getByRole('option', { name: 'Only administrators' }).click();
+    await main.getByRole('button', { name: 'Remove example.org' }).click();
+    await page.goto('/settings/rules');
+    await main.getByRole('combobox', { name: 'Week starts on' }).click();
+    await page.getByRole('option', { name: 'Monday' }).click();
+    await expect(page.getByText('Saved').first()).toBeVisible();
   });
 });

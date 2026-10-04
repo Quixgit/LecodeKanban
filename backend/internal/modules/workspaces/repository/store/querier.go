@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	AddAudit(ctx context.Context, arg AddAuditParams) error
 	AddMember(ctx context.Context, arg AddMemberParams) error
 	CountMemberships(ctx context.Context, userID uuid.UUID) (int32, error)
 	CountOwners(ctx context.Context, workspaceID uuid.UUID) (int32, error)
@@ -22,11 +23,14 @@ type Querier interface {
 	GetInviteByHash(ctx context.Context, tokenHash []byte) (WorkspaceInvite, error)
 	GetInviteByHashForUpdate(ctx context.Context, tokenHash []byte) (WorkspaceInvite, error)
 	GetMemberRole(ctx context.Context, arg GetMemberRoleParams) (string, error)
+	GetSettings(ctx context.Context, workspaceID uuid.UUID) ([]byte, error)
 	GetWorkspace(ctx context.Context, id uuid.UUID) (Workspace, error)
+	ListAudit(ctx context.Context, arg ListAuditParams) ([]ListAuditRow, error)
 	ListMembers(ctx context.Context, workspaceID uuid.UUID) ([]ListMembersRow, error)
 	ListOpenInvites(ctx context.Context, workspaceID uuid.UUID) ([]WorkspaceInvite, error)
 	ListWorkspacesForUser(ctx context.Context, userID uuid.UUID) ([]ListWorkspacesForUserRow, error)
 	MarkInviteAccepted(ctx context.Context, id uuid.UUID) error
+	PutSettings(ctx context.Context, arg PutSettingsParams) error
 	RemoveMember(ctx context.Context, arg RemoveMemberParams) error
 	UpdateMemberRole(ctx context.Context, arg UpdateMemberRoleParams) error
 	UpdateWorkspaceName(ctx context.Context, arg UpdateWorkspaceNameParams) (Workspace, error)

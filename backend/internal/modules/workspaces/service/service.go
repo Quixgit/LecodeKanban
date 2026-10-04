@@ -38,12 +38,11 @@ type Service struct {
 	bus       *eventbus.Bus
 	mail      MailQueue
 	publicURL string
-	inviteTTL time.Duration
 	now       func() time.Time
 }
 
 func New(repo *repository.Repo, users Users, bus *eventbus.Bus, mail MailQueue, publicURL string) *Service {
-	return &Service{repo: repo, users: users, bus: bus, mail: mail, publicURL: publicURL, inviteTTL: 7 * 24 * time.Hour, now: time.Now}
+	return &Service{repo: repo, users: users, bus: bus, mail: mail, publicURL: publicURL, now: time.Now}
 }
 
 var nonSlug = regexp.MustCompile(`[^a-z0-9]+`)
@@ -197,6 +196,7 @@ func (s *Service) Rename(ctx context.Context, user, ws uuid.UUID, name string) (
 	if err := s.repo.Rename(ctx, ws, name); err != nil {
 		return domain.Workspace{}, err
 	}
+	s.audit(ctx, ws, user, "workspace.renamed", map[string]any{"name": name})
 	return s.Get(ctx, user, ws)
 }
 
@@ -292,7 +292,10 @@ func (s *Service) ChangeRole(ctx context.Context, actor, ws, target uuid.UUID, t
 				return err
 			}
 		}
-		return r.SetRole(ctx, ws, target, to)
+		if err := r.SetRole(ctx, ws, target, to); err != nil {
+			return err
+		}
+		return r.AddAudit(ctx, ws, actor, "member.role_changed", map[string]any{"userId": target.String(), "from": string(current), "to": string(to)})
 	})
 }
 
@@ -318,12 +321,20 @@ func (s *Service) RemoveMember(ctx context.Context, actor, ws, target uuid.UUID)
 				return err
 			}
 		}
-		return r.RemoveMember(ctx, ws, target)
+		if err := r.RemoveMember(ctx, ws, target); err != nil {
+			return err
+		}
+		return r.AddAudit(ctx, ws, actor, "member.removed", map[string]any{"userId": target.String(), "self": actor == target})
 	})
 	if err == nil {
 		_ = s.bus.Publish(ctx, events.MemberRemoved{WorkspaceID: ws, UserID: target})
 	}
 	return err
+}
+
+// audit records an administrator action; a failure to record never blocks the action itself.
+func (s *Service) audit(ctx context.Context, ws, actor uuid.UUID, action string, details map[string]any) {
+	_ = s.repo.AddAudit(ctx, ws, actor, action, details)
 }
 
 func ensureAnotherOwner(ctx context.Context, r *repository.Repo, ws uuid.UUID) error {

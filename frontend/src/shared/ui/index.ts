@@ -32,6 +32,7 @@ export * from './StatusTag';
 export * from './Switch';
 export * from './Table';
 export * from './Textarea';
+export * from './TagInput';
 export * from './Toaster';
 export { toast, useToastStore } from './toastStore';
 export * from './tones';
