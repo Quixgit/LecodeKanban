@@ -267,6 +267,7 @@ func (s *Service) announce(ctx context.Context, ch domain.Channel, m domain.Mess
 			continue
 		}
 		switch {
+		case mem.MentionsOnly && !m.MentionAll:
 		case ch.Kind == domain.DM:
 			ev.Direct = append(ev.Direct, mem.UserID)
 		case m.MentionAll:

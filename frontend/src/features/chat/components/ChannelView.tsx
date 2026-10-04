@@ -48,8 +48,22 @@ export function ChannelView() {
   const msgs = useMessages(channel?.id);
   const members = useChannelMembers(channel?.id);
   const pins = usePins(channel?.id);
-  const [details, setDetails] = useState(false);
+  const [details, setDetails] = useState(params.get('details') === '1');
   const [removing, setRemoving] = useState<ChatMessage | null>(null);
+
+  // A link from the sidebar menu opens the details; drop the flag so it doesn't reopen on reload.
+  const wantsDetails = params.get('details') === '1';
+  useEffect(() => {
+    if (!wantsDetails) return;
+    setDetails(true);
+    setParams(
+      (p) => {
+        p.delete('details');
+        return p;
+      },
+      { replace: true },
+    );
+  }, [wantsDetails, setParams]);
 
   // Opening a conversation (and every message that arrives while it is on screen) marks it read.
   const unread = channel?.unread ?? 0;

@@ -435,8 +435,13 @@ func (s *Service) MarkRead(ctx context.Context, user, channel uuid.UUID) error {
 	return nil
 }
 
-// SetMuted silences a channel's unread badge for the caller.
-func (s *Service) SetMuted(ctx context.Context, user, channel uuid.UUID, muted bool) error {
+// SetNotify sets how loudly a channel notifies the caller: all, mentions or muted.
+func (s *Service) SetNotify(ctx context.Context, user, channel uuid.UUID, level string) error {
+	switch level {
+	case domain.NotifyAll, domain.NotifyMentions, domain.NotifyMuted:
+	default:
+		return apperr.New(domain.ErrBadLevel, "unknown notification level")
+	}
 	ch, member, err := s.access(ctx, user, channel, false)
 	if err != nil {
 		return err
@@ -444,5 +449,5 @@ func (s *Service) SetMuted(ctx context.Context, user, channel uuid.UUID, muted b
 	if !member {
 		return apperr.New(domain.ErrNotMember, "join the channel first")
 	}
-	return s.repo.SetMuted(ctx, ch.ID, user, muted)
+	return s.repo.SetNotify(ctx, ch.ID, user, level)
 }

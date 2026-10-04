@@ -2,6 +2,7 @@ import { api, unwrap, type components } from '@/shared/api';
 import type { ReactionKey } from '../model/reactions';
 
 export type ChatChannel = components['schemas']['ChatChannel'];
+export type ChatNotifyLevel = ChatChannel['notify'];
 export type ChatChannelInput = components['schemas']['ChatChannelInput'];
 export type ChatChannelPatch = components['schemas']['ChatChannelPatch'];
 export type ChatMessage = components['schemas']['ChatMessage'];
@@ -60,8 +61,8 @@ export const chatApi = {
   join: (id: string) => unwrap(api.POST('/chat/channels/{channelId}/join', channel(id))),
   leave: (id: string) => unwrap(api.POST('/chat/channels/{channelId}/leave', channel(id))),
   markRead: (id: string) => unwrap(api.POST('/chat/channels/{channelId}/read', channel(id))),
-  mute: (id: string, muted: boolean) =>
-    unwrap(api.PUT('/chat/channels/{channelId}/mute', { ...channel(id), body: { muted } })),
+  setNotify: (id: string, level: ChatNotifyLevel) =>
+    unwrap(api.PUT('/chat/channels/{channelId}/notify', { ...channel(id), body: { level } })),
   messages: (id: string, before?: string) =>
     unwrap(
       api.GET('/chat/channels/{channelId}/messages', {

@@ -108,7 +108,9 @@
     "saved": "Saved",
     "starred": "Starred",
     "soundOn": "Turn notification sounds on",
-    "soundOff": "Mute notification sounds"
+    "soundOff": "Mute notification sounds",
+    "mutedSection": "Muted",
+    "menu": "Channel actions"
   },
   "create": {
     "title": "Create a channel",
@@ -170,7 +172,9 @@
     "archiveTitle": "Archive this channel?",
     "archiveBody": "It disappears for everyone. Its messages are kept.",
     "leaveTitle": "Leave this channel?",
-    "leaveBody": "You'll stop getting its unread badge. You can rejoin public channels any time."
+    "leaveBody": "You'll stop getting its unread badge. You can rejoin public channels any time.",
+    "notify": "Notifications",
+    "notifyHint": "Choose what reaches you from this channel."
   },
   "header": {
     "members": "Show members",
@@ -405,5 +409,33 @@
     "join": "Join",
     "now": "Starting now",
     "app": "Calendar"
+  },
+  "menu": {
+    "details": "Channel details",
+    "about": "About this channel",
+    "members": "Members",
+    "copy": "Copy",
+    "copyName": "Copy channel name",
+    "copyLink": "Copy link",
+    "copyId": "Copy channel ID",
+    "copied": "Copied",
+    "copyFailed": "Couldn't copy to the clipboard",
+    "star": "Star channel",
+    "unstar": "Remove star",
+    "notify": "Notify you about…",
+    "all": "All new posts",
+    "mentions": "Just mentions",
+    "muted": "Mute and hide",
+    "allHint": "Every new message",
+    "mentionsHint": "Only @you and @channel",
+    "mutedHint": "No alerts; moves to Muted",
+    "more": "More options",
+    "markRead": "Mark as read",
+    "openTab": "Open in new tab",
+    "leave": "Leave channel",
+    "leaveTitle": "Leave this channel?",
+    "leaveBody": "You'll stop getting its messages. You can rejoin public channels any time.",
+    "left": "You left the channel",
+    "saved": "Notification setting saved"
   }
 }

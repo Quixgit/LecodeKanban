@@ -87,6 +87,27 @@ func (e ChatChannelKind) Valid() bool {
 	}
 }
 
+// Defines values for ChatChannelNotify.
+const (
+	ChatChannelNotifyAll      ChatChannelNotify = "all"
+	ChatChannelNotifyMentions ChatChannelNotify = "mentions"
+	ChatChannelNotifyMuted    ChatChannelNotify = "muted"
+)
+
+// Valid indicates whether the value is a known member of the ChatChannelNotify enum.
+func (e ChatChannelNotify) Valid() bool {
+	switch e {
+	case ChatChannelNotifyAll:
+		return true
+	case ChatChannelNotifyMentions:
+		return true
+	case ChatChannelNotifyMuted:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ChatChannelInputFeedEvents.
 const (
 	ChatChannelInputFeedEventsAssigned  ChatChannelInputFeedEvents = "assigned"
@@ -186,6 +207,27 @@ const (
 func (e ChatMeetingKind) Valid() bool {
 	switch e {
 	case ChatMeetingKindMeeting:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChatNotifyInputLevel.
+const (
+	ChatNotifyInputLevelAll      ChatNotifyInputLevel = "all"
+	ChatNotifyInputLevelMentions ChatNotifyInputLevel = "mentions"
+	ChatNotifyInputLevelMuted    ChatNotifyInputLevel = "muted"
+)
+
+// Valid indicates whether the value is a known member of the ChatNotifyInputLevel enum.
+func (e ChatNotifyInputLevel) Valid() bool {
+	switch e {
+	case ChatNotifyInputLevelAll:
+		return true
+	case ChatNotifyInputLevelMentions:
+		return true
+	case ChatNotifyInputLevelMuted:
 		return true
 	default:
 		return false
@@ -1525,6 +1567,9 @@ type ChatChannel struct {
 	// Name Null for direct messages and for project and card conversations
 	Name *string `json:"name"`
 
+	// Notify Per-member notification level; muted also hides the channel from the sidebar
+	Notify ChatChannelNotify `json:"notify"`
+
 	// People Participants of a direct message
 	People  []PersonRef `json:"people"`
 	Starred bool        `json:"starred"`
@@ -1540,6 +1585,9 @@ type ChatChannelFeedEvents string
 
 // ChatChannelKind defines model for ChatChannel.Kind.
 type ChatChannelKind string
+
+// ChatChannelNotify Per-member notification level; muted also hides the channel from the sidebar
+type ChatChannelNotify string
 
 // ChatChannelInput defines model for ChatChannelInput.
 type ChatChannelInput struct {
@@ -1705,10 +1753,13 @@ type ChatMessagePage struct {
 	Messages []ChatMessage `json:"messages"`
 }
 
-// ChatMuteInput defines model for ChatMuteInput.
-type ChatMuteInput struct {
-	Muted bool `json:"muted"`
+// ChatNotifyInput defines model for ChatNotifyInput.
+type ChatNotifyInput struct {
+	Level ChatNotifyInputLevel `json:"level"`
 }
+
+// ChatNotifyInputLevel defines model for ChatNotifyInput.Level.
+type ChatNotifyInputLevel string
 
 // ChatPresence defines model for ChatPresence.
 type ChatPresence struct {
@@ -3145,8 +3196,8 @@ type AddChatMembersJSONRequestBody = ChatMembersInput
 // PostChatMessageJSONRequestBody defines body for PostChatMessage for application/json ContentType.
 type PostChatMessageJSONRequestBody = ChatMessageInput
 
-// MuteChatChannelJSONRequestBody defines body for MuteChatChannel for application/json ContentType.
-type MuteChatChannelJSONRequestBody = ChatMuteInput
+// SetChatNotifyJSONRequestBody defines body for SetChatNotify for application/json ContentType.
+type SetChatNotifyJSONRequestBody = ChatNotifyInput
 
 // EditChatMessageJSONRequestBody defines body for EditChatMessage for application/json ContentType.
 type EditChatMessageJSONRequestBody = ChatBodyInput

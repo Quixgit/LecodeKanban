@@ -26,8 +26,9 @@ import {
   Tooltip,
 } from '@/shared/ui';
 import type { ChatChannel, ChatStatus } from '../api/chatApi';
-import { channelTitle, groupChannels } from '../model/channels';
+import { channelTitle, groupChannels, visibleUnread } from '../model/channels';
 import { useChatUiStore } from '../store/chatUiStore';
+import { ChannelContextMenu } from './ChannelContextMenu';
 import { PersonAvatar, StatusBadge } from './PresenceDot';
 import { SoundToggle } from './SoundToggle';
 
@@ -35,6 +36,7 @@ interface Props {
   channels: readonly ChatChannel[] | undefined;
   loading: boolean;
   me: string;
+  workspaceId: string;
   activeId?: string;
   canCreate: boolean;
   onCreate: () => void;
@@ -53,6 +55,7 @@ export function ChannelList({
   channels,
   loading,
   me,
+  workspaceId,
   activeId,
   canCreate,
   onCreate,
@@ -66,6 +69,7 @@ export function ChannelList({
   const starred = groups.starred;
   const joined = groups.channels;
   const direct = groups.direct;
+  const muted = groups.muted;
 
   return (
     <nav aria-label={t('sidebar.label')} className="flex h-full min-h-0 flex-col">
@@ -118,6 +122,7 @@ export function ChannelList({
                     key={c.id}
                     c={c}
                     me={me}
+                    workspaceId={workspaceId}
                     active={c.id === activeId}
                     online={online}
                     statuses={statuses}
@@ -161,6 +166,7 @@ export function ChannelList({
                     key={c.id}
                     c={c}
                     me={me}
+                    workspaceId={workspaceId}
                     active={c.id === activeId}
                     online={online}
                     statuses={statuses}
@@ -181,6 +187,7 @@ export function ChannelList({
                     key={c.id}
                     c={c}
                     me={me}
+                    workspaceId={workspaceId}
                     active={c.id === activeId}
                     online={online}
                     statuses={statuses}
@@ -188,6 +195,26 @@ export function ChannelList({
                 ))
               )}
             </Section>
+            {muted.length > 0 && (
+              <Section
+                title={t('sidebar.mutedSection')}
+                icon={<BellOff className="size-3.5" aria-hidden />}
+                open={!collapsed.muted}
+                onToggle={() => toggle('muted')}
+              >
+                {muted.map((c) => (
+                  <Row
+                    key={c.id}
+                    c={c}
+                    me={me}
+                    workspaceId={workspaceId}
+                    active={c.id === activeId}
+                    online={online}
+                    statuses={statuses}
+                  />
+                ))}
+              </Section>
+            )}
           </>
         )}
       </div>
@@ -236,78 +263,88 @@ function Section({
 function Row({
   c,
   me,
+  workspaceId,
   active,
   online,
   statuses,
 }: {
   c: ChatChannel;
   me: string;
+  workspaceId: string;
   active: boolean;
   online: ReadonlySet<string>;
   statuses: ReadonlyMap<string, ChatStatus>;
 }) {
   const { t } = useTranslation('chat');
   const title = channelTitle(c, me, t('list.you'));
-  const unread = c.unread > 0 && !c.muted;
+  const shown = visibleUnread(c);
+  const unread = shown > 0;
   const others = c.people.filter((p) => p.id !== me);
   return (
     <li>
-      <NavLink
-        to={`/chat/${c.id}`}
-        aria-current={active ? 'page' : undefined}
-        className={cn(
-          'group flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-base outline-none transition-colors duration-micro focus-visible:shadow-focus',
-          active
-            ? 'border border-primary-border bg-primary-subtle font-medium text-primary-ink'
-            : 'border border-transparent text-text-secondary hover:bg-surface-muted hover:text-text',
-          // New activity: a soft tint and bold name, so the channel announces itself.
-          unread && !active && 'border-primary-border/70 bg-primary-subtle font-semibold text-text',
-        )}
-      >
-        <span className="grid size-5 shrink-0 place-items-center text-text-muted [&_svg]:size-4 [&_svg]:stroke-[1.7]">
-          {c.feed ? (
-            <ClipboardList className={cn(unread && 'text-primary-ink')} aria-hidden />
-          ) : c.kind === 'public' ? (
-            <Hash aria-hidden />
-          ) : c.kind === 'private' ? (
-            <Lock aria-hidden />
-          ) : others.length > 1 ? (
-            <Users aria-hidden />
-          ) : (
-            <PersonAvatar
-              name={others[0]?.name ?? c.people[0]?.name ?? title}
-              src={(others[0] ?? c.people[0])?.avatarUrl}
-              online={online.has((others[0] ?? c.people[0])?.id ?? '')}
-              status={statuses.get((others[0] ?? c.people[0])?.id ?? '')}
-              size="xs"
+      <ChannelContextMenu channel={c} workspaceId={workspaceId} title={title} active={active}>
+        <NavLink
+          to={`/chat/${c.id}`}
+          aria-current={active ? 'page' : undefined}
+          className={cn(
+            'group flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-base outline-none transition-colors duration-micro focus-visible:shadow-focus',
+            active
+              ? 'border border-primary-border bg-primary-subtle font-medium text-primary-ink'
+              : 'border border-transparent text-text-secondary hover:bg-surface-muted hover:text-text',
+            // New activity: a soft tint and bold name, so the channel announces itself.
+            unread &&
+              !active &&
+              'border-primary-border/70 bg-primary-subtle font-semibold text-text',
+          )}
+        >
+          <span className="grid size-5 shrink-0 place-items-center text-text-muted [&_svg]:size-4 [&_svg]:stroke-[1.7]">
+            {c.feed ? (
+              <ClipboardList className={cn(unread && 'text-primary-ink')} aria-hidden />
+            ) : c.kind === 'public' ? (
+              <Hash aria-hidden />
+            ) : c.kind === 'private' ? (
+              <Lock aria-hidden />
+            ) : others.length > 1 ? (
+              <Users aria-hidden />
+            ) : (
+              <PersonAvatar
+                name={others[0]?.name ?? c.people[0]?.name ?? title}
+                src={(others[0] ?? c.people[0])?.avatarUrl}
+                online={online.has((others[0] ?? c.people[0])?.id ?? '')}
+                status={statuses.get((others[0] ?? c.people[0])?.id ?? '')}
+                size="xs"
+              />
+            )}
+          </span>
+          <span className="min-w-0 flex-1 truncate">{title}</span>
+          {others.length === 1 && <StatusBadge status={statuses.get(others[0]!.id)} />}
+          {c.notify === 'muted' && (
+            <BellOff
+              className="size-3.5 shrink-0 text-text-faint"
+              aria-label={t('sidebar.muted')}
             />
           )}
-        </span>
-        <span className="min-w-0 flex-1 truncate">{title}</span>
-        {others.length === 1 && <StatusBadge status={statuses.get(others[0]!.id)} />}
-        {c.muted && (
-          <BellOff className="size-3.5 shrink-0 text-text-faint" aria-label={t('sidebar.muted')} />
-        )}
-        {unread && c.feed && (
-          <span className="relative flex size-2 shrink-0" aria-hidden>
-            <span className="absolute inline-flex size-full rounded-full bg-danger opacity-60 motion-safe:animate-ping" />
-            <span className="relative inline-flex size-2 rounded-full bg-danger" />
-          </span>
-        )}
-        {unread && (
-          <span
-            className={cn(
-              'grid h-5 min-w-5 shrink-0 place-items-center rounded-full px-1.5 text-2xs font-semibold tabular-nums',
-              c.mentions > 0 || c.feed
-                ? 'bg-danger-ink text-white'
-                : 'bg-primary-solid text-on-primary',
-            )}
-            aria-label={t('sidebar.unread', { count: c.unread })}
-          >
-            {c.unread > 99 ? '99+' : c.unread}
-          </span>
-        )}
-      </NavLink>
+          {unread && c.feed && (
+            <span className="relative flex size-2 shrink-0" aria-hidden>
+              <span className="absolute inline-flex size-full rounded-full bg-danger opacity-60 motion-safe:animate-ping" />
+              <span className="relative inline-flex size-2 rounded-full bg-danger" />
+            </span>
+          )}
+          {unread && (
+            <span
+              className={cn(
+                'grid h-5 min-w-5 shrink-0 place-items-center rounded-full px-1.5 text-2xs font-semibold tabular-nums',
+                c.mentions > 0 || c.feed
+                  ? 'bg-danger-ink text-white'
+                  : 'bg-primary-solid text-on-primary',
+              )}
+              aria-label={t('sidebar.unread', { count: shown })}
+            >
+              {shown > 99 ? '99+' : shown}
+            </span>
+          )}
+        </NavLink>
+      </ChannelContextMenu>
     </li>
   );
 }

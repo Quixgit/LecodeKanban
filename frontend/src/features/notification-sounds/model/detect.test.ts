@@ -5,7 +5,7 @@ import { strongest } from './synth';
 const c = (over: Partial<ChannelCounts> = {}): ChannelCounts => ({
   unread: 0,
   mentions: 0,
-  muted: false,
+  notify: 'all',
   joined: true,
   ...over,
 });
@@ -23,13 +23,26 @@ describe('detectChatSound', () => {
   it('stays quiet for muted, unjoined, watched and unchanged channels', () => {
     const grown = c({ unread: 2 });
     expect(
-      detectChatSound(snap({ a: c() }), snap({ a: { ...grown, muted: true } }), undefined),
+      detectChatSound(snap({ a: c() }), snap({ a: { ...grown, notify: 'muted' } }), undefined),
     ).toBeUndefined();
     expect(
       detectChatSound(snap({ a: c() }), snap({ a: { ...grown, joined: false } }), undefined),
     ).toBeUndefined();
     expect(detectChatSound(snap({ a: c() }), snap({ a: grown }), 'a')).toBeUndefined();
     expect(detectChatSound(snap({ a: grown }), snap({ a: grown }), undefined)).toBeUndefined();
+  });
+  it('rings only for mentions when the channel is set to mentions', () => {
+    const only = (o: Partial<ChannelCounts>) => c({ notify: 'mentions', ...o });
+    expect(
+      detectChatSound(snap({ a: only({}) }), snap({ a: only({ unread: 1 }) }), undefined),
+    ).toBeUndefined();
+    expect(
+      detectChatSound(
+        snap({ a: only({}) }),
+        snap({ a: only({ unread: 1, mentions: 1 }) }),
+        undefined,
+      ),
+    ).toBe('mention');
   });
   it('ignores channels that just appeared (first load) and reading', () => {
     expect(detectChatSound(snap({}), snap({ a: c({ unread: 5 }) }), undefined)).toBeUndefined();

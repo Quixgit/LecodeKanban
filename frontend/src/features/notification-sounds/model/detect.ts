@@ -3,7 +3,7 @@ import type { SoundKind } from './synth';
 export interface ChannelCounts {
   unread: number;
   mentions: number;
-  muted: boolean;
+  notify: 'all' | 'mentions' | 'muted';
   joined: boolean;
   /** A task feed: new items ring the task sound instead of the message sound. */
   feed?: boolean;
@@ -22,8 +22,9 @@ export function detectChatSound(
   let sound: SoundKind | undefined;
   for (const [id, n] of next) {
     const p = prev.get(id);
-    if (!p || !n.joined || n.muted || id === watching) continue;
+    if (!p || !n.joined || n.notify === 'muted' || id === watching) continue;
     if (n.mentions > p.mentions) return 'mention';
+    if (n.notify === 'mentions') continue;
     if (n.unread > p.unread) sound = n.feed ? (sound ?? 'task') : 'message';
   }
   return sound;

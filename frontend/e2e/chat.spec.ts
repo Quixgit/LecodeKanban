@@ -585,4 +585,67 @@ test.describe('Status', () => {
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await lisaCtx.close();
   });
+
+  test('channel context menu: copy, star, notification levels, leave', async ({
+    page,
+    context,
+  }) => {
+    const name = slug();
+    await signIn(page);
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await createChannel(page, name);
+    const row = page.getByRole('link', { name: new RegExp(name) });
+
+    // Copy link puts the channel address on the clipboard.
+    await row.click({ button: 'right' });
+    const menu = page.getByRole('menu');
+    await expect(menu.getByRole('menuitem', { name: 'Channel details' })).toBeVisible();
+    await expect(menu.getByRole('menuitem', { name: 'More options' })).toBeVisible();
+    const a11y = await new AxeBuilder({ page }).include('[role="menu"]').analyze();
+    expect(a11y.violations).toEqual([]);
+    await menu.getByRole('menuitem', { name: 'Copy' }).click();
+    await page.getByRole('menuitem', { name: 'Copy link' }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
+      /\/chat\/[0-9a-f-]{36}$/,
+    );
+
+    // Star moves it to the Starred section.
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Star channel' }).click();
+    await expect(page.getByRole('button', { name: 'Starred' })).toBeVisible();
+    await row.click({ button: 'right' });
+    await expect(page.getByRole('menuitem', { name: 'Remove star' })).toBeVisible();
+    await page.getByRole('menuitem', { name: 'Remove star' }).click();
+
+    // Channel details opens the details dialog.
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Channel details' }).click();
+    await page.getByRole('menuitem', { name: 'About this channel' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+
+    // Just mentions keeps it in place; mute and hide moves it to the Muted section.
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Notify you about…' }).click();
+    await page.getByRole('menuitemradio', { name: /Just mentions/ }).click();
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Notify you about…' }).click();
+    await expect(page.getByRole('menuitemradio', { name: /Just mentions/ })).toBeChecked();
+    await page.getByRole('menuitemradio', { name: /Mute and hide/ }).click();
+    await expect(page.getByRole('button', { name: 'Muted' })).toBeVisible();
+    await expect(row).toHaveCount(0);
+    await page.getByRole('button', { name: 'Muted' }).click();
+    await expect(row).toBeVisible();
+
+    // Back to all messages, then leave with confirmation.
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Notify you about…' }).click();
+    await page.getByRole('menuitemradio', { name: /All new posts/ }).click();
+    await expect(page.getByRole('button', { name: 'Muted' })).toHaveCount(0);
+    await row.click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Leave channel' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Leave channel' }).click();
+    await expect(row).toHaveCount(0);
+  });
 });

@@ -55,7 +55,7 @@ type Querier interface {
 	Save(ctx context.Context, arg SaveParams) error
 	SearchMessages(ctx context.Context, arg SearchMessagesParams) ([]ChatMessage, error)
 	SetFeed(ctx context.Context, arg SetFeedParams) (ChatChannel, error)
-	SetMuted(ctx context.Context, arg SetMutedParams) error
+	SetNotify(ctx context.Context, arg SetNotifyParams) error
 	Star(ctx context.Context, arg StarParams) error
 	TouchChannel(ctx context.Context, arg TouchChannelParams) error
 	TouchPresence(ctx context.Context, userID uuid.UUID) error

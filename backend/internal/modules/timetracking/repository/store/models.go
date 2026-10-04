@@ -154,11 +154,12 @@ type ChatFile struct {
 }
 
 type ChatMember struct {
-	ChannelID  uuid.UUID
-	UserID     uuid.UUID
-	JoinedAt   time.Time
-	LastReadAt time.Time
-	Muted      bool
+	ChannelID    uuid.UUID
+	UserID       uuid.UUID
+	JoinedAt     time.Time
+	LastReadAt   time.Time
+	Muted        bool
+	MentionsOnly bool
 }
 
 type ChatMessage struct {

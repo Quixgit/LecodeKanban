@@ -8,7 +8,14 @@ export function channelTitle(c: ChatChannel, me: string, you: string): string {
   return others.join(', ');
 }
 
+/** The unread count the person asked to see: everything, only mentions, or nothing when muted. */
+export function visibleUnread(c: Pick<ChatChannel, 'notify' | 'unread' | 'mentions'>): number {
+  if (c.notify === 'muted') return 0;
+  return c.notify === 'mentions' ? c.mentions : c.unread;
+}
+
 export interface ChannelGroups {
+  muted: ChatChannel[];
   starred: ChatChannel[];
   channels: ChatChannel[];
   direct: ChatChannel[];
@@ -21,12 +28,14 @@ export function groupChannels(all: readonly ChatChannel[]): ChannelGroups {
   const recent = (a: ChatChannel, b: ChatChannel) =>
     (b.lastMessageAt ?? '').localeCompare(a.lastMessageAt ?? '');
   const mine = (c: ChatChannel) => c.kind === 'dm' || c.joined;
+  const loud = (c: ChatChannel) => c.notify !== 'muted';
   return {
+    muted: all.filter((c) => !loud(c) && mine(c)).sort(byName),
     starred: all
-      .filter((c) => c.starred && mine(c))
+      .filter((c) => loud(c) && c.starred && mine(c))
       .sort((a, b) => Number(a.kind === 'dm') - Number(b.kind === 'dm') || byName(a, b)),
-    channels: all.filter((c) => c.kind !== 'dm' && c.joined && !c.starred).sort(byName),
-    direct: all.filter((c) => c.kind === 'dm' && !c.starred).sort(recent),
+    channels: all.filter((c) => loud(c) && c.kind !== 'dm' && c.joined && !c.starred).sort(byName),
+    direct: all.filter((c) => loud(c) && c.kind === 'dm' && !c.starred).sort(recent),
     browsable: all.filter((c) => c.kind === 'public').sort(byName),
   };
 }

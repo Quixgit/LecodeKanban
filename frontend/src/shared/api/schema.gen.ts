@@ -2327,7 +2327,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/chat/channels/{channelId}/mute": {
+    "/chat/channels/{channelId}/notify": {
         parameters: {
             query?: never;
             header?: never;
@@ -2337,7 +2337,8 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["muteChatChannel"];
+        /** Choose how loudly the channel notifies the caller */
+        put: operations["setChatNotify"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3509,6 +3510,11 @@ export interface components {
             topic: string;
             joined: boolean;
             muted: boolean;
+            /**
+             * @description Per-member notification level; muted also hides the channel from the sidebar
+             * @enum {string}
+             */
+            notify: "all" | "mentions" | "muted";
             starred: boolean;
             /** @description Receives task updates; only replies can be posted */
             feed: boolean;
@@ -3561,8 +3567,9 @@ export interface components {
         ChatMembersInput: {
             userIds: string[];
         };
-        ChatMuteInput: {
-            muted: boolean;
+        ChatNotifyInput: {
+            /** @enum {string} */
+            level: "all" | "mentions" | "muted";
         };
         ChatReaction: {
             key: string;
@@ -7811,7 +7818,7 @@ export interface operations {
             };
         };
     };
-    muteChatChannel: {
+    setChatNotify: {
         parameters: {
             query?: never;
             header?: never;
@@ -7822,7 +7829,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ChatMuteInput"];
+                "application/json": components["schemas"]["ChatNotifyInput"];
             };
         };
         responses: {

@@ -2207,16 +2207,17 @@ paths:
       summary: Mark the channel as read up to now
       responses:
         "204": { description: Marked }
-  /chat/channels/{channelId}/mute:
+  /chat/channels/{channelId}/notify:
     parameters: [{ $ref: "#/components/parameters/ChatChannelId" }]
     put:
       tags: [chat]
-      operationId: muteChatChannel
+      operationId: setChatNotify
+      summary: Choose how loudly the channel notifies the caller
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/ChatMuteInput" }
+            schema: { $ref: "#/components/schemas/ChatNotifyInput" }
       responses:
         "204": { description: Saved }
   /chat/channels/{channelId}/messages:
@@ -3399,7 +3400,7 @@ components:
         all: { type: boolean, description: Mark every notification in the workspace }
     ChatChannel:
       type: object
-      required: [id, workspaceId, kind, name, topic, joined, muted, starred, feed, feedProjectId, feedEvents, unread, mentions, memberCount, lastMessageAt, people]
+      required: [id, workspaceId, kind, name, topic, joined, muted, notify, starred, feed, feedProjectId, feedEvents, unread, mentions, memberCount, lastMessageAt, people]
       properties:
         id: { type: string, format: uuid }
         workspaceId: { type: string, format: uuid }
@@ -3408,6 +3409,7 @@ components:
         topic: { type: string }
         joined: { type: boolean }
         muted: { type: boolean }
+        notify: { type: string, enum: [all, mentions, muted], description: Per-member notification level; muted also hides the channel from the sidebar }
         starred: { type: boolean }
         feed: { type: boolean, description: Receives task updates; only replies can be posted }
         feedProjectId: { type: string, format: uuid, nullable: true, description: The one project the feed follows; null means all }
@@ -3446,11 +3448,11 @@ components:
       required: [userIds]
       properties:
         userIds: { type: array, minItems: 1, maxItems: 50, items: { type: string, format: uuid } }
-    ChatMuteInput:
+    ChatNotifyInput:
       type: object
-      required: [muted]
+      required: [level]
       properties:
-        muted: { type: boolean }
+        level: { type: string, enum: [all, mentions, muted] }
     ChatReaction:
       type: object
       required: [key, count, mine, users]

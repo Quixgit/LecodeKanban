@@ -117,6 +117,7 @@
     "name_taken": "A channel with this name already exists.",
     "thread_depth": "Threads are one level deep: reply to the original message.",
     "bad_reaction": "That reaction isn't available.",
+    "bad_level": "Choose all messages, mentions only, or muted.",
     "dm_members": "Direct messages need 1 to 7 other people from this workspace.",
     "not_member": "Join the channel first.",
     "message_deleted": "This message was deleted.",

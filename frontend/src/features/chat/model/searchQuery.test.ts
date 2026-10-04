@@ -11,6 +11,7 @@ const ch = (id: string, name: string, over: Partial<ChatChannel> = {}): ChatChan
     topic: '',
     joined: true,
     muted: false,
+    notify: 'all',
     starred: false,
     unread: 0,
     mentions: 0,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ChatChannel } from '../api/chatApi';
-import { channelTitle, groupChannels, normalizeChannelName } from './channels';
+import { channelTitle, groupChannels, normalizeChannelName, visibleUnread } from './channels';
 
 const p = (id: string, name: string) => ({ id, name, avatarUrl: null });
 const ch = (over: Partial<ChatChannel>): ChatChannel =>
@@ -12,6 +12,7 @@ const ch = (over: Partial<ChatChannel>): ChatChannel =>
     topic: '',
     joined: true,
     muted: false,
+    notify: 'all',
     starred: false,
     unread: 0,
     mentions: 0,
@@ -71,5 +72,23 @@ describe('groupChannels starred', () => {
     expect(g.starred.map((c) => c.id)).toEqual(['1', '3']);
     expect(g.channels.map((c) => c.id)).toEqual(['2']);
     expect(g.direct).toEqual([]);
+  });
+});
+
+describe('notification levels', () => {
+  it('shows the unread count the person asked for', () => {
+    const c = { unread: 5, mentions: 2 };
+    expect(visibleUnread({ ...c, notify: 'all' })).toBe(5);
+    expect(visibleUnread({ ...c, notify: 'mentions' })).toBe(2);
+    expect(visibleUnread({ ...c, notify: 'muted' })).toBe(0);
+  });
+  it('moves muted conversations out of the other sections', () => {
+    const g = groupChannels([
+      ch({ id: 'a', name: 'a', starred: true, notify: 'muted' }),
+      ch({ id: 'b', name: 'b' }),
+    ]);
+    expect(g.muted.map((c) => c.id)).toEqual(['a']);
+    expect(g.starred).toEqual([]);
+    expect(g.channels.map((c) => c.id)).toEqual(['b']);
   });
 });
