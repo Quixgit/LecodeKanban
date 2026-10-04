@@ -60,11 +60,11 @@ type Channel struct {
 
 // Membership is one user's relation to a channel they have joined.
 type Membership struct {
-	ChannelID  uuid.UUID
-	UserID     uuid.UUID
-	JoinedAt   time.Time
-	LastReadAt time.Time
-	Muted      bool
+	ChannelID    uuid.UUID
+	UserID       uuid.UUID
+	JoinedAt     time.Time
+	LastReadAt   time.Time
+	Muted        bool
 	MentionsOnly bool
 }
 
