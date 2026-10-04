@@ -49,6 +49,14 @@ func (r *Repo) ListForUser(ctx context.Context, user uuid.UUID) ([]domain.Worksp
 	out := make([]domain.Workspace, len(rows))
 	for i, w := range rows {
 		out[i] = domain.Workspace{ID: w.ID, Name: w.Name, Slug: w.Slug, Role: domain.Role(w.Role), MemberCount: int(w.MemberCount), CreatedAt: w.CreatedAt}
+		acc, err := r.Access(ctx, w.ID, user)
+		if err != nil {
+			return nil, err
+		}
+		out[i].Permissions = acc.Permissions()
+		if acc.CustomRoleID != nil {
+			out[i].CustomRole = &domain.RoleRef{ID: *acc.CustomRoleID, Name: acc.CustomName}
+		}
 	}
 	return out, nil
 }
@@ -83,9 +91,10 @@ func (r *Repo) Rename(ctx context.Context, id uuid.UUID, name string) error {
 func (r *Repo) Delete(ctx context.Context, id uuid.UUID) error { return r.q.DeleteWorkspace(ctx, id) }
 
 type MemberRow struct {
-	UserID   uuid.UUID
-	Role     domain.Role
-	JoinedAt time.Time
+	UserID     uuid.UUID
+	Role       domain.Role
+	JoinedAt   time.Time
+	CustomRole *domain.RoleRef
 }
 
 func (r *Repo) Members(ctx context.Context, ws uuid.UUID) ([]MemberRow, error) {
@@ -96,6 +105,9 @@ func (r *Repo) Members(ctx context.Context, ws uuid.UUID) ([]MemberRow, error) {
 	out := make([]MemberRow, len(rows))
 	for i, m := range rows {
 		out[i] = MemberRow{UserID: m.UserID, Role: domain.Role(m.Role), JoinedAt: m.JoinedAt}
+		if m.CustomRoleID.Valid && m.CustomName != nil {
+			out[i].CustomRole = &domain.RoleRef{ID: m.CustomRoleID.UUID, Name: *m.CustomName}
+		}
 	}
 	return out, nil
 }

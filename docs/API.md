@@ -60,6 +60,13 @@ Base URL: `/api/v1`
 | GET | `/workspaces/{workspaceId}/settings` | session |  | 200 | The workspace's rules and feature switches (any member) |
 | PATCH | `/workspaces/{workspaceId}/settings` | session | WorkspaceSettingsPatch | 200, 403 Error, 422 Error | Change settings (administrators); changes are written to the audit log |
 | GET | `/workspaces/{workspaceId}/audit` | session |  | 200 | The latest administrator actions (administrators) |
+| GET | `/workspaces/{workspaceId}/roles` | session |  | 200 | The permission catalog and every role of the workspace (any member) |
+| POST | `/workspaces/{workspaceId}/roles` | session | RoleInput | 201, 409 Error, 422 Error | Define a custom role (people who may manage roles) |
+| PUT | `/workspaces/{workspaceId}/roles/{roleKey}` | session | PermissionsInput | 204, 403 Error, 422 Error | Change what a built-in role (admin, member, viewer) may do in this workspace |
+| PATCH | `/workspaces/{workspaceId}/roles/{roleKey}` | session | RoleInput | 200, 409 Error | Change a custom role |
+| DELETE | `/workspaces/{workspaceId}/roles/{roleKey}` | session |  | 204 | Delete a custom role; its people go back to the built-in role it ranked as |
+| POST | `/workspaces/{workspaceId}/roles/{roleKey}/reset` | session |  | 204 | Put a built-in role back to its default permissions |
+| PUT | `/workspaces/{workspaceId}/members/{userId}/custom-role` | session |  | 204, 403 Error | Give a member a custom role, or null to go back to their built-in role |
 | GET | `/workspaces/{workspaceId}/members` | session |  | 200 |  |
 | GET | `/workspaces/{workspaceId}/members/{userId}` | session |  | 200, 404 Error | A teammate's profile card |
 | PATCH | `/workspaces/{workspaceId}/members/{userId}` | session | UpdateMemberRequest | 204, 403 Error, 409 Error |  |
@@ -318,15 +325,21 @@ Base URL: `/api/v1`
 - **UpdateProfileRequest** — `name?`: string, `locale?`: Locale, `jobTitle?`: string, `phone?`: string, `location?`: string, `timezone?`: string, `bio?`: string, `pronouns?`: string, `linkedin?`: string, `telegram?`: string, `website?`: string, `workStart?`: string, `workEnd?`: string, `skills?`: array, `coverPreset?`: string
 - **Role**: `owner` | `admin` | `member` | `viewer`
 - **InviteRole**: `admin` | `member` | `viewer`
-- **Workspace** — `id`: string, `name`: string, `slug`: string, `role`: Role, `memberCount`: integer, `createdAt`: string
+- **Workspace** — `id`: string, `name`: string, `slug`: string, `role`: Role, `permissions`: array, `customRole`: object \| null, `memberCount`: integer, `createdAt`: string
 - **WorkspaceInput** — `name`: string
 - **WorkspaceFeatures** — `chat`: boolean, `docs`: boolean, `time`: boolean, `calendar`: boolean, `integrations`: boolean
-- **WorkspaceSettings** — `description`: string, `inviteBy`: string, `inviteDays`: integer, `defaultInviteRole`: InviteRole, `allowedDomains`: array, `projectCreateBy`: string, `channelCreateBy`: string, `broadcastBy`: string, `defaultPriority`: string, `requireDueDate`: boolean, `weekStart`: integer, `features`: WorkspaceFeatures
-- **WorkspaceSettingsPatch** — `description?`: string, `inviteBy?`: string, `inviteDays?`: integer, `defaultInviteRole?`: InviteRole, `allowedDomains?`: array, `projectCreateBy?`: string, `channelCreateBy?`: string, `broadcastBy?`: string, `defaultPriority?`: string, `requireDueDate?`: boolean, `weekStart?`: integer, `features?`: WorkspaceFeatures
+- **WorkspaceSettings** — `description`: string, `inviteDays`: integer, `defaultInviteRole`: InviteRole, `allowedDomains`: array, `defaultPriority`: string, `requireDueDate`: boolean, `weekStart`: integer, `features`: WorkspaceFeatures
+- **WorkspaceSettingsPatch** — `description?`: string, `inviteDays?`: integer, `defaultInviteRole?`: InviteRole, `allowedDomains?`: array, `defaultPriority?`: string, `requireDueDate?`: boolean, `weekStart?`: integer, `features?`: WorkspaceFeatures
 - **AuditEntry** — `id`: string, `actor`: object \| null, `action`: string, `details`: object, `at`: string
+- **PermissionInfo** — `key`: string, `group`: string, `fixed`: boolean
+- **RoleDefinition** — `key`: string, `id`: string \| null, `custom`: boolean, `name`: string, `description`: string, `base`: Role, `permissions`: array, `defaults`: array, `changed`: boolean, `locked`: boolean, `members`: integer
+- **RolesOverview** — `catalog`: array, `roles`: array
+- **RoleInput** — `name`: string, `description?`: string, `base`: string, `permissions`: array
+- **PermissionsInput** — `permissions`: array
+- **RoleRef** — `id`: string, `name`: string
 - **MemberUser** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null
 - **MemberProfile** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `role`: Role, `joinedAt`: string, `jobTitle`: string, `pronouns`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
-- **Member** — `user`: MemberUser, `role`: Role, `joinedAt`: string
+- **Member** — `user`: MemberUser, `role`: Role, `customRole`: object \| null, `joinedAt`: string
 - **UpdateMemberRequest** — `role`: Role
 - **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string
 - **CreateInviteRequest** — `email`: string, `role`: InviteRole

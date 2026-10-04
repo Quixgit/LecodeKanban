@@ -13,25 +13,36 @@ import (
 type Querier interface {
 	AddAudit(ctx context.Context, arg AddAuditParams) error
 	AddMember(ctx context.Context, arg AddMemberParams) error
+	CountMembersOfRole(ctx context.Context, arg CountMembersOfRoleParams) (int32, error)
 	CountMemberships(ctx context.Context, userID uuid.UUID) (int32, error)
 	CountOwners(ctx context.Context, workspaceID uuid.UUID) (int32, error)
+	CreateCustomRole(ctx context.Context, arg CreateCustomRoleParams) (WorkspaceRole, error)
 	CreateInvite(ctx context.Context, arg CreateInviteParams) (WorkspaceInvite, error)
 	CreateWorkspace(ctx context.Context, arg CreateWorkspaceParams) (Workspace, error)
+	DeleteCustomRole(ctx context.Context, id uuid.UUID) error
 	DeleteInvite(ctx context.Context, arg DeleteInviteParams) (int64, error)
 	DeleteOpenInviteForEmail(ctx context.Context, arg DeleteOpenInviteForEmailParams) error
+	DeleteRoleOverride(ctx context.Context, arg DeleteRoleOverrideParams) error
 	DeleteWorkspace(ctx context.Context, id uuid.UUID) error
+	GetCustomRole(ctx context.Context, id uuid.UUID) (WorkspaceRole, error)
 	GetInviteByHash(ctx context.Context, tokenHash []byte) (WorkspaceInvite, error)
 	GetInviteByHashForUpdate(ctx context.Context, tokenHash []byte) (WorkspaceInvite, error)
 	GetMemberRole(ctx context.Context, arg GetMemberRoleParams) (string, error)
 	GetSettings(ctx context.Context, workspaceID uuid.UUID) ([]byte, error)
 	GetWorkspace(ctx context.Context, id uuid.UUID) (Workspace, error)
 	ListAudit(ctx context.Context, arg ListAuditParams) ([]ListAuditRow, error)
+	ListCustomRoles(ctx context.Context, workspaceID uuid.UUID) ([]ListCustomRolesRow, error)
 	ListMembers(ctx context.Context, workspaceID uuid.UUID) ([]ListMembersRow, error)
 	ListOpenInvites(ctx context.Context, workspaceID uuid.UUID) ([]WorkspaceInvite, error)
+	ListRoleOverrides(ctx context.Context, workspaceID uuid.UUID) ([]ListRoleOverridesRow, error)
 	ListWorkspacesForUser(ctx context.Context, userID uuid.UUID) ([]ListWorkspacesForUserRow, error)
 	MarkInviteAccepted(ctx context.Context, id uuid.UUID) error
+	MemberAccess(ctx context.Context, arg MemberAccessParams) (MemberAccessRow, error)
+	PutRoleOverride(ctx context.Context, arg PutRoleOverrideParams) error
 	PutSettings(ctx context.Context, arg PutSettingsParams) error
 	RemoveMember(ctx context.Context, arg RemoveMemberParams) error
+	SetMemberCustomRole(ctx context.Context, arg SetMemberCustomRoleParams) error
+	UpdateCustomRole(ctx context.Context, arg UpdateCustomRoleParams) (WorkspaceRole, error)
 	UpdateMemberRole(ctx context.Context, arg UpdateMemberRoleParams) error
 	UpdateWorkspaceName(ctx context.Context, arg UpdateWorkspaceNameParams) (Workspace, error)
 }

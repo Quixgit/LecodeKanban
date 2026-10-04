@@ -29,7 +29,9 @@ ON CONFLICT (workspace_id, user_id) DO NOTHING;
 SELECT role FROM workspace_members WHERE workspace_id = @workspace_id AND user_id = @user_id;
 
 -- name: ListMembers :many
-SELECT user_id, role, joined_at FROM workspace_members WHERE workspace_id = $1 ORDER BY joined_at;
+SELECT m.user_id, m.role, m.joined_at, m.custom_role_id, cr.name AS custom_name
+FROM workspace_members m LEFT JOIN workspace_roles cr ON cr.id = m.custom_role_id
+WHERE m.workspace_id = $1 ORDER BY m.joined_at;
 
 -- name: CountOwners :one
 SELECT count(*)::int FROM workspace_members WHERE workspace_id = $1 AND role = 'owner';
@@ -77,3 +79,44 @@ INSERT INTO workspace_audit (workspace_id, actor_id, action, details) VALUES (@w
 
 -- name: ListAudit :many
 SELECT id, actor_id, action, details, at FROM workspace_audit WHERE workspace_id = $1 ORDER BY at DESC, id LIMIT $2;
+
+-- name: MemberAccess :one
+SELECT m.role, m.custom_role_id, cr.name AS custom_name, cr.permissions AS custom_perms, o.permissions AS override_perms
+FROM workspace_members m
+LEFT JOIN workspace_roles cr ON cr.id = m.custom_role_id
+LEFT JOIN workspace_role_overrides o ON o.workspace_id = m.workspace_id AND o.role = m.role
+WHERE m.workspace_id = $1 AND m.user_id = $2;
+
+-- name: ListRoleOverrides :many
+SELECT role, permissions FROM workspace_role_overrides WHERE workspace_id = $1;
+
+-- name: PutRoleOverride :exec
+INSERT INTO workspace_role_overrides (workspace_id, role, permissions) VALUES (@workspace_id, @role, @permissions)
+ON CONFLICT (workspace_id, role) DO UPDATE SET permissions = EXCLUDED.permissions;
+
+-- name: DeleteRoleOverride :exec
+DELETE FROM workspace_role_overrides WHERE workspace_id = $1 AND role = $2;
+
+-- name: ListCustomRoles :many
+SELECT r.*, (SELECT count(*) FROM workspace_members m WHERE m.custom_role_id = r.id)::int AS members
+FROM workspace_roles r WHERE r.workspace_id = $1 ORDER BY lower(r.name);
+
+-- name: GetCustomRole :one
+SELECT * FROM workspace_roles WHERE id = $1;
+
+-- name: CreateCustomRole :one
+INSERT INTO workspace_roles (workspace_id, name, description, base, permissions)
+VALUES (@workspace_id, @name, @description, @base, @permissions) RETURNING *;
+
+-- name: UpdateCustomRole :one
+UPDATE workspace_roles SET name = @name, description = @description, base = @base, permissions = @permissions
+WHERE id = @id RETURNING *;
+
+-- name: DeleteCustomRole :exec
+DELETE FROM workspace_roles WHERE id = $1;
+
+-- name: SetMemberCustomRole :exec
+UPDATE workspace_members SET custom_role_id = @custom_role_id, role = @role WHERE workspace_id = @workspace_id AND user_id = @user_id;
+
+-- name: CountMembersOfRole :one
+SELECT count(*)::int FROM workspace_members WHERE workspace_id = $1 AND role = $2 AND custom_role_id IS NULL;

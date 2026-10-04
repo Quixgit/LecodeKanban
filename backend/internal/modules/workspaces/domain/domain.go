@@ -17,15 +17,25 @@ type Workspace struct {
 	Role        Role // the caller's role
 	MemberCount int
 	CreatedAt   time.Time
+	// Permissions and CustomRole describe what the caller may do here.
+	Permissions []Permission
+	CustomRole  *RoleRef
+}
+
+// RoleRef names a custom role.
+type RoleRef struct {
+	ID   uuid.UUID
+	Name string
 }
 
 type Member struct {
-	UserID   uuid.UUID
-	Name     string
-	Email    string
-	Avatar   *string
-	Role     Role
-	JoinedAt time.Time
+	UserID     uuid.UUID
+	Name       string
+	Email      string
+	Avatar     *string
+	Role       Role
+	JoinedAt   time.Time
+	CustomRole *RoleRef
 }
 
 type Invite struct {

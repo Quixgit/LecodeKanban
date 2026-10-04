@@ -15,12 +15,17 @@ func TestCan(t *testing.T) {
 		{RoleAdmin, PermManageMembers, true},
 		{RoleAdmin, PermUpdate, true},
 		{RoleAdmin, PermDelete, false},
+		{RoleMember, PermTasksDelete, true},
+		{RoleMember, PermFieldsManage, false},
+		{RoleAdmin, PermFieldsManage, true},
+		{RoleViewer, PermProjectCreate, false},
+		{RoleAdmin, PermRoles, false},
+		{RoleOwner, PermRoles, true},
 		{RoleOwner, PermDelete, true},
-		{Role("root"), PermView, false},
 		{RoleOwner, Permission("unknown"), false},
 	}
 	for _, tc := range cases {
-		if got := tc.role.Can(tc.perm); got != tc.want {
+		if got := NewAccess(tc.role, RoleDefaults(tc.role), nil, "").Can(tc.perm); got != tc.want {
 			t.Errorf("%s.Can(%s) = %v, want %v", tc.role, tc.perm, got, tc.want)
 		}
 	}
@@ -80,8 +85,36 @@ func TestCanRemoveAndInvite(t *testing.T) {
 		{RoleOwner, RoleOwner, false},
 	}
 	for _, tc := range inviteCases {
-		if got := CanInvite(tc.actor, tc.as); got != tc.want {
+		if got := CanInvite(NewAccess(tc.actor, RoleDefaults(tc.actor), nil, ""), tc.as); got != tc.want {
 			t.Errorf("CanInvite(%s,%s)=%v", tc.actor, tc.as, got)
 		}
+	}
+}
+
+func TestAccessAndClean(t *testing.T) {
+	// A custom role with a hand-picked set; "view" is always there.
+	a := NewAccess(RoleMember, []Permission{PermEditContent, PermFieldsManage}, nil, "Designer")
+	if !a.Can(PermView) || !a.Can(PermFieldsManage) || a.Can(PermProjectCreate) {
+		t.Fatalf("custom role: %v", a.Permissions())
+	}
+	// The owner always holds everything, even if a stored set says otherwise.
+	o := NewAccess(RoleOwner, []Permission{PermView}, nil, "")
+	if !o.Can(PermDelete) || !o.Can(PermRoles) {
+		t.Fatal("owner must hold every permission")
+	}
+	kept, dropped := Clean([]Permission{PermTasksDelete, PermEditContent, "nope", PermDelete, PermEditContent})
+	if len(dropped) != 2 || kept[0] != PermView || kept[1] != PermEditContent || kept[2] != PermTasksDelete || len(kept) != 3 {
+		t.Fatalf("clean: kept %v dropped %v", kept, dropped)
+	}
+	// Every default is a known permission, and a viewer can only look.
+	for _, r := range []Role{RoleOwner, RoleAdmin, RoleMember, RoleViewer} {
+		for _, p := range RoleDefaults(r) {
+			if !p.Valid() {
+				t.Fatalf("%s default %s is not in the catalog", r, p)
+			}
+		}
+	}
+	if len(RoleDefaults(RoleViewer)) != 1 {
+		t.Fatal("viewers only look by default")
 	}
 }

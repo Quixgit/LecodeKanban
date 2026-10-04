@@ -27,7 +27,7 @@ type Cards interface {
 }
 
 type Workspaces interface {
-	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
+	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
 	RolesByUser(ctx context.Context, ws uuid.UUID) (map[uuid.UUID]wsdomain.Role, error)
 }
 
@@ -255,7 +255,7 @@ func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
 		if err != nil {
 			return err
 		}
-		if !role.AtLeast(wsdomain.RoleAdmin) {
+		if !role.Can(wsdomain.PermModerate) {
 			return apperr.New(domain.ErrForbidden, "only the author or an admin can delete a comment")
 		}
 	} else if _, err := s.ws.Authorize(ctx, card.WorkspaceID, user, wsdomain.PermEditContent); err != nil {

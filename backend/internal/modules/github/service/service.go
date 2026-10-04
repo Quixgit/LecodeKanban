@@ -38,7 +38,7 @@ type GitHub interface {
 }
 
 type Workspaces interface {
-	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
+	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
 }
 
 // CardInfo is a card as this module needs it.
@@ -116,7 +116,7 @@ func (s *Service) admin(ctx context.Context, user, ws uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	if !role.AtLeast(wsdomain.RoleAdmin) {
+	if !role.Can(wsdomain.PermIntegrations) {
 		return apperr.New(wsdomain.ErrInsufficientRole, "administrators only")
 	}
 	return nil
@@ -159,7 +159,7 @@ func (s *Service) Summary(ctx context.Context, user, ws uuid.UUID) (Summary, err
 	if err != nil {
 		return Summary{}, err
 	}
-	out := Summary{WebhookURL: s.WebhookURL(), CanManage: role.AtLeast(wsdomain.RoleAdmin)}
+	out := Summary{WebhookURL: s.WebhookURL(), CanManage: role.Can(wsdomain.PermIntegrations)}
 	c, err := s.repo.Connection(ctx, ws)
 	if apperr.IsCode(err, domain.ErrNotConnected) {
 		return out, nil

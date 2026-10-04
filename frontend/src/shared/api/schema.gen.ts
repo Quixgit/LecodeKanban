@@ -448,6 +448,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** The permission catalog and every role of the workspace (any member) */
+        get: operations["listRoles"];
+        put?: never;
+        /** Define a custom role (people who may manage roles) */
+        post: operations["createRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/roles/{roleKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                /** @description admin, member or viewer, or the id of a custom role */
+                roleKey: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Change what a built-in role (admin, member, viewer) may do in this workspace */
+        put: operations["setRolePermissions"];
+        post?: never;
+        /** Delete a custom role; its people go back to the built-in role it ranked as */
+        delete: operations["deleteRole"];
+        options?: never;
+        head?: never;
+        /** Change a custom role */
+        patch: operations["updateRole"];
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/roles/{roleKey}/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                roleKey: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Put a built-in role back to its default permissions */
+        post: operations["resetRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/members/{userId}/custom-role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                userId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Give a member a custom role, or null to go back to their built-in role */
+        put: operations["assignCustomRole"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/members": {
         parameters: {
             query?: never;
@@ -2757,6 +2840,9 @@ export interface components {
             name: string;
             slug: string;
             role: components["schemas"]["Role"];
+            /** @description What the caller may do here */
+            permissions: string[];
+            customRole: components["schemas"]["RoleRef"] | null;
             memberCount: number;
             /** Format: date-time */
             createdAt: string;
@@ -2773,25 +2859,11 @@ export interface components {
         };
         WorkspaceSettings: {
             description: string;
-            /**
-             * @description Who may invite people
-             * @enum {string}
-             */
-            inviteBy: "admins" | "members";
             /** @description How long an invitation stays valid */
             inviteDays: number;
             defaultInviteRole: components["schemas"]["InviteRole"];
             /** @description Only addresses of these domains may be invited; empty allows any */
             allowedDomains: string[];
-            /** @enum {string} */
-            projectCreateBy: "admins" | "members";
-            /** @enum {string} */
-            channelCreateBy: "admins" | "members";
-            /**
-             * @description Who may notify a whole channel with @channel
-             * @enum {string}
-             */
-            broadcastBy: "everyone" | "admins";
             /** @enum {string} */
             defaultPriority: "low" | "medium" | "high";
             requireDueDate: boolean;
@@ -2801,17 +2873,9 @@ export interface components {
         };
         WorkspaceSettingsPatch: {
             description?: string;
-            /** @enum {string} */
-            inviteBy?: "admins" | "members";
             inviteDays?: number;
             defaultInviteRole?: components["schemas"]["InviteRole"];
             allowedDomains?: string[];
-            /** @enum {string} */
-            projectCreateBy?: "admins" | "members";
-            /** @enum {string} */
-            channelCreateBy?: "admins" | "members";
-            /** @enum {string} */
-            broadcastBy?: "everyone" | "admins";
             /** @enum {string} */
             defaultPriority?: "low" | "medium" | "high";
             requireDueDate?: boolean;
@@ -2829,6 +2893,54 @@ export interface components {
             };
             /** Format: date-time */
             at: string;
+        };
+        PermissionInfo: {
+            /** @description e.g. content.edit, projects.create */
+            key: string;
+            /** @enum {string} */
+            group: "general" | "tasks" | "projects" | "chat" | "time" | "people" | "admin";
+            /** @description Reserved for the owner; cannot be given to other roles */
+            fixed: boolean;
+        };
+        RoleDefinition: {
+            /** @description owner, admin, member, viewer, or the id of a custom role */
+            key: string;
+            /** Format: uuid */
+            id: string | null;
+            custom: boolean;
+            name: string;
+            description: string;
+            base: components["schemas"]["Role"];
+            permissions: string[];
+            /** @description For built-in roles: what they start with in a new workspace */
+            defaults: string[];
+            /** @description This built-in role differs from its defaults */
+            changed: boolean;
+            /** @description The owner always holds everything */
+            locked: boolean;
+            members: number;
+        };
+        RolesOverview: {
+            catalog: components["schemas"]["PermissionInfo"][];
+            roles: components["schemas"]["RoleDefinition"][];
+        };
+        RoleInput: {
+            name: string;
+            description?: string;
+            /**
+             * @description The built-in role it ranks as
+             * @enum {string}
+             */
+            base: "admin" | "member" | "viewer";
+            permissions: string[];
+        };
+        PermissionsInput: {
+            permissions: string[];
+        };
+        RoleRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
         };
         MemberUser: {
             /** Format: uuid */
@@ -2864,6 +2976,7 @@ export interface components {
         Member: {
             user: components["schemas"]["MemberUser"];
             role: components["schemas"]["Role"];
+            customRole: components["schemas"]["RoleRef"] | null;
             /** Format: date-time */
             joinedAt: string;
         };
@@ -4840,6 +4953,185 @@ export interface operations {
                     "application/json": components["schemas"]["AuditEntry"][];
                 };
             };
+        };
+    };
+    listRoles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Roles */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RolesOverview"];
+                };
+            };
+        };
+    };
+    createRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleDefinition"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    setRolePermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                /** @description admin, member or viewer, or the id of a custom role */
+                roleKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PermissionsInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                /** @description admin, member or viewer, or the id of a custom role */
+                roleKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                /** @description admin, member or viewer, or the id of a custom role */
+                roleKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleDefinition"];
+                };
+            };
+            409: components["responses"]["Error"];
+        };
+    };
+    resetRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                roleKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reset */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    assignCustomRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    roleId: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Error"];
         };
     };
     listMembers: {

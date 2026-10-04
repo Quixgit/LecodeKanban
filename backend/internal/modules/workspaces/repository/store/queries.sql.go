@@ -49,6 +49,22 @@ func (q *Queries) AddMember(ctx context.Context, arg AddMemberParams) error {
 	return err
 }
 
+const countMembersOfRole = `-- name: CountMembersOfRole :one
+SELECT count(*)::int FROM workspace_members WHERE workspace_id = $1 AND role = $2 AND custom_role_id IS NULL
+`
+
+type CountMembersOfRoleParams struct {
+	WorkspaceID uuid.UUID
+	Role        string
+}
+
+func (q *Queries) CountMembersOfRole(ctx context.Context, arg CountMembersOfRoleParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countMembersOfRole, arg.WorkspaceID, arg.Role)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const countMemberships = `-- name: CountMemberships :one
 SELECT count(*)::int FROM workspace_members WHERE user_id = $1
 `
@@ -69,6 +85,40 @@ func (q *Queries) CountOwners(ctx context.Context, workspaceID uuid.UUID) (int32
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const createCustomRole = `-- name: CreateCustomRole :one
+INSERT INTO workspace_roles (workspace_id, name, description, base, permissions)
+VALUES ($1, $2, $3, $4, $5) RETURNING id, workspace_id, name, description, base, permissions, created_at
+`
+
+type CreateCustomRoleParams struct {
+	WorkspaceID uuid.UUID
+	Name        string
+	Description string
+	Base        string
+	Permissions []string
+}
+
+func (q *Queries) CreateCustomRole(ctx context.Context, arg CreateCustomRoleParams) (WorkspaceRole, error) {
+	row := q.db.QueryRow(ctx, createCustomRole,
+		arg.WorkspaceID,
+		arg.Name,
+		arg.Description,
+		arg.Base,
+		arg.Permissions,
+	)
+	var i WorkspaceRole
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Name,
+		&i.Description,
+		&i.Base,
+		&i.Permissions,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const createInvite = `-- name: CreateInvite :one
@@ -134,6 +184,15 @@ func (q *Queries) CreateWorkspace(ctx context.Context, arg CreateWorkspaceParams
 	return i, err
 }
 
+const deleteCustomRole = `-- name: DeleteCustomRole :exec
+DELETE FROM workspace_roles WHERE id = $1
+`
+
+func (q *Queries) DeleteCustomRole(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteCustomRole, id)
+	return err
+}
+
 const deleteInvite = `-- name: DeleteInvite :execrows
 DELETE FROM workspace_invites WHERE workspace_id = $1 AND id = $2 AND accepted_at IS NULL
 `
@@ -165,6 +224,20 @@ func (q *Queries) DeleteOpenInviteForEmail(ctx context.Context, arg DeleteOpenIn
 	return err
 }
 
+const deleteRoleOverride = `-- name: DeleteRoleOverride :exec
+DELETE FROM workspace_role_overrides WHERE workspace_id = $1 AND role = $2
+`
+
+type DeleteRoleOverrideParams struct {
+	WorkspaceID uuid.UUID
+	Role        string
+}
+
+func (q *Queries) DeleteRoleOverride(ctx context.Context, arg DeleteRoleOverrideParams) error {
+	_, err := q.db.Exec(ctx, deleteRoleOverride, arg.WorkspaceID, arg.Role)
+	return err
+}
+
 const deleteWorkspace = `-- name: DeleteWorkspace :exec
 DELETE FROM workspaces WHERE id = $1
 `
@@ -172,6 +245,25 @@ DELETE FROM workspaces WHERE id = $1
 func (q *Queries) DeleteWorkspace(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteWorkspace, id)
 	return err
+}
+
+const getCustomRole = `-- name: GetCustomRole :one
+SELECT id, workspace_id, name, description, base, permissions, created_at FROM workspace_roles WHERE id = $1
+`
+
+func (q *Queries) GetCustomRole(ctx context.Context, id uuid.UUID) (WorkspaceRole, error) {
+	row := q.db.QueryRow(ctx, getCustomRole, id)
+	var i WorkspaceRole
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Name,
+		&i.Description,
+		&i.Base,
+		&i.Permissions,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const getInviteByHash = `-- name: GetInviteByHash :one
@@ -304,14 +396,63 @@ func (q *Queries) ListAudit(ctx context.Context, arg ListAuditParams) ([]ListAud
 	return items, nil
 }
 
+const listCustomRoles = `-- name: ListCustomRoles :many
+SELECT r.id, r.workspace_id, r.name, r.description, r.base, r.permissions, r.created_at, (SELECT count(*) FROM workspace_members m WHERE m.custom_role_id = r.id)::int AS members
+FROM workspace_roles r WHERE r.workspace_id = $1 ORDER BY lower(r.name)
+`
+
+type ListCustomRolesRow struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Name        string
+	Description string
+	Base        string
+	Permissions []string
+	CreatedAt   time.Time
+	Members     int32
+}
+
+func (q *Queries) ListCustomRoles(ctx context.Context, workspaceID uuid.UUID) ([]ListCustomRolesRow, error) {
+	rows, err := q.db.Query(ctx, listCustomRoles, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCustomRolesRow{}
+	for rows.Next() {
+		var i ListCustomRolesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.Name,
+			&i.Description,
+			&i.Base,
+			&i.Permissions,
+			&i.CreatedAt,
+			&i.Members,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMembers = `-- name: ListMembers :many
-SELECT user_id, role, joined_at FROM workspace_members WHERE workspace_id = $1 ORDER BY joined_at
+SELECT m.user_id, m.role, m.joined_at, m.custom_role_id, cr.name AS custom_name
+FROM workspace_members m LEFT JOIN workspace_roles cr ON cr.id = m.custom_role_id
+WHERE m.workspace_id = $1 ORDER BY m.joined_at
 `
 
 type ListMembersRow struct {
-	UserID   uuid.UUID
-	Role     string
-	JoinedAt time.Time
+	UserID       uuid.UUID
+	Role         string
+	JoinedAt     time.Time
+	CustomRoleID uuid.NullUUID
+	CustomName   *string
 }
 
 func (q *Queries) ListMembers(ctx context.Context, workspaceID uuid.UUID) ([]ListMembersRow, error) {
@@ -323,7 +464,13 @@ func (q *Queries) ListMembers(ctx context.Context, workspaceID uuid.UUID) ([]Lis
 	items := []ListMembersRow{}
 	for rows.Next() {
 		var i ListMembersRow
-		if err := rows.Scan(&i.UserID, &i.Role, &i.JoinedAt); err != nil {
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Role,
+			&i.JoinedAt,
+			&i.CustomRoleID,
+			&i.CustomName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -360,6 +507,35 @@ func (q *Queries) ListOpenInvites(ctx context.Context, workspaceID uuid.UUID) ([
 			&i.AcceptedAt,
 			&i.CreatedAt,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRoleOverrides = `-- name: ListRoleOverrides :many
+SELECT role, permissions FROM workspace_role_overrides WHERE workspace_id = $1
+`
+
+type ListRoleOverridesRow struct {
+	Role        string
+	Permissions []string
+}
+
+func (q *Queries) ListRoleOverrides(ctx context.Context, workspaceID uuid.UUID) ([]ListRoleOverridesRow, error) {
+	rows, err := q.db.Query(ctx, listRoleOverrides, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListRoleOverridesRow{}
+	for rows.Next() {
+		var i ListRoleOverridesRow
+		if err := rows.Scan(&i.Role, &i.Permissions); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -424,6 +600,56 @@ func (q *Queries) MarkInviteAccepted(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const memberAccess = `-- name: MemberAccess :one
+SELECT m.role, m.custom_role_id, cr.name AS custom_name, cr.permissions AS custom_perms, o.permissions AS override_perms
+FROM workspace_members m
+LEFT JOIN workspace_roles cr ON cr.id = m.custom_role_id
+LEFT JOIN workspace_role_overrides o ON o.workspace_id = m.workspace_id AND o.role = m.role
+WHERE m.workspace_id = $1 AND m.user_id = $2
+`
+
+type MemberAccessParams struct {
+	WorkspaceID uuid.UUID
+	UserID      uuid.UUID
+}
+
+type MemberAccessRow struct {
+	Role          string
+	CustomRoleID  uuid.NullUUID
+	CustomName    *string
+	CustomPerms   []string
+	OverridePerms []string
+}
+
+func (q *Queries) MemberAccess(ctx context.Context, arg MemberAccessParams) (MemberAccessRow, error) {
+	row := q.db.QueryRow(ctx, memberAccess, arg.WorkspaceID, arg.UserID)
+	var i MemberAccessRow
+	err := row.Scan(
+		&i.Role,
+		&i.CustomRoleID,
+		&i.CustomName,
+		&i.CustomPerms,
+		&i.OverridePerms,
+	)
+	return i, err
+}
+
+const putRoleOverride = `-- name: PutRoleOverride :exec
+INSERT INTO workspace_role_overrides (workspace_id, role, permissions) VALUES ($1, $2, $3)
+ON CONFLICT (workspace_id, role) DO UPDATE SET permissions = EXCLUDED.permissions
+`
+
+type PutRoleOverrideParams struct {
+	WorkspaceID uuid.UUID
+	Role        string
+	Permissions []string
+}
+
+func (q *Queries) PutRoleOverride(ctx context.Context, arg PutRoleOverrideParams) error {
+	_, err := q.db.Exec(ctx, putRoleOverride, arg.WorkspaceID, arg.Role, arg.Permissions)
+	return err
+}
+
 const putSettings = `-- name: PutSettings :exec
 INSERT INTO workspace_settings (workspace_id, data) VALUES ($1, $2)
 ON CONFLICT (workspace_id) DO UPDATE SET data = EXCLUDED.data, updated_at = now()
@@ -451,6 +677,61 @@ type RemoveMemberParams struct {
 func (q *Queries) RemoveMember(ctx context.Context, arg RemoveMemberParams) error {
 	_, err := q.db.Exec(ctx, removeMember, arg.WorkspaceID, arg.UserID)
 	return err
+}
+
+const setMemberCustomRole = `-- name: SetMemberCustomRole :exec
+UPDATE workspace_members SET custom_role_id = $1, role = $2 WHERE workspace_id = $3 AND user_id = $4
+`
+
+type SetMemberCustomRoleParams struct {
+	CustomRoleID uuid.NullUUID
+	Role         string
+	WorkspaceID  uuid.UUID
+	UserID       uuid.UUID
+}
+
+func (q *Queries) SetMemberCustomRole(ctx context.Context, arg SetMemberCustomRoleParams) error {
+	_, err := q.db.Exec(ctx, setMemberCustomRole,
+		arg.CustomRoleID,
+		arg.Role,
+		arg.WorkspaceID,
+		arg.UserID,
+	)
+	return err
+}
+
+const updateCustomRole = `-- name: UpdateCustomRole :one
+UPDATE workspace_roles SET name = $1, description = $2, base = $3, permissions = $4
+WHERE id = $5 RETURNING id, workspace_id, name, description, base, permissions, created_at
+`
+
+type UpdateCustomRoleParams struct {
+	Name        string
+	Description string
+	Base        string
+	Permissions []string
+	ID          uuid.UUID
+}
+
+func (q *Queries) UpdateCustomRole(ctx context.Context, arg UpdateCustomRoleParams) (WorkspaceRole, error) {
+	row := q.db.QueryRow(ctx, updateCustomRole,
+		arg.Name,
+		arg.Description,
+		arg.Base,
+		arg.Permissions,
+		arg.ID,
+	)
+	var i WorkspaceRole
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Name,
+		&i.Description,
+		&i.Base,
+		&i.Permissions,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const updateMemberRole = `-- name: UpdateMemberRole :exec

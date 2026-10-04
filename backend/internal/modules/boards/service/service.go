@@ -15,7 +15,7 @@ import (
 
 // Authorizer checks workspace permissions (workspaces module).
 type Authorizer interface {
-	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
+	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
 }
 
 // CardCounter reports and re-homes the cards of a column (cards module, set after construction).

@@ -267,10 +267,9 @@ func toSettings(s domain.Settings) api.WorkspaceSettings {
 		domains = []string{}
 	}
 	return api.WorkspaceSettings{
-		Description: s.Description, InviteBy: api.WorkspaceSettingsInviteBy(s.InviteBy), InviteDays: s.InviteDays,
+		Description: s.Description, InviteDays: s.InviteDays,
 		DefaultInviteRole: api.InviteRole(s.DefaultInviteRole), AllowedDomains: domains,
-		ProjectCreateBy: api.WorkspaceSettingsProjectCreateBy(s.ProjectCreateBy), ChannelCreateBy: api.WorkspaceSettingsChannelCreateBy(s.ChannelCreateBy),
-		BroadcastBy: api.WorkspaceSettingsBroadcastBy(s.BroadcastBy), DefaultPriority: api.WorkspaceSettingsDefaultPriority(s.DefaultPriority),
+		DefaultPriority: api.WorkspaceSettingsDefaultPriority(s.DefaultPriority),
 		RequireDueDate: s.RequireDueDate, WeekStart: s.WeekStart,
 		Features: api.WorkspaceFeatures{Chat: s.Features.Chat, Docs: s.Features.Docs, Time: s.Features.Time,
 			Calendar: s.Features.Calendar, Integrations: s.Features.Integrations},
@@ -302,18 +301,6 @@ func (h *Handler) updateSettings(w http.ResponseWriter, r *http.Request) error {
 	p := domain.SettingsPatch{Description: in.Description, InviteDays: in.InviteDays, AllowedDomains: in.AllowedDomains,
 		RequireDueDate: in.RequireDueDate, WeekStart: in.WeekStart}
 	str := func(v *string) *string { return v }
-	if in.InviteBy != nil {
-		p.InviteBy = str((*string)(in.InviteBy))
-	}
-	if in.ProjectCreateBy != nil {
-		p.ProjectCreateBy = str((*string)(in.ProjectCreateBy))
-	}
-	if in.ChannelCreateBy != nil {
-		p.ChannelCreateBy = str((*string)(in.ChannelCreateBy))
-	}
-	if in.BroadcastBy != nil {
-		p.BroadcastBy = str((*string)(in.BroadcastBy))
-	}
 	if in.DefaultPriority != nil {
 		p.DefaultPriority = str((*string)(in.DefaultPriority))
 	}

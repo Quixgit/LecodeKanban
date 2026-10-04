@@ -13,14 +13,6 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
 )
 
-// Who may do something that can be opened up to every member.
-const (
-	ByAdmins  = "admins"
-	ByMembers = "members"
-	// BroadcastEveryone / ByAdmins: who may notify the whole channel with @channel.
-	BroadcastEveryone = "everyone"
-)
-
 // Features are the parts of the platform an administrator can switch off for the workspace.
 type Features struct {
 	Chat         bool `json:"chat"`
@@ -33,13 +25,9 @@ type Features struct {
 // Settings are the workspace-wide choices of its administrators. Missing values fall back to Defaults.
 type Settings struct {
 	Description       string   `json:"description"`
-	InviteBy          string   `json:"inviteBy"`          // ByAdmins | ByMembers
 	InviteDays        int      `json:"inviteDays"`        // how long an invitation stays valid
 	DefaultInviteRole Role     `json:"defaultInviteRole"` // pre-selected in the invite form
 	AllowedDomains    []string `json:"allowedDomains"`    // empty: any address may be invited
-	ProjectCreateBy   string   `json:"projectCreateBy"`   // ByAdmins | ByMembers
-	ChannelCreateBy   string   `json:"channelCreateBy"`   // ByAdmins | ByMembers
-	BroadcastBy       string   `json:"broadcastBy"`       // BroadcastEveryone | ByAdmins
 	DefaultPriority   string   `json:"defaultPriority"`   // low | medium | high
 	RequireDueDate    bool     `json:"requireDueDate"`    // new tasks need a due date
 	WeekStart         int      `json:"weekStart"`         // 0 Sunday, 1 Monday
@@ -48,8 +36,7 @@ type Settings struct {
 
 func Defaults() Settings {
 	return Settings{
-		InviteBy: ByAdmins, InviteDays: 7, DefaultInviteRole: RoleMember, AllowedDomains: []string{},
-		ProjectCreateBy: ByMembers, ChannelCreateBy: ByMembers, BroadcastBy: BroadcastEveryone,
+		InviteDays: 7, DefaultInviteRole: RoleMember, AllowedDomains: []string{},
 		DefaultPriority: "medium", WeekStart: 1,
 		Features: Features{Chat: true, Docs: true, Time: true, Calendar: true, Integrations: true},
 	}
@@ -58,13 +45,9 @@ func Defaults() Settings {
 // SettingsPatch changes some settings; nil means unchanged.
 type SettingsPatch struct {
 	Description       *string
-	InviteBy          *string
 	InviteDays        *int
 	DefaultInviteRole *Role
 	AllowedDomains    *[]string
-	ProjectCreateBy   *string
-	ChannelCreateBy   *string
-	BroadcastBy       *string
 	DefaultPriority   *string
 	RequireDueDate    *bool
 	WeekStart         *int
@@ -118,10 +101,6 @@ func (s Settings) Apply(p SettingsPatch) (Settings, []string) {
 			s.Description = d
 		}
 	}
-	oneOf("inviteBy", p.InviteBy, &s.InviteBy, ByAdmins, ByMembers)
-	oneOf("projectCreateBy", p.ProjectCreateBy, &s.ProjectCreateBy, ByAdmins, ByMembers)
-	oneOf("channelCreateBy", p.ChannelCreateBy, &s.ChannelCreateBy, ByAdmins, ByMembers)
-	oneOf("broadcastBy", p.BroadcastBy, &s.BroadcastBy, BroadcastEveryone, ByAdmins)
 	oneOf("defaultPriority", p.DefaultPriority, &s.DefaultPriority, "low", "medium", "high")
 	if p.InviteDays != nil {
 		if *p.InviteDays < 1 || *p.InviteDays > 30 {
@@ -182,26 +161,14 @@ func (s Settings) Changes(next Settings) []string {
 		}
 	}
 	add("description", s.Description != next.Description)
-	add("inviteBy", s.InviteBy != next.InviteBy)
 	add("inviteDays", s.InviteDays != next.InviteDays)
 	add("defaultInviteRole", s.DefaultInviteRole != next.DefaultInviteRole)
 	add("allowedDomains", !slices.Equal(s.AllowedDomains, next.AllowedDomains))
-	add("projectCreateBy", s.ProjectCreateBy != next.ProjectCreateBy)
-	add("channelCreateBy", s.ChannelCreateBy != next.ChannelCreateBy)
-	add("broadcastBy", s.BroadcastBy != next.BroadcastBy)
 	add("defaultPriority", s.DefaultPriority != next.DefaultPriority)
 	add("requireDueDate", s.RequireDueDate != next.RequireDueDate)
 	add("weekStart", s.WeekStart != next.WeekStart)
 	add("features", s.Features != next.Features)
 	return out
-}
-
-// CanInviteUnder reports whether actor may invite as `as` when invitations are open to members.
-func CanInviteUnder(s Settings, actor, as Role) bool {
-	if actor.Can(PermManageMembers) {
-		return as != RoleOwner && as.Valid() && as.rank() <= actor.rank()
-	}
-	return s.InviteBy == ByMembers && actor.AtLeast(RoleMember) && as != RoleOwner && as.Valid() && as.rank() <= actor.rank()
 }
 
 // AuditEntry is one administrator action.
@@ -217,5 +184,13 @@ var (
 	// ErrPolicy: the workspace's settings do not allow this action.
 	ErrPolicy = apperr.Define("workspaces.policy", http.StatusForbidden)
 	// ErrDomainNotAllowed: the address is outside the allowed domains.
+	// ErrRoleNotFound: the role does not exist (any more).
+	ErrRoleNotFound = apperr.Define("workspaces.role_not_found", http.StatusNotFound)
+	// ErrRoleNameTaken: another role has this name.
+	ErrRoleNameTaken = apperr.Define("workspaces.role_name_taken", http.StatusConflict)
+	// ErrRoleInUse: reserved for roles that cannot be removed.
+	ErrRoleLocked = apperr.Define("workspaces.role_locked", http.StatusForbidden)
+	// ErrTooManyRoles: the workspace reached its limit of custom roles.
+	ErrTooManyRoles     = apperr.Define("workspaces.too_many_roles", http.StatusUnprocessableEntity)
 	ErrDomainNotAllowed = apperr.Define("workspaces.domain_not_allowed", http.StatusUnprocessableEntity)
 )
