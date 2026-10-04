@@ -34,6 +34,13 @@
 
 ### Added
 
+- **Email page in the admin centre** (Settings → Email): shows how the server sends mail (SMTP or Mailgun), warns plainly
+  when mail only goes to a test inbox such as Mailpit (the default of a fresh deployment, which is why invitations never
+  reached real inboxes), the queue (waiting / failed), the latest emails to the workspace's people with their errors, and
+  a *Send me a test email* button. It lists the `.env` lines to connect a real provider.
+- **Invitation link**: after inviting, the dialog shows the link with a copy button, so an invitation can be handed over
+  by hand when an email does not arrive.
+
 - **Admin centre redesigned and extended**: one card of grouped sections (Workspace, People, Work, System) with an
   animated highlight, tiles with a short status on the overview, and every setting as a row with its control, saved
   at once. New sections:

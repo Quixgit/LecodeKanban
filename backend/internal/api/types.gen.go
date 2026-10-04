@@ -504,6 +504,48 @@ func (e Locale) Valid() bool {
 	}
 }
 
+// Defines values for MailItemStatus.
+const (
+	MailItemStatusDone    MailItemStatus = "done"
+	MailItemStatusFailed  MailItemStatus = "failed"
+	MailItemStatusPending MailItemStatus = "pending"
+	MailItemStatusRunning MailItemStatus = "running"
+)
+
+// Valid indicates whether the value is a known member of the MailItemStatus enum.
+func (e MailItemStatus) Valid() bool {
+	switch e {
+	case MailItemStatusDone:
+		return true
+	case MailItemStatusFailed:
+		return true
+	case MailItemStatusPending:
+		return true
+	case MailItemStatusRunning:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MailStatusProvider.
+const (
+	Mailgun MailStatusProvider = "mailgun"
+	Smtp    MailStatusProvider = "smtp"
+)
+
+// Valid indicates whether the value is a known member of the MailStatusProvider enum.
+func (e MailStatusProvider) Valid() bool {
+	switch e {
+	case Mailgun:
+		return true
+	case Smtp:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MeetingProvider.
 const (
 	MeetingProviderGoogleCalendar MeetingProvider = "google_calendar"
@@ -2383,7 +2425,10 @@ type Invite struct {
 	Email     string             `json:"email"`
 	ExpiresAt time.Time          `json:"expiresAt"`
 	Id        openapi_types.UUID `json:"id"`
-	Role      InviteRole         `json:"role"`
+
+	// Link The invitation address; present only in the response that creates the invitation
+	Link *string    `json:"link,omitempty"`
+	Role InviteRole `json:"role"`
 }
 
 // InvitePreview defines model for InvitePreview.
@@ -2426,6 +2471,41 @@ type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+// MailItem defines model for MailItem.
+type MailItem struct {
+	At        time.Time      `json:"at"`
+	Attempts  int            `json:"attempts"`
+	Error     *string        `json:"error"`
+	Id        int64          `json:"id"`
+	Recipient string         `json:"recipient"`
+	Status    MailItemStatus `json:"status"`
+	Subject   string         `json:"subject"`
+}
+
+// MailItemStatus defines model for MailItem.Status.
+type MailItemStatus string
+
+// MailStatus defines model for MailStatus.
+type MailStatus struct {
+	// Capturing True when mail is only collected in a test inbox and never delivered
+	Capturing bool `json:"capturing"`
+
+	// Failed Emails that failed for good in the last 7 days
+	Failed int    `json:"failed"`
+	From   string `json:"from"`
+
+	// Host SMTP host or Mailgun domain
+	Host     string             `json:"host"`
+	Provider MailStatusProvider `json:"provider"`
+	Recent   []MailItem         `json:"recent"`
+
+	// Waiting Emails queued or being sent
+	Waiting int `json:"waiting"`
+}
+
+// MailStatusProvider defines model for MailStatus.Provider.
+type MailStatusProvider string
 
 // Meeting defines model for Meeting.
 type Meeting struct {

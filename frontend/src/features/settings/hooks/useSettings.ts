@@ -55,6 +55,24 @@ export function useAudit(workspaceId: string | undefined, enabled: boolean) {
   });
 }
 
+/** The email delivery page; refreshes on its own while open so a test email can be watched arriving. */
+export function useMailStatus(workspaceId: string | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ['workspace-mail', workspaceId ?? ''],
+    queryFn: () => settingsApi.mailStatus(workspaceId!),
+    enabled: !!workspaceId && enabled,
+    refetchInterval: 5000,
+  });
+}
+
+export function useSendTestMail(workspaceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => settingsApi.sendTestMail(workspaceId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['workspace-mail', workspaceId] }),
+  });
+}
+
 export type FeatureKey = keyof WorkspaceFeatures;
 
 /** Whether a part of the platform is switched on for the current workspace (on while loading). */

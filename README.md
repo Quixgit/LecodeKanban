@@ -97,3 +97,10 @@ docker compose run --rm --entrypoint /app/adduser api -workspace "Reliabilix Stu
 ```
 
 Existing accounts are only added to the workspace. `-role admin|member|viewer` sets the role (default member).
+
+## Email (invitations, reminders)
+
+A fresh deployment sends mail to **Mailpit**, a test inbox, so nothing reaches real inboxes. Connect a provider in `.env`
+(see Settings → Email in the admin centre, or `.env.example`): `LK_SMTP_HOST/PORT/TLS/USERNAME/PASSWORD/FROM`, or
+`LK_MAIL_PROVIDER=mailgun` with `LK_MAILGUN_*`. Then `docker compose up -d api worker` (the **worker** sends the queued
+mail, so it must be running). Settings → Email shows the queue and the last emails, and can send a test message.

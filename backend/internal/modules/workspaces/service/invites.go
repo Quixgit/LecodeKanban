@@ -75,6 +75,7 @@ func (s *Service) Invite(ctx context.Context, actor, ws uuid.UUID, email string,
 	if err := s.mail(ctx, msg, "invite:"+inv.ID.String()); err != nil {
 		return domain.Invite{}, err
 	}
+	inv.Link = s.publicURL + "/invite/" + raw
 	s.audit(ctx, ws, actor, "invite.sent", map[string]any{"email": email, "role": string(role)})
 	return inv, nil
 }

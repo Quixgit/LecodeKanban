@@ -35,6 +35,8 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 		r.Get("/settings", httpx.H(h.settings))
 		r.Patch("/settings", httpx.H(h.updateSettings))
 		r.Get("/audit", httpx.H(h.audit))
+		r.Get("/mail", httpx.H(h.mailStatus))
+		r.Post("/mail/test", httpx.H(h.mailTest))
 		r.Patch("/members/{userId}", httpx.H(h.changeRole))
 		r.Delete("/members/{userId}", httpx.H(h.removeMember))
 		r.Get("/invites", httpx.H(h.invites))
@@ -62,7 +64,11 @@ func toAPI(w domain.Workspace) api.Workspace {
 }
 
 func inviteToAPI(i domain.Invite) api.Invite {
-	return api.Invite{Id: i.ID, Email: i.Email, Role: api.InviteRole(i.Role), ExpiresAt: i.ExpiresAt, CreatedAt: i.CreatedAt}
+	out := api.Invite{Id: i.ID, Email: i.Email, Role: api.InviteRole(i.Role), ExpiresAt: i.ExpiresAt, CreatedAt: i.CreatedAt}
+	if i.Link != "" {
+		out.Link = &i.Link
+	}
+	return out
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) error {
@@ -377,5 +383,40 @@ func (h *Handler) memberProfile(w http.ResponseWriter, r *http.Request) error {
 		Bio: u.Bio, Linkedin: u.LinkedIn, Telegram: u.Telegram, Website: u.Website,
 		WorkStart: u.WorkStart, WorkEnd: u.WorkEnd, Skills: skills, CoverPreset: u.CoverPreset, CoverUrl: u.CoverURL,
 	})
+	return nil
+}
+
+func (h *Handler) mailStatus(w http.ResponseWriter, r *http.Request) error {
+	ws, err := pathUUID(r, "workspaceId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	st, err := h.svc.MailStatus(r.Context(), userID(r), ws)
+	if err != nil {
+		return err
+	}
+	out := api.MailStatus{Provider: api.MailStatusProvider(st.Info.Provider), Host: st.Info.Host, From: st.Info.From,
+		Capturing: st.Info.Capturing(), Waiting: st.Waiting, Failed: st.Failed, Recent: make([]api.MailItem, len(st.Recent))}
+	for i, m := range st.Recent {
+		item := api.MailItem{Id: m.ID, Recipient: m.Recipient, Subject: m.Subject, Status: api.MailItemStatus(m.Status), Attempts: m.Attempts, At: m.At}
+		if m.Error != "" {
+			e := m.Error
+			item.Error = &e
+		}
+		out.Recent[i] = item
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
+	return nil
+}
+
+func (h *Handler) mailTest(w http.ResponseWriter, r *http.Request) error {
+	ws, err := pathUUID(r, "workspaceId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	if err := h.svc.SendTestMail(r.Context(), userID(r), ws); err != nil {
+		return err
+	}
+	w.WriteHeader(http.StatusAccepted)
 	return nil
 }

@@ -77,3 +77,21 @@ INSERT INTO workspace_audit (workspace_id, actor_id, action, details) VALUES (@w
 
 -- name: ListAudit :many
 SELECT id, actor_id, action, details, at FROM workspace_audit WHERE workspace_id = $1 ORDER BY at DESC, id LIMIT $2;
+
+-- name: ListWorkspaceMail :many
+-- The latest emails addressed to people of this workspace (members and invited addresses).
+SELECT j.id, j.status, j.attempts, j.max_attempts, COALESCE(j.last_error, '')::text AS last_error, j.created_at,
+       COALESCE(j.payload->>'to', '')::text AS recipient, COALESCE(j.payload->>'subject', '')::text AS subject
+FROM jobs j
+WHERE j.kind = 'mail.send'
+  AND lower(j.payload->>'to') IN (
+      SELECT lower(u.email) FROM workspace_members m JOIN users u ON u.id = m.user_id WHERE m.workspace_id = @workspace_id
+      UNION
+      SELECT lower(email) FROM workspace_invites WHERE workspace_id = @workspace_id)
+ORDER BY j.id DESC
+LIMIT 20;
+
+-- name: MailQueueCounts :one
+SELECT count(*) FILTER (WHERE status IN ('pending', 'running'))::int AS waiting,
+       count(*) FILTER (WHERE status = 'failed' AND created_at > now() - interval '7 days')::int AS failed
+FROM jobs WHERE kind = 'mail.send';
