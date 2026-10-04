@@ -1,5 +1,11 @@
+export { AccessPage } from './components/AccessPage';
+export { AuditPage } from './components/AuditPage';
+export { FeatureGate } from './components/FeatureGate';
+export { FeaturesPage } from './components/FeaturesPage';
 export { FieldsPage } from './components/FieldsPage';
 export { GeneralPage } from './components/GeneralPage';
 export { LabelsPage } from './components/LabelsPage';
 export { OverviewPage } from './components/OverviewPage';
+export { RulesPage } from './components/RulesPage';
 export { SettingsLayout } from './components/SettingsLayout';
+export { useFeatureEnabled, useWorkspaceSettings, type FeatureKey } from './hooks/useSettings';

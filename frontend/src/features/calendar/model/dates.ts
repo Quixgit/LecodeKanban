@@ -21,9 +21,9 @@ export function todayKey(now = new Date()): string {
   return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
 }
 
-/** Monday of the week containing `key` (weeks start on Monday in both supported locales). */
-export function startOfWeek(key: string): string {
-  const dow = (parseKey(key).getUTCDay() + 6) % 7; // Mon=0 … Sun=6
+/** First day of the week containing `key`: Monday by default, Sunday when `weekStart` is 0. */
+export function startOfWeek(key: string, weekStart: 0 | 1 = 1): string {
+  const dow = (parseKey(key).getUTCDay() + 7 - weekStart) % 7;
   return addDays(key, -dow);
 }
 
@@ -40,9 +40,10 @@ export function sameMonth(a: string, b: string): boolean {
 }
 
 /** The days shown for an anchor date: a 6-week grid for the month, 7 days for the week, 1 for the day. */
-export function visibleDays(anchor: string, mode: CalendarMode): string[] {
+export function visibleDays(anchor: string, mode: CalendarMode, weekStart: 0 | 1 = 1): string[] {
   if (mode === 'day') return [anchor];
-  const first = mode === 'week' ? startOfWeek(anchor) : startOfWeek(startOfMonth(anchor));
+  const first =
+    mode === 'week' ? startOfWeek(anchor, weekStart) : startOfWeek(startOfMonth(anchor), weekStart);
   const count = mode === 'week' ? 7 : 42;
   return Array.from({ length: count }, (_, i) => addDays(first, i));
 }

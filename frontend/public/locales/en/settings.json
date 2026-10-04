@@ -4,8 +4,9 @@
   },
   "groups": {
     "workspace": "Workspace",
-    "tasks": "Tasks",
-    "access": "People & apps"
+    "people": "People",
+    "work": "Work",
+    "system": "System"
   },
   "sections": {
     "overview": {
@@ -14,7 +15,23 @@
     },
     "general": {
       "title": "General",
-      "description": "The workspace name, its address, and the danger zone."
+      "description": "The workspace name, a short description and the danger zone."
+    },
+    "features": {
+      "title": "Modules",
+      "description": "Switch parts of the platform on or off for everyone in this workspace."
+    },
+    "access": {
+      "title": "Access & invitations",
+      "description": "Who may invite people, for how long an invitation lasts and which email domains are allowed."
+    },
+    "members": {
+      "title": "Members & roles",
+      "description": "See the team and decide what each person can do."
+    },
+    "rules": {
+      "title": "Rules & defaults",
+      "description": "Who creates projects and channels, defaults for new tasks and the calendar."
     },
     "fields": {
       "title": "Custom fields",
@@ -24,20 +41,23 @@
       "title": "Labels",
       "description": "The names and colours people tag tasks with."
     },
-    "members": {
-      "title": "Members & roles",
-      "description": "Invite people and decide what each of them can do."
-    },
     "integrations": {
       "title": "Integrations",
       "description": "Connect Google Calendar, GitHub and other tools."
+    },
+    "audit": {
+      "title": "Audit log",
+      "description": "What the administrators changed, and when."
     }
   },
   "overview": {
     "eyebrow": "Admin centre",
     "yourRole": "Your role:",
-    "readOnly": "You can look around, but only workspace administrators can change these settings.",
-    "open": "Open"
+    "modulesOn": "{{on}} of {{total}} modules on",
+    "count": "{{count}} defined",
+    "people": "{{count}} people",
+    "inviteAdmins": "Only admins invite",
+    "inviteMembers": "Members can invite"
   },
   "general": {
     "nameTitle": "Workspace",
@@ -58,7 +78,11 @@
     "typeName": "Type {{name}} to confirm",
     "deleteConfirm": "Delete forever",
     "cancel": "Cancel",
-    "deleted": "Workspace deleted"
+    "deleted": "Workspace deleted",
+    "aboutTitle": "About the workspace",
+    "aboutDescription": "A line for teammates: what this workspace is for.",
+    "description": "Description",
+    "saveAbout": "Save description"
   },
   "labels": {
     "new": "New label",
@@ -85,6 +109,151 @@
       "amber": "Amber",
       "purple": "Purple",
       "red": "Red"
+    }
+  },
+  "saved": "Saved",
+  "readOnly": "You can look around, but only workspace administrators can change these settings.",
+  "who": {
+    "admins": "Only administrators",
+    "members": "Every member",
+    "everyone": "Everyone"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "viewer": "Viewer"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "gate": {
+    "title": "This part is switched off",
+    "description": "An administrator turned off {{feature}} for this workspace.",
+    "back": "Back to the dashboard"
+  },
+  "features": {
+    "cardTitle": "Modules",
+    "cardDescription": "A module that is off disappears from the menu for everyone. Nothing is deleted; switch it on again to get it back.",
+    "chat": {
+      "title": "Chat",
+      "description": "Channels, direct messages and conversations on tasks."
+    },
+    "docs": {
+      "title": "Docs",
+      "description": "The wiki: spaces, pages and files."
+    },
+    "calendar": {
+      "title": "Calendar",
+      "description": "Tasks by due date, with drag and drop."
+    },
+    "time": {
+      "title": "Time tracking",
+      "description": "The timer and logged time on tasks."
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Google Calendar, GitHub and other connections."
+    }
+  },
+  "access": {
+    "cardTitle": "Invitations",
+    "cardDescription": "Rules for bringing new people into this workspace.",
+    "inviteBy": {
+      "title": "Who can invite",
+      "description": "Members can invite only up to their own role."
+    },
+    "defaultRole": {
+      "title": "Default role",
+      "description": "Pre-selected in the invitation form."
+    },
+    "days": {
+      "title": "Invitation lifetime",
+      "description": "After this many days an invitation link stops working.",
+      "option_one": "{{count}} day",
+      "option_other": "{{count}} days"
+    },
+    "domains": {
+      "title": "Allowed email domains",
+      "description": "Only addresses of these domains can be invited, for example company.com. Leave empty to allow any.",
+      "placeholder": "company.com, then Enter",
+      "any": "Any domain",
+      "remove": "Remove {{name}}",
+      "full": "At most 20 domains"
+    },
+    "peopleTitle": "People",
+    "peopleDescription": "Invite, change roles or remove members.",
+    "openTeam": "Open the team page"
+  },
+  "rules": {
+    "projectsTitle": "Projects",
+    "projectsDescription": "Who can start new projects.",
+    "projectCreateBy": {
+      "title": "Who can create projects",
+      "description": "Administrators can always create them."
+    },
+    "tasksTitle": "Tasks & calendar",
+    "tasksDescription": "Defaults for new tasks and how the calendar looks.",
+    "priority": {
+      "title": "Default priority",
+      "description": "Used when a new task is created without one."
+    },
+    "dueDate": {
+      "title": "Require a due date",
+      "description": "New tasks cannot be created without a due date."
+    },
+    "weekStart": {
+      "title": "Week starts on",
+      "description": "Used by the calendar.",
+      "monday": "Monday",
+      "sunday": "Sunday"
+    },
+    "chatTitle": "Chat",
+    "chatDescription": "Rules for channels and notifying many people at once.",
+    "channelCreateBy": {
+      "title": "Who can create channels",
+      "description": "Administrators can always create them."
+    },
+    "broadcast": {
+      "title": "Who can use @channel",
+      "description": "@channel notifies everyone in the channel."
+    }
+  },
+  "audit": {
+    "empty": "Nothing yet",
+    "emptyHint": "Changes to settings, roles and invitations will be listed here.",
+    "adminsOnly": "Only administrators can see the audit log.",
+    "someone": "Someone",
+    "keys": {
+      "description": "description",
+      "inviteBy": "who can invite",
+      "inviteDays": "invitation lifetime",
+      "defaultInviteRole": "default role",
+      "allowedDomains": "allowed domains",
+      "projectCreateBy": "who creates projects",
+      "channelCreateBy": "who creates channels",
+      "broadcastBy": "who uses @channel",
+      "defaultPriority": "default priority",
+      "requireDueDate": "due date requirement",
+      "weekStart": "week start",
+      "features": "modules"
+    },
+    "settings": {
+      "updated": "changed settings: {{what}}"
+    },
+    "workspace": {
+      "renamed": "renamed the workspace to “{{name}}”"
+    },
+    "member": {
+      "role_changed": "changed a role from {{from}} to {{to}}",
+      "removed": "removed a member",
+      "left": "left the workspace"
+    },
+    "invite": {
+      "sent": "invited {{email}} as {{role}}",
+      "revoked": "revoked an invitation"
     }
   }
 }

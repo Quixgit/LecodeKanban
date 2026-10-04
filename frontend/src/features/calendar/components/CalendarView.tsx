@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useLabels } from '@/features/cards';
 import { useAllProjects } from '@/features/projects';
+import { useWorkspaceSettings } from '@/features/settings';
 import { TasksToolbar, baseQuery, useTaskFilters } from '@/features/tasks-list';
 import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
@@ -27,6 +28,7 @@ export function CalendarView({ currentUserId, viewSwitch, onCreate }: Props) {
   const errorText = useErrorText();
   const [params, setParams] = useSearchParams();
   const { workspace } = useCurrentWorkspace();
+  const weekStart = useWorkspaceSettings(workspace?.id).data?.weekStart === 0 ? 0 : 1;
   const ws = workspace?.id ?? '';
   const canEdit = !!workspace && workspace.role !== 'viewer';
   const { filters, update, clear, activeCount } = useTaskFilters();
@@ -136,6 +138,7 @@ export function CalendarView({ currentUserId, viewSwitch, onCreate }: Props) {
         onToday={() => go({ on: today })}
       />
       <CalendarGrid
+        weekStart={weekStart}
         anchor={anchor}
         mode={mode}
         today={today}

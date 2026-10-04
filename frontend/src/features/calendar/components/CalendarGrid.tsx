@@ -12,7 +12,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Card } from '@/features/cards';
 import { useLanguage } from '@/shared/i18n';
-import { sameMonth, visibleDays, parseKey, type CalendarMode } from '../model/dates';
+import { addDays, sameMonth, visibleDays, parseKey, type CalendarMode } from '../model/dates';
 import { ChipBody } from './CalendarChip';
 import { DayCell } from './DayCell';
 import { Unscheduled } from './Unscheduled';
@@ -27,6 +27,8 @@ interface Props {
   onZoom: (day: string) => void;
   onCreate?: (day: string) => void;
   onReschedule: (card: Card, day: string) => void;
+  /** 0 Sunday, 1 Monday (the workspace's choice). */
+  weekStart?: 0 | 1;
 }
 
 const LIMIT = { month: 3, week: 8, day: 500 } as const;
@@ -42,11 +44,12 @@ export function CalendarGrid({
   onZoom,
   onCreate,
   onReschedule,
+  weekStart = 1,
 }: Props) {
   const { t } = useTranslation('calendar');
   const { language } = useLanguage();
   const [active, setActive] = useState<Card | null>(null);
-  const days = useMemo(() => visibleDays(anchor, mode), [anchor, mode]);
+  const days = useMemo(() => visibleDays(anchor, mode, weekStart), [anchor, mode, weekStart]);
 
   const { byDay, unscheduled } = useMemo(() => {
     const map = new Map<string, Card[]>();
@@ -78,10 +81,10 @@ export function CalendarGrid({
     if (card && over) onReschedule(card, String(over.id));
   };
 
-  // 2024-01-01 is a Monday: weekday names without hard-coding them per language.
+  // 2024-01-01 is a Monday and 2023-12-31 a Sunday: weekday names without hard-coding them per language.
   const weekdays = Array.from({ length: 7 }, (_, i) =>
     new Intl.DateTimeFormat(language, { weekday: 'short', timeZone: 'UTC' }).format(
-      parseKey(`2024-01-0${i + 1}`),
+      parseKey(weekStart === 0 ? addDays('2023-12-31', i) : addDays('2024-01-01', i)),
     ),
   );
   const cols = mode === 'day' ? 'grid-cols-1' : 'grid-cols-7';

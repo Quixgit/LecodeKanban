@@ -201,3 +201,15 @@ Facts about what was checked, with how. Update on every phase.
 
 - Go: `trend` (no baseline gives null, +50%, -75%), stats follow the requested period. Unit: MetricCard shows the
   fallback and never +0.00%. Browser: checked by screenshot on the demo data (+164.00% for new tasks).
+
+## Workspace settings, policies and audit log
+
+- Go: `workspaces/service` TestSettingsAndPolicies (defaults for everyone, only admins change, bad values refused,
+  members cannot invite until allowed, never above their own role, allowed domains, invitation lifetime, unchanged patch
+  writes nothing, audit lists who and what, audit is admin-only); `projects` / `chat` / `cards` policy tests (project
+  and channel creation limited to admins, @channel limited, default priority and required due date).
+- Browser: overview and navigation (axe), modules off/on (menu entry gone, page gated), access settings persisted and
+  shown after reload (axe), week start Sunday in the calendar, audit entries with the actor, settings put back.
+- Not covered: switching a module off does not block its API (documented in ADR 0023); no data export yet;
+  time format and date format preferences are not offered because they would not apply everywhere.
+- Migrations 00026 (profile) and 00027 (settings) must both be applied; apply them in order.

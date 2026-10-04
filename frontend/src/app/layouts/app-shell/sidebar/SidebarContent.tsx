@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { IconButton } from '@/shared/ui';
-import { navigation } from '../navigation';
+import { useNavigation } from '../useNavigation';
 import { AnnouncementCard } from './AnnouncementCard';
 import { BrandLogo } from './BrandLogo';
 import { NavLinkItem } from './NavLinkItem';
@@ -18,6 +18,7 @@ interface Props {
 
 /** Brand, navigation sections and the announcement card — shared by the desktop rail and the mobile drawer. */
 export function SidebarContent({ collapsed, onToggle, mobile }: Props) {
+  const sections = useNavigation();
   const { t } = useTranslation('nav');
   const announcement = useAnnouncement();
   const toggleLabel = mobile
@@ -61,7 +62,7 @@ export function SidebarContent({ collapsed, onToggle, mobile }: Props) {
       </div>
 
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-3">
-        {navigation.map((section, i) => (
+        {sections.map((section, i) => (
           <Fragment key={section.key}>
             {collapsed ? (
               <div
