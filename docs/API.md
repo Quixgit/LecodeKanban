@@ -285,7 +285,7 @@ Base URL: `/api/v1`
 - **CsrfToken** — `token`: string
 - **AuthProviders** — `google`: boolean, `github`: boolean
 - **Locale**: `en` | `uk`
-- **User** — `id`: string, `email`: string, `name`: string, `locale`: Locale, `avatarUrl`: string \| null, `emailVerified`: boolean, `hasPassword`: boolean, `providers`: array, `createdAt`: string
+- **User** — `id`: string, `email`: string, `name`: string, `locale`: Locale, `avatarUrl`: string \| null, `emailVerified`: boolean, `hasPassword`: boolean, `providers`: array, `createdAt`: string, `jobTitle`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string
 - **Session** — `user`: User
 - **RegisterRequest** — `name`: string, `email`: string, `password`: string, `locale?`: Locale
 - **LoginRequest** — `email`: string, `password`: string
@@ -295,7 +295,7 @@ Base URL: `/api/v1`
 - **ChangePasswordRequest** — `currentPassword?`: string, `newPassword`: string
 - **Device** — `id`: string, `startedAt`: string, `lastSeenAt`: string, `userAgent`: string, `ip`: string, `current`: boolean
 - **DeviceList** — `items`: array
-- **UpdateProfileRequest** — `name?`: string, `locale?`: Locale
+- **UpdateProfileRequest** — `name?`: string, `locale?`: Locale, `jobTitle?`: string, `phone?`: string, `location?`: string, `timezone?`: string, `bio?`: string
 - **Role**: `owner` | `admin` | `member` | `viewer`
 - **InviteRole**: `admin` | `member` | `viewer`
 - **Workspace** — `id`: string, `name`: string, `slug`: string, `role`: Role, `memberCount`: integer, `createdAt`: string

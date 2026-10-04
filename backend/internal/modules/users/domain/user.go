@@ -29,6 +29,11 @@ type User struct {
 	EmailVerifiedAt *time.Time
 	HasPassword     bool
 	CreatedAt       time.Time
+	JobTitle        string
+	Phone           string
+	Location        string
+	Timezone        string // IANA name, empty when not set
+	Bio             string
 }
 
 func (u User) EmailVerified() bool { return u.EmailVerifiedAt != nil }
@@ -58,8 +63,13 @@ type NewUser struct {
 
 // ProfilePatch updates mutable profile fields; nil means unchanged.
 type ProfilePatch struct {
-	Name   *string
-	Locale *Locale
+	Name     *string
+	Locale   *Locale
+	JobTitle *string
+	Phone    *string
+	Location *string
+	Timezone *string
+	Bio      *string
 }
 
 var (

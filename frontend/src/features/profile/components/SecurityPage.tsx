@@ -11,6 +11,7 @@ import { useLanguage } from '@/shared/i18n';
 import { formatRelative } from '@/shared/lib/format';
 import {
   Button,
+  SettingsCard,
   EmptyState,
   Field,
   FormAlert,
@@ -19,11 +20,10 @@ import {
   Skeleton,
   toast,
 } from '@/shared/ui';
-import type { Device } from '../api/settingsApi';
-import { useChangePassword, useDeviceMutations, useDevices } from '../hooks/useSettings';
+import type { Device } from '../api/profileApi';
+import { useChangePassword, useDeviceMutations, useDevices } from '../hooks/useProfile';
 import { describeDevice, type DeviceKind } from '../model/device';
 import { changePasswordSchema, type ChangePasswordValues } from '../model/schemas';
-import { SettingsCard } from './SettingsLayout';
 
 const ICONS = { desktop: Laptop, phone: Smartphone, tablet: Tablet } satisfies Record<
   DeviceKind,
@@ -31,7 +31,7 @@ const ICONS = { desktop: Laptop, phone: Smartphone, tablet: Tablet } satisfies R
 >;
 
 function ChangePassword() {
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation('profile');
   const { t: ta } = useTranslation('auth');
   const fe = useFieldError();
   const errorText = useErrorText();
@@ -128,7 +128,7 @@ function ChangePassword() {
 }
 
 function DeviceRow({ d }: { d: Device }) {
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation('profile');
   const { language } = useLanguage();
   const errorText = useErrorText();
   const { signOut } = useDeviceMutations();
@@ -179,7 +179,7 @@ function DeviceRow({ d }: { d: Device }) {
 }
 
 function Devices() {
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation('profile');
   const errorText = useErrorText();
   const devices = useDevices();
   const { signOutOthers } = useDeviceMutations();

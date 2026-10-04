@@ -14,8 +14,13 @@ SELECT * FROM users WHERE id = ANY(@ids::uuid[]) ORDER BY name;
 
 -- name: UpdateUserProfile :one
 UPDATE users
-SET name   = COALESCE(sqlc.narg(name), name),
-    locale = COALESCE(sqlc.narg(locale), locale)
+SET name      = COALESCE(sqlc.narg(name), name),
+    locale    = COALESCE(sqlc.narg(locale), locale),
+    job_title = COALESCE(sqlc.narg(job_title), job_title),
+    phone     = COALESCE(sqlc.narg(phone), phone),
+    location  = COALESCE(sqlc.narg(location), location),
+    timezone  = COALESCE(sqlc.narg(timezone), timezone),
+    bio       = COALESCE(sqlc.narg(bio), bio)
 WHERE id = @id
 RETURNING *;
 

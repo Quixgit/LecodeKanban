@@ -70,9 +70,13 @@
       "title": "Integrations",
       "subtitle": "Connect GitHub, Gmail and Google Calendar"
     },
+    "profile": {
+      "title": "Profile",
+      "subtitle": "Your details, photo and account security"
+    },
     "settings": {
       "title": "Settings",
-      "subtitle": "Profile, workspace and notification preferences"
+      "subtitle": "Workspace, custom fields and platform controls"
     },
     "uiKit": {
       "title": "UI kit",

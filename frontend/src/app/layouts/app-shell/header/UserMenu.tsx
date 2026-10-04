@@ -78,7 +78,7 @@ export function UserMenu({ viewer }: { viewer: Viewer }) {
             {t('userMenu.status')}
           </DropdownItem>
         )}
-        <DropdownItem onSelect={() => navigate('/settings/profile')}>
+        <DropdownItem onSelect={() => navigate('/profile')}>
           <UserRound />
           {t('userMenu.profile')}
         </DropdownItem>

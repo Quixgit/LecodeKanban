@@ -194,3 +194,27 @@ func TestAvatars(t *testing.T) {
 		t.Fatalf("after remove: %v", err)
 	}
 }
+
+func TestProfileDetails(t *testing.T) {
+	s, _ := setup(t)
+	ctx := context.Background()
+	u, _ := s.Create(ctx, domain.NewUser{Email: "d@example.com", Name: "D"})
+
+	got, err := s.UpdateProfile(ctx, u.ID, domain.ProfilePatch{JobTitle: ptr("  Engineer "), Phone: ptr("+380 50 000 00 00"),
+		Location: ptr("Kyiv"), Timezone: ptr("Europe/Kyiv"), Bio: ptr("Hello")})
+	if err != nil || got.JobTitle != "Engineer" || got.Timezone != "Europe/Kyiv" || got.Bio != "Hello" || got.Location != "Kyiv" {
+		t.Fatalf("details: %+v %v", got, err)
+	}
+	// A patch that leaves them out keeps them; an empty string clears one.
+	got, _ = s.UpdateProfile(ctx, u.ID, domain.ProfilePatch{Name: ptr("D2"), Bio: ptr("")})
+	if got.JobTitle != "Engineer" || got.Bio != "" || got.Name != "D2" {
+		t.Fatalf("partial patch: %+v", got)
+	}
+	_, err = s.UpdateProfile(ctx, u.ID, domain.ProfilePatch{Timezone: ptr("Mars/Olympus"), Bio: ptr(strings.Repeat("x", 501))})
+	if !apperr.IsCode(err, apperr.Validation) || len(apperr.From(err).Fields) != 2 {
+		t.Fatalf("want 2 field errors, got %v", err)
+	}
+	if _, err = s.UpdateProfile(ctx, u.ID, domain.ProfilePatch{Timezone: ptr("")}); err != nil {
+		t.Fatalf("clearing the time zone: %v", err)
+	}
+}

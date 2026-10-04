@@ -12,17 +12,14 @@ const ShowcasePage = lazy(() => import('@/pages/ShowcasePage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const TeamPage = lazy(() => import('@/pages/TeamPage'));
 const IntegrationsPage = lazy(() => import('@/pages/IntegrationsPage'));
-const SettingsLayout = lazy(() =>
-  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.SettingsLayoutRoute })),
+const ProfileLayout = lazy(() =>
+  import('@/pages/profile/ProfileRoutes').then((m) => ({ default: m.ProfileLayoutRoute })),
 );
 const ProfileRoute = lazy(() =>
-  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.ProfileRoute })),
+  import('@/pages/profile/ProfileRoutes').then((m) => ({ default: m.ProfileRoute })),
 );
 const SecurityRoute = lazy(() =>
-  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.SecurityRoute })),
-);
-const PreferencesRoute = lazy(() =>
-  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.PreferencesRoute })),
+  import('@/pages/profile/ProfileRoutes').then((m) => ({ default: m.SecurityRoute })),
 );
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage'));
@@ -133,16 +130,23 @@ export const routes: RouteObject[] = [
           { path: 'team', handle: page('team'), element: <TeamPage /> },
           { path: 'integrations', handle: page('integrations'), element: <IntegrationsPage /> },
           {
-            path: 'settings',
-            handle: page('settings'),
-            element: <SettingsLayout />,
+            path: 'profile',
+            handle: page('profile'),
+            element: <ProfileLayout />,
             children: [
-              { index: true, element: <Navigate to="profile" replace /> },
-              { path: 'profile', element: <ProfileRoute /> },
+              { index: true, element: <ProfileRoute /> },
               { path: 'security', element: <SecurityRoute /> },
-              { path: 'preferences', element: <PreferencesRoute /> },
             ],
           },
+          // Settings is the workspace admin centre; these old addresses were the person's own pages.
+          {
+            path: 'settings',
+            handle: page('settings'),
+            element: <Navigate to="/profile" replace />,
+          },
+          { path: 'settings/profile', element: <Navigate to="/profile" replace /> },
+          { path: 'settings/security', element: <Navigate to="/profile/security" replace /> },
+          { path: 'settings/preferences', element: <Navigate to="/profile" replace /> },
           { path: 'ui-kit', handle: page('uiKit'), element: <ShowcasePage /> },
           { path: '*', handle: page('notFound'), element: <NotFoundPage /> },
         ],

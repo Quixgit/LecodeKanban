@@ -2431,7 +2431,7 @@ components:
       enum: [en, uk]
     User:
       type: object
-      required: [id, email, name, locale, avatarUrl, emailVerified, hasPassword, providers, createdAt]
+      required: [id, email, name, locale, avatarUrl, emailVerified, hasPassword, providers, createdAt, jobTitle, phone, location, timezone, bio]
       properties:
         id: { type: string, format: uuid }
         email: { type: string, description: Email address (validated server-side) }
@@ -2444,6 +2444,11 @@ components:
           type: array
           items: { type: string, enum: [google, github] }
         createdAt: { type: string, format: date-time }
+        jobTitle: { type: string }
+        phone: { type: string }
+        location: { type: string }
+        timezone: { type: string, description: IANA time zone name, empty when not set }
+        bio: { type: string }
     Session:
       type: object
       required: [user]
@@ -2505,6 +2510,11 @@ components:
       properties:
         name: { type: string, minLength: 1, maxLength: 100 }
         locale: { $ref: "#/components/schemas/Locale" }
+        jobTitle: { type: string, maxLength: 100, description: Empty string clears }
+        phone: { type: string, maxLength: 40 }
+        location: { type: string, maxLength: 100 }
+        timezone: { type: string, description: IANA time zone name or empty }
+        bio: { type: string, maxLength: 500 }
     Role:
       type: string
       enum: [owner, admin, member, viewer]

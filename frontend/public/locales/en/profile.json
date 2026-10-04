@@ -1,9 +1,8 @@
 {
   "nav": {
-    "label": "Settings sections",
+    "label": "Profile sections",
     "profile": "Profile",
-    "security": "Security",
-    "preferences": "Preferences"
+    "security": "Security"
   },
   "avatar": {
     "title": "Profile photo",
@@ -21,7 +20,7 @@
   },
   "profile": {
     "title": "Personal information",
-    "description": "Your name is what teammates see on tasks, comments and chat.",
+    "description": "Your name and details are what teammates see on tasks, comments and chat.",
     "name": "Full name",
     "email": "Email",
     "emailUnverifiedHint": "Confirm your address to receive invitations and reminders.",
@@ -32,7 +31,21 @@
     "memberSince": "Member since {{date}}",
     "save": "Save changes",
     "reset": "Discard",
-    "saved": "Profile saved"
+    "saved": "Profile saved",
+    "work": "Work",
+    "workDescription": "Helps teammates know who you are and when to reach you.",
+    "jobTitle": "Job title",
+    "jobTitlePlaceholder": "e.g. Product designer",
+    "phone": "Phone",
+    "location": "Location",
+    "locationPlaceholder": "City, country",
+    "timezone": "Time zone",
+    "timezonePlaceholder": "e.g. Europe/Kyiv",
+    "timezoneHint": "Used to show your local time to teammates.",
+    "useDevice": "Use this device's time zone",
+    "bio": "About you",
+    "bioPlaceholder": "A few words about what you do and how you like to work.",
+    "bioCount": "{{count}} / {{max}}"
   },
   "signin": {
     "title": "Sign-in methods",
@@ -73,20 +86,5 @@
     "browserOn": "{{browser}} on {{os}}",
     "unknown": "Unknown device",
     "loadFailed": "Couldn't load your devices"
-  },
-  "language": {
-    "title": "Language",
-    "description": "The interface language. It follows you across devices."
-  },
-  "theme": {
-    "title": "Appearance",
-    "description": "Light, dark, or match your device.",
-    "light": "Light",
-    "dark": "Dark",
-    "system": "Device"
-  },
-  "sounds": {
-    "title": "Notification sounds",
-    "description": "Short signals for new messages, mentions and tasks. Kept on this device."
   }
 }

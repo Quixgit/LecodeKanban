@@ -22,6 +22,7 @@ func toDomain(u store.User) domain.User {
 		ID: u.ID, Email: u.Email, Name: u.Name, Locale: domain.Locale(u.Locale),
 		AvatarURL: u.AvatarUrl, EmailVerifiedAt: u.EmailVerifiedAt,
 		HasPassword: u.PasswordHash != nil, CreatedAt: u.CreatedAt,
+		JobTitle: u.JobTitle, Phone: u.Phone, Location: u.Location, Timezone: u.Timezone, Bio: u.Bio,
 	}
 }
 
@@ -100,7 +101,8 @@ func (r *Repo) UpdateProfile(ctx context.Context, id uuid.UUID, p domain.Profile
 		s := string(*p.Locale)
 		locale = &s
 	}
-	u, err := r.q.UpdateUserProfile(ctx, store.UpdateUserProfileParams{ID: id, Name: p.Name, Locale: locale})
+	u, err := r.q.UpdateUserProfile(ctx, store.UpdateUserProfileParams{ID: id, Name: p.Name, Locale: locale,
+		JobTitle: p.JobTitle, Phone: p.Phone, Location: p.Location, Timezone: p.Timezone, Bio: p.Bio})
 	if err != nil {
 		return domain.User{}, notFound(err)
 	}
