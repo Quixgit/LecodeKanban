@@ -56,6 +56,7 @@ func (h *Handler) Present(ctx context.Context, u domain.User) (api.User, error) 
 	out := api.User{
 		Id: u.ID, Email: u.Email, Name: u.Name, Locale: api.Locale(u.Locale), AvatarUrl: u.AvatarURL,
 		EmailVerified: u.EmailVerified(), HasPassword: u.HasPassword, CreatedAt: u.CreatedAt,
+		JobTitle: u.JobTitle, Phone: u.Phone, Location: u.Location, Timezone: u.Timezone, Bio: u.Bio,
 		Providers: make([]api.UserProviders, 0, len(provs)),
 	}
 	for _, p := range provs {
@@ -103,7 +104,8 @@ func (h *Handler) updateMe(w http.ResponseWriter, r *http.Request) error {
 	if err := httpx.DecodeJSON(w, r, &in); err != nil {
 		return err
 	}
-	patch := domain.ProfilePatch{Name: in.Name}
+	patch := domain.ProfilePatch{Name: in.Name, JobTitle: in.JobTitle, Phone: in.Phone, Location: in.Location,
+		Timezone: in.Timezone, Bio: in.Bio}
 	if in.Locale != nil {
 		l := domain.Locale(*in.Locale)
 		patch.Locale = &l

@@ -12,7 +12,7 @@ import enTeam from '../../public/locales/en/team.json';
 import enWiki from '../../public/locales/en/wiki.json';
 import enWikiEditor from '../../public/locales/en/wikiEditor.json';
 import enChat from '../../public/locales/en/chat.json';
-import enSettings from '../../public/locales/en/settings.json';
+import enProfile from '../../public/locales/en/profile.json';
 import enIntegrations from '../../public/locales/en/integrations.json';
 import ukAuth from '../../public/locales/uk/auth.json';
 import ukCommon from '../../public/locales/uk/common.json';
@@ -26,7 +26,7 @@ import ukTeam from '../../public/locales/uk/team.json';
 import ukWiki from '../../public/locales/uk/wiki.json';
 import ukWikiEditor from '../../public/locales/uk/wikiEditor.json';
 import ukChat from '../../public/locales/uk/chat.json';
-import ukSettings from '../../public/locales/uk/settings.json';
+import ukProfile from '../../public/locales/uk/profile.json';
 import ukIntegrations from '../../public/locales/uk/integrations.json';
 
 export const testResources = {
@@ -44,7 +44,7 @@ export const testResources = {
     wikiEditor: enWikiEditor,
     chat: enChat,
     integrations: enIntegrations,
-    settings: enSettings,
+    profile: enProfile,
   },
   uk: {
     common: ukCommon,
@@ -60,7 +60,7 @@ export const testResources = {
     wikiEditor: ukWikiEditor,
     chat: ukChat,
     integrations: ukIntegrations,
-    settings: ukSettings,
+    profile: ukProfile,
   },
 };
 

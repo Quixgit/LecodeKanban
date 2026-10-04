@@ -2469,13 +2469,23 @@ type UpdateMemberRequest struct {
 
 // UpdateProfileRequest defines model for UpdateProfileRequest.
 type UpdateProfileRequest struct {
-	Locale *Locale `json:"locale,omitempty"`
-	Name   *string `json:"name,omitempty"`
+	Bio *string `json:"bio,omitempty"`
+
+	// JobTitle Empty string clears
+	JobTitle *string `json:"jobTitle,omitempty"`
+	Locale   *Locale `json:"locale,omitempty"`
+	Location *string `json:"location,omitempty"`
+	Name     *string `json:"name,omitempty"`
+	Phone    *string `json:"phone,omitempty"`
+
+	// Timezone IANA time zone name or empty
+	Timezone *string `json:"timezone,omitempty"`
 }
 
 // User defines model for User.
 type User struct {
 	AvatarUrl *string   `json:"avatarUrl"`
+	Bio       string    `json:"bio"`
 	CreatedAt time.Time `json:"createdAt"`
 
 	// Email Email address (validated server-side)
@@ -2483,9 +2493,15 @@ type User struct {
 	EmailVerified bool               `json:"emailVerified"`
 	HasPassword   bool               `json:"hasPassword"`
 	Id            openapi_types.UUID `json:"id"`
+	JobTitle      string             `json:"jobTitle"`
 	Locale        Locale             `json:"locale"`
+	Location      string             `json:"location"`
 	Name          string             `json:"name"`
+	Phone         string             `json:"phone"`
 	Providers     []UserProviders    `json:"providers"`
+
+	// Timezone IANA time zone name
+	Timezone string `json:"timezone"`
 }
 
 // UserProviders defines model for User.Providers.

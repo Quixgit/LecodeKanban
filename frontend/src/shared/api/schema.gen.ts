@@ -2466,6 +2466,12 @@ export interface components {
             providers: ("google" | "github")[];
             /** Format: date-time */
             createdAt: string;
+            jobTitle: string;
+            phone: string;
+            location: string;
+            /** @description IANA time zone name */
+            timezone: string;
+            bio: string;
         };
         Session: {
             user: components["schemas"]["User"];
@@ -2517,6 +2523,13 @@ export interface components {
         UpdateProfileRequest: {
             name?: string;
             locale?: components["schemas"]["Locale"];
+            /** @description Empty string clears */
+            jobTitle?: string;
+            phone?: string;
+            location?: string;
+            /** @description IANA time zone name or empty */
+            timezone?: string;
+            bio?: string;
         };
         /** @enum {string} */
         Role: "owner" | "admin" | "member" | "viewer";

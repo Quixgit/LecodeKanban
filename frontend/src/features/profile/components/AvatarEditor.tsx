@@ -5,12 +5,12 @@ import type { User } from '@/shared/api';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { cn } from '@/shared/lib/cn';
 import { Avatar, Button, toast } from '@/shared/ui';
-import { useProfileMutations } from '../hooks/useSettings';
+import { useProfileMutations } from '../hooks/useProfile';
 import { ACCEPTED_TYPES, checkPicture, squarePng } from '../model/avatar';
 
 /** The profile picture: pick, drop or paste a photo; it is cut to a square and shrunk before upload. */
 export function AvatarEditor({ user }: { user: User }) {
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation('profile');
   const errorText = useErrorText();
   const { uploadAvatar, removeAvatar } = useProfileMutations();
   const input = useRef<HTMLInputElement>(null);

@@ -37,3 +37,4 @@ export { toast, useToastStore } from './toastStore';
 export * from './tones';
 export * from './Tooltip';
 export * from './TrendChip';
+export * from './SettingsCard';

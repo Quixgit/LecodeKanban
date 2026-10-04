@@ -157,3 +157,12 @@ Facts about what was checked, with how. Update on every phase.
   hide into the Muted section and back, leave with confirmation.
 - Not covered: "Open in split view" from the Slack menu (there is no split view in this app; the menu offers
   *Open in new tab* instead).
+
+## Profile page
+
+- Go: `users/service` TestProfileDetails (trim, partial patch keeps other fields, empty string clears, unknown
+  time zone and over-long text refused).
+- Browser: profile (name, photo, axe), work details (server validation of the time zone, save, reload keeps values,
+  clearing), absence of language/theme controls, redirects from the old `/settings/*` addresses, security tab.
+- Not covered: job title is not yet shown on the Team page; changing the email address.
+- Until the Settings admin centre ships (next PR) `/settings` redirects to the profile.

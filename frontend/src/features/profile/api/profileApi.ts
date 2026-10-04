@@ -1,9 +1,10 @@
 import { api, unwrap, type components } from '@/shared/api';
 
+export type UpdateProfile = components['schemas']['UpdateProfileRequest'];
 export type Device = components['schemas']['Device'];
 
-export const settingsApi = {
-  updateProfile: (body: { name?: string; locale?: 'en' | 'uk' }) =>
+export const profileApi = {
+  updateProfile: (body: components['schemas']['UpdateProfileRequest']) =>
     unwrap(api.PATCH('/users/me', { body })),
   uploadAvatar: (file: Blob) => {
     const form = new FormData();

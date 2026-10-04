@@ -84,6 +84,26 @@ func (s *Service) UpdateProfile(ctx context.Context, id uuid.UUID, p domain.Prof
 	if p.Locale != nil && !p.Locale.Valid() {
 		v.OneOf("locale", string(*p.Locale), string(domain.LocaleEN), string(domain.LocaleUK))
 	}
+	// The optional details may be cleared (empty string) and are trimmed.
+	for _, f := range []struct {
+		field string
+		val   **string
+		max   int
+	}{{"jobTitle", &p.JobTitle, 100}, {"phone", &p.Phone, 40}, {"location", &p.Location, 100}, {"bio", &p.Bio, 500}} {
+		if *f.val == nil {
+			continue
+		}
+		trimmed := strings.TrimSpace(**f.val)
+		*f.val = &trimmed
+		v.Length(f.field, trimmed, 0, f.max)
+	}
+	if p.Timezone != nil {
+		tz := strings.TrimSpace(*p.Timezone)
+		p.Timezone = &tz
+		if _, err := time.LoadLocation(tz); tz != "" && (err != nil || tz == "Local") {
+			v.Add("timezone", validation.OneOf, nil)
+		}
+	}
 	if err := v.Err(); err != nil {
 		return domain.User{}, err
 	}

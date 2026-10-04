@@ -427,6 +427,11 @@ type User struct {
 	UpdatedAt        time.Time
 	AvatarKey        *string
 	AvatarType       *string
+	JobTitle         string
+	Phone            string
+	Location         string
+	Timezone         string
+	Bio              string
 }
 
 type UserDirectory struct {
