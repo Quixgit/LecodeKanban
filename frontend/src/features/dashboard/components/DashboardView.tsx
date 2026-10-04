@@ -47,7 +47,8 @@ export function DashboardView() {
     );
   }
   const s = stats.data;
-  const label = t('kpi.vsLastWeek');
+  const label = t('kpi.vsLastWeek', { days });
+  const period = t('kpi.period', { days });
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
       <div className="flex flex-col gap-6">
@@ -59,16 +60,18 @@ export function DashboardView() {
             caption={`${s.inReview} ${t('kpi.inReview')}`}
           />
           <MetricCard
-            title={t('kpi.completed')}
+            title={`${t('kpi.completed')} · ${period}`}
             value={<CountUp value={s.completedThisWeek.value} />}
             trend={s.completedThisWeek.changePct}
             trendLabel={label}
+            trendEmpty={s.completedThisWeek.value > 0 ? t('kpi.noBaseline') : t('kpi.noChange')}
           />
           <MetricCard
-            title={t('kpi.created')}
+            title={`${t('kpi.created')} · ${period}`}
             value={<CountUp value={s.createdThisWeek.value} />}
             trend={s.createdThisWeek.changePct}
             trendLabel={label}
+            trendEmpty={s.createdThisWeek.value > 0 ? t('kpi.noBaseline') : t('kpi.noChange')}
           />
           <MetricCard
             title={t('kpi.overdue')}

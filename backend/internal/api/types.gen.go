@@ -2542,10 +2542,10 @@ type Tone string
 
 // Trend defines model for Trend.
 type Trend struct {
-	// ChangePct Percent change vs previous period (0 when previous is 0)
-	ChangePct float32 `json:"changePct"`
-	Previous  int     `json:"previous"`
-	Value     int     `json:"value"`
+	// ChangePct Percent change vs the previous period; null when the previous period had nothing to compare
+	ChangePct *float32 `json:"changePct"`
+	Previous  int      `json:"previous"`
+	Value     int      `json:"value"`
 }
 
 // UpdateMemberRequest defines model for UpdateMemberRequest.

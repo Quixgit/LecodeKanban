@@ -3176,7 +3176,7 @@ components:
       properties:
         value: { type: integer }
         previous: { type: integer }
-        changePct: { type: number, description: "Percent change vs previous period (0 when previous is 0)" }
+        changePct: { type: number, nullable: true, description: "Percent change vs the previous period; null when the previous period had nothing to compare" }
     DashboardStats:
       type: object
       required: [active, total, inReview, overdue, completedThisWeek, createdThisWeek, statusCounts, daily, activity]
