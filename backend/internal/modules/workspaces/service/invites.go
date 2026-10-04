@@ -25,7 +25,7 @@ func (s *Service) Invite(ctx context.Context, actor, ws uuid.UUID, email string,
 	if err := v.Err(); err != nil {
 		return domain.Invite{}, err
 	}
-	actorRole, err := s.authorize(ctx, s.repo, ws, actor, domain.PermView)
+	acc, err := s.authorize(ctx, s.repo, ws, actor, domain.PermView)
 	if err != nil {
 		return domain.Invite{}, err
 	}
@@ -33,10 +33,7 @@ func (s *Service) Invite(ctx context.Context, actor, ws uuid.UUID, email string,
 	if err != nil {
 		return domain.Invite{}, err
 	}
-	if !domain.CanInviteUnder(policy, actorRole, role) {
-		if actorRole.AtLeast(domain.RoleMember) && !actorRole.Can(domain.PermManageMembers) && policy.InviteBy != domain.ByMembers {
-			return domain.Invite{}, apperr.New(domain.ErrPolicy, "only administrators may invite people")
-		}
+	if !domain.CanInvite(acc, role) {
 		return domain.Invite{}, apperr.New(domain.ErrInsufficientRole, "cannot invite with this role")
 	}
 	if !policy.EmailAllowed(email) {
@@ -81,14 +78,14 @@ func (s *Service) Invite(ctx context.Context, actor, ws uuid.UUID, email string,
 }
 
 func (s *Service) Invites(ctx context.Context, actor, ws uuid.UUID) ([]domain.Invite, error) {
-	if _, err := s.authorize(ctx, s.repo, ws, actor, domain.PermManageMembers); err != nil {
+	if _, err := s.authorize(ctx, s.repo, ws, actor, domain.PermInvite); err != nil {
 		return nil, err
 	}
 	return s.repo.OpenInvites(ctx, ws)
 }
 
 func (s *Service) RevokeInvite(ctx context.Context, actor, ws, inviteID uuid.UUID) error {
-	if _, err := s.authorize(ctx, s.repo, ws, actor, domain.PermManageMembers); err != nil {
+	if _, err := s.authorize(ctx, s.repo, ws, actor, domain.PermInvite); err != nil {
 		return err
 	}
 	ok, err := s.repo.DeleteInvite(ctx, ws, inviteID)

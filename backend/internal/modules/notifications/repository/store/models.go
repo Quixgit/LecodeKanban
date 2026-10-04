@@ -639,10 +639,27 @@ type WorkspaceInvite struct {
 }
 
 type WorkspaceMember struct {
+	WorkspaceID  uuid.UUID
+	UserID       uuid.UUID
+	Role         string
+	JoinedAt     time.Time
+	CustomRoleID uuid.NullUUID
+}
+
+type WorkspaceRole struct {
+	ID          uuid.UUID
 	WorkspaceID uuid.UUID
-	UserID      uuid.UUID
+	Name        string
+	Description string
+	Base        string
+	Permissions []string
+	CreatedAt   time.Time
+}
+
+type WorkspaceRoleOverride struct {
+	WorkspaceID uuid.UUID
 	Role        string
-	JoinedAt    time.Time
+	Permissions []string
 }
 
 type WorkspaceSetting struct {

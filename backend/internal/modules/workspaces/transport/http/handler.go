@@ -35,6 +35,13 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 		r.Get("/settings", httpx.H(h.settings))
 		r.Patch("/settings", httpx.H(h.updateSettings))
 		r.Get("/audit", httpx.H(h.audit))
+		r.Get("/roles", httpx.H(h.roles))
+		r.Post("/roles", httpx.H(h.createRole))
+		r.Put("/roles/{roleKey}", httpx.H(h.setRolePermissions))
+		r.Patch("/roles/{roleKey}", httpx.H(h.updateRole))
+		r.Delete("/roles/{roleKey}", httpx.H(h.deleteRole))
+		r.Post("/roles/{roleKey}/reset", httpx.H(h.resetRole))
+		r.Put("/members/{userId}/custom-role", httpx.H(h.assignCustomRole))
 		r.Get("/mail", httpx.H(h.mailStatus))
 		r.Post("/mail/test", httpx.H(h.mailTest))
 		r.Patch("/members/{userId}", httpx.H(h.changeRole))
@@ -60,7 +67,12 @@ func pathUUID(r *http.Request, name string, notFound apperr.Code) (uuid.UUID, er
 }
 
 func toAPI(w domain.Workspace) api.Workspace {
-	return api.Workspace{Id: w.ID, Name: w.Name, Slug: w.Slug, Role: api.Role(w.Role), MemberCount: w.MemberCount, CreatedAt: w.CreatedAt}
+	out := api.Workspace{Id: w.ID, Name: w.Name, Slug: w.Slug, Role: api.Role(w.Role), MemberCount: w.MemberCount, CreatedAt: w.CreatedAt,
+		Permissions: permStrings(w.Permissions)}
+	if w.CustomRole != nil {
+		out.CustomRole = &api.RoleRef{Id: w.CustomRole.ID, Name: w.CustomRole.Name}
+	}
+	return out
 }
 
 func inviteToAPI(i domain.Invite) api.Invite {
@@ -154,6 +166,9 @@ func (h *Handler) members(w http.ResponseWriter, r *http.Request) error {
 			User:     api.MemberUser{Id: m.UserID, Name: m.Name, Email: m.Email, AvatarUrl: m.Avatar},
 			Role:     api.Role(m.Role),
 			JoinedAt: m.JoinedAt,
+		}
+		if m.CustomRole != nil {
+			out[i].CustomRole = &api.RoleRef{Id: m.CustomRole.ID, Name: m.CustomRole.Name}
 		}
 	}
 	httpx.WriteJSON(w, http.StatusOK, out)
@@ -273,11 +288,10 @@ func toSettings(s domain.Settings) api.WorkspaceSettings {
 		domains = []string{}
 	}
 	return api.WorkspaceSettings{
-		Description: s.Description, InviteBy: api.WorkspaceSettingsInviteBy(s.InviteBy), InviteDays: s.InviteDays,
+		Description: s.Description, InviteDays: s.InviteDays,
 		DefaultInviteRole: api.InviteRole(s.DefaultInviteRole), AllowedDomains: domains,
-		ProjectCreateBy: api.WorkspaceSettingsProjectCreateBy(s.ProjectCreateBy), ChannelCreateBy: api.WorkspaceSettingsChannelCreateBy(s.ChannelCreateBy),
-		BroadcastBy: api.WorkspaceSettingsBroadcastBy(s.BroadcastBy), DefaultPriority: api.WorkspaceSettingsDefaultPriority(s.DefaultPriority),
-		RequireDueDate: s.RequireDueDate, WeekStart: s.WeekStart,
+		DefaultPriority: api.WorkspaceSettingsDefaultPriority(s.DefaultPriority),
+		RequireDueDate:  s.RequireDueDate, WeekStart: s.WeekStart,
 		Features: api.WorkspaceFeatures{Chat: s.Features.Chat, Docs: s.Features.Docs, Time: s.Features.Time,
 			Calendar: s.Features.Calendar, Integrations: s.Features.Integrations},
 	}
@@ -308,18 +322,6 @@ func (h *Handler) updateSettings(w http.ResponseWriter, r *http.Request) error {
 	p := domain.SettingsPatch{Description: in.Description, InviteDays: in.InviteDays, AllowedDomains: in.AllowedDomains,
 		RequireDueDate: in.RequireDueDate, WeekStart: in.WeekStart}
 	str := func(v *string) *string { return v }
-	if in.InviteBy != nil {
-		p.InviteBy = str((*string)(in.InviteBy))
-	}
-	if in.ProjectCreateBy != nil {
-		p.ProjectCreateBy = str((*string)(in.ProjectCreateBy))
-	}
-	if in.ChannelCreateBy != nil {
-		p.ChannelCreateBy = str((*string)(in.ChannelCreateBy))
-	}
-	if in.BroadcastBy != nil {
-		p.BroadcastBy = str((*string)(in.BroadcastBy))
-	}
 	if in.DefaultPriority != nil {
 		p.DefaultPriority = str((*string)(in.DefaultPriority))
 	}

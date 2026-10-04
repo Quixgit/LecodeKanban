@@ -6,7 +6,7 @@ import { useLabels } from '@/features/cards';
 import { useAllProjects } from '@/features/projects';
 import { useWorkspaceSettings } from '@/features/settings';
 import { TasksToolbar, baseQuery, useTaskFilters } from '@/features/tasks-list';
-import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
+import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { Button, Card as Panel, EmptyState, Skeleton, toast } from '@/shared/ui';
 import { useCalendarCards, useReschedule } from '../hooks/useCalendarData';
@@ -30,7 +30,7 @@ export function CalendarView({ currentUserId, viewSwitch, onCreate }: Props) {
   const { workspace } = useCurrentWorkspace();
   const weekStart = useWorkspaceSettings(workspace?.id).data?.weekStart === 0 ? 0 : 1;
   const ws = workspace?.id ?? '';
-  const canEdit = !!workspace && workspace.role !== 'viewer';
+  const canEdit = can(workspace, 'content.edit');
   const { filters, update, clear, activeCount } = useTaskFilters();
   const projects = useAllProjects(workspace?.id);
   const members = useWorkspaceMembers(workspace?.id);

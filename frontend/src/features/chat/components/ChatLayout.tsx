@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useMatch, useNavigate } from 'react-router-dom';
 import { useSession } from '@/features/auth';
 import { useAllProjects } from '@/features/projects';
-import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
+import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
 import { EmptyState } from '@/shared/ui';
 import type { Member } from '@/shared/api';
@@ -81,9 +81,8 @@ export function ChatLayout() {
 
   if (isLoading || !workspace) return <div className="min-h-[24rem]" aria-busy />;
 
-  const role = workspace.role;
-  const isAdmin = role === 'owner' || role === 'admin';
-  const canWrite = role !== 'viewer';
+  const isAdmin = can(workspace, 'chat.moderate');
+  const canWrite = can(workspace, 'content.edit');
   const list = channels.data ?? [];
   const open = (c: ChatChannel) => navigate(`/chat/${c.id}`);
   const context: ChatOutletContext = {

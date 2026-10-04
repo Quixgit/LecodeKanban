@@ -11,10 +11,16 @@ const ws = (role: Workspace['role']): Workspace => ({
   role,
   memberCount: 3,
   createdAt: '2026-01-01T00:00:00Z',
+  permissions:
+    role === 'owner' || role === 'admin'
+      ? ['workspace.view', 'members.invite', 'members.manage']
+      : ['workspace.view'],
+  customRole: null,
 });
 const member = (id: string, name: string, role: Member['role']): Member => ({
   user: { id, name, email: `${id}@example.com`, avatarUrl: null },
   role,
+  customRole: null,
   joinedAt: '2026-02-03T00:00:00Z',
 });
 const members = [

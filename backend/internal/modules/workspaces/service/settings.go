@@ -66,7 +66,7 @@ type AuditView struct {
 
 // Audit lists the latest administrator actions (administrators only).
 func (s *Service) Audit(ctx context.Context, actor, ws uuid.UUID) ([]AuditView, error) {
-	if _, err := s.authorize(ctx, s.repo, ws, actor, domain.PermUpdate); err != nil {
+	if _, err := s.authorize(ctx, s.repo, ws, actor, domain.PermAudit); err != nil {
 		return nil, err
 	}
 	entries, err := s.repo.Audit(ctx, ws, 100)

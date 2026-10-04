@@ -29,31 +29,6 @@ func (r Role) Valid() bool { return r.rank() > 0 }
 // AtLeast reports whether r grants at least the privileges of min.
 func (r Role) AtLeast(min Role) bool { return r.rank() >= min.rank() }
 
-// Permission is a workspace-scoped action.
-type Permission string
-
-const (
-	PermView          Permission = "workspace.view"
-	PermUpdate        Permission = "workspace.update"
-	PermDelete        Permission = "workspace.delete"
-	PermManageMembers Permission = "members.manage"
-	PermEditContent   Permission = "content.edit" // boards, cards, comments (phase 3+)
-)
-
-var minRole = map[Permission]Role{
-	PermView:          RoleViewer,
-	PermEditContent:   RoleMember,
-	PermUpdate:        RoleAdmin,
-	PermManageMembers: RoleAdmin,
-	PermDelete:        RoleOwner,
-}
-
-// Can reports whether role r holds permission p.
-func (r Role) Can(p Permission) bool {
-	min, ok := minRole[p]
-	return ok && r.AtLeast(min)
-}
-
 // CanAssign reports whether actor may give `to` to a member currently holding `target`.
 // Owners may do anything; admins may manage members/viewers and grant up to admin.
 // Anyone may lower their own role. Last-owner protection is checked separately.
@@ -78,7 +53,8 @@ func CanRemove(actor, target Role, self bool) bool {
 	return actor == RoleAdmin && target.rank() < RoleAdmin.rank()
 }
 
-// CanInvite reports whether actor may invite someone with role `as`.
-func CanInvite(actor, as Role) bool {
-	return actor.Can(PermManageMembers) && as != RoleOwner && as.Valid() && as.rank() <= actor.rank()
+// CanInvite reports whether the person may invite someone with role `as`: they need the invite
+// permission and cannot hand out more than their own role.
+func CanInvite(actor Access, as Role) bool {
+	return actor.Can(PermInvite) && as != RoleOwner && as.Valid() && as.rank() <= actor.Role.rank()
 }

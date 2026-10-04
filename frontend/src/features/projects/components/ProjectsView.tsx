@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Check, FolderPlus, Flag, Loader, Package, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
+import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { listContainer } from '@/shared/motion';
 import { Button, Card, CountUp, EmptyState, Pagination, Skeleton, StatCard } from '@/shared/ui';
@@ -52,8 +52,8 @@ export function ProjectsView() {
   const members = useWorkspaceMembers(wsId);
   const [editing, setEditing] = useState<Project | null | undefined>(undefined);
 
-  const canEdit = !!workspace && workspace.role !== 'viewer';
-  const canArchive = !!workspace && (workspace.role === 'owner' || workspace.role === 'admin');
+  const canEdit = can(workspace, 'projects.create');
+  const canArchive = can(workspace, 'projects.delete');
   const s = summary.data;
   const kpis = [
     { key: 'total', icon: <Package />, tone: 'plain' as const, value: s?.total },

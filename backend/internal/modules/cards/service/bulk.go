@@ -23,6 +23,11 @@ func (s *Service) Bulk(ctx context.Context, user, ws uuid.UUID, a BulkAction) (i
 	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent); err != nil {
 		return 0, err
 	}
+	if a.Action == "delete" {
+		if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermTasksDelete); err != nil {
+			return 0, err
+		}
+	}
 	var v validation.V
 	v.OneOf("action", a.Action, "move", "priority", "delete")
 	if len(a.IDs) == 0 || len(a.IDs) > 500 {

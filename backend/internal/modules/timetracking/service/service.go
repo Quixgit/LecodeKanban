@@ -22,7 +22,7 @@ type Cards interface {
 }
 
 type Workspaces interface {
-	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
+	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
 }
 
 type Users interface {
@@ -197,7 +197,7 @@ func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
 	if err != nil {
 		return apperr.New(domain.ErrNotFound, "time entry not found")
 	}
-	if e.UserID != user && !role.AtLeast(wsdomain.RoleAdmin) {
+	if e.UserID != user && !role.Can(wsdomain.PermTimeManage) {
 		return apperr.New(domain.ErrForbidden, "only the author or an admin can delete a time entry")
 	}
 	return s.repo.Delete(ctx, id)

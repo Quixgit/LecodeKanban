@@ -16,7 +16,7 @@ import {
   type TaskStatus,
 } from '@/features/cards';
 import { useAllProjects } from '@/features/projects';
-import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
+import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { listContainer } from '@/shared/motion';
 import {
@@ -121,7 +121,7 @@ export function TasksListView({
   const single = slugToStatus(slug);
   const { workspace } = useCurrentWorkspace();
   const wsId = workspace?.id;
-  const canEdit = !!workspace && workspace.role !== 'viewer';
+  const canEdit = can(workspace, 'content.edit');
   const { filters, update, clear, activeCount } = useTaskFilters();
   const counts = useCardCounts(wsId, baseQuery(filters));
   const projects = useAllProjects(wsId);

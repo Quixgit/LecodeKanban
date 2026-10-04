@@ -38,7 +38,7 @@ func validateLabel(name, tone *string) error {
 
 // CreateLabel adds a workspace label (members and above).
 func (s *Service) CreateLabel(ctx context.Context, user, ws uuid.UUID, name, tone string) (domain.Label, error) {
-	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent); err != nil {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermLabelsManage); err != nil {
 		return domain.Label{}, err
 	}
 	if tone == "" {
@@ -69,7 +69,7 @@ func (s *Service) loadLabel(ctx context.Context, user, id uuid.UUID) (domain.Lab
 	if err != nil {
 		return domain.Label{}, err
 	}
-	if _, err := s.ws.Authorize(ctx, l.WorkspaceID, user, wsdomain.PermEditContent); err != nil {
+	if _, err := s.ws.Authorize(ctx, l.WorkspaceID, user, wsdomain.PermLabelsManage); err != nil {
 		if apperr.IsCode(err, wsdomain.ErrNotFound) {
 			return domain.Label{}, apperr.New(domain.ErrLabelNotFound, "label not found")
 		}

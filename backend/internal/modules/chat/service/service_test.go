@@ -919,13 +919,18 @@ func TestWorkspacePolicies(t *testing.T) {
 	w := setup(t)
 	ctx := context.Background()
 	c := w.e.Chat
-	// Channel creation can be limited to administrators (owners count as administrators).
-	if _, err := w.e.Workspaces.UpdateSettings(ctx, w.owner, w.ws, wsdomain.SettingsPatch{ChannelCreateBy: ptrOf(wsdomain.ByAdmins),
-		BroadcastBy: ptrOf(wsdomain.ByAdmins)}); err != nil {
+	// Members lose "create channels" and "@channel" when the owner takes those permissions away.
+	var keep []wsdomain.Permission
+	for _, p := range wsdomain.RoleDefaults(wsdomain.RoleMember) {
+		if p != wsdomain.PermChannelCreate && p != wsdomain.PermBroadcast {
+			keep = append(keep, p)
+		}
+	}
+	if err := w.e.Workspaces.SetRolePermissions(ctx, w.owner, w.ws, wsdomain.RoleMember, keep); err != nil {
 		t.Fatal(err)
 	}
 	_, err := c.CreateChannel(ctx, w.anna, w.ws, chatInput("members-only", false))
-	mustCode(t, err, wsdomain.ErrPolicy)
+	mustCode(t, err, wsdomain.ErrInsufficientRole)
 	ch, err := c.CreateChannel(ctx, w.owner, w.ws, chatInput("official", false))
 	if err != nil {
 		t.Fatal(err)
@@ -933,7 +938,7 @@ func TestWorkspacePolicies(t *testing.T) {
 	_, _ = c.Join(ctx, w.anna, ch.ID)
 	// @channel is for administrators only; ordinary messages are fine.
 	_, err = c.Post(ctx, w.anna, ch.ID, nil, "@channel everyone!", nil)
-	mustCode(t, err, wsdomain.ErrPolicy)
+	mustCode(t, err, wsdomain.ErrInsufficientRole)
 	if _, err := c.Post(ctx, w.anna, ch.ID, nil, "just a message", nil); err != nil {
 		t.Fatal(err)
 	}

@@ -1,6 +1,7 @@
 import {
   Blocks,
   Flag,
+  KeyRound,
   History,
   Mail,
   LayoutDashboard,
@@ -18,6 +19,7 @@ export type SectionKey =
   | 'general'
   | 'features'
   | 'access'
+  | 'roles'
   | 'members'
   | 'rules'
   | 'fields'
@@ -40,6 +42,7 @@ export const SECTIONS: readonly Section[] = [
   { key: 'general', to: '/settings/general', icon: SlidersHorizontal, group: 'workspace' },
   { key: 'features', to: '/settings/features', icon: ToggleRight, group: 'workspace' },
   { key: 'access', to: '/settings/access', icon: UserCog, group: 'people' },
+  { key: 'roles', to: '/settings/roles', icon: KeyRound, group: 'people' },
   { key: 'members', to: '/team', icon: Users, group: 'people', external: true },
   { key: 'rules', to: '/settings/rules', icon: Flag, group: 'work' },
   { key: 'fields', to: '/settings/fields', icon: ListPlus, group: 'work' },

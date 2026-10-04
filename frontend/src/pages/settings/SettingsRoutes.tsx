@@ -7,6 +7,7 @@ import {
   GeneralPage,
   LabelsPage,
   OverviewPage,
+  RolesPage,
   RulesPage,
   SettingsLayout,
 } from '@/features/settings';
@@ -20,4 +21,5 @@ export const RulesRoute = RulesPage;
 export const FieldsRoute = FieldsPage;
 export const LabelsRoute = LabelsPage;
 export const AuditRoute = AuditPage;
+export const RolesRoute = RolesPage;
 export const EmailRoute = EmailPage;

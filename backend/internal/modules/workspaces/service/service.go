@@ -70,23 +70,23 @@ func validateName(name string) (string, error) {
 	return name, v.Err()
 }
 
-// authorize loads the caller's role. Non-members get not_found so workspace existence never leaks.
-func (s *Service) authorize(ctx context.Context, r *repository.Repo, ws, user uuid.UUID, perm domain.Permission) (domain.Role, error) {
-	role, err := r.Role(ctx, ws, user)
+// authorize loads what the caller may do. Non-members get not_found so workspace existence never leaks.
+func (s *Service) authorize(ctx context.Context, r *repository.Repo, ws, user uuid.UUID, perm domain.Permission) (domain.Access, error) {
+	acc, err := r.Access(ctx, ws, user)
 	if err != nil {
-		return "", err
+		return domain.Access{}, err
 	}
-	if role == "" {
-		return "", apperr.New(domain.ErrNotFound, "workspace not found")
+	if acc.Role == "" {
+		return domain.Access{}, apperr.New(domain.ErrNotFound, "workspace not found")
 	}
-	if !role.Can(perm) {
-		return role, apperr.New(domain.ErrInsufficientRole, "insufficient role")
+	if !acc.Can(perm) {
+		return acc, apperr.New(domain.ErrInsufficientRole, "insufficient role")
 	}
-	return role, nil
+	return acc, nil
 }
 
 // Authorize is the cross-module RBAC entry point (boards, cards… call it with their permission).
-func (s *Service) Authorize(ctx context.Context, ws, user uuid.UUID, perm domain.Permission) (domain.Role, error) {
+func (s *Service) Authorize(ctx context.Context, ws, user uuid.UUID, perm domain.Permission) (domain.Access, error) {
 	return s.authorize(ctx, s.repo, ws, user, perm)
 }
 
@@ -232,7 +232,7 @@ func (s *Service) Members(ctx context.Context, user, ws uuid.UUID) ([]domain.Mem
 	out := make([]domain.Member, 0, len(rows))
 	for _, m := range rows {
 		p := byID[m.UserID]
-		out = append(out, domain.Member{UserID: m.UserID, Name: p.Name, Email: p.Email, Avatar: p.AvatarURL, Role: m.Role, JoinedAt: m.JoinedAt})
+		out = append(out, domain.Member{UserID: m.UserID, Name: p.Name, Email: p.Email, Avatar: p.AvatarURL, Role: m.Role, JoinedAt: m.JoinedAt, CustomRole: m.CustomRole})
 	}
 	return out, nil
 }
@@ -274,9 +274,12 @@ func (s *Service) ChangeRole(ctx context.Context, actor, ws, target uuid.UUID, t
 		return v.Err()
 	}
 	return s.repo.InTx(ctx, func(r *repository.Repo) error {
-		actorRole, err := s.authorize(ctx, r, ws, actor, domain.PermView)
+		acc, err := s.authorize(ctx, r, ws, actor, domain.PermView)
 		if err != nil {
 			return err
+		}
+		if actor != target && !acc.Can(domain.PermManageMembers) {
+			return apperr.New(domain.ErrInsufficientRole, "insufficient role")
 		}
 		current, err := r.Role(ctx, ws, target)
 		if err != nil {
@@ -285,7 +288,7 @@ func (s *Service) ChangeRole(ctx context.Context, actor, ws, target uuid.UUID, t
 		if current == "" {
 			return apperr.New(domain.ErrMemberNotFound, "member not found")
 		}
-		if !domain.CanAssign(actorRole, current, to, actor == target) {
+		if !domain.CanAssign(acc.Role, current, to, actor == target) {
 			return apperr.New(domain.ErrInsufficientRole, "insufficient role")
 		}
 		if current == domain.RoleOwner && to != domain.RoleOwner {
@@ -296,6 +299,9 @@ func (s *Service) ChangeRole(ctx context.Context, actor, ws, target uuid.UUID, t
 		if err := r.SetRole(ctx, ws, target, to); err != nil {
 			return err
 		}
+		if err := r.SetMemberRole(ctx, ws, target, to, nil); err != nil { // a built-in role replaces any custom one
+			return err
+		}
 		return r.AddAudit(ctx, ws, actor, "member.role_changed", map[string]any{"userId": target.String(), "from": string(current), "to": string(to)})
 	})
 }
@@ -303,9 +309,12 @@ func (s *Service) ChangeRole(ctx context.Context, actor, ws, target uuid.UUID, t
 // RemoveMember removes target (or lets the caller leave).
 func (s *Service) RemoveMember(ctx context.Context, actor, ws, target uuid.UUID) error {
 	err := s.repo.InTx(ctx, func(r *repository.Repo) error {
-		actorRole, err := s.authorize(ctx, r, ws, actor, domain.PermView)
+		acc, err := s.authorize(ctx, r, ws, actor, domain.PermView)
 		if err != nil {
 			return err
+		}
+		if actor != target && !acc.Can(domain.PermManageMembers) {
+			return apperr.New(domain.ErrInsufficientRole, "insufficient role")
 		}
 		current, err := r.Role(ctx, ws, target)
 		if err != nil {
@@ -314,7 +323,7 @@ func (s *Service) RemoveMember(ctx context.Context, actor, ws, target uuid.UUID)
 		if current == "" {
 			return apperr.New(domain.ErrMemberNotFound, "member not found")
 		}
-		if !domain.CanRemove(actorRole, current, actor == target) {
+		if !domain.CanRemove(acc.Role, current, actor == target) {
 			return apperr.New(domain.ErrInsufficientRole, "insufficient role")
 		}
 		if current == domain.RoleOwner {

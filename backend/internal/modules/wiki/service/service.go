@@ -20,7 +20,7 @@ import (
 
 // Workspaces is the workspace RBAC the wiki builds on (workspaces.Service satisfies it).
 type Workspaces interface {
-	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
+	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
 }
 
 // Teams resolves team membership for grants. The product has no teams yet; the adapter in
@@ -86,7 +86,7 @@ func (s *Service) subject(ctx context.Context, ws, user uuid.UUID) (domain.Subje
 	if err != nil {
 		return domain.Subject{}, err
 	}
-	return domain.Subject{UserID: user, Teams: teams, WorkspaceRole: role}, nil
+	return domain.Subject{UserID: user, Teams: teams, WorkspaceRole: role.Role}, nil
 }
 
 // label names one chain link for "inherited from" summaries.

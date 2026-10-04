@@ -12,6 +12,8 @@ const ws: Workspace = {
   role: 'admin',
   memberCount: 2,
   createdAt: '2026-01-01T00:00:00Z',
+  permissions: ['workspace.view', 'members.invite', 'members.manage'],
+  customRole: null,
 };
 
 afterEach(() => vi.unstubAllGlobals());

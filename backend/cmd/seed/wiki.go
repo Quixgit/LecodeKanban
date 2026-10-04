@@ -20,7 +20,7 @@ func (noTeams) TeamsOf(context.Context, uuid.UUID, uuid.UUID) ([]uuid.UUID, erro
 func (noTeams) Exists(context.Context, uuid.UUID, uuid.UUID) (bool, error)         { return false, nil }
 
 type wikiAuth interface {
-	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
+	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
 }
 
 // Space icons are Lucide keys (frontend/src/features/wiki/model/icons.ts), never emoji.

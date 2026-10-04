@@ -30,7 +30,7 @@ type Cards interface {
 }
 
 type Workspaces interface {
-	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
+	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
 }
 
 type Users interface {
@@ -200,7 +200,7 @@ func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
 		if err != nil {
 			return err
 		}
-		if !role.AtLeast(wsdomain.RoleAdmin) {
+		if !role.Can(wsdomain.PermModerate) {
 			return apperr.New(domain.ErrForbidden, "only the uploader or an admin can delete an attachment")
 		}
 	}

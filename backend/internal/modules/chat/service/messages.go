@@ -93,16 +93,8 @@ func (s *Service) Post(ctx context.Context, user, channel uuid.UUID, parent *uui
 		}
 	}
 	if domain.MentionsAll(body) {
-		role, err := s.ws.Authorize(ctx, ch.WorkspaceID, user, wsdomain.PermView)
-		if err != nil {
+		if _, err := s.ws.Authorize(ctx, ch.WorkspaceID, user, wsdomain.PermBroadcast); err != nil {
 			return MessageView{}, err
-		}
-		policy, err := s.ws.Policy(ctx, ch.WorkspaceID)
-		if err != nil {
-			return MessageView{}, err
-		}
-		if policy.BroadcastBy == wsdomain.ByAdmins && !role.Can(wsdomain.PermUpdate) {
-			return MessageView{}, apperr.New(wsdomain.ErrPolicy, "only administrators may notify everyone with @channel")
 		}
 	}
 	mentions, err := s.members(ctx, ch.WorkspaceID, domain.ParseMentions(body))
@@ -207,11 +199,11 @@ func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
 		return nil
 	}
 	if m.AuthorID == nil || *m.AuthorID != user {
-		role, err := s.ws.Authorize(ctx, ch.WorkspaceID, user, wsdomain.PermView)
+		acc, err := s.ws.Authorize(ctx, ch.WorkspaceID, user, wsdomain.PermView)
 		if err != nil {
 			return err
 		}
-		if !role.AtLeast(wsdomain.RoleAdmin) {
+		if !acc.Can(wsdomain.PermChatModerate) {
 			return apperr.New(domain.ErrForbidden, "only the author or an admin can delete")
 		}
 	}

@@ -1,9 +1,10 @@
+import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, openKanban, signIn, test } from './fixtures';
 
 const stamp = () => Date.now().toString(36);
 
-async function axeClean(page: import('@playwright/test').Page) {
+async function axeClean(page: Page) {
   // Cards fade in one after another; contrast is measured on the settled page.
   await page.waitForTimeout(700);
   const axe = await new AxeBuilder({ page })
@@ -186,17 +187,15 @@ test.describe('Settings admin centre', () => {
 
     // Access: open invitations to every member, add an allowed domain, then put both back.
     await page.goto('/settings/access');
-    await main.getByRole('combobox', { name: 'Who can invite' }).click();
-    await page.getByRole('option', { name: 'Every member' }).click();
+    await main.getByRole('combobox', { name: 'Default role' }).click();
+    await page.getByRole('option', { name: 'Viewer' }).click();
     await expect(page.getByText('Saved').first()).toBeVisible();
     const domains = main.getByLabel('Allowed email domains');
     await domains.fill('Example.org');
     await domains.press('Enter');
     await expect(main.getByRole('button', { name: 'Remove example.org' })).toBeVisible();
     await page.reload();
-    await expect(main.getByRole('combobox', { name: 'Who can invite' })).toContainText(
-      'Every member',
-    );
+    await expect(main.getByRole('combobox', { name: 'Default role' })).toContainText('Viewer');
     await expect(main.getByRole('button', { name: 'Remove example.org' })).toBeVisible();
     await expect(page.getByRole('main')).toBeVisible();
     await axeClean(page);
@@ -212,17 +211,56 @@ test.describe('Settings admin centre', () => {
 
     // The audit log lists what changed and who did it; then everything goes back to the defaults.
     await page.goto('/settings/audit');
-    await expect(main.getByText(/changed settings: .*who can invite/).first()).toBeVisible();
+    await expect(main.getByText(/changed settings: .*/).first()).toBeVisible();
     await expect(main.getByText('Peter Gabrielle').first()).toBeVisible();
     await axeClean(page);
     await page.goto('/settings/access');
-    await main.getByRole('combobox', { name: 'Who can invite' }).click();
-    await page.getByRole('option', { name: 'Only administrators' }).click();
+    await main.getByRole('combobox', { name: 'Default role' }).click();
+    await page.getByRole('option', { name: 'Member' }).click();
     await main.getByRole('button', { name: 'Remove example.org' }).click();
     await page.goto('/settings/rules');
     await main.getByRole('combobox', { name: 'Week starts on' }).click();
     await page.getByRole('option', { name: 'Monday' }).click();
     await expect(page.getByText('Saved').first()).toBeVisible();
+  });
+
+  test('roles: change a permission, build a custom role, assign it, delete it', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page);
+    await page.goto('/settings/roles');
+    const main = page.getByRole('main');
+    const list = main.getByRole('list', { name: 'Roles' });
+    await expect(list.getByRole('button', { name: /Owner/ })).toBeVisible();
+    await axeClean(page);
+
+    // Built-in Member: members may not manage custom fields by default; allow it, then reset.
+    await list.getByRole('button', { name: /^Member/ }).click();
+    const sw = main.getByRole('switch', { name: 'Manage custom fields' });
+    await expect(sw).not.toBeChecked();
+    await sw.click();
+    await expect(sw).toBeChecked();
+    await expect(page.getByText('Saved').first()).toBeVisible();
+    await page.reload();
+    await list.getByRole('button', { name: /^Member/ }).click();
+    await expect(main.getByRole('switch', { name: 'Manage custom fields' })).toBeChecked();
+    await main.getByRole('button', { name: 'Reset to defaults' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Reset to defaults' }).click();
+    await expect(main.getByRole('switch', { name: 'Manage custom fields' })).not.toBeChecked();
+
+    // A custom role starts from a preset and shows up in the list.
+    const name = `Tester ${stamp()}`;
+    await main.getByRole('button', { name: 'New role' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Name').fill(name);
+    await dialog.getByRole('button', { name: 'Create role' }).click();
+    await expect(list.getByRole('button', { name: new RegExp(name) })).toBeVisible();
+
+    // Delete it again (nobody holds it).
+    await main.getByRole('button', { name: 'Delete role' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete role' }).click();
+    await expect(list.getByRole('button', { name: new RegExp(name) })).toHaveCount(0);
   });
 
   test('email delivery page and the invitation link', async ({ page }) => {

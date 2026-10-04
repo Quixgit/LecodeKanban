@@ -170,7 +170,7 @@ func TestInviteAcceptAndRoles(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = e.svc.Invite(ctx, member, ws.ID, "z@example.com", domain.RoleViewer)
-	mustCode(t, err, domain.ErrPolicy)
+	mustCode(t, err, domain.ErrInsufficientRole)
 	_, err = e.svc.Invites(ctx, member, ws.ID)
 	mustCode(t, err, domain.ErrInsufficientRole)
 
@@ -243,7 +243,7 @@ func TestAuthorizeForOtherModules(t *testing.T) {
 	ctx := context.Background()
 	owner := e.user(t, "Owner", "owner@example.com", "en")
 	ws, _ := e.svc.Create(ctx, owner, "Team")
-	if role, err := e.svc.Authorize(ctx, ws.ID, owner, domain.PermEditContent); err != nil || role != domain.RoleOwner {
+	if role, err := e.svc.Authorize(ctx, ws.ID, owner, domain.PermEditContent); err != nil || role.Role != domain.RoleOwner {
 		t.Fatalf("authorize: %v %v", role, err)
 	}
 	_, err := e.svc.Authorize(ctx, ws.ID, uuid.New(), domain.PermView)
@@ -269,24 +269,27 @@ func TestSettingsAndPolicies(t *testing.T) {
 
 	// Everyone sees the settings; they start with the defaults.
 	got, err := e.svc.Settings(ctx, member, ws.ID)
-	if err != nil || got.InviteBy != domain.ByAdmins || got.InviteDays != 7 || !got.Features.Chat || got.WeekStart != 1 {
+	if err != nil || got.InviteDays != 7 || !got.Features.Chat || got.WeekStart != 1 {
 		t.Fatalf("defaults: %+v %v", got, err)
 	}
 	// Only administrators change them, and bad values are refused.
-	_, err = e.svc.UpdateSettings(ctx, member, ws.ID, domain.SettingsPatch{InviteBy: ptr(domain.ByMembers)})
+	_, err = e.svc.UpdateSettings(ctx, member, ws.ID, domain.SettingsPatch{InviteDays: ptr(5)})
 	mustCode(t, err, domain.ErrInsufficientRole)
-	_, err = e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{InviteBy: ptr("nobody"), InviteDays: ptr(99),
+	_, err = e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{DefaultPriority: ptr("urgent"), InviteDays: ptr(99),
 		AllowedDomains: ptr([]string{"not a domain"})})
 	mustCode(t, err, apperr.Validation)
 	_, err = e.svc.Settings(ctx, uuid.New(), ws.ID)
 	mustCode(t, err, domain.ErrNotFound)
 
-	// Members cannot invite until the administrators allow it; viewers' roles never grow.
+	// Members cannot invite until their role is given the permission; roles never grow past their own.
 	_, err = e.svc.Invite(ctx, member, ws.ID, "new1@example.com", domain.RoleViewer)
-	mustCode(t, err, domain.ErrPolicy)
-	upd, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{InviteBy: ptr(domain.ByMembers), InviteDays: ptr(3),
+	mustCode(t, err, domain.ErrInsufficientRole)
+	if err := e.svc.SetRolePermissions(ctx, owner, ws.ID, domain.RoleMember, append(domain.RoleDefaults(domain.RoleMember), domain.PermInvite)); err != nil {
+		t.Fatal(err)
+	}
+	upd, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{InviteDays: ptr(3),
 		AllowedDomains: ptr([]string{" @Example.com ", "example.com"})})
-	if err != nil || upd.InviteBy != domain.ByMembers || len(upd.AllowedDomains) != 1 || upd.AllowedDomains[0] != "example.com" {
+	if err != nil || len(upd.AllowedDomains) != 1 || upd.AllowedDomains[0] != "example.com" {
 		t.Fatalf("update: %+v %v", upd, err)
 	}
 	if _, err := e.svc.Invite(ctx, member, ws.ID, "new1@example.com", domain.RoleViewer); err != nil {
@@ -349,6 +352,134 @@ func TestMemberProfile(t *testing.T) {
 	mustCode(t, err, domain.ErrNotFound)
 	_, err = e.svc.MemberProfile(ctx, owner, ws.ID, outsider)
 	mustCode(t, err, domain.ErrMemberNotFound)
+}
+
+func TestRolesAndPermissions(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	owner := e.user(t, "Owner", "owner@example.com", "en")
+	anna := e.user(t, "Anna", "anna@example.com", "en")
+	ben := e.user(t, "Ben", "ben@example.com", "en")
+	vera := e.user(t, "Vera", "vera@example.com", "en")
+	ws, _ := e.svc.Create(ctx, owner, "Team")
+	join := func(u uuid.UUID, email string, role domain.Role) {
+		if _, err := e.svc.Invite(ctx, owner, ws.ID, email, role); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := e.svc.Accept(ctx, u, e.inviteToken(t)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	join(anna, "anna@example.com", domain.RoleAdmin)
+	join(ben, "ben@example.com", domain.RoleMember)
+	join(vera, "vera@example.com", domain.RoleViewer)
+
+	// Built-in defaults: a member edits and deletes tasks but cannot manage fields; an admin can.
+	can := func(u uuid.UUID, p domain.Permission) bool {
+		_, err := e.svc.Authorize(ctx, ws.ID, u, p)
+		return err == nil
+	}
+	if !can(ben, domain.PermTasksDelete) || can(ben, domain.PermFieldsManage) || !can(anna, domain.PermFieldsManage) || can(vera, domain.PermEditContent) {
+		t.Fatal("defaults are not as documented")
+	}
+
+	// Only people with "manage roles" (the owner by default) change roles.
+	mustCode(t, e.svc.SetRolePermissions(ctx, anna, ws.ID, domain.RoleMember, domain.RoleDefaults(domain.RoleViewer)), domain.ErrInsufficientRole)
+	// The owner's role is fixed.
+	mustCode(t, e.svc.SetRolePermissions(ctx, owner, ws.ID, domain.RoleOwner, nil), domain.ErrRoleLocked)
+
+	// Taking a permission from the member role applies to every member at once, and can be reset.
+	var keep []domain.Permission
+	for _, p := range domain.RoleDefaults(domain.RoleMember) {
+		if p != domain.PermTasksDelete {
+			keep = append(keep, p)
+		}
+	}
+	if err := e.svc.SetRolePermissions(ctx, owner, ws.ID, domain.RoleMember, keep); err != nil {
+		t.Fatal(err)
+	}
+	if can(ben, domain.PermTasksDelete) || !can(ben, domain.PermEditContent) || !can(ben, domain.PermView) {
+		t.Fatal("the member role should have lost only task deletion")
+	}
+	o, err := e.svc.Roles(ctx, vera, ws.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var memberRole service.RoleView
+	for _, r := range o.Roles {
+		if r.Key == "member" {
+			memberRole = r
+		}
+	}
+	if !memberRole.Changed || memberRole.Members != 1 || len(o.Catalog) < 15 {
+		t.Fatalf("overview: %+v", memberRole)
+	}
+	if err := e.svc.ResetRole(ctx, owner, ws.ID, domain.RoleMember); err != nil || !can(ben, domain.PermTasksDelete) {
+		t.Fatalf("reset: %v", err)
+	}
+
+	// A custom role: name rules, unknown permissions, escalation and the ranking base.
+	_, err = e.svc.CreateRole(ctx, owner, ws.ID, service.RoleInput{Name: "Admin", Base: domain.RoleMember})
+	mustCode(t, err, apperr.Validation)
+	_, err = e.svc.CreateRole(ctx, owner, ws.ID, service.RoleInput{Name: "X", Base: domain.RoleMember, Permissions: []domain.Permission{"made.up"}})
+	mustCode(t, err, apperr.Validation)
+	_, err = e.svc.CreateRole(ctx, owner, ws.ID, service.RoleInput{Name: "X", Base: domain.RoleMember, Permissions: []domain.Permission{domain.PermDelete}})
+	mustCode(t, err, apperr.Validation) // deleting the workspace belongs to the owner alone
+	designer, err := e.svc.CreateRole(ctx, owner, ws.ID, service.RoleInput{Name: "Designer", Base: domain.RoleMember,
+		Permissions: []domain.Permission{domain.PermEditContent, domain.PermFieldsManage, domain.PermLabelsManage}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = e.svc.CreateRole(ctx, owner, ws.ID, service.RoleInput{Name: "designer", Base: domain.RoleMember})
+	mustCode(t, err, domain.ErrRoleNameTaken)
+
+	// Giving it to Ben: he gets exactly its permissions, and shows up with its name.
+	if err := e.svc.AssignCustomRole(ctx, owner, ws.ID, ben, &designer.ID); err != nil {
+		t.Fatal(err)
+	}
+	if !can(ben, domain.PermFieldsManage) || can(ben, domain.PermProjectCreate) || !can(ben, domain.PermView) {
+		t.Fatal("Ben should hold only the custom role's permissions")
+	}
+	members, _ := e.svc.Members(ctx, owner, ws.ID)
+	for _, m := range members {
+		if m.UserID == ben && (m.CustomRole == nil || m.CustomRole.Name != "Designer" || m.Role != domain.RoleMember) {
+			t.Fatalf("member: %+v", m)
+		}
+	}
+	list, _ := e.svc.List(ctx, ben)
+	if len(list) == 0 || list[0].CustomRole == nil || len(list[0].Permissions) != 4 {
+		t.Fatalf("what Ben sees of himself: %+v", list)
+	}
+
+	// Nobody changes their own role, and nobody hands out permissions they lack.
+	mustCode(t, e.svc.AssignCustomRole(ctx, ben, ws.ID, ben, nil), domain.ErrInsufficientRole)
+	limited, _ := e.svc.CreateRole(ctx, owner, ws.ID, service.RoleInput{Name: "Limited admin", Base: domain.RoleAdmin,
+		Permissions: []domain.Permission{domain.PermView, domain.PermManageMembers, domain.PermRoles}})
+	if err := e.svc.AssignCustomRole(ctx, owner, ws.ID, anna, &limited.ID); err != nil {
+		t.Fatal(err)
+	}
+	// Anna may now manage roles but holds no field permission: she cannot grant it.
+	_, err = e.svc.CreateRole(ctx, anna, ws.ID, service.RoleInput{Name: "Sneaky", Base: domain.RoleMember, Permissions: []domain.Permission{domain.PermFieldsManage}})
+	mustCode(t, err, domain.ErrInsufficientRole)
+	mustCode(t, e.svc.AssignCustomRole(ctx, anna, ws.ID, vera, &designer.ID), domain.ErrInsufficientRole)
+
+	// Deleting a custom role sends its people back to the built-in role it ranked as.
+	if err := e.svc.DeleteRole(ctx, owner, ws.ID, designer.ID); err != nil {
+		t.Fatal(err)
+	}
+	if can(ben, domain.PermFieldsManage) || !can(ben, domain.PermProjectCreate) {
+		t.Fatal("Ben is a plain member again")
+	}
+	log, _ := e.svc.Audit(ctx, owner, ws.ID)
+	seen := map[string]bool{}
+	for _, en := range log {
+		seen[en.Action] = true
+	}
+	for _, a := range []string{"role.permissions_changed", "role.created", "member.custom_role", "role.deleted"} {
+		if !seen[a] {
+			t.Errorf("audit log lacks %s", a)
+		}
+	}
 }
 
 func TestMailStatusAndTestMail(t *testing.T) {

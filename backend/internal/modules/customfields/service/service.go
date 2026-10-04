@@ -25,7 +25,7 @@ type Cards interface {
 }
 
 type Workspaces interface {
-	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
+	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
 }
 
 type Service struct {
@@ -89,7 +89,7 @@ func checkName(v *validation.V, name string) string {
 }
 
 func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewField) (domain.Field, error) {
-	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermUpdate); err != nil {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermFieldsManage); err != nil {
 		return domain.Field{}, err
 	}
 	var v validation.V
@@ -127,7 +127,7 @@ func (s *Service) fieldIn(ctx context.Context, user, id uuid.UUID, perm wsdomain
 }
 
 func (s *Service) Update(ctx context.Context, user, id uuid.UUID, p domain.FieldPatch) (domain.Field, error) {
-	f, err := s.fieldIn(ctx, user, id, wsdomain.PermUpdate)
+	f, err := s.fieldIn(ctx, user, id, wsdomain.PermFieldsManage)
 	if err != nil {
 		return domain.Field{}, err
 	}
@@ -172,7 +172,7 @@ func (s *Service) Update(ctx context.Context, user, id uuid.UUID, p domain.Field
 
 // Delete removes a field and, with it, the values cards had for it.
 func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
-	if _, err := s.fieldIn(ctx, user, id, wsdomain.PermUpdate); err != nil {
+	if _, err := s.fieldIn(ctx, user, id, wsdomain.PermFieldsManage); err != nil {
 		return err
 	}
 	return s.repo.Archive(ctx, id)
@@ -180,7 +180,7 @@ func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
 
 // Reorder sets the order of fields; ids must be exactly the workspace's fields.
 func (s *Service) Reorder(ctx context.Context, user, ws uuid.UUID, ids []uuid.UUID) error {
-	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermUpdate); err != nil {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermFieldsManage); err != nil {
 		return err
 	}
 	all, err := s.repo.List(ctx, ws)

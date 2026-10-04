@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { InviteRole, Role, Workspace } from '@/shared/api';
-import { workspacesApi } from '../api/workspacesApi';
+import { workspacesApi, type RoleInput } from '../api/workspacesApi';
 import { useCurrentWorkspaceStore } from '../store/currentWorkspace';
 
 export const workspaceKeys = {
@@ -19,6 +19,58 @@ export function useCurrentWorkspace(): { workspace: Workspace | null; isLoading:
   const id = useCurrentWorkspaceStore((s) => s.id);
   const workspace = data?.find((w) => w.id === id) ?? data?.[0] ?? null;
   return { workspace, isLoading: isPending };
+}
+
+export const roleKeys = { all: (id: string) => ['workspaces', id, 'roles'] as const };
+
+/** The permission catalog and every role (built-in and custom) of the workspace. */
+export function useRoles(workspaceId: string | undefined) {
+  return useQuery({
+    queryKey: roleKeys.all(workspaceId ?? ''),
+    queryFn: () => workspacesApi.roles(workspaceId!),
+    enabled: !!workspaceId,
+    staleTime: 30_000,
+  });
+}
+
+/** Changes to roles: they also change what people may do, so the workspace list (permissions) refreshes too. */
+export function useRoleMutations(workspaceId: string) {
+  const qc = useQueryClient();
+  const refresh = () =>
+    Promise.all([
+      qc.invalidateQueries({ queryKey: roleKeys.all(workspaceId) }),
+      qc.invalidateQueries({ queryKey: workspaceKeys.all }),
+      qc.invalidateQueries({ queryKey: workspaceKeys.members(workspaceId) }),
+    ]);
+  return {
+    create: useMutation({
+      mutationFn: (body: RoleInput) => workspacesApi.createRole(workspaceId, body),
+      onSuccess: refresh,
+    }),
+    update: useMutation({
+      mutationFn: (v: { key: string; body: RoleInput }) =>
+        workspacesApi.updateRole(workspaceId, v.key, v.body),
+      onSuccess: refresh,
+    }),
+    remove: useMutation({
+      mutationFn: (key: string) => workspacesApi.deleteRole(workspaceId, key),
+      onSuccess: refresh,
+    }),
+    setPermissions: useMutation({
+      mutationFn: (v: { key: string; permissions: string[] }) =>
+        workspacesApi.setRolePermissions(workspaceId, v.key, v.permissions),
+      onSuccess: refresh,
+    }),
+    reset: useMutation({
+      mutationFn: (key: string) => workspacesApi.resetRole(workspaceId, key),
+      onSuccess: refresh,
+    }),
+    assign: useMutation({
+      mutationFn: (v: { userId: string; roleId: string | null }) =>
+        workspacesApi.assignCustomRole(workspaceId, v.userId, v.roleId),
+      onSuccess: refresh,
+    }),
+  };
 }
 
 export function useMembers(workspaceId: string | undefined) {

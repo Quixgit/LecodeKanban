@@ -25,7 +25,7 @@ import (
 
 // Workspaces is the RBAC + membership port.
 type Workspaces interface {
-	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
+	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
 	RolesByUser(ctx context.Context, ws uuid.UUID) (map[uuid.UUID]wsdomain.Role, error)
 	Policy(ctx context.Context, ws uuid.UUID) (wsdomain.Settings, error)
 }
@@ -216,16 +216,8 @@ type CreateInput struct {
 
 // Create adds a project (members and above) and provisions its default board.
 func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in CreateInput, locale string) (View, error) {
-	role, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent)
-	if err != nil {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermProjectCreate); err != nil {
 		return View{}, err
-	}
-	policy, err := s.ws.Policy(ctx, ws)
-	if err != nil {
-		return View{}, err
-	}
-	if policy.ProjectCreateBy == wsdomain.ByAdmins && !role.Can(wsdomain.PermUpdate) {
-		return View{}, apperr.New(wsdomain.ErrPolicy, "only administrators may create projects")
 	}
 	if in.Icon == "" {
 		in.Icon = "folder"
@@ -257,6 +249,7 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in CreateInput
 	}
 
 	var p domain.Project
+	var err error
 	for attempt := 0; attempt < 20; attempt++ {
 		candidate := key
 		if attempt > 0 {
@@ -308,7 +301,7 @@ func (s *Service) Get(ctx context.Context, user, id uuid.UUID) (View, error) {
 }
 
 func (s *Service) Update(ctx context.Context, user, id uuid.UUID, patch domain.Patch) (View, error) {
-	cur, err := s.load(ctx, user, id, wsdomain.PermEditContent)
+	cur, err := s.load(ctx, user, id, wsdomain.PermProjectEdit)
 	if err != nil {
 		return View{}, err
 	}
@@ -355,7 +348,7 @@ func (s *Service) Update(ctx context.Context, user, id uuid.UUID, patch domain.P
 
 // Archive hides a project and its cards (admins and above).
 func (s *Service) Archive(ctx context.Context, user, id uuid.UUID) error {
-	p, err := s.load(ctx, user, id, wsdomain.PermUpdate)
+	p, err := s.load(ctx, user, id, wsdomain.PermProjectDelete)
 	if err != nil {
 		return err
 	}

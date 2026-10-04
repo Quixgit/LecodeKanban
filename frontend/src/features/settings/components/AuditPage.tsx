@@ -76,15 +76,15 @@ function describe(e: AuditEntry, t: (k: string, o?: Record<string, unknown>) => 
       return t('audit.workspace.renamed', { name: String(d.name ?? '') });
     case 'member.role_changed':
       return t('audit.member.role_changed', {
-        from: t(`roles.${String(d.from)}`),
-        to: t(`roles.${String(d.to)}`),
+        from: t(`roles.names.${String(d.from)}`),
+        to: t(`roles.names.${String(d.to)}`),
       });
     case 'member.removed':
       return d.self ? t('audit.member.left') : t('audit.member.removed');
     case 'invite.sent':
       return t('audit.invite.sent', {
         email: String(d.email ?? ''),
-        role: t(`roles.${String(d.role)}`),
+        role: t(`roles.names.${String(d.role)}`),
       });
     case 'invite.revoked':
       return t('audit.invite.revoked');

@@ -113,16 +113,8 @@ func validateTopic(v *validation.V, topic string) {
 
 // CreateChannel creates a public or private channel; the creator joins it.
 func (s *Service) CreateChannel(ctx context.Context, user, ws uuid.UUID, in ChannelInput) (ChannelView, error) {
-	role, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent)
-	if err != nil {
+	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermChannelCreate); err != nil {
 		return ChannelView{}, err
-	}
-	policy, err := s.ws.Policy(ctx, ws)
-	if err != nil {
-		return ChannelView{}, err
-	}
-	if policy.ChannelCreateBy == wsdomain.ByAdmins && !role.Can(wsdomain.PermUpdate) {
-		return ChannelView{}, apperr.New(wsdomain.ErrPolicy, "only administrators may create channels")
 	}
 	in.Name = domain.NormalizeName(in.Name)
 	var v validation.V
@@ -413,12 +405,12 @@ func (s *Service) Archive(ctx context.Context, user, channel uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	role, err := s.ws.Authorize(ctx, ch.WorkspaceID, user, wsdomain.PermView)
+	acc, err := s.ws.Authorize(ctx, ch.WorkspaceID, user, wsdomain.PermView)
 	if err != nil {
 		return err
 	}
 	creator := ch.CreatedBy != nil && *ch.CreatedBy == user
-	if ch.Kind == domain.DM || ch.Kind.Scoped() || !(creator || role.AtLeast(wsdomain.RoleAdmin)) {
+	if ch.Kind == domain.DM || ch.Kind.Scoped() || !(creator || acc.Can(wsdomain.PermChatModerate)) {
 		return apperr.New(domain.ErrForbidden, "not allowed")
 	}
 	if err := s.repo.ArchiveChannel(ctx, ch.ID); err != nil {

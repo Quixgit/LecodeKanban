@@ -21,7 +21,7 @@ import { useAllProjects } from '@/features/projects';
 import { LiveIndicator } from '@/features/realtime';
 import { TASK_SEARCH_ID, TasksToolbar, baseQuery, useTaskFilters } from '@/features/tasks-list';
 import { BoardFieldsProvider } from '@/features/custom-fields';
-import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
+import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { useHotkey } from '@/shared/hooks/useHotkey';
 import {
@@ -74,7 +74,7 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
   const [, setParams] = useSearchParams();
   const { workspace } = useCurrentWorkspace();
   const ws = workspace?.id ?? '';
-  const canEdit = !!workspace && workspace.role !== 'viewer';
+  const canEdit = can(workspace, 'content.edit');
   const { filters, update, clear, activeCount } = useTaskFilters();
   const store = useBoardStore();
   const projects = useAllProjects(workspace?.id);

@@ -442,6 +442,104 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/components/schemas/AuditEntry" } }
+  /workspaces/{workspaceId}/roles:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [workspaces]
+      operationId: listRoles
+      summary: The permission catalog and every role of the workspace (any member)
+      responses:
+        "200":
+          description: Roles
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RolesOverview" }
+    post:
+      tags: [workspaces]
+      operationId: createRole
+      summary: Define a custom role (people who may manage roles)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RoleInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RoleDefinition" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/roles/{roleKey}:
+    parameters:
+      - { $ref: "#/components/parameters/WorkspaceId" }
+      - { name: roleKey, in: path, required: true, schema: { type: string }, description: "admin, member or viewer, or the id of a custom role" }
+    put:
+      tags: [workspaces]
+      operationId: setRolePermissions
+      summary: Change what a built-in role (admin, member, viewer) may do in this workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PermissionsInput" }
+      responses:
+        "204": { description: Saved }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [workspaces]
+      operationId: updateRole
+      summary: Change a custom role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RoleInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RoleDefinition" }
+        "409": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [workspaces]
+      operationId: deleteRole
+      summary: Delete a custom role; its people go back to the built-in role it ranked as
+      responses:
+        "204": { description: Deleted }
+  /workspaces/{workspaceId}/roles/{roleKey}/reset:
+    parameters:
+      - { $ref: "#/components/parameters/WorkspaceId" }
+      - { name: roleKey, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [workspaces]
+      operationId: resetRole
+      summary: Put a built-in role back to its default permissions
+      responses:
+        "204": { description: Reset }
+  /workspaces/{workspaceId}/members/{userId}/custom-role:
+    parameters:
+      - { $ref: "#/components/parameters/WorkspaceId" }
+      - { name: userId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      tags: [workspaces]
+      operationId: assignCustomRole
+      summary: Give a member a custom role, or null to go back to their built-in role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [roleId]
+              properties:
+                roleId: { type: string, format: uuid, nullable: true }
+      responses:
+        "204": { description: Saved }
+        "403": { $ref: "#/components/responses/Error" }
   /workspaces/{workspaceId}/mail:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -2773,12 +2871,14 @@ components:
       enum: [admin, member, viewer]
     Workspace:
       type: object
-      required: [id, name, slug, role, memberCount, createdAt]
+      required: [id, name, slug, role, memberCount, createdAt, permissions, customRole]
       properties:
         id: { type: string, format: uuid }
         name: { type: string }
         slug: { type: string }
         role: { $ref: "#/components/schemas/Role" }
+        permissions: { type: array, items: { type: string }, description: What the caller may do here }
+        customRole: { allOf: [{ $ref: "#/components/schemas/RoleRef" }], nullable: true }
         memberCount: { type: integer }
         createdAt: { type: string, format: date-time }
     WorkspaceInput:
@@ -2797,16 +2897,12 @@ components:
         integrations: { type: boolean }
     WorkspaceSettings:
       type: object
-      required: [description, inviteBy, inviteDays, defaultInviteRole, allowedDomains, projectCreateBy, channelCreateBy, broadcastBy, defaultPriority, requireDueDate, weekStart, features]
+      required: [description, inviteDays, defaultInviteRole, allowedDomains, defaultPriority, requireDueDate, weekStart, features]
       properties:
         description: { type: string, maxLength: 300 }
-        inviteBy: { type: string, enum: [admins, members], description: Who may invite people }
         inviteDays: { type: integer, minimum: 1, maximum: 30, description: How long an invitation stays valid }
         defaultInviteRole: { $ref: "#/components/schemas/InviteRole" }
         allowedDomains: { type: array, maxItems: 20, items: { type: string }, description: "Only addresses of these domains may be invited; empty allows any" }
-        projectCreateBy: { type: string, enum: [admins, members] }
-        channelCreateBy: { type: string, enum: [admins, members] }
-        broadcastBy: { type: string, enum: [everyone, admins], description: Who may notify a whole channel with @channel }
         defaultPriority: { type: string, enum: [low, medium, high] }
         requireDueDate: { type: boolean }
         weekStart: { type: integer, minimum: 0, maximum: 1, description: 0 Sunday, 1 Monday }
@@ -2815,13 +2911,9 @@ components:
       type: object
       properties:
         description: { type: string, maxLength: 300 }
-        inviteBy: { type: string, enum: [admins, members] }
         inviteDays: { type: integer, minimum: 1, maximum: 30 }
         defaultInviteRole: { $ref: "#/components/schemas/InviteRole" }
         allowedDomains: { type: array, maxItems: 20, items: { type: string } }
-        projectCreateBy: { type: string, enum: [admins, members] }
-        channelCreateBy: { type: string, enum: [admins, members] }
-        broadcastBy: { type: string, enum: [everyone, admins] }
         defaultPriority: { type: string, enum: [low, medium, high] }
         requireDueDate: { type: boolean }
         weekStart: { type: integer, minimum: 0, maximum: 1 }
@@ -2835,6 +2927,53 @@ components:
         action: { type: string, description: "e.g. settings.updated, member.role_changed, member.removed, invite.sent, invite.revoked, workspace.renamed" }
         details: { type: object, additionalProperties: true }
         at: { type: string, format: date-time }
+    PermissionInfo:
+      type: object
+      required: [key, group, fixed]
+      properties:
+        key: { type: string, description: "e.g. content.edit, projects.create" }
+        group: { type: string, enum: [general, tasks, projects, chat, time, people, admin] }
+        fixed: { type: boolean, description: Reserved for the owner; cannot be given to other roles }
+    RoleDefinition:
+      type: object
+      required: [key, id, custom, name, description, base, permissions, defaults, changed, locked, members]
+      properties:
+        key: { type: string, description: "owner, admin, member, viewer, or the id of a custom role" }
+        id: { type: string, format: uuid, nullable: true }
+        custom: { type: boolean }
+        name: { type: string }
+        description: { type: string }
+        base: { $ref: "#/components/schemas/Role" }
+        permissions: { type: array, items: { type: string } }
+        defaults: { type: array, items: { type: string }, description: "For built-in roles: what they start with in a new workspace" }
+        changed: { type: boolean, description: This built-in role differs from its defaults }
+        locked: { type: boolean, description: The owner always holds everything }
+        members: { type: integer }
+    RolesOverview:
+      type: object
+      required: [catalog, roles]
+      properties:
+        catalog: { type: array, items: { $ref: "#/components/schemas/PermissionInfo" } }
+        roles: { type: array, items: { $ref: "#/components/schemas/RoleDefinition" } }
+    RoleInput:
+      type: object
+      required: [name, base, permissions]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 40 }
+        description: { type: string, maxLength: 200 }
+        base: { type: string, enum: [admin, member, viewer], description: The built-in role it ranks as }
+        permissions: { type: array, items: { type: string } }
+    PermissionsInput:
+      type: object
+      required: [permissions]
+      properties:
+        permissions: { type: array, items: { type: string } }
+    RoleRef:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
     MailItem:
       type: object
       required: [id, recipient, subject, status, attempts, error, at]
@@ -2891,10 +3030,11 @@ components:
         coverUrl: { type: string, nullable: true }
     Member:
       type: object
-      required: [user, role, joinedAt]
+      required: [user, role, customRole, joinedAt]
       properties:
         user: { $ref: "#/components/schemas/MemberUser" }
         role: { $ref: "#/components/schemas/Role" }
+        customRole: { allOf: [{ $ref: "#/components/schemas/RoleRef" }], nullable: true }
         joinedAt: { type: string, format: date-time }
     UpdateMemberRequest:
       type: object

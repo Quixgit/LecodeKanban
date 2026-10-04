@@ -40,7 +40,7 @@ func (s *Service) loadColumn(ctx context.Context, user, id uuid.UUID) (domain.Co
 	if err != nil {
 		return domain.Column{}, err
 	}
-	if _, err := s.auth.Authorize(ctx, col.WorkspaceID, user, wsdomain.PermEditContent); err != nil {
+	if _, err := s.auth.Authorize(ctx, col.WorkspaceID, user, wsdomain.PermBoardsManage); err != nil {
 		if apperr.IsCode(err, wsdomain.ErrNotFound) {
 			return domain.Column{}, apperr.New(domain.ErrColumnNotFound, "column not found")
 		}
@@ -60,7 +60,7 @@ func (s *Service) CreateColumn(ctx context.Context, user, project uuid.UUID, in 
 	if err != nil {
 		return domain.Column{}, err
 	}
-	if _, err := s.auth.Authorize(ctx, b.WorkspaceID, user, wsdomain.PermEditContent); err != nil {
+	if _, err := s.auth.Authorize(ctx, b.WorkspaceID, user, wsdomain.PermBoardsManage); err != nil {
 		return domain.Column{}, err
 	}
 	var v validation.V

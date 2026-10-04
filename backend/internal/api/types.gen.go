@@ -594,6 +594,39 @@ func (e NotificationKind) Valid() bool {
 	}
 }
 
+// Defines values for PermissionInfoGroup.
+const (
+	PermissionInfoGroupAdmin    PermissionInfoGroup = "admin"
+	PermissionInfoGroupChat     PermissionInfoGroup = "chat"
+	PermissionInfoGroupGeneral  PermissionInfoGroup = "general"
+	PermissionInfoGroupPeople   PermissionInfoGroup = "people"
+	PermissionInfoGroupProjects PermissionInfoGroup = "projects"
+	PermissionInfoGroupTasks    PermissionInfoGroup = "tasks"
+	PermissionInfoGroupTime     PermissionInfoGroup = "time"
+)
+
+// Valid indicates whether the value is a known member of the PermissionInfoGroup enum.
+func (e PermissionInfoGroup) Valid() bool {
+	switch e {
+	case PermissionInfoGroupAdmin:
+		return true
+	case PermissionInfoGroupChat:
+		return true
+	case PermissionInfoGroupGeneral:
+		return true
+	case PermissionInfoGroupPeople:
+		return true
+	case PermissionInfoGroupProjects:
+		return true
+	case PermissionInfoGroupTasks:
+		return true
+	case PermissionInfoGroupTime:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Priority.
 const (
 	PriorityHigh   Priority = "high"
@@ -696,6 +729,27 @@ func (e Role) Valid() bool {
 	case RoleOwner:
 		return true
 	case RoleViewer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RoleInputBase.
+const (
+	RoleInputBaseAdmin  RoleInputBase = "admin"
+	RoleInputBaseMember RoleInputBase = "member"
+	RoleInputBaseViewer RoleInputBase = "viewer"
+)
+
+// Valid indicates whether the value is a known member of the RoleInputBase enum.
+func (e RoleInputBase) Valid() bool {
+	switch e {
+	case RoleInputBaseAdmin:
+		return true
+	case RoleInputBaseMember:
+		return true
+	case RoleInputBaseViewer:
 		return true
 	default:
 		return false
@@ -1032,42 +1086,6 @@ func (e WikiWorkspaceRole) Valid() bool {
 	}
 }
 
-// Defines values for WorkspaceSettingsBroadcastBy.
-const (
-	WorkspaceSettingsBroadcastByAdmins   WorkspaceSettingsBroadcastBy = "admins"
-	WorkspaceSettingsBroadcastByEveryone WorkspaceSettingsBroadcastBy = "everyone"
-)
-
-// Valid indicates whether the value is a known member of the WorkspaceSettingsBroadcastBy enum.
-func (e WorkspaceSettingsBroadcastBy) Valid() bool {
-	switch e {
-	case WorkspaceSettingsBroadcastByAdmins:
-		return true
-	case WorkspaceSettingsBroadcastByEveryone:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for WorkspaceSettingsChannelCreateBy.
-const (
-	WorkspaceSettingsChannelCreateByAdmins  WorkspaceSettingsChannelCreateBy = "admins"
-	WorkspaceSettingsChannelCreateByMembers WorkspaceSettingsChannelCreateBy = "members"
-)
-
-// Valid indicates whether the value is a known member of the WorkspaceSettingsChannelCreateBy enum.
-func (e WorkspaceSettingsChannelCreateBy) Valid() bool {
-	switch e {
-	case WorkspaceSettingsChannelCreateByAdmins:
-		return true
-	case WorkspaceSettingsChannelCreateByMembers:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for WorkspaceSettingsDefaultPriority.
 const (
 	WorkspaceSettingsDefaultPriorityHigh   WorkspaceSettingsDefaultPriority = "high"
@@ -1089,78 +1107,6 @@ func (e WorkspaceSettingsDefaultPriority) Valid() bool {
 	}
 }
 
-// Defines values for WorkspaceSettingsInviteBy.
-const (
-	WorkspaceSettingsInviteByAdmins  WorkspaceSettingsInviteBy = "admins"
-	WorkspaceSettingsInviteByMembers WorkspaceSettingsInviteBy = "members"
-)
-
-// Valid indicates whether the value is a known member of the WorkspaceSettingsInviteBy enum.
-func (e WorkspaceSettingsInviteBy) Valid() bool {
-	switch e {
-	case WorkspaceSettingsInviteByAdmins:
-		return true
-	case WorkspaceSettingsInviteByMembers:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for WorkspaceSettingsProjectCreateBy.
-const (
-	WorkspaceSettingsProjectCreateByAdmins  WorkspaceSettingsProjectCreateBy = "admins"
-	WorkspaceSettingsProjectCreateByMembers WorkspaceSettingsProjectCreateBy = "members"
-)
-
-// Valid indicates whether the value is a known member of the WorkspaceSettingsProjectCreateBy enum.
-func (e WorkspaceSettingsProjectCreateBy) Valid() bool {
-	switch e {
-	case WorkspaceSettingsProjectCreateByAdmins:
-		return true
-	case WorkspaceSettingsProjectCreateByMembers:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for WorkspaceSettingsPatchBroadcastBy.
-const (
-	WorkspaceSettingsPatchBroadcastByAdmins   WorkspaceSettingsPatchBroadcastBy = "admins"
-	WorkspaceSettingsPatchBroadcastByEveryone WorkspaceSettingsPatchBroadcastBy = "everyone"
-)
-
-// Valid indicates whether the value is a known member of the WorkspaceSettingsPatchBroadcastBy enum.
-func (e WorkspaceSettingsPatchBroadcastBy) Valid() bool {
-	switch e {
-	case WorkspaceSettingsPatchBroadcastByAdmins:
-		return true
-	case WorkspaceSettingsPatchBroadcastByEveryone:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for WorkspaceSettingsPatchChannelCreateBy.
-const (
-	WorkspaceSettingsPatchChannelCreateByAdmins  WorkspaceSettingsPatchChannelCreateBy = "admins"
-	WorkspaceSettingsPatchChannelCreateByMembers WorkspaceSettingsPatchChannelCreateBy = "members"
-)
-
-// Valid indicates whether the value is a known member of the WorkspaceSettingsPatchChannelCreateBy enum.
-func (e WorkspaceSettingsPatchChannelCreateBy) Valid() bool {
-	switch e {
-	case WorkspaceSettingsPatchChannelCreateByAdmins:
-		return true
-	case WorkspaceSettingsPatchChannelCreateByMembers:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for WorkspaceSettingsPatchDefaultPriority.
 const (
 	WorkspaceSettingsPatchDefaultPriorityHigh   WorkspaceSettingsPatchDefaultPriority = "high"
@@ -1176,42 +1122,6 @@ func (e WorkspaceSettingsPatchDefaultPriority) Valid() bool {
 	case WorkspaceSettingsPatchDefaultPriorityLow:
 		return true
 	case WorkspaceSettingsPatchDefaultPriorityMedium:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for WorkspaceSettingsPatchInviteBy.
-const (
-	WorkspaceSettingsPatchInviteByAdmins  WorkspaceSettingsPatchInviteBy = "admins"
-	WorkspaceSettingsPatchInviteByMembers WorkspaceSettingsPatchInviteBy = "members"
-)
-
-// Valid indicates whether the value is a known member of the WorkspaceSettingsPatchInviteBy enum.
-func (e WorkspaceSettingsPatchInviteBy) Valid() bool {
-	switch e {
-	case WorkspaceSettingsPatchInviteByAdmins:
-		return true
-	case WorkspaceSettingsPatchInviteByMembers:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for WorkspaceSettingsPatchProjectCreateBy.
-const (
-	WorkspaceSettingsPatchProjectCreateByAdmins  WorkspaceSettingsPatchProjectCreateBy = "admins"
-	WorkspaceSettingsPatchProjectCreateByMembers WorkspaceSettingsPatchProjectCreateBy = "members"
-)
-
-// Valid indicates whether the value is a known member of the WorkspaceSettingsPatchProjectCreateBy enum.
-func (e WorkspaceSettingsPatchProjectCreateBy) Valid() bool {
-	switch e {
-	case WorkspaceSettingsPatchProjectCreateByAdmins:
-		return true
-	case WorkspaceSettingsPatchProjectCreateByMembers:
 		return true
 	default:
 		return false
@@ -2538,9 +2448,10 @@ type MeetingList struct {
 
 // Member defines model for Member.
 type Member struct {
-	JoinedAt time.Time  `json:"joinedAt"`
-	Role     Role       `json:"role"`
-	User     MemberUser `json:"user"`
+	CustomRole *RoleRef   `json:"customRole"`
+	JoinedAt   time.Time  `json:"joinedAt"`
+	Role       Role       `json:"role"`
+	User       MemberUser `json:"user"`
 }
 
 // MemberProfile defines model for MemberProfile.
@@ -2627,6 +2538,24 @@ type NotificationsReadInput struct {
 
 	// Ids Notifications to mark; omit with all
 	Ids *[]openapi_types.UUID `json:"ids,omitempty"`
+}
+
+// PermissionInfo defines model for PermissionInfo.
+type PermissionInfo struct {
+	// Fixed Reserved for the owner; cannot be given to other roles
+	Fixed bool                `json:"fixed"`
+	Group PermissionInfoGroup `json:"group"`
+
+	// Key e.g. content.edit, projects.create
+	Key string `json:"key"`
+}
+
+// PermissionInfoGroup defines model for PermissionInfo.Group.
+type PermissionInfoGroup string
+
+// PermissionsInput defines model for PermissionsInput.
+type PermissionsInput struct {
+	Permissions []string `json:"permissions"`
 }
 
 // PersonRef defines model for PersonRef.
@@ -2762,6 +2691,53 @@ type ResetPasswordRequest struct {
 
 // Role defines model for Role.
 type Role string
+
+// RoleDefinition defines model for RoleDefinition.
+type RoleDefinition struct {
+	Base Role `json:"base"`
+
+	// Changed This built-in role differs from its defaults
+	Changed bool `json:"changed"`
+	Custom  bool `json:"custom"`
+
+	// Defaults For built-in roles: what they start with in a new workspace
+	Defaults    []string            `json:"defaults"`
+	Description string              `json:"description"`
+	Id          *openapi_types.UUID `json:"id"`
+
+	// Key owner, admin, member, viewer, or the id of a custom role
+	Key string `json:"key"`
+
+	// Locked The owner always holds everything
+	Locked      bool     `json:"locked"`
+	Members     int      `json:"members"`
+	Name        string   `json:"name"`
+	Permissions []string `json:"permissions"`
+}
+
+// RoleInput defines model for RoleInput.
+type RoleInput struct {
+	// Base The built-in role it ranks as
+	Base        RoleInputBase `json:"base"`
+	Description *string       `json:"description,omitempty"`
+	Name        string        `json:"name"`
+	Permissions []string      `json:"permissions"`
+}
+
+// RoleInputBase The built-in role it ranks as
+type RoleInputBase string
+
+// RoleRef defines model for RoleRef.
+type RoleRef struct {
+	Id   openapi_types.UUID `json:"id"`
+	Name string             `json:"name"`
+}
+
+// RolesOverview defines model for RolesOverview.
+type RolesOverview struct {
+	Catalog []PermissionInfo `json:"catalog"`
+	Roles   []RoleDefinition `json:"roles"`
+}
 
 // RunningTimer defines model for RunningTimer.
 type RunningTimer struct {
@@ -3275,11 +3251,15 @@ type WikiWorkspaceRole string
 // Workspace defines model for Workspace.
 type Workspace struct {
 	CreatedAt   time.Time          `json:"createdAt"`
+	CustomRole  *RoleRef           `json:"customRole"`
 	Id          openapi_types.UUID `json:"id"`
 	MemberCount int                `json:"memberCount"`
 	Name        string             `json:"name"`
-	Role        Role               `json:"role"`
-	Slug        string             `json:"slug"`
+
+	// Permissions What the caller may do here
+	Permissions []string `json:"permissions"`
+	Role        Role     `json:"role"`
+	Slug        string   `json:"slug"`
 }
 
 // WorkspaceFeatures defines model for WorkspaceFeatures.
@@ -3299,73 +3279,37 @@ type WorkspaceInput struct {
 // WorkspaceSettings defines model for WorkspaceSettings.
 type WorkspaceSettings struct {
 	// AllowedDomains Only addresses of these domains may be invited; empty allows any
-	AllowedDomains []string `json:"allowedDomains"`
-
-	// BroadcastBy Who may notify a whole channel with @channel
-	BroadcastBy       WorkspaceSettingsBroadcastBy     `json:"broadcastBy"`
-	ChannelCreateBy   WorkspaceSettingsChannelCreateBy `json:"channelCreateBy"`
+	AllowedDomains    []string                         `json:"allowedDomains"`
 	DefaultInviteRole InviteRole                       `json:"defaultInviteRole"`
 	DefaultPriority   WorkspaceSettingsDefaultPriority `json:"defaultPriority"`
 	Description       string                           `json:"description"`
 	Features          WorkspaceFeatures                `json:"features"`
 
-	// InviteBy Who may invite people
-	InviteBy WorkspaceSettingsInviteBy `json:"inviteBy"`
-
 	// InviteDays How long an invitation stays valid
-	InviteDays      int                              `json:"inviteDays"`
-	ProjectCreateBy WorkspaceSettingsProjectCreateBy `json:"projectCreateBy"`
-	RequireDueDate  bool                             `json:"requireDueDate"`
+	InviteDays     int  `json:"inviteDays"`
+	RequireDueDate bool `json:"requireDueDate"`
 
 	// WeekStart 0 Sunday
 	WeekStart int `json:"weekStart"`
 }
 
-// WorkspaceSettingsBroadcastBy Who may notify a whole channel with @channel
-type WorkspaceSettingsBroadcastBy string
-
-// WorkspaceSettingsChannelCreateBy defines model for WorkspaceSettings.ChannelCreateBy.
-type WorkspaceSettingsChannelCreateBy string
-
 // WorkspaceSettingsDefaultPriority defines model for WorkspaceSettings.DefaultPriority.
 type WorkspaceSettingsDefaultPriority string
-
-// WorkspaceSettingsInviteBy Who may invite people
-type WorkspaceSettingsInviteBy string
-
-// WorkspaceSettingsProjectCreateBy defines model for WorkspaceSettings.ProjectCreateBy.
-type WorkspaceSettingsProjectCreateBy string
 
 // WorkspaceSettingsPatch defines model for WorkspaceSettingsPatch.
 type WorkspaceSettingsPatch struct {
 	AllowedDomains    *[]string                              `json:"allowedDomains,omitempty"`
-	BroadcastBy       *WorkspaceSettingsPatchBroadcastBy     `json:"broadcastBy,omitempty"`
-	ChannelCreateBy   *WorkspaceSettingsPatchChannelCreateBy `json:"channelCreateBy,omitempty"`
 	DefaultInviteRole *InviteRole                            `json:"defaultInviteRole,omitempty"`
 	DefaultPriority   *WorkspaceSettingsPatchDefaultPriority `json:"defaultPriority,omitempty"`
 	Description       *string                                `json:"description,omitempty"`
 	Features          *WorkspaceFeatures                     `json:"features,omitempty"`
-	InviteBy          *WorkspaceSettingsPatchInviteBy        `json:"inviteBy,omitempty"`
 	InviteDays        *int                                   `json:"inviteDays,omitempty"`
-	ProjectCreateBy   *WorkspaceSettingsPatchProjectCreateBy `json:"projectCreateBy,omitempty"`
 	RequireDueDate    *bool                                  `json:"requireDueDate,omitempty"`
 	WeekStart         *int                                   `json:"weekStart,omitempty"`
 }
 
-// WorkspaceSettingsPatchBroadcastBy defines model for WorkspaceSettingsPatch.BroadcastBy.
-type WorkspaceSettingsPatchBroadcastBy string
-
-// WorkspaceSettingsPatchChannelCreateBy defines model for WorkspaceSettingsPatch.ChannelCreateBy.
-type WorkspaceSettingsPatchChannelCreateBy string
-
 // WorkspaceSettingsPatchDefaultPriority defines model for WorkspaceSettingsPatch.DefaultPriority.
 type WorkspaceSettingsPatchDefaultPriority string
-
-// WorkspaceSettingsPatchInviteBy defines model for WorkspaceSettingsPatch.InviteBy.
-type WorkspaceSettingsPatchInviteBy string
-
-// WorkspaceSettingsPatchProjectCreateBy defines model for WorkspaceSettingsPatch.ProjectCreateBy.
-type WorkspaceSettingsPatchProjectCreateBy string
 
 // AttachmentId defines model for AttachmentId.
 type AttachmentId = openapi_types.UUID
@@ -3647,6 +3591,11 @@ type ListCardFieldValuesJSONBody struct {
 	CardIds []openapi_types.UUID `json:"cardIds"`
 }
 
+// AssignCustomRoleJSONBody defines parameters for AssignCustomRole.
+type AssignCustomRoleJSONBody struct {
+	RoleId *openapi_types.UUID `json:"roleId"`
+}
+
 // ListNotificationsParams defines parameters for ListNotifications.
 type ListNotificationsParams struct {
 	// Before Only older than this time
@@ -3863,11 +3812,23 @@ type CreateLabelJSONRequestBody = LabelInput
 // UpdateMemberRoleJSONRequestBody defines body for UpdateMemberRole for application/json ContentType.
 type UpdateMemberRoleJSONRequestBody = UpdateMemberRequest
 
+// AssignCustomRoleJSONRequestBody defines body for AssignCustomRole for application/json ContentType.
+type AssignCustomRoleJSONRequestBody AssignCustomRoleJSONBody
+
 // MarkNotificationsReadJSONRequestBody defines body for MarkNotificationsRead for application/json ContentType.
 type MarkNotificationsReadJSONRequestBody = NotificationsReadInput
 
 // CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
 type CreateProjectJSONRequestBody = ProjectInput
+
+// CreateRoleJSONRequestBody defines body for CreateRole for application/json ContentType.
+type CreateRoleJSONRequestBody = RoleInput
+
+// UpdateRoleJSONRequestBody defines body for UpdateRole for application/json ContentType.
+type UpdateRoleJSONRequestBody = RoleInput
+
+// SetRolePermissionsJSONRequestBody defines body for SetRolePermissions for application/json ContentType.
+type SetRolePermissionsJSONRequestBody = PermissionsInput
 
 // UpdateWorkspaceSettingsJSONRequestBody defines body for UpdateWorkspaceSettings for application/json ContentType.
 type UpdateWorkspaceSettingsJSONRequestBody = WorkspaceSettingsPatch

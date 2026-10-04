@@ -307,7 +307,7 @@ func diff(a, b domain.Card) []events.FieldChange {
 
 // Delete archives a card.
 func (s *Service) Delete(ctx context.Context, user, id uuid.UUID) error {
-	c, err := s.load(ctx, user, id, wsdomain.PermEditContent)
+	c, err := s.load(ctx, user, id, wsdomain.PermTasksDelete)
 	if err != nil {
 		return err
 	}
