@@ -328,3 +328,24 @@ func TestSettingsAndPolicies(t *testing.T) {
 	_, err = e.svc.Audit(ctx, member, ws.ID)
 	mustCode(t, err, domain.ErrInsufficientRole)
 }
+
+func TestMemberProfile(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	owner := e.user(t, "Owner", "owner@example.com", "en")
+	outsider := e.user(t, "Outsider", "out@example.com", "en")
+	ws, _ := e.svc.Create(ctx, owner, "Team")
+	title := "Designer"
+	if _, err := e.users.UpdateProfile(ctx, owner, usersdomain.ProfilePatch{JobTitle: &title}); err != nil {
+		t.Fatal(err)
+	}
+	p, err := e.svc.MemberProfile(ctx, owner, ws.ID, owner)
+	if err != nil || p.User.JobTitle != "Designer" || p.Role != domain.RoleOwner {
+		t.Fatalf("own card: %+v %v", p, err)
+	}
+	// Outsiders see nothing, and a person who is not in the workspace has no card in it.
+	_, err = e.svc.MemberProfile(ctx, outsider, ws.ID, owner)
+	mustCode(t, err, domain.ErrNotFound)
+	_, err = e.svc.MemberProfile(ctx, owner, ws.ID, outsider)
+	mustCode(t, err, domain.ErrMemberNotFound)
+}

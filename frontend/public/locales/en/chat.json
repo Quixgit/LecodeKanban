@@ -66,7 +66,8 @@
     "pinned": "Pinned",
     "savedBadge": "Saved",
     "pinnedToast": "Message pinned",
-    "unpinnedToast": "Message unpinned"
+    "unpinnedToast": "Message unpinned",
+    "openProfile": "Open {{name}}'s profile"
   },
   "list": {
     "label": "Messages",

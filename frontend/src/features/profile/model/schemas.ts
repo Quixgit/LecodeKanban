@@ -18,6 +18,13 @@ export const profileSchema = z.object({
   location: optional(100),
   timezone: optional(64),
   bio: optional(500),
+  pronouns: optional(30),
+  linkedin: optional(200),
+  telegram: optional(64),
+  website: optional(200),
+  workStart: z.string(),
+  workEnd: z.string(),
+  skills: z.array(z.string().trim().max(30)).max(10),
 });
 export type ProfileValues = z.infer<typeof profileSchema>;
 

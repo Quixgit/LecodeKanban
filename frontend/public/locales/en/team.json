@@ -34,7 +34,8 @@
       "joined": "Joined",
       "action": "Action"
     },
-    "empty": "No members match your search."
+    "empty": "No members match your search.",
+    "openProfile": "Open {{name}}'s profile"
   },
   "actions": {
     "invite": "Invite member",

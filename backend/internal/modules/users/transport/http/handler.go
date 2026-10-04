@@ -45,6 +45,9 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Post("/users/me/avatar", httpx.H(h.uploadAvatar))
 	r.Delete("/users/me/avatar", httpx.H(h.removeAvatar))
 	r.Get("/users/{userId}/avatar", httpx.H(h.avatar))
+	r.Post("/users/me/cover", httpx.H(h.uploadCover))
+	r.Delete("/users/me/cover", httpx.H(h.removeCover))
+	r.Get("/users/{userId}/cover", httpx.H(h.cover))
 }
 
 // Present converts a user into the API DTO, including linked providers.
@@ -57,6 +60,8 @@ func (h *Handler) Present(ctx context.Context, u domain.User) (api.User, error) 
 		Id: u.ID, Email: u.Email, Name: u.Name, Locale: api.Locale(u.Locale), AvatarUrl: u.AvatarURL,
 		EmailVerified: u.EmailVerified(), HasPassword: u.HasPassword, CreatedAt: u.CreatedAt,
 		JobTitle: u.JobTitle, Phone: u.Phone, Location: u.Location, Timezone: u.Timezone, Bio: u.Bio,
+		Pronouns: u.Pronouns, Linkedin: u.LinkedIn, Telegram: u.Telegram, Website: u.Website,
+		WorkStart: u.WorkStart, WorkEnd: u.WorkEnd, Skills: skillsOrEmpty(u.Skills), CoverPreset: u.CoverPreset, CoverUrl: u.CoverURL,
 		Providers: make([]api.UserProviders, 0, len(provs)),
 	}
 	for _, p := range provs {
@@ -105,7 +110,8 @@ func (h *Handler) updateMe(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	patch := domain.ProfilePatch{Name: in.Name, JobTitle: in.JobTitle, Phone: in.Phone, Location: in.Location,
-		Timezone: in.Timezone, Bio: in.Bio}
+		Timezone: in.Timezone, Bio: in.Bio, Pronouns: in.Pronouns, LinkedIn: in.Linkedin, Telegram: in.Telegram,
+		Website: in.Website, WorkStart: in.WorkStart, WorkEnd: in.WorkEnd, Skills: in.Skills, CoverPreset: in.CoverPreset}
 	if in.Locale != nil {
 		l := domain.Locale(*in.Locale)
 		patch.Locale = &l
@@ -181,6 +187,59 @@ func (h *Handler) avatar(w http.ResponseWriter, r *http.Request) error {
 		return apperr.New(domain.ErrNotFound, "no picture")
 	}
 	f, kind, err := h.svc.OpenAvatar(r.Context(), id)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = f.Close() }()
+	w.Header().Set("Content-Type", kind)
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; sandbox")
+	http.ServeContent(w, r, "", time.Time{}, f)
+	return nil
+}
+
+func skillsOrEmpty(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
+}
+
+func (h *Handler) uploadCover(w http.ResponseWriter, r *http.Request) error {
+	r.Body = http.MaxBytesReader(w, r.Body, service.MaxCoverBytes+(256<<10))
+	if err := r.ParseMultipartForm(service.MaxCoverBytes); err != nil {
+		return apperr.New(domain.ErrCoverTooLarge, "picture is too large")
+	}
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		return apperr.New(domain.ErrBadCover, "a file is required")
+	}
+	defer func() { _ = file.Close() }()
+	p, _ := authtoken.FromContext(r.Context())
+	u, err := h.svc.SetCover(r.Context(), p.UserID, file)
+	if err != nil {
+		return err
+	}
+	return h.writeUser(w, r, u)
+}
+
+func (h *Handler) removeCover(w http.ResponseWriter, r *http.Request) error {
+	p, _ := authtoken.FromContext(r.Context())
+	u, err := h.svc.RemoveCover(r.Context(), p.UserID)
+	if err != nil {
+		return err
+	}
+	return h.writeUser(w, r, u)
+}
+
+// cover serves a cover picture to signed-in users; like avatars, its address carries a version.
+func (h *Handler) cover(w http.ResponseWriter, r *http.Request) error {
+	id, err := uuid.Parse(chi.URLParam(r, "userId"))
+	if err != nil {
+		return apperr.New(domain.ErrNotFound, "no picture")
+	}
+	f, kind, err := h.svc.OpenCover(r.Context(), id)
 	if err != nil {
 		return err
 	}

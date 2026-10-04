@@ -2457,6 +2457,30 @@ type Member struct {
 	User     MemberUser `json:"user"`
 }
 
+// MemberProfile defines model for MemberProfile.
+type MemberProfile struct {
+	AvatarUrl   *string            `json:"avatarUrl"`
+	Bio         string             `json:"bio"`
+	CoverPreset string             `json:"coverPreset"`
+	CoverUrl    *string            `json:"coverUrl"`
+	Email       string             `json:"email"`
+	Id          openapi_types.UUID `json:"id"`
+	JobTitle    string             `json:"jobTitle"`
+	JoinedAt    time.Time          `json:"joinedAt"`
+	Linkedin    string             `json:"linkedin"`
+	Location    string             `json:"location"`
+	Name        string             `json:"name"`
+	Phone       string             `json:"phone"`
+	Pronouns    string             `json:"pronouns"`
+	Role        Role               `json:"role"`
+	Skills      []string           `json:"skills"`
+	Telegram    string             `json:"telegram"`
+	Timezone    string             `json:"timezone"`
+	Website     string             `json:"website"`
+	WorkEnd     string             `json:"workEnd"`
+	WorkStart   string             `json:"workStart"`
+}
+
 // MemberUser defines model for MemberUser.
 type MemberUser struct {
 	AvatarUrl *string            `json:"avatarUrl"`
@@ -2753,21 +2777,43 @@ type UpdateMemberRequest struct {
 type UpdateProfileRequest struct {
 	Bio *string `json:"bio,omitempty"`
 
+	// CoverPreset A preset id (a preset replaces an uploaded cover); empty clears the preset
+	CoverPreset *string `json:"coverPreset,omitempty"`
+
 	// JobTitle Empty string clears
 	JobTitle *string `json:"jobTitle,omitempty"`
-	Locale   *Locale `json:"locale,omitempty"`
-	Location *string `json:"location,omitempty"`
-	Name     *string `json:"name,omitempty"`
-	Phone    *string `json:"phone,omitempty"`
+
+	// Linkedin A LinkedIn address or just the handle; empty clears
+	Linkedin *string   `json:"linkedin,omitempty"`
+	Locale   *Locale   `json:"locale,omitempty"`
+	Location *string   `json:"location,omitempty"`
+	Name     *string   `json:"name,omitempty"`
+	Phone    *string   `json:"phone,omitempty"`
+	Pronouns *string   `json:"pronouns,omitempty"`
+	Skills   *[]string `json:"skills,omitempty"`
+
+	// Telegram @name, t.me/name or just the name; empty clears
+	Telegram *string `json:"telegram,omitempty"`
 
 	// Timezone IANA time zone name or empty
 	Timezone *string `json:"timezone,omitempty"`
+	Website  *string `json:"website,omitempty"`
+	WorkEnd  *string `json:"workEnd,omitempty"`
+
+	// WorkStart HH:MM; send with workEnd, both empty clears
+	WorkStart *string `json:"workStart,omitempty"`
 }
 
 // User defines model for User.
 type User struct {
-	AvatarUrl *string   `json:"avatarUrl"`
-	Bio       string    `json:"bio"`
+	AvatarUrl *string `json:"avatarUrl"`
+	Bio       string  `json:"bio"`
+
+	// CoverPreset Id of a ready-made profile background
+	CoverPreset string `json:"coverPreset"`
+
+	// CoverUrl Uploaded profile background
+	CoverUrl  *string   `json:"coverUrl"`
 	CreatedAt time.Time `json:"createdAt"`
 
 	// Email Email address (validated server-side)
@@ -2776,14 +2822,27 @@ type User struct {
 	HasPassword   bool               `json:"hasPassword"`
 	Id            openapi_types.UUID `json:"id"`
 	JobTitle      string             `json:"jobTitle"`
-	Locale        Locale             `json:"locale"`
-	Location      string             `json:"location"`
-	Name          string             `json:"name"`
-	Phone         string             `json:"phone"`
-	Providers     []UserProviders    `json:"providers"`
+
+	// Linkedin Full LinkedIn address
+	Linkedin  string          `json:"linkedin"`
+	Locale    Locale          `json:"locale"`
+	Location  string          `json:"location"`
+	Name      string          `json:"name"`
+	Phone     string          `json:"phone"`
+	Pronouns  string          `json:"pronouns"`
+	Providers []UserProviders `json:"providers"`
+	Skills    []string        `json:"skills"`
+
+	// Telegram Telegram user name without the @
+	Telegram string `json:"telegram"`
 
 	// Timezone IANA time zone name
 	Timezone string `json:"timezone"`
+	Website  string `json:"website"`
+	WorkEnd  string `json:"workEnd"`
+
+	// WorkStart Working day start, HH:MM, empty when not set
+	WorkStart string `json:"workStart"`
 }
 
 // UserProviders defines model for User.Providers.
@@ -3366,6 +3425,11 @@ type UploadAvatarMultipartBody struct {
 	File openapi_types.File `json:"file"`
 }
 
+// UploadCoverMultipartBody defines parameters for UploadCover.
+type UploadCoverMultipartBody struct {
+	File openapi_types.File `json:"file"`
+}
+
 // ExportWikiNodeParams defines parameters for ExportWikiNode.
 type ExportWikiNodeParams struct {
 	Format  *ExportWikiNodeParamsFormat `form:"format,omitempty" json:"format,omitempty"`
@@ -3622,6 +3686,9 @@ type UpdateMeJSONRequestBody = UpdateProfileRequest
 
 // UploadAvatarMultipartRequestBody defines body for UploadAvatar for multipart/form-data ContentType.
 type UploadAvatarMultipartRequestBody UploadAvatarMultipartBody
+
+// UploadCoverMultipartRequestBody defines body for UploadCover for multipart/form-data ContentType.
+type UploadCoverMultipartRequestBody UploadCoverMultipartBody
 
 // ChangePasswordJSONRequestBody defines body for ChangePassword for application/json ContentType.
 type ChangePasswordJSONRequestBody = ChangePasswordRequest

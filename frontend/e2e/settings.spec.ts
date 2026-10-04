@@ -4,6 +4,8 @@ import { expect, openKanban, signIn, test } from './fixtures';
 const stamp = () => Date.now().toString(36);
 
 async function axeClean(page: import('@playwright/test').Page) {
+  // Cards fade in one after another; contrast is measured on the settled page.
+  await page.waitForTimeout(700);
   const axe = await new AxeBuilder({ page })
     .include('main')
     .withTags(['wcag2a', 'wcag2aa'])

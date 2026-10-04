@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo, type ReactNode } from 'react';
 import ReactMarkdown, { defaultUrlTransform, type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '../lib/cn';
@@ -16,22 +16,25 @@ function withMentionLinks(src: string) {
 
 const urlTransform = (url: string) => (url.startsWith('mention:') ? url : defaultUrlTransform(url));
 
+const mentionClass = 'rounded-md bg-primary-soft px-1 font-medium text-primary-ink';
+
+function renderLink(href: string | undefined, children: ReactNode) {
+  return href?.startsWith('mention:') ? (
+    <span className={mentionClass}>{children}</span>
+  ) : (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      className="text-primary-ink underline underline-offset-2"
+    >
+      {children}
+    </a>
+  );
+}
+
 const components: Components = {
-  a: ({ href, children }) =>
-    href?.startsWith('mention:') ? (
-      <span className="rounded-md bg-primary-soft px-1 font-medium text-primary-ink">
-        {children}
-      </span>
-    ) : (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer nofollow"
-        className="text-primary-ink underline underline-offset-2"
-      >
-        {children}
-      </a>
-    ),
+  a: ({ href, children }) => renderLink(href, children),
   // External images could track readers: show them as links instead of loading them.
   img: ({ src, alt }) =>
     typeof src === 'string' ? (
@@ -50,10 +53,35 @@ const components: Components = {
 export const Markdown = memo(function Markdown({
   source,
   className,
+  onMention,
 }: {
   source: string;
   className?: string;
+  /** Makes @mentions of people clickable; called with the person's id. */
+  onMention?: (userId: string) => void;
 }) {
+  const withMentions = useMemo<Components>(
+    () =>
+      onMention
+        ? {
+            ...components,
+            a: ({ href, children }) => {
+              const id = href?.startsWith('mention:') ? href.slice('mention:'.length) : '';
+              if (!id || id === 'all') return renderLink(href, children);
+              return (
+                <button
+                  type="button"
+                  onClick={() => onMention(id)}
+                  className={`${mentionClass} cursor-pointer outline-none hover:bg-primary-soft/70 focus-visible:shadow-focus`}
+                >
+                  {children}
+                </button>
+              );
+            },
+          }
+        : components,
+    [onMention],
+  );
   return (
     <div
       className={cn(
@@ -70,7 +98,7 @@ export const Markdown = memo(function Markdown({
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        components={components}
+        components={withMentions}
         urlTransform={urlTransform}
         skipHtml
       >

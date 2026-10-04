@@ -31,6 +31,7 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 		r.Patch("/", httpx.H(h.update))
 		r.Delete("/", httpx.H(h.delete))
 		r.Get("/members", httpx.H(h.members))
+		r.Get("/members/{userId}", httpx.H(h.memberProfile))
 		r.Get("/settings", httpx.H(h.settings))
 		r.Patch("/settings", httpx.H(h.updateSettings))
 		r.Get("/audit", httpx.H(h.audit))
@@ -349,5 +350,32 @@ func (h *Handler) audit(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 	httpx.WriteJSON(w, http.StatusOK, out)
+	return nil
+}
+
+func (h *Handler) memberProfile(w http.ResponseWriter, r *http.Request) error {
+	ws, err := pathUUID(r, "workspaceId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	target, err := pathUUID(r, "userId", domain.ErrMemberNotFound)
+	if err != nil {
+		return err
+	}
+	p, err := h.svc.MemberProfile(r.Context(), userID(r), ws, target)
+	if err != nil {
+		return err
+	}
+	u := p.User
+	skills := u.Skills
+	if skills == nil {
+		skills = []string{}
+	}
+	httpx.WriteJSON(w, http.StatusOK, api.MemberProfile{
+		Id: u.ID, Name: u.Name, Email: u.Email, AvatarUrl: u.AvatarURL, Role: api.Role(p.Role), JoinedAt: p.JoinedAt,
+		JobTitle: u.JobTitle, Pronouns: u.Pronouns, Phone: u.Phone, Location: u.Location, Timezone: u.Timezone,
+		Bio: u.Bio, Linkedin: u.LinkedIn, Telegram: u.Telegram, Website: u.Website,
+		WorkStart: u.WorkStart, WorkEnd: u.WorkEnd, Skills: skills, CoverPreset: u.CoverPreset, CoverUrl: u.CoverURL,
+	})
 	return nil
 }

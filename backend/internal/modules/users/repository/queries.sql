@@ -20,7 +20,15 @@ SET name      = COALESCE(sqlc.narg(name), name),
     phone     = COALESCE(sqlc.narg(phone), phone),
     location  = COALESCE(sqlc.narg(location), location),
     timezone  = COALESCE(sqlc.narg(timezone), timezone),
-    bio       = COALESCE(sqlc.narg(bio), bio)
+    bio       = COALESCE(sqlc.narg(bio), bio),
+    pronouns  = COALESCE(sqlc.narg(pronouns), pronouns),
+    linkedin  = COALESCE(sqlc.narg(linkedin), linkedin),
+    telegram  = COALESCE(sqlc.narg(telegram), telegram),
+    website   = COALESCE(sqlc.narg(website), website),
+    work_start = COALESCE(sqlc.narg(work_start), work_start),
+    work_end   = COALESCE(sqlc.narg(work_end), work_end),
+    skills     = COALESCE(sqlc.narg(skills)::text[], skills),
+    cover_preset = COALESCE(sqlc.narg(cover_preset), cover_preset)
 WHERE id = @id
 RETURNING *;
 
@@ -55,3 +63,12 @@ UPDATE users SET avatar_url = @avatar_url, avatar_key = @avatar_key, avatar_type
 
 -- name: ClearAvatar :exec
 UPDATE users SET avatar_url = NULL, avatar_key = NULL, avatar_type = NULL WHERE id = @id;
+
+-- name: GetCover :one
+SELECT cover_key, cover_type FROM users WHERE id = $1;
+
+-- name: SetUploadedCover :exec
+UPDATE users SET cover_url = @cover_url, cover_key = @cover_key, cover_type = @cover_type, cover_preset = '' WHERE id = @id;
+
+-- name: ClearCover :exec
+UPDATE users SET cover_url = NULL, cover_key = NULL, cover_type = NULL WHERE id = $1;

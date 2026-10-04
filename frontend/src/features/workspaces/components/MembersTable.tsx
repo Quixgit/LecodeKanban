@@ -1,6 +1,7 @@
 import { LogOut, MoreHorizontal, UserMinus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { OpenMemberCard } from '@/features/member-card';
 import type { Member, Role, Workspace } from '@/shared/api';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { useLanguage } from '@/shared/i18n';
@@ -99,7 +100,12 @@ export function MembersTable({ workspace, members, currentUserId, onLeft }: Prop
                 <TD>
                   <span className="flex items-center gap-2.5 font-medium text-text">
                     <Avatar name={m.user.name} src={m.user.avatarUrl} size="sm" />
-                    <span className="truncate">{m.user.name}</span>
+                    <OpenMemberCard
+                      userId={m.user.id}
+                      label={t('members.openProfile', { name: m.user.name })}
+                    >
+                      <span className="truncate">{m.user.name}</span>
+                    </OpenMemberCard>
                     {isSelf && (
                       <Pill tone="teal" size="sm">
                         {t('members.you')}

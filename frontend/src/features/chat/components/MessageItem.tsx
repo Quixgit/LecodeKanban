@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { memo, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { OpenMemberCard, useMemberCardStore } from '@/features/member-card';
 import { cn } from '@/shared/lib/cn';
 import { transition } from '@/shared/motion';
 import {
@@ -86,6 +87,7 @@ export const MessageItem = memo(function MessageItem({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(m.body);
   const [saving, setSaving] = useState(false);
+  const openMemberCard = useMemberCardStore((s) => s.open);
   const mine = m.author?.id === me;
   const mentionsMe = m.mentions.some((p) => p.id === me);
   const system = !!m.event || !!m.meeting;
@@ -226,14 +228,28 @@ export const MessageItem = memo(function MessageItem({
           >
             {time.short(m.createdAt)}
           </span>
+        ) : m.author ? (
+          <OpenMemberCard userId={m.author.id} label={t('message.openProfile', { name: author })}>
+            <Avatar name={author} src={m.author.avatarUrl} size="md" />
+          </OpenMemberCard>
         ) : (
-          <Avatar name={author} src={m.author?.avatarUrl} size="md" />
+          <Avatar name={author} size="md" />
         )}
       </div>
       <div className="min-w-0 flex-1">
         {!compact && (
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold text-text">{author}</span>
+            {m.author ? (
+              <OpenMemberCard
+                userId={m.author.id}
+                label={t('message.openProfile', { name: author })}
+                className="text-base font-semibold text-text"
+              >
+                {author}
+              </OpenMemberCard>
+            ) : (
+              <span className="text-base font-semibold text-text">{author}</span>
+            )}
             {m.author && <AuthorStatus userId={m.author.id} />}
             {system && (
               <span className="rounded bg-primary-soft px-1.5 text-2xs font-semibold uppercase tracking-wide text-primary-ink">
@@ -294,7 +310,7 @@ export const MessageItem = memo(function MessageItem({
             ) : m.event ? (
               <TaskEventCard event={m.event} />
             ) : (
-              m.body && <Markdown source={m.body} />
+              m.body && <Markdown source={m.body} onMention={openMemberCard} />
             )}
             {m.editedAt && (
               <span className="text-2xs text-text-muted" title={time.full(m.editedAt)}>

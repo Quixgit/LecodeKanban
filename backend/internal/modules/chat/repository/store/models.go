@@ -453,6 +453,17 @@ type User struct {
 	Location         string
 	Timezone         string
 	Bio              string
+	Pronouns         string
+	Linkedin         string
+	Telegram         string
+	Website          string
+	WorkStart        string
+	WorkEnd          string
+	Skills           []string
+	CoverPreset      string
+	CoverUrl         *string
+	CoverKey         *string
+	CoverType        *string
 }
 
 type UserDirectory struct {

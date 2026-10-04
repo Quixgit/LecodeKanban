@@ -34,3 +34,39 @@ export async function squarePng(file: Blob, size = 256): Promise<Blob> {
     bitmap.close();
   }
 }
+
+/** Cuts a wide strip out of the middle of a picture and scales it for use as a profile background, as a JPEG. */
+export async function coverJpeg(file: Blob, width = 1600, height = 400): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const ratio = width / height;
+    const srcW = Math.min(bitmap.width, bitmap.height * ratio);
+    const srcH = srcW / ratio;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('canvas unavailable');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(
+      bitmap,
+      (bitmap.width - srcW) / 2,
+      (bitmap.height - srcH) / 2,
+      srcW,
+      srcH,
+      0,
+      0,
+      width,
+      height,
+    );
+    return await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error('encode failed'))),
+        'image/jpeg',
+        0.85,
+      ),
+    );
+  } finally {
+    bitmap.close();
+  }
+}

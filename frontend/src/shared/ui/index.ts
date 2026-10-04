@@ -38,3 +38,5 @@ export * from './tones';
 export * from './Tooltip';
 export * from './TrendChip';
 export * from './SettingsCard';
+export * from './ProfileCover';
+export * from './coverPresets';

@@ -40,6 +40,9 @@ Base URL: `/api/v1`
 | POST | `/users/me/avatar` | session |  | 200, 413 Error, 422 Error | Upload a profile picture (PNG, JPEG, WebP or GIF, up to 2 MB) |
 | DELETE | `/users/me/avatar` | session |  | 200 | Remove the profile picture |
 | GET | `/users/{userId}/avatar` | session |  | 200, 404 Error | A user's uploaded profile picture (signed-in users only) |
+| POST | `/users/me/cover` | session |  | 200, 413 Error, 422 Error | Upload a profile background (PNG, JPEG, WebP or GIF, up to 5 MB) |
+| DELETE | `/users/me/cover` | session |  | 200 | Remove the uploaded profile background |
+| GET | `/users/{userId}/cover` | session |  | 200, 404 Error | A user's uploaded profile background (signed-in users only) |
 | GET | `/users/me/sessions` | session |  | 200 | Where the caller is signed in |
 | POST | `/users/me/sessions/revoke-others` | session |  | 204 | Sign out everywhere except this device |
 | DELETE | `/users/me/sessions/{sessionId}` | session |  | 204, 404 Error | Sign one device out |
@@ -58,6 +61,7 @@ Base URL: `/api/v1`
 | PATCH | `/workspaces/{workspaceId}/settings` | session | WorkspaceSettingsPatch | 200, 403 Error, 422 Error | Change settings (administrators); changes are written to the audit log |
 | GET | `/workspaces/{workspaceId}/audit` | session |  | 200 | The latest administrator actions (administrators) |
 | GET | `/workspaces/{workspaceId}/members` | session |  | 200 |  |
+| GET | `/workspaces/{workspaceId}/members/{userId}` | session |  | 200, 404 Error | A teammate's profile card |
 | PATCH | `/workspaces/{workspaceId}/members/{userId}` | session | UpdateMemberRequest | 204, 403 Error, 409 Error |  |
 | DELETE | `/workspaces/{workspaceId}/members/{userId}` | session |  | 204, 403 Error, 409 Error | Remove a member (or leave, when userId is the caller) |
 | GET | `/workspaces/{workspaceId}/invites` | session |  | 200 |  |
@@ -301,7 +305,7 @@ Base URL: `/api/v1`
 - **CsrfToken** — `token`: string
 - **AuthProviders** — `google`: boolean, `github`: boolean
 - **Locale**: `en` | `uk`
-- **User** — `id`: string, `email`: string, `name`: string, `locale`: Locale, `avatarUrl`: string \| null, `emailVerified`: boolean, `hasPassword`: boolean, `providers`: array, `createdAt`: string, `jobTitle`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string
+- **User** — `id`: string, `email`: string, `name`: string, `locale`: Locale, `avatarUrl`: string \| null, `emailVerified`: boolean, `hasPassword`: boolean, `providers`: array, `createdAt`: string, `jobTitle`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `pronouns`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
 - **Session** — `user`: User
 - **RegisterRequest** — `name`: string, `email`: string, `password`: string, `locale?`: Locale
 - **LoginRequest** — `email`: string, `password`: string
@@ -311,7 +315,7 @@ Base URL: `/api/v1`
 - **ChangePasswordRequest** — `currentPassword?`: string, `newPassword`: string
 - **Device** — `id`: string, `startedAt`: string, `lastSeenAt`: string, `userAgent`: string, `ip`: string, `current`: boolean
 - **DeviceList** — `items`: array
-- **UpdateProfileRequest** — `name?`: string, `locale?`: Locale, `jobTitle?`: string, `phone?`: string, `location?`: string, `timezone?`: string, `bio?`: string
+- **UpdateProfileRequest** — `name?`: string, `locale?`: Locale, `jobTitle?`: string, `phone?`: string, `location?`: string, `timezone?`: string, `bio?`: string, `pronouns?`: string, `linkedin?`: string, `telegram?`: string, `website?`: string, `workStart?`: string, `workEnd?`: string, `skills?`: array, `coverPreset?`: string
 - **Role**: `owner` | `admin` | `member` | `viewer`
 - **InviteRole**: `admin` | `member` | `viewer`
 - **Workspace** — `id`: string, `name`: string, `slug`: string, `role`: Role, `memberCount`: integer, `createdAt`: string
@@ -321,6 +325,7 @@ Base URL: `/api/v1`
 - **WorkspaceSettingsPatch** — `description?`: string, `inviteBy?`: string, `inviteDays?`: integer, `defaultInviteRole?`: InviteRole, `allowedDomains?`: array, `projectCreateBy?`: string, `channelCreateBy?`: string, `broadcastBy?`: string, `defaultPriority?`: string, `requireDueDate?`: boolean, `weekStart?`: integer, `features?`: WorkspaceFeatures
 - **AuditEntry** — `id`: string, `actor`: object \| null, `action`: string, `details`: object, `at`: string
 - **MemberUser** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null
+- **MemberProfile** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `role`: Role, `joinedAt`: string, `jobTitle`: string, `pronouns`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
 - **Member** — `user`: MemberUser, `role`: Role, `joinedAt`: string
 - **UpdateMemberRequest** — `role`: Role
 - **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string

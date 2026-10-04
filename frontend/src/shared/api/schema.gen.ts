@@ -268,6 +268,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/me/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a profile background (PNG, JPEG, WebP or GIF, up to 5 MB) */
+        post: operations["uploadCover"];
+        /** Remove the uploaded profile background */
+        delete: operations["removeCover"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{userId}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        /** A user's uploaded profile background (signed-in users only) */
+        get: operations["getCover"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/me/sessions": {
         parameters: {
             query?: never;
@@ -439,7 +476,8 @@ export interface paths {
             };
             cookie?: never;
         };
-        get?: never;
+        /** A teammate's profile card */
+        get: operations["getMemberProfile"];
         put?: never;
         post?: never;
         /** Remove a member (or leave, when userId is the caller) */
@@ -2624,6 +2662,20 @@ export interface components {
             /** @description IANA time zone name */
             timezone: string;
             bio: string;
+            pronouns: string;
+            /** @description Full LinkedIn address */
+            linkedin: string;
+            /** @description Telegram user name without the @ */
+            telegram: string;
+            website: string;
+            /** @description Working day start, HH:MM, empty when not set */
+            workStart: string;
+            workEnd: string;
+            skills: string[];
+            /** @description Id of a ready-made profile background */
+            coverPreset: string;
+            /** @description Uploaded profile background */
+            coverUrl: string | null;
         };
         Session: {
             user: components["schemas"]["User"];
@@ -2682,6 +2734,18 @@ export interface components {
             /** @description IANA time zone name or empty */
             timezone?: string;
             bio?: string;
+            pronouns?: string;
+            /** @description A LinkedIn address or just the handle; empty clears */
+            linkedin?: string;
+            /** @description @name, t.me/name or just the name; empty clears */
+            telegram?: string;
+            website?: string;
+            /** @description HH:MM; send with workEnd, both empty clears */
+            workStart?: string;
+            workEnd?: string;
+            skills?: string[];
+            /** @description A preset id (a preset replaces an uploaded cover); empty clears the preset */
+            coverPreset?: string;
         };
         /** @enum {string} */
         Role: "owner" | "admin" | "member" | "viewer";
@@ -2772,6 +2836,30 @@ export interface components {
             name: string;
             email: string;
             avatarUrl: string | null;
+        };
+        MemberProfile: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            email: string;
+            avatarUrl: string | null;
+            role: components["schemas"]["Role"];
+            /** Format: date-time */
+            joinedAt: string;
+            jobTitle: string;
+            pronouns: string;
+            phone: string;
+            location: string;
+            timezone: string;
+            bio: string;
+            linkedin: string;
+            telegram: string;
+            website: string;
+            workStart: string;
+            workEnd: string;
+            skills: string[];
+            coverPreset: string;
+            coverUrl: string | null;
         };
         Member: {
             user: components["schemas"]["MemberUser"];
@@ -4411,6 +4499,78 @@ export interface operations {
             404: components["responses"]["Error"];
         };
     };
+    uploadCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated user */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            413: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    removeCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Updated user */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+        };
+    };
+    getCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The image */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/*": string;
+                };
+            };
+            404: components["responses"]["Error"];
+        };
+    };
     listDevices: {
         parameters: {
             query?: never;
@@ -4702,6 +4862,30 @@ export interface operations {
                     "application/json": components["schemas"]["Member"][];
                 };
             };
+        };
+    };
+    getMemberProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberProfile"];
+                };
+            };
+            404: components["responses"]["Error"];
         };
     };
     removeMember: {

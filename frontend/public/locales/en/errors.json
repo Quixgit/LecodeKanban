@@ -30,7 +30,9 @@
     "not_found": "User not found.",
     "email_taken": "An account with this email already exists.",
     "bad_avatar": "That file isn't a PNG, JPEG, WebP or GIF picture.",
-    "avatar_too_large": "That picture is too large."
+    "avatar_too_large": "That picture is too large.",
+    "bad_cover": "That file isn't a PNG, JPEG, WebP or GIF picture.",
+    "cover_too_large": "That background picture is too large."
   },
   "workspaces": {
     "not_found": "Workspace not found or you're not a member.",
