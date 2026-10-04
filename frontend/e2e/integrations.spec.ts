@@ -65,15 +65,15 @@ test.describe('Google Calendar integration', () => {
     expect(axe.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
 
     // Connect: Google approves at once and sends the browser back.
-    await google.getByRole('button', { name: 'Connect', exact: true }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Connect Google Calendar' }).click();
+    await google.getByRole('link', { name: 'Google Calendar' }).click();
+    await expect(page).toHaveURL(/\/integrations\/google_calendar$/);
+    await page.getByRole('button', { name: 'Connect Google Calendar' }).click();
     await expect(page.getByText('Google Calendar connected')).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByText('Connected as peter@gmail.test')).toBeVisible();
+    await expect(page.getByText('Connected as peter@gmail.test').first()).toBeVisible();
     const active = page.getByRole('switch', { name: 'Google Calendar active' });
     await expect(active).toBeChecked();
-    await google.getByRole('button', { name: 'Settings' }).click();
-    await expect(page.getByRole('dialog').getByText('Sprint planning')).toBeVisible();
-    await page.keyboard.press('Escape');
+    await google.getByRole('link', { name: 'Google Calendar' }).click();
+    await expect(page.getByRole('main').getByText('Sprint planning')).toBeVisible();
 
     // The sidebar card announces the next meeting with its participants and a Join link.
     const announce = page.getByRole('region', { name: 'Next meeting' });
@@ -87,8 +87,7 @@ test.describe('Google Calendar integration', () => {
 
     // A meeting comes within the lead time while the app is open: pop-up, bell count, and a channel post.
     await api(page, 'POST', `/workspaces/${ws}/chat/channels`, { name: channel });
-    await page.reload();
-    await google.getByRole('button', { name: 'Settings' }).click();
+    await page.goto('/integrations/google_calendar');
     await page.getByRole('combobox', { name: 'Also post in a channel' }).click();
     await page.getByRole('option', { name: channel }).click();
     await calendar(page, [
@@ -97,7 +96,6 @@ test.describe('Google Calendar integration', () => {
     ]);
     await page.getByRole('button', { name: 'Sync now' }).click();
     await expect(page.getByText('Meeting soon')).toBeVisible({ timeout: 20_000 });
-    await page.keyboard.press('Escape'); // close the settings panel so the sidebar is reachable
     await expect(announce).toContainText('Team stand-up');
     await expect(announce).toContainText(/Starts in \d+ min/);
     const bell = page.getByRole('button', { name: /Notifications, \d+ unread/ });
@@ -124,7 +122,7 @@ test.describe('Google Calendar integration', () => {
       'href',
       'https://meet.test/standup',
     );
-    await page.goto('/integrations');
+    await page.goto('/integrations/google_calendar');
 
     // Pausing silences the card; resuming brings it back.
     await page.getByRole('switch', { name: 'Google Calendar active' }).click();
@@ -134,7 +132,6 @@ test.describe('Google Calendar integration', () => {
     await expect(page.getByRole('region', { name: 'Next meeting' })).toBeVisible();
 
     // The lead time is a choice, in the settings panel.
-    await google.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('combobox', { name: 'Remind me' }).click();
     await page.getByRole('option', { name: '10 min before' }).click();
     await expect(page.getByRole('combobox', { name: 'Remind me' })).toContainText('10 min before');
@@ -146,9 +143,6 @@ test.describe('Google Calendar integration', () => {
       .getByRole('button', { name: 'Yes, disconnect' })
       .click();
     await expect(page.getByText('Not connected').first()).toBeVisible();
-    await expect(page.getByRole('dialog')).toHaveCount(1); // only the settings panel is left
-    await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click();
-    await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('region', { name: 'Next meeting' })).toContainText(
       'See your meetings here',
     );

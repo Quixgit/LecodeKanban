@@ -243,19 +243,6 @@ export function GithubSettings({ summary }: { summary: GithubSummary }) {
         </p>
       </div>
 
-      <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border-subtle px-4 py-3">
-        <span>
-          <span className="block text-sm font-medium text-text">{t('active.label')}</span>
-          <span className="block text-xs text-text-muted">{t('github.activeHint')}</span>
-        </span>
-        <Switch
-          checked={summary.enabled}
-          disabled={!summary.canManage}
-          onCheckedChange={(enabled) => m.update.mutate({ enabled }, { onError: fail })}
-          aria-label={t('github.activeAria')}
-        />
-      </label>
-
       <Repos summary={summary} />
 
       <section aria-label={t('github.rulesTitle')} className="divide-y divide-border-subtle">

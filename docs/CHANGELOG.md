@@ -4,6 +4,12 @@
 
 ### Changed
 
+- **Integrations**: one look for every module. A card opens the module's own page (`/integrations/<module>`) with
+  a header (status, Active switch) and its settings or, when the server is not set up yet, the setup steps. The
+  side panels and the setup dialog are gone.
+
+### Changed
+
 - **Fields** (inputs, text areas, selects, the chat composer) share one look: a soft mint outline on hover and a
   stronger one while typing.
 - **Close buttons** (windows, side panels, thread, notifications) are one soft tile whose cross turns on hover.

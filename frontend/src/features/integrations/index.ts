@@ -1,3 +1,4 @@
+export { IntegrationDetail } from './components/IntegrationDetail';
 export { IntegrationsPage } from './components/IntegrationsPage';
 export { MeetingList } from './components/MeetingList';
 export { integrationKeys, useIntegrations, useMeetings, useNow } from './hooks/useIntegrations';

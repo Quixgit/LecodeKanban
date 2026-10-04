@@ -1,5 +1,5 @@
 import { lazy, type ReactNode } from 'react';
-import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { GuestOnly, RequireAuth } from '@/features/auth';
 import { AppShell } from './layouts/app-shell/AppShell';
 import type { RouteHandle } from './layouts/app-shell/header/PageTitle';
@@ -13,6 +13,9 @@ const ShowcasePage = lazy(() => import('@/pages/ShowcasePage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const TeamPage = lazy(() => import('@/pages/TeamPage'));
 const IntegrationsPage = lazy(() => import('@/pages/IntegrationsPage'));
+const IntegrationDetailPage = lazy(() =>
+  import('@/pages/IntegrationsPage').then((m) => ({ default: m.IntegrationDetailRoute })),
+);
 const ProfileLayout = lazy(() =>
   import('@/pages/profile/ProfileRoutes').then((m) => ({ default: m.ProfileLayoutRoute })),
 );
@@ -183,9 +186,13 @@ export const routes: RouteObject[] = [
             handle: page('integrations'),
             element: (
               <FeatureGate feature="integrations">
-                <IntegrationsPage />
+                <Outlet />
               </FeatureGate>
             ),
+            children: [
+              { index: true, element: <IntegrationsPage /> },
+              { path: ':provider', element: <IntegrationDetailPage /> },
+            ],
           },
           {
             path: 'profile',
