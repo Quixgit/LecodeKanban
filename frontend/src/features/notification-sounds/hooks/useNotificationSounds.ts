@@ -15,7 +15,7 @@ function counts(list: readonly ChatChannel[]): Map<string, ChannelCounts> {
   return new Map(
     list.map((c) => [
       c.id,
-      { unread: c.unread, mentions: c.mentions, muted: c.muted, joined: c.joined, feed: c.feed },
+      { unread: c.unread, mentions: c.mentions, notify: c.notify, joined: c.joined, feed: c.feed },
     ]),
   );
 }

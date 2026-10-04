@@ -39,6 +39,7 @@ UPDATE chat_channels SET last_message_at = $2 WHERE id = $1;
 SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
+       COALESCE(m.mentions_only, false)::boolean AS mentions_only,
        (st.user_id IS NOT NULL)::boolean AS starred,
        (SELECT count(*) FROM chat_messages x
          WHERE x.channel_id = c.id AND x.parent_id IS NULL AND x.deleted_at IS NULL
@@ -61,6 +62,7 @@ ORDER BY c.name NULLS LAST, c.last_message_at DESC NULLS LAST, c.id;
 SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
        COALESCE(m.muted, false)::boolean AS muted,
+       COALESCE(m.mentions_only, false)::boolean AS mentions_only,
        (st.user_id IS NOT NULL)::boolean AS starred,
        (SELECT count(*) FROM chat_messages x
          WHERE x.channel_id = c.id AND x.parent_id IS NULL AND x.deleted_at IS NULL
@@ -94,8 +96,8 @@ SELECT * FROM chat_members WHERE channel_id = ANY (sqlc.arg('ids')::uuid[]) ORDE
 -- name: MarkRead :exec
 UPDATE chat_members SET last_read_at = now() WHERE channel_id = $1 AND user_id = $2;
 
--- name: SetMuted :exec
-UPDATE chat_members SET muted = $3 WHERE channel_id = $1 AND user_id = $2;
+-- name: SetNotify :exec
+UPDATE chat_members SET muted = $3, mentions_only = $4 WHERE channel_id = $1 AND user_id = $2;
 
 -- name: InsertMessage :one
 INSERT INTO chat_messages (channel_id, author_id, parent_id, body, mentions, mention_all)

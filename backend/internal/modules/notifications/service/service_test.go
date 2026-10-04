@@ -174,7 +174,7 @@ func TestChatNotifications(t *testing.T) {
 	}
 
 	// Muting stops @channel, not a direct mention.
-	_ = c.SetMuted(ctx, w.owner, general.ID, true)
+	_ = c.SetNotify(ctx, w.owner, general.ID, "muted")
 	post("@channel again")
 	post(mention("Olena Owner", w.owner) + " you there?")
 	if got := kinds(t, w, w.owner); !equal(got, []domain.Kind{domain.Mention, domain.Mention}) {

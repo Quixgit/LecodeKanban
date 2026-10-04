@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Member } from '@/shared/api';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { Button, ConfirmDialog, Field, Input, Modal, Select, Switch, toast } from '@/shared/ui';
-import type { ChatChannel } from '../api/chatApi';
+import type { ChatChannel, ChatNotifyLevel } from '../api/chatApi';
 import { useChannelMembers, useChatMutations } from '../hooks/useChat';
 import { channelTitle } from '../model/channels';
 import { FeedProjectSelect, type FeedProject } from './ChannelDialogs';
@@ -199,17 +199,27 @@ function Details({
           )}
 
           {channel.joined && (
-            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border-subtle p-3">
-              <span className="flex items-center gap-2 text-sm font-medium text-text">
+            <section className="rounded-lg border border-border-subtle p-3">
+              <h3 className="flex items-center gap-2 text-sm font-medium text-text">
                 <BellOff className="size-4 text-text-muted" aria-hidden />
-                {t('details.mute')}
-              </span>
-              <Switch
-                checked={channel.muted}
-                onCheckedChange={(muted) => m.mute.mutate({ id: channel.id, muted })}
-                aria-label={t('details.mute')}
+                {t('details.notify')}
+              </h3>
+              <p className="mb-2 mt-0.5 text-xs text-text-muted">{t('details.notifyHint')}</p>
+              <Select
+                label={t('details.notify')}
+                value={channel.notify}
+                onValueChange={(level) =>
+                  m.setNotify.mutate(
+                    { id: channel.id, level: level as ChatNotifyLevel },
+                    { onError: (e) => toast.error(errorText(e)) },
+                  )
+                }
+                options={(['all', 'mentions', 'muted'] as const).map((value) => ({
+                  value,
+                  label: t(`menu.${value}`),
+                }))}
               />
-            </label>
+            </section>
           )}
 
           <section aria-label={t('details.members')}>

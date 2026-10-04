@@ -235,7 +235,7 @@ Base URL: `/api/v1`
 | POST | `/chat/channels/{channelId}/join` | session |  | 200 |  |
 | POST | `/chat/channels/{channelId}/leave` | session |  | 204 |  |
 | POST | `/chat/channels/{channelId}/read` | session |  | 204 | Mark the channel as read up to now |
-| PUT | `/chat/channels/{channelId}/mute` | session | ChatMuteInput | 204 |  |
+| PUT | `/chat/channels/{channelId}/notify` | session | ChatNotifyInput | 204 | Choose how loudly the channel notifies the caller |
 | GET | `/chat/channels/{channelId}/messages` | session |  | 200 | A page of top-level messages, oldest first within the page |
 | POST | `/chat/channels/{channelId}/messages` | session | ChatMessageInput | 201, 422 Error | Send a message, or a reply when parentId is set |
 | PATCH | `/chat/messages/{messageId}` | session | ChatBodyInput | 200, 422 Error |  |
@@ -403,12 +403,12 @@ Base URL: `/api/v1`
 - **Notification** — `id`: string, `kind`: string, `title`: string, `body`: string, `actor`: object \| null, `cardId`: string \| null, `projectId`: string \| null, `channelId`: string \| null, `messageId`: string \| null, `link`: string \| null, `createdAt`: string, `read`: boolean
 - **NotificationPage** — `items`: array, `unread`: integer, `next`: string \| null
 - **NotificationsReadInput** — `ids?`: array, `all?`: boolean
-- **ChatChannel** — `id`: string, `workspaceId`: string, `kind`: string, `name`: string \| null, `topic`: string, `joined`: boolean, `muted`: boolean, `starred`: boolean, `feed`: boolean, `feedProjectId`: string \| null, `feedEvents`: array, `unread`: integer, `mentions`: integer, `memberCount`: integer, `lastMessageAt`: string \| null, `people`: array
+- **ChatChannel** — `id`: string, `workspaceId`: string, `kind`: string, `name`: string \| null, `topic`: string, `joined`: boolean, `muted`: boolean, `notify`: string, `starred`: boolean, `feed`: boolean, `feedProjectId`: string \| null, `feedEvents`: array, `unread`: integer, `mentions`: integer, `memberCount`: integer, `lastMessageAt`: string \| null, `people`: array
 - **ChatChannelInput** — `name`: string, `topic?`: string, `private?`: boolean, `feed?`: boolean, `feedProjectId?`: string \| null, `feedEvents?`: array, `memberIds?`: array
 - **ChatChannelPatch** — `name?`: string, `topic?`: string, `feed?`: boolean, `feedProjectId?`: string \| null, `feedEvents?`: array
 - **ChatDirectInput** — `userIds`: array
 - **ChatMembersInput** — `userIds`: array
-- **ChatMuteInput** — `muted`: boolean
+- **ChatNotifyInput** — `level`: string
 - **ChatReaction** — `key`: string, `count`: integer, `mine`: boolean, `users`: array
 - **ChatMessage** — `id`: string, `channelId`: string, `parentId`: string \| null, `author`: object \| null, `body`: string, `event`: object \| null, `meeting`: object \| null, `deleted`: boolean, `mentions`: array, `mentionAll`: boolean, `reactions`: array, `files`: array, `pinned`: boolean, `saved`: boolean, `replyCount`: integer, `replyPeople`: array, `lastReplyAt`: string \| null, `createdAt`: string, `editedAt`: string \| null
 - **ChatMessagePage** — `messages`: array, `hasMore`: boolean

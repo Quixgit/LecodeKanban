@@ -7,6 +7,7 @@ export * from './DateInput';
 export * from './ConfirmDialog';
 export * from './CountUp';
 export * from './Drawer';
+export * from './ContextMenu';
 export * from './Dropdown';
 export * from './EmptyState';
 export * from './Field';

@@ -43,7 +43,7 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Post("/chat/channels/{channelId}/join", httpx.H(h.join))
 	r.Post("/chat/channels/{channelId}/leave", httpx.H(h.leave))
 	r.Post("/chat/channels/{channelId}/read", httpx.H(h.read))
-	r.Put("/chat/channels/{channelId}/mute", httpx.H(h.mute))
+	r.Put("/chat/channels/{channelId}/notify", httpx.H(h.notify))
 	r.Get("/workspaces/{workspaceId}/chat/search", httpx.H(h.search))
 	r.Get("/workspaces/{workspaceId}/chat/saved", httpx.H(h.hitsHandler(func(ctx context.Context, u, ws uuid.UUID) ([]service.Hit, error) {
 		return h.svc.Saved(ctx, u, ws)
@@ -125,7 +125,7 @@ func strs[T ~string](in *[]T) []string {
 
 func toChannel(v service.ChannelView) api.ChatChannel {
 	out := api.ChatChannel{Id: v.ID, WorkspaceId: v.WorkspaceID, Kind: api.ChatChannelKind(v.Kind), Topic: v.Topic,
-		Joined: v.Joined, Muted: v.Muted, Starred: v.Starred, Feed: v.Feed, FeedProjectId: v.FeedProjectID, FeedEvents: feedEvents(v.FeedEvents), Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
+		Joined: v.Joined, Muted: v.Muted, Notify: api.ChatChannelNotify(v.Notify), Starred: v.Starred, Feed: v.Feed, FeedProjectId: v.FeedProjectID, FeedEvents: feedEvents(v.FeedEvents), Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
 		LastMessageAt: v.LastMessageAt, People: people(v.People)}
 	if v.Name != "" {
 		n := v.Name
@@ -331,16 +331,16 @@ func (h *Handler) read(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (h *Handler) mute(w http.ResponseWriter, r *http.Request) error {
+func (h *Handler) notify(w http.ResponseWriter, r *http.Request) error {
 	id, err := param(r, "channelId", domain.ErrNotFound)
 	if err != nil {
 		return err
 	}
-	var in api.ChatMuteInput
+	var in api.ChatNotifyInput
 	if err := httpx.DecodeJSON(w, r, &in); err != nil {
 		return err
 	}
-	if err := h.svc.SetMuted(r.Context(), userID(r), id, in.Muted); err != nil {
+	if err := h.svc.SetNotify(r.Context(), userID(r), id, string(in.Level)); err != nil {
 		return err
 	}
 	httpx.NoContent(w)

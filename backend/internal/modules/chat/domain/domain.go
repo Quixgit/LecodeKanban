@@ -65,6 +65,7 @@ type Membership struct {
 	JoinedAt   time.Time
 	LastReadAt time.Time
 	Muted      bool
+	MentionsOnly bool
 }
 
 // ChannelState is a channel as one user sees it.
@@ -72,6 +73,7 @@ type ChannelState struct {
 	Channel
 	Joined   bool
 	Muted    bool
+	Notify   string
 	Starred  bool
 	Unread   int
 	Mentions int
@@ -235,6 +237,7 @@ var (
 	ErrForbidden    = apperr.Define("chat.forbidden", http.StatusForbidden)
 	ErrNameTaken    = apperr.Define("chat.name_taken", http.StatusConflict)
 	ErrThreadDeep   = apperr.Define("chat.thread_depth", http.StatusUnprocessableEntity)
+	ErrBadLevel     = apperr.Define("chat.bad_level", http.StatusUnprocessableEntity)
 	ErrBadReact     = apperr.Define("chat.bad_reaction", http.StatusUnprocessableEntity)
 	ErrDMMembers    = apperr.Define("chat.dm_members", http.StatusUnprocessableEntity)
 	ErrNotMember    = apperr.Define("chat.not_member", http.StatusForbidden)
@@ -277,3 +280,10 @@ type Status struct {
 }
 
 var ErrBadStatus = apperr.Define("chat.bad_status", http.StatusUnprocessableEntity)
+
+// Notification levels a member can pick per channel.
+const (
+	NotifyAll      = "all"
+	NotifyMentions = "mentions"
+	NotifyMuted    = "muted"
+)

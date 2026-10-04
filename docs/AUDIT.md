@@ -146,3 +146,14 @@ Facts about what was checked, with how. Update on every phase.
   list shows the 50 most recent.
 - Not covered yet: changing the email address, deleting the account, linking or unlinking Google/GitHub
   sign-in from the page, two-factor authentication, picture cropping tools beyond the centred square.
+
+## Chat: channel context menu and notification levels
+
+- Go: `chat/service` TestNotifyLevels (default, all three levels round-trip, unknown level refused, outsiders see
+  nothing); notifications test updated to the new call.
+- Unit: unread count per level, muted channels leave the other sidebar sections, sounds ignore plain messages in
+  a mentions-only channel.
+- Browser: right-click menu (axe), copy link to clipboard, star/unstar, details dialog, mentions-only, mute and
+  hide into the Muted section and back, leave with confirmation.
+- Not covered: "Open in split view" from the Slack menu (there is no split view in this app; the menu offers
+  *Open in new tab* instead).

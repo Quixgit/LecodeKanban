@@ -14,8 +14,10 @@ import {
   type ChatChannelPatch,
   type ChatMessage,
   type ChatMessagePage,
+  type ChatNotifyLevel,
   type SearchParams,
 } from '../api/chatApi';
+import { visibleUnread } from '../model/channels';
 import type { ReactionKey } from '../model/reactions';
 
 export const chatKeys = {
@@ -52,9 +54,9 @@ export function useChatUnread(ws: string | undefined) {
     for (const c of data ?? []) {
       if (!c.joined) continue;
       mentions += c.mentions;
-      if (c.muted) continue;
-      unread += c.unread;
-      if (c.feed) feeds += c.unread;
+      const shown = visibleUnread(c);
+      unread += shown;
+      if (c.feed) feeds += shown;
     }
     // Mentions and task feeds are what calls for attention: they colour the badges red.
     return { unread, mentions, urgent: mentions + feeds, total: Math.max(mentions, unread) };
@@ -207,8 +209,8 @@ export function useChatMutations(ws: string) {
         void channels();
       },
     }),
-    mute: useMutation({
-      mutationFn: (v: { id: string; muted: boolean }) => chatApi.mute(v.id, v.muted),
+    setNotify: useMutation({
+      mutationFn: (v: { id: string; level: ChatNotifyLevel }) => chatApi.setNotify(v.id, v.level),
       onSuccess: channels,
     }),
     markRead: useMutation({

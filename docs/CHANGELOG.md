@@ -20,6 +20,13 @@
 
 ### Added
 
+- **Channel context menu** in Chat: right-click a channel (or conversation) in the sidebar for *Channel details*,
+  *Copy* (name, link, ID), *Star channel*, *Notify you about…*, *More options* (mark as read, open in a new tab)
+  and *Leave channel*.
+  - Notification levels per channel: **All new posts**, **Just mentions** (badge and sound only for @you and
+    @channel) and **Mute and hide** (no alerts; the channel moves to a collapsed *Muted* section). The same choice
+    is in the channel details dialog. API: `PUT /chat/channels/{id}/notify` replaces `…/mute`.
+
 - **Settings pages** (`/settings`, ADR 0021): the Profile page that used to be empty is now a settings area with
   three sections.
   - **Profile**: profile photo (pick or drop a picture; it is cropped to a square and shrunk in the browser,

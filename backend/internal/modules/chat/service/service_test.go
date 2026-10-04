@@ -865,3 +865,32 @@ func TestFeedEventChoice(t *testing.T) {
 		}
 	}
 }
+
+func TestNotifyLevels(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	ch, _ := c.CreateChannel(ctx, w.anna, w.ws, chatInput("levels", false))
+	_, _ = c.Join(ctx, w.ben, ch.ID)
+
+	level := func() string {
+		st, err := c.Channels(ctx, w.ben, w.ws)
+		if err != nil || len(st) == 0 {
+			t.Fatalf("channels: %v %v", st, err)
+		}
+		return st[0].Notify
+	}
+	if got := level(); got != "all" {
+		t.Fatalf("default level = %q", got)
+	}
+	for _, want := range []string{"mentions", "muted", "all"} {
+		if err := c.SetNotify(ctx, w.ben, ch.ID, want); err != nil {
+			t.Fatal(err)
+		}
+		if got := level(); got != want {
+			t.Fatalf("level = %q, want %q", got, want)
+		}
+	}
+	mustCode(t, c.SetNotify(ctx, w.ben, ch.ID, "loud"), "chat.bad_level")
+	mustCode(t, c.SetNotify(ctx, w.outsider, ch.ID, "muted"), "chat.not_found")
+}

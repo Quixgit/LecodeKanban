@@ -117,6 +117,7 @@ export function ChatLayout() {
               channels={channels.data}
               loading={channels.isPending}
               me={me}
+              workspaceId={ws ?? ''}
               activeId={activeId}
               canCreate={canWrite}
               onCreate={() => setDialog('create')}

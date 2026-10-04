@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { chatApi } from '../api/chatApi';
+import { visibleUnread } from '../model/channels';
 import { chatKeys } from './useChat';
 
 export type ScopeKind = 'project' | 'card';
@@ -17,5 +18,5 @@ export function useScopeChannel(kind: ScopeKind, id: string | undefined) {
 /** Unread count for the badge on a Kanban button, without rendering the conversation. */
 export function useScopeUnread(kind: ScopeKind, id: string | undefined) {
   const { data } = useScopeChannel(kind, id);
-  return data && !data.muted ? data.unread : 0;
+  return data ? visibleUnread(data) : 0;
 }
