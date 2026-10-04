@@ -1,19 +1,10 @@
-import {
-  Bell,
-  BellOff,
-  Check,
-  Copy,
-  ExternalLink,
-  Info,
-  LogOut,
-  MoreHorizontal,
-  Star,
-  Users,
-} from 'lucide-react';
+import { Bell, BellOff, BellRing, Copy, Info } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useErrorText } from '@/shared/hooks/useErrorText';
+import { useLanguage } from '@/shared/i18n';
+import { formatDate } from '@/shared/lib/format';
 import {
   ConfirmDialog,
   ContextMenu,
@@ -23,6 +14,7 @@ import {
   ContextMenuRadioGroup,
   ContextMenuRadioItem,
   ContextMenuSeparator,
+  ContextMenuShortcut,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
@@ -31,6 +23,7 @@ import {
 } from '@/shared/ui';
 import type { ChatChannel, ChatNotifyLevel } from '../api/chatApi';
 import { useChatMutations } from '../hooks/useChat';
+import { MUTE_PRESETS, muteUntil } from '../model/mute';
 
 interface Props {
   channel: ChatChannel;
@@ -38,14 +31,28 @@ interface Props {
   /** What to call the channel in the clipboard: its name or the people in the conversation. */
   title: string;
   active: boolean;
+  /** Opens the channel in the second pane next to the current one. */
+  onSplit?: (channelId: string) => void;
+  /** Starts a search limited to this channel. */
+  onSearchIn?: (channel: ChatChannel) => void;
   children: ReactNode;
 }
 
 const LEVELS: readonly ChatNotifyLevel[] = ['all', 'mentions', 'muted'];
+const ICONS = { all: BellRing, mentions: Bell, muted: BellOff } as const;
 
-/** Right-click menu of a channel in the sidebar: details, copy, star, notifications, leave. */
-export function ChannelContextMenu({ channel, workspaceId, title, active, children }: Props) {
+/** Right-click menu of a channel in the sidebar, laid out like Slack's: details, copy, star, notifications, more, split view, leave. */
+export function ChannelContextMenu({
+  channel,
+  workspaceId,
+  title,
+  active,
+  onSplit,
+  onSearchIn,
+  children,
+}: Props) {
   const { t } = useTranslation('chat');
+  const { language } = useLanguage();
   const errorText = useErrorText();
   const navigate = useNavigate();
   const m = useChatMutations(workspaceId);
@@ -54,6 +61,7 @@ export function ChannelContextMenu({ channel, workspaceId, title, active, childr
   const direct = channel.kind === 'dm';
   const member = channel.joined || direct;
   const onError = (e: unknown) => toast.error(errorText(e));
+  const details = (tab?: string) => navigate(`/chat/${channel.id}?details=${tab ?? 'about'}`);
 
   const copy = async (text: string) => {
     try {
@@ -63,33 +71,30 @@ export function ChannelContextMenu({ channel, workspaceId, title, active, childr
       toast.error(t('menu.copyFailed'));
     }
   };
+  const setLevel = (level: ChatNotifyLevel, until?: string) =>
+    m.setNotify.mutate(
+      { id: channel.id, level, until },
+      { onSuccess: () => toast.success(t('menu.saved')), onError },
+    );
 
   return (
     <>
       <ContextMenu>
         <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-        <ContextMenuContent className="w-64" aria-label={t('sidebar.menu')}>
+        <ContextMenuContent className="w-72" aria-label={t('sidebar.menu')}>
           <ContextMenuSub>
-            <ContextMenuSubTrigger>
-              <Info />
-              {t('menu.details')}
-            </ContextMenuSubTrigger>
+            <ContextMenuSubTrigger>{t('menu.details')}</ContextMenuSubTrigger>
             <ContextMenuSubContent>
-              <ContextMenuItem onSelect={() => navigate(`/chat/${channel.id}?details=1`)}>
-                <Info />
-                {t('menu.about')}
+              <ContextMenuItem onSelect={() => details('about')}>
+                {t('menu.viewDetails')}
               </ContextMenuItem>
-              <ContextMenuItem onSelect={() => navigate(`/chat/${channel.id}?details=1`)}>
-                <Users />
-                {t('menu.members')}
+              <ContextMenuItem onSelect={() => onSearchIn?.(channel)} disabled={!onSearchIn}>
+                {t('menu.searchIn')}
               </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
           <ContextMenuSub>
-            <ContextMenuSubTrigger>
-              <Copy />
-              {t('menu.copy')}
-            </ContextMenuSubTrigger>
+            <ContextMenuSubTrigger>{t('menu.copy')}</ContextMenuSubTrigger>
             <ContextMenuSubContent>
               {channel.name && (
                 <ContextMenuItem onSelect={() => void copy(channel.name ?? title)}>
@@ -106,71 +111,85 @@ export function ChannelContextMenu({ channel, workspaceId, title, active, childr
           </ContextMenuSub>
           {member && (
             <>
-              <ContextMenuSeparator />
               <ContextMenuItem
                 onSelect={() =>
                   m.star.mutate({ id: channel.id, on: !channel.starred }, { onError })
                 }
               >
-                <Star className={channel.starred ? 'fill-warning !text-warning' : undefined} />
                 {channel.starred ? t('menu.unstar') : t('menu.star')}
               </ContextMenuItem>
-              <ContextMenuSub>
-                <ContextMenuSubTrigger>
-                  <Bell />
-                  {t('menu.notify')}
-                </ContextMenuSubTrigger>
-                <ContextMenuSubContent className="w-64">
-                  <ContextMenuLabel>{t('menu.notify')}</ContextMenuLabel>
-                  <ContextMenuRadioGroup
-                    value={channel.notify}
-                    onValueChange={(level) =>
-                      m.setNotify.mutate(
-                        { id: channel.id, level: level as ChatNotifyLevel },
-                        { onSuccess: () => toast.success(t('menu.saved')), onError },
-                      )
-                    }
-                  >
-                    {LEVELS.map((level) => (
-                      <ContextMenuRadioItem key={level} value={level} className="h-auto py-1.5">
-                        {level === 'muted' ? <BellOff /> : <Bell />}
-                        <span className="min-w-0">
-                          <span className="block">{t(`menu.${level}`)}</span>
-                          <span className="block text-xs text-text-muted">
-                            {t(`menu.${level}Hint`)}
-                          </span>
-                        </span>
-                      </ContextMenuRadioItem>
-                    ))}
-                  </ContextMenuRadioGroup>
-                </ContextMenuSubContent>
-              </ContextMenuSub>
+              <ContextMenuSeparator />
+              <ContextMenuLabel className="normal-case tracking-normal">
+                {t('menu.notify')}
+              </ContextMenuLabel>
+              <ContextMenuRadioGroup
+                value={channel.notify}
+                onValueChange={(level) => setLevel(level as ChatNotifyLevel)}
+              >
+                {LEVELS.map((level) => {
+                  const Icon = ICONS[level];
+                  return (
+                    <ContextMenuRadioItem key={level} value={level}>
+                      <Icon />
+                      {t(`menu.${level}`)}
+                    </ContextMenuRadioItem>
+                  );
+                })}
+              </ContextMenuRadioGroup>
+              {channel.mutedUntil && (
+                <p className="px-8 pb-1 text-xs text-text-muted">
+                  {t('menu.mutedUntil', { when: formatDate(channel.mutedUntil, language) })}
+                </p>
+              )}
             </>
           )}
           <ContextMenuSeparator />
           <ContextMenuSub>
-            <ContextMenuSubTrigger>
-              <MoreHorizontal />
-              {t('menu.more')}
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent>
-              {member && (channel.unread > 0 || channel.mentions > 0) && (
-                <ContextMenuItem onSelect={() => m.markRead.mutate(channel.id, { onError })}>
-                  <Check />
-                  {t('menu.markRead')}
-                </ContextMenuItem>
+            <ContextMenuSubTrigger>{t('menu.more')}</ContextMenuSubTrigger>
+            <ContextMenuSubContent className="w-64">
+              {member && (
+                <>
+                  <ContextMenuLabel className="normal-case tracking-normal">
+                    {t('menu.tempMute')}
+                  </ContextMenuLabel>
+                  {MUTE_PRESETS.map((preset) => (
+                    <ContextMenuItem
+                      key={preset}
+                      onSelect={() => setLevel('muted', muteUntil(preset))}
+                    >
+                      {t(`menu.mute.${preset}`)}
+                    </ContextMenuItem>
+                  ))}
+                  <ContextMenuSeparator />
+                  {(channel.unread > 0 || channel.mentions > 0) && (
+                    <ContextMenuItem onSelect={() => m.markRead.mutate(channel.id, { onError })}>
+                      {t('menu.markRead')}
+                    </ContextMenuItem>
+                  )}
+                </>
               )}
               <ContextMenuItem onSelect={() => window.open(url, '_blank', 'noopener,noreferrer')}>
-                <ExternalLink />
                 {t('menu.openTab')}
+              </ContextMenuItem>
+              <ContextMenuItem onSelect={() => details('notifications')}>
+                <Info />
+                {t('menu.advanced')}
               </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
+          <ContextMenuSeparator />
+          <ContextMenuItem onSelect={() => onSplit?.(channel.id)} disabled={!onSplit}>
+            <Copy />
+            {t('menu.split')}
+            <ContextMenuShortcut>{t('menu.splitHint')}</ContextMenuShortcut>
+          </ContextMenuItem>
           {channel.joined && !direct && !channel.feed && (
-            <ContextMenuItem danger onSelect={() => setLeaving(true)}>
-              <LogOut />
-              {t('menu.leave')}
-            </ContextMenuItem>
+            <>
+              <ContextMenuSeparator />
+              <ContextMenuItem danger onSelect={() => setLeaving(true)}>
+                {t('menu.leave')}
+              </ContextMenuItem>
+            </>
           )}
         </ContextMenuContent>
       </ContextMenu>

@@ -262,7 +262,8 @@ func (q *Queries) GetChannel(ctx context.Context, id uuid.UUID) (ChatChannel, er
 const getChannelState = `-- name: GetChannelState :one
 SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.ref_id, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
-       COALESCE(m.muted, false)::boolean AS muted,
+       (COALESCE(m.muted, false) OR COALESCE(m.muted_until > now(), false))::boolean AS muted,
+       COALESCE(CASE WHEN m.muted_until > now() THEN m.muted_until END, to_timestamp(0))::timestamptz AS muted_until,
        COALESCE(m.mentions_only, false)::boolean AS mentions_only,
        (st.user_id IS NOT NULL)::boolean AS starred,
        (SELECT count(*) FROM chat_messages x
@@ -301,6 +302,7 @@ type GetChannelStateRow struct {
 	LastMessageAt *time.Time
 	Joined        bool
 	Muted         bool
+	MutedUntil    time.Time
 	MentionsOnly  bool
 	Starred       bool
 	Unread        int32
@@ -326,6 +328,7 @@ func (q *Queries) GetChannelState(ctx context.Context, arg GetChannelStateParams
 		&i.LastMessageAt,
 		&i.Joined,
 		&i.Muted,
+		&i.MutedUntil,
 		&i.MentionsOnly,
 		&i.Starred,
 		&i.Unread,
@@ -388,7 +391,7 @@ func (q *Queries) GetFile(ctx context.Context, id uuid.UUID) (ChatFile, error) {
 }
 
 const getMembership = `-- name: GetMembership :one
-SELECT channel_id, user_id, joined_at, last_read_at, muted, mentions_only FROM chat_members WHERE channel_id = $1 AND user_id = $2
+SELECT channel_id, user_id, joined_at, last_read_at, muted, mentions_only, muted_until FROM chat_members WHERE channel_id = $1 AND user_id = $2
 `
 
 type GetMembershipParams struct {
@@ -406,6 +409,7 @@ func (q *Queries) GetMembership(ctx context.Context, arg GetMembershipParams) (C
 		&i.LastReadAt,
 		&i.Muted,
 		&i.MentionsOnly,
+		&i.MutedUntil,
 	)
 	return i, err
 }
@@ -595,7 +599,8 @@ func (q *Queries) ListChannelFiles(ctx context.Context, arg ListChannelFilesPara
 const listChannelStates = `-- name: ListChannelStates :many
 SELECT c.id, c.workspace_id, c.kind, c.name, c.topic, c.dm_key, c.feed, c.feed_project_id, c.feed_events, c.created_by, c.created_at, c.last_message_at,
        (m.user_id IS NOT NULL)::boolean AS joined,
-       COALESCE(m.muted, false)::boolean AS muted,
+       (COALESCE(m.muted, false) OR COALESCE(m.muted_until > now(), false))::boolean AS muted,
+       COALESCE(CASE WHEN m.muted_until > now() THEN m.muted_until END, to_timestamp(0))::timestamptz AS muted_until,
        COALESCE(m.mentions_only, false)::boolean AS mentions_only,
        (st.user_id IS NOT NULL)::boolean AS starred,
        (SELECT count(*) FROM chat_messages x
@@ -636,6 +641,7 @@ type ListChannelStatesRow struct {
 	LastMessageAt *time.Time
 	Joined        bool
 	Muted         bool
+	MutedUntil    time.Time
 	MentionsOnly  bool
 	Starred       bool
 	Unread        int32
@@ -666,6 +672,7 @@ func (q *Queries) ListChannelStates(ctx context.Context, arg ListChannelStatesPa
 			&i.LastMessageAt,
 			&i.Joined,
 			&i.Muted,
+			&i.MutedUntil,
 			&i.MentionsOnly,
 			&i.Starred,
 			&i.Unread,
@@ -762,7 +769,7 @@ func (q *Queries) ListFilesByMessages(ctx context.Context, ids []uuid.UUID) ([]C
 }
 
 const listMembers = `-- name: ListMembers :many
-SELECT channel_id, user_id, joined_at, last_read_at, muted, mentions_only FROM chat_members WHERE channel_id = $1 ORDER BY joined_at, user_id
+SELECT channel_id, user_id, joined_at, last_read_at, muted, mentions_only, muted_until FROM chat_members WHERE channel_id = $1 ORDER BY joined_at, user_id
 `
 
 func (q *Queries) ListMembers(ctx context.Context, channelID uuid.UUID) ([]ChatMember, error) {
@@ -781,6 +788,7 @@ func (q *Queries) ListMembers(ctx context.Context, channelID uuid.UUID) ([]ChatM
 			&i.LastReadAt,
 			&i.Muted,
 			&i.MentionsOnly,
+			&i.MutedUntil,
 		); err != nil {
 			return nil, err
 		}
@@ -793,7 +801,7 @@ func (q *Queries) ListMembers(ctx context.Context, channelID uuid.UUID) ([]ChatM
 }
 
 const listMembersOf = `-- name: ListMembersOf :many
-SELECT channel_id, user_id, joined_at, last_read_at, muted, mentions_only FROM chat_members WHERE channel_id = ANY ($1::uuid[]) ORDER BY channel_id, joined_at, user_id
+SELECT channel_id, user_id, joined_at, last_read_at, muted, mentions_only, muted_until FROM chat_members WHERE channel_id = ANY ($1::uuid[]) ORDER BY channel_id, joined_at, user_id
 `
 
 func (q *Queries) ListMembersOf(ctx context.Context, ids []uuid.UUID) ([]ChatMember, error) {
@@ -812,6 +820,7 @@ func (q *Queries) ListMembersOf(ctx context.Context, ids []uuid.UUID) ([]ChatMem
 			&i.LastReadAt,
 			&i.Muted,
 			&i.MentionsOnly,
+			&i.MutedUntil,
 		); err != nil {
 			return nil, err
 		}
@@ -1431,22 +1440,25 @@ func (q *Queries) SetFeed(ctx context.Context, arg SetFeedParams) (ChatChannel, 
 }
 
 const setNotify = `-- name: SetNotify :exec
-UPDATE chat_members SET muted = $3, mentions_only = $4 WHERE channel_id = $1 AND user_id = $2
+UPDATE chat_members SET muted = $1, mentions_only = $2, muted_until = $3
+WHERE channel_id = $4 AND user_id = $5
 `
 
 type SetNotifyParams struct {
-	ChannelID    uuid.UUID
-	UserID       uuid.UUID
 	Muted        bool
 	MentionsOnly bool
+	MutedUntil   *time.Time
+	ChannelID    uuid.UUID
+	UserID       uuid.UUID
 }
 
 func (q *Queries) SetNotify(ctx context.Context, arg SetNotifyParams) error {
 	_, err := q.db.Exec(ctx, setNotify,
-		arg.ChannelID,
-		arg.UserID,
 		arg.Muted,
 		arg.MentionsOnly,
+		arg.MutedUntil,
+		arg.ChannelID,
+		arg.UserID,
 	)
 	return err
 }

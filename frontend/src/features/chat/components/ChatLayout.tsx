@@ -22,6 +22,8 @@ import {
   type FeedProject,
 } from './ChannelDialogs';
 import { ChannelList } from './ChannelList';
+import { ChannelView } from './ChannelView';
+import { ChatContext } from './chatContext';
 
 export interface ChatOutletContext {
   workspaceId: string;
@@ -54,6 +56,9 @@ export function ChatLayout() {
   const activeId = match?.params.channelId;
   const setLast = useChatUiStore((s) => s.setLastChannel);
   const [dialog, setDialog] = useState<'create' | 'browse' | 'direct' | 'search' | null>(null);
+  // A second conversation shown next to the open one ("Open in split view").
+  const [split, setSplit] = useState<string | null>(null);
+  const [searchSeed, setSearchSeed] = useState('');
   const online = useOnline(ws);
   const statuses = useStatuses(ws);
 
@@ -101,86 +106,106 @@ export function ChatLayout() {
   const showMain = desktop || !!activeId;
 
   return (
-    <div className="flex h-[calc(100dvh-var(--header-h)-3rem)] min-h-[30rem] overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-sm">
-      {showList && (
-        <aside
-          aria-label={t('sidebar.title')}
-          className="flex w-full shrink-0 flex-col border-r border-border-subtle bg-surface lg:w-72"
-        >
-          <div className="flex h-11 items-center gap-2 px-4 pt-1">
-            <MessagesSquare className="size-4 stroke-[1.6] text-primary-ink" aria-hidden />
-            <h2 className="text-md font-semibold text-text">{t('sidebar.title')}</h2>
-            <MyStatus workspaceId={workspace.id} className="ml-auto" />
+    <ChatContext.Provider value={context}>
+      <div className="flex h-[calc(100dvh-var(--header-h)-3rem)] min-h-[30rem] overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-sm">
+        {showList && (
+          <aside
+            aria-label={t('sidebar.title')}
+            className="flex w-full shrink-0 flex-col border-r border-border-subtle bg-surface lg:w-72"
+          >
+            <div className="flex h-11 items-center gap-2 px-4 pt-1">
+              <MessagesSquare className="size-4 stroke-[1.6] text-primary-ink" aria-hidden />
+              <h2 className="text-md font-semibold text-text">{t('sidebar.title')}</h2>
+              <MyStatus workspaceId={workspace.id} className="ml-auto" />
+            </div>
+            <div className="min-h-0 flex-1">
+              <ChannelList
+                channels={channels.data}
+                loading={channels.isPending}
+                me={me}
+                workspaceId={ws ?? ''}
+                activeId={activeId}
+                canCreate={canWrite}
+                onCreate={() => setDialog('create')}
+                onBrowse={() => setDialog('browse')}
+                online={online}
+                statuses={statuses}
+                onSearch={() => setDialog('search')}
+                onNewMessage={() => setDialog('direct')}
+                onSplit={desktop ? (id) => setSplit(id === activeId ? null : id) : undefined}
+                onSearchIn={(ch) => {
+                  setSearchSeed(ch.name ? `in:#${ch.name} ` : '');
+                  setDialog('search');
+                }}
+              />
+            </div>
+          </aside>
+        )}
+        {showMain && (
+          <div className="flex min-w-0 flex-1 flex-col">
+            {!desktop && (
+              <Link
+                to="/chat"
+                className="m-3 inline-flex h-8 items-center gap-2 rounded-lg px-2.5 text-sm text-text-secondary hover:bg-surface-muted focus-visible:shadow-focus focus-visible:outline-none"
+              >
+                <MessagesSquare className="size-4" aria-hidden />
+                {t('sidebar.title')}
+              </Link>
+            )}
+            <div className="flex min-h-0 flex-1">
+              <div className="flex min-w-0 flex-1 flex-col">
+                <Outlet context={context} />
+              </div>
+              {split && desktop && (
+                <section
+                  aria-label={t('split.label')}
+                  className="flex min-w-0 flex-1 flex-col border-l border-border-subtle"
+                >
+                  <ChannelView embedded channelId={split} onClosePane={() => setSplit(null)} />
+                </section>
+              )}
+            </div>
           </div>
-          <div className="min-h-0 flex-1">
-            <ChannelList
-              channels={channels.data}
-              loading={channels.isPending}
-              me={me}
-              workspaceId={ws ?? ''}
-              activeId={activeId}
-              canCreate={canWrite}
-              onCreate={() => setDialog('create')}
-              onBrowse={() => setDialog('browse')}
-              online={online}
-              statuses={statuses}
-              onSearch={() => setDialog('search')}
-              onNewMessage={() => setDialog('direct')}
-            />
-          </div>
-        </aside>
-      )}
-      {showMain && (
-        <div className="flex min-w-0 flex-1 flex-col">
-          {!desktop && (
-            <Link
-              to="/chat"
-              className="m-3 inline-flex h-8 items-center gap-2 rounded-lg px-2.5 text-sm text-text-secondary hover:bg-surface-muted focus-visible:shadow-focus focus-visible:outline-none"
-            >
-              <MessagesSquare className="size-4" aria-hidden />
-              {t('sidebar.title')}
-            </Link>
-          )}
-          <Outlet context={context} />
-        </div>
-      )}
+        )}
 
-      <CreateChannelDialog
-        open={dialog === 'create'}
-        onOpenChange={(o) => !o && setDialog(null)}
-        workspaceId={workspace.id}
-        members={context.members}
-        projects={context.projects}
-        me={me}
-        onCreated={open}
-      />
-      <NewMessageDialog
-        open={dialog === 'direct'}
-        onOpenChange={(o) => !o && setDialog(null)}
-        workspaceId={workspace.id}
-        members={context.members}
-        me={me}
-        onOpened={open}
-      />
-      <SearchDialog
-        open={dialog === 'search'}
-        onOpenChange={(o) => !o && setDialog(null)}
-        workspaceId={workspace.id}
-        me={me}
-        meName={user?.name ?? ''}
-        channels={list}
-        members={context.members}
-        activeId={activeId}
-      />
-      <BrowseChannelsDialog
-        open={dialog === 'browse'}
-        onOpenChange={(o) => !o && setDialog(null)}
-        workspaceId={workspace.id}
-        channels={list}
-        me={me}
-        onOpen={open}
-      />
-    </div>
+        <CreateChannelDialog
+          open={dialog === 'create'}
+          onOpenChange={(o) => !o && setDialog(null)}
+          workspaceId={workspace.id}
+          members={context.members}
+          projects={context.projects}
+          me={me}
+          onCreated={open}
+        />
+        <NewMessageDialog
+          open={dialog === 'direct'}
+          onOpenChange={(o) => !o && setDialog(null)}
+          workspaceId={workspace.id}
+          members={context.members}
+          me={me}
+          onOpened={open}
+        />
+        <SearchDialog
+          open={dialog === 'search'}
+          onOpenChange={(o) => !o && setDialog(null)}
+          workspaceId={workspace.id}
+          me={me}
+          meName={user?.name ?? ''}
+          channels={list}
+          members={context.members}
+          activeId={activeId}
+          initialText={searchSeed}
+        />
+        <BrowseChannelsDialog
+          open={dialog === 'browse'}
+          onOpenChange={(o) => !o && setDialog(null)}
+          workspaceId={workspace.id}
+          channels={list}
+          me={me}
+          onOpen={open}
+        />
+      </div>
+    </ChatContext.Provider>
   );
 }
 
