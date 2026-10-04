@@ -1,3 +1,4 @@
+import { fieldGlow } from '@/shared/ui/fieldStyles';
 import {
   AtSign,
   Bold,
@@ -297,7 +298,7 @@ export function Composer({
         onDrop={onDrop}
         className={cn(
           'rounded-xl border bg-surface shadow-xs transition-[border-color,box-shadow] duration-micro',
-          'focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10',
+          fieldGlow,
           dragging ? 'border-primary bg-primary-subtle' : 'border-border',
           disabled && 'opacity-60',
         )}

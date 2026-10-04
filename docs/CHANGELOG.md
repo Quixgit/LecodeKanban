@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Changed
+
+- **Fields** (inputs, text areas, selects, the chat composer) share one look: a soft mint outline on hover and a
+  stronger one while typing.
+- **Close buttons** (windows, side panels, thread, notifications) are one soft tile whose cross turns on hover.
+- **Tooltips** are now styled cards (surface, border, shadow) instead of plain dark chips.
+- **Dashboard**: every KPI has a trend chip (percent, or absolute change when there is nothing to compare with),
+  green/red by meaning (a growing backlog is red), and a small sparkline. Active tasks show the net change.
+- Removed the "Live" indicator from the board. Settings keeps its section list still while the content changes
+  (less flicker).
+
 ### Added
 
 - **Roles & permissions** (Settings → Roles): about 25 permissions in groups. Change what Admin, Member and Viewer

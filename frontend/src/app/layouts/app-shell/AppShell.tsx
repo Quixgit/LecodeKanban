@@ -27,9 +27,10 @@ export function AppShell() {
   const { t } = useTranslation();
   const location = useLocation();
   // Docs keeps one mounted shell (tree panel, scroll, rename state) across its pages; each page
-  // animates itself.
+  // animates itself. Settings keeps its section list still while only the content changes.
   const transitionKey =
-    ['/docs', '/chat'].find((p) => location.pathname.startsWith(p)) ?? location.pathname;
+    ['/docs', '/chat', '/settings'].find((p) => location.pathname.startsWith(p)) ??
+    location.pathname;
   const commands = useShellCommands();
   const viewer = useViewer();
   const { user } = useSession();
