@@ -82,3 +82,18 @@ unconfigured providers are shown disabled.
 - [API reference](docs/API.md) (generated) and [OpenAPI spec](api/openapi.yaml)
 - [Design tokens](docs/DESIGN_TOKENS.md)
 - [ADRs](docs/adr/)
+
+## Creating accounts
+
+Add people to a workspace without sending invitations (prints a one-time password for each new account; hand it over
+privately and ask them to change it under Profile → Security):
+
+```sh
+# from a checkout with the database reachable
+make adduser WS="Reliabilix Studio" EMAILS="a.sarkisian@example.com d.slobodian@example.com" LOCALE=uk
+
+# on the server, from the deployed stack
+docker compose run --rm --entrypoint /app/adduser api -workspace "Reliabilix Studio" -locale uk a.sarkisian@example.com
+```
+
+Existing accounts are only added to the workspace. `-role admin|member|viewer` sets the role (default member).

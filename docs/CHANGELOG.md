@@ -44,6 +44,8 @@
   reach them (email, phone, Telegram, LinkedIn, website), skills, about, and a *Send message* button. Visible to people
   in the same workspace. API: `GET /workspaces/{id}/members/{userId}`.
 
+- **`adduser` command** (`make adduser`, `/app/adduser` in the image): creates verified accounts with a random one-time
+  password and adds them to a workspace; see README → Creating accounts.
 - **Settings is now the admin centre** (sidebar → Settings): an overview of every area with live counts, and a
   section list with an animated highlight. Sections: *General* (workspace name, address, delete with typed
   confirmation for the owner), *Custom fields*, *Labels* (create, recolour, rename, delete); *Members & roles* and
