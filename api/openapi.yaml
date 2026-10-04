@@ -356,6 +356,47 @@ paths:
       responses:
         "204": { description: Deleted }
         "403": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/settings:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [workspaces]
+      operationId: getWorkspaceSettings
+      summary: The workspace's rules and feature switches (any member)
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkspaceSettings" }
+    patch:
+      tags: [workspaces]
+      operationId: updateWorkspaceSettings
+      summary: Change settings (administrators); changes are written to the audit log
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkspaceSettingsPatch" }
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkspaceSettings" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/audit:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [workspaces]
+      operationId: listWorkspaceAudit
+      summary: The latest administrator actions (administrators)
+      responses:
+        "200":
+          description: Entries, newest first
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/AuditEntry" } }
   /workspaces/{workspaceId}/members:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -2652,6 +2693,55 @@ components:
       required: [name]
       properties:
         name: { type: string, minLength: 1, maxLength: 80 }
+    WorkspaceFeatures:
+      type: object
+      required: [chat, docs, time, calendar, integrations]
+      properties:
+        chat: { type: boolean }
+        docs: { type: boolean }
+        time: { type: boolean }
+        calendar: { type: boolean }
+        integrations: { type: boolean }
+    WorkspaceSettings:
+      type: object
+      required: [description, inviteBy, inviteDays, defaultInviteRole, allowedDomains, projectCreateBy, channelCreateBy, broadcastBy, defaultPriority, requireDueDate, weekStart, features]
+      properties:
+        description: { type: string, maxLength: 300 }
+        inviteBy: { type: string, enum: [admins, members], description: Who may invite people }
+        inviteDays: { type: integer, minimum: 1, maximum: 30, description: How long an invitation stays valid }
+        defaultInviteRole: { $ref: "#/components/schemas/InviteRole" }
+        allowedDomains: { type: array, maxItems: 20, items: { type: string }, description: "Only addresses of these domains may be invited; empty allows any" }
+        projectCreateBy: { type: string, enum: [admins, members] }
+        channelCreateBy: { type: string, enum: [admins, members] }
+        broadcastBy: { type: string, enum: [everyone, admins], description: Who may notify a whole channel with @channel }
+        defaultPriority: { type: string, enum: [low, medium, high] }
+        requireDueDate: { type: boolean }
+        weekStart: { type: integer, minimum: 0, maximum: 1, description: 0 Sunday, 1 Monday }
+        features: { $ref: "#/components/schemas/WorkspaceFeatures" }
+    WorkspaceSettingsPatch:
+      type: object
+      properties:
+        description: { type: string, maxLength: 300 }
+        inviteBy: { type: string, enum: [admins, members] }
+        inviteDays: { type: integer, minimum: 1, maximum: 30 }
+        defaultInviteRole: { $ref: "#/components/schemas/InviteRole" }
+        allowedDomains: { type: array, maxItems: 20, items: { type: string } }
+        projectCreateBy: { type: string, enum: [admins, members] }
+        channelCreateBy: { type: string, enum: [admins, members] }
+        broadcastBy: { type: string, enum: [everyone, admins] }
+        defaultPriority: { type: string, enum: [low, medium, high] }
+        requireDueDate: { type: boolean }
+        weekStart: { type: integer, minimum: 0, maximum: 1 }
+        features: { $ref: "#/components/schemas/WorkspaceFeatures" }
+    AuditEntry:
+      type: object
+      required: [id, actor, action, details, at]
+      properties:
+        id: { type: string, format: uuid }
+        actor: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
+        action: { type: string, description: "e.g. settings.updated, member.role_changed, member.removed, invite.sent, invite.revoked, workspace.renamed" }
+        details: { type: object, additionalProperties: true }
+        at: { type: string, format: date-time }
     MemberUser:
       type: object
       required: [id, name, email, avatarUrl]

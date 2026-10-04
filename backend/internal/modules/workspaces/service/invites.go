@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -24,12 +25,22 @@ func (s *Service) Invite(ctx context.Context, actor, ws uuid.UUID, email string,
 	if err := v.Err(); err != nil {
 		return domain.Invite{}, err
 	}
-	actorRole, err := s.authorize(ctx, s.repo, ws, actor, domain.PermManageMembers)
+	actorRole, err := s.authorize(ctx, s.repo, ws, actor, domain.PermView)
 	if err != nil {
 		return domain.Invite{}, err
 	}
-	if !domain.CanInvite(actorRole, role) {
+	policy, err := s.repo.Settings(ctx, ws)
+	if err != nil {
+		return domain.Invite{}, err
+	}
+	if !domain.CanInviteUnder(policy, actorRole, role) {
+		if actorRole.AtLeast(domain.RoleMember) && !actorRole.Can(domain.PermManageMembers) && policy.InviteBy != domain.ByMembers {
+			return domain.Invite{}, apperr.New(domain.ErrPolicy, "only administrators may invite people")
+		}
 		return domain.Invite{}, apperr.New(domain.ErrInsufficientRole, "cannot invite with this role")
+	}
+	if !policy.EmailAllowed(email) {
+		return domain.Invite{}, apperr.New(domain.ErrDomainNotAllowed, "this address is outside the allowed domains")
 	}
 	if existing, err := s.users.CredentialsByEmail(ctx, email); err == nil {
 		if r, err := s.repo.Role(ctx, ws, existing.User.ID); err != nil {
@@ -45,7 +56,7 @@ func (s *Service) Invite(ctx context.Context, actor, ws uuid.UUID, email string,
 	if err != nil {
 		return domain.Invite{}, err
 	}
-	inv, err := s.repo.ReplaceInvite(ctx, ws, email, role, crypto.HashToken(raw), actor, s.now().Add(s.inviteTTL))
+	inv, err := s.repo.ReplaceInvite(ctx, ws, email, role, crypto.HashToken(raw), actor, s.now().Add(time.Duration(policy.InviteDays)*24*time.Hour))
 	if err != nil {
 		return domain.Invite{}, err
 	}
@@ -64,6 +75,7 @@ func (s *Service) Invite(ctx context.Context, actor, ws uuid.UUID, email string,
 	if err := s.mail(ctx, msg, "invite:"+inv.ID.String()); err != nil {
 		return domain.Invite{}, err
 	}
+	s.audit(ctx, ws, actor, "invite.sent", map[string]any{"email": email, "role": string(role)})
 	return inv, nil
 }
 
@@ -85,6 +97,7 @@ func (s *Service) RevokeInvite(ctx context.Context, actor, ws, inviteID uuid.UUI
 	if !ok {
 		return apperr.New(domain.ErrInviteNotFound, "invite not found")
 	}
+	s.audit(ctx, ws, actor, "invite.revoked", map[string]any{})
 	return nil
 }
 

@@ -40,7 +40,9 @@
     "invite_not_found": "This invitation is no longer valid.",
     "invite_expired": "This invitation has expired. Ask for a new one.",
     "invite_email_mismatch": "This invitation was sent to a different email address.",
-    "insufficient_role": "Your role doesn't allow this action."
+    "insufficient_role": "Your role doesn't allow this action.",
+    "policy": "This workspace's settings don't allow that. Ask an administrator.",
+    "domain_not_allowed": "This workspace only invites people from its allowed email domains."
   },
   "validation": {
     "required": "This field is required.",

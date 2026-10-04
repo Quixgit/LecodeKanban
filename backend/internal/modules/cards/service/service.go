@@ -23,6 +23,7 @@ import (
 type Workspaces interface {
 	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Role, error)
 	RolesByUser(ctx context.Context, ws uuid.UUID) (map[uuid.UUID]wsdomain.Role, error)
+	Policy(ctx context.Context, ws uuid.UUID) (wsdomain.Settings, error)
 }
 
 type Projects interface {

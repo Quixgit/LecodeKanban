@@ -54,6 +54,9 @@ Base URL: `/api/v1`
 | GET | `/workspaces/{workspaceId}` | session |  | 200, 404 Error |  |
 | PATCH | `/workspaces/{workspaceId}` | session | WorkspaceInput | 200, 403 Error |  |
 | DELETE | `/workspaces/{workspaceId}` | session |  | 204, 403 Error |  |
+| GET | `/workspaces/{workspaceId}/settings` | session |  | 200 | The workspace's rules and feature switches (any member) |
+| PATCH | `/workspaces/{workspaceId}/settings` | session | WorkspaceSettingsPatch | 200, 403 Error, 422 Error | Change settings (administrators); changes are written to the audit log |
+| GET | `/workspaces/{workspaceId}/audit` | session |  | 200 | The latest administrator actions (administrators) |
 | GET | `/workspaces/{workspaceId}/members` | session |  | 200 |  |
 | PATCH | `/workspaces/{workspaceId}/members/{userId}` | session | UpdateMemberRequest | 204, 403 Error, 409 Error |  |
 | DELETE | `/workspaces/{workspaceId}/members/{userId}` | session |  | 204, 403 Error, 409 Error | Remove a member (or leave, when userId is the caller) |
@@ -313,6 +316,10 @@ Base URL: `/api/v1`
 - **InviteRole**: `admin` | `member` | `viewer`
 - **Workspace** — `id`: string, `name`: string, `slug`: string, `role`: Role, `memberCount`: integer, `createdAt`: string
 - **WorkspaceInput** — `name`: string
+- **WorkspaceFeatures** — `chat`: boolean, `docs`: boolean, `time`: boolean, `calendar`: boolean, `integrations`: boolean
+- **WorkspaceSettings** — `description`: string, `inviteBy`: string, `inviteDays`: integer, `defaultInviteRole`: InviteRole, `allowedDomains`: array, `projectCreateBy`: string, `channelCreateBy`: string, `broadcastBy`: string, `defaultPriority`: string, `requireDueDate`: boolean, `weekStart`: integer, `features`: WorkspaceFeatures
+- **WorkspaceSettingsPatch** — `description?`: string, `inviteBy?`: string, `inviteDays?`: integer, `defaultInviteRole?`: InviteRole, `allowedDomains?`: array, `projectCreateBy?`: string, `channelCreateBy?`: string, `broadcastBy?`: string, `defaultPriority?`: string, `requireDueDate?`: boolean, `weekStart?`: integer, `features?`: WorkspaceFeatures
+- **AuditEntry** — `id`: string, `actor`: object \| null, `action`: string, `details`: object, `at`: string
 - **MemberUser** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null
 - **Member** — `user`: MemberUser, `role`: Role, `joinedAt`: string
 - **UpdateMemberRequest** — `role`: Role

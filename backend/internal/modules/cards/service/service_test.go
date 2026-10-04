@@ -333,3 +333,24 @@ func TestStats(t *testing.T) {
 		t.Fatalf("activity %+v", st.Activity)
 	}
 }
+
+func TestWorkspaceTaskPolicies(t *testing.T) {
+	f := setup(t)
+	pr := func(p string) *string { return &p }
+	// The default priority is the workspace's, and a due date can be required.
+	if _, err := f.Workspaces.UpdateSettings(f.ctx, f.owner, f.ws, wsdomain.SettingsPatch{DefaultPriority: pr("high"), RequireDueDate: ptr(true)}); err != nil {
+		t.Fatal(err)
+	}
+	_, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "No date"})
+	mustCode(t, err, apperr.Validation)
+	due := time.Now().AddDate(0, 0, 3)
+	c, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "With date", DueDate: &due})
+	if err != nil || c.Priority != domain.High {
+		t.Fatalf("default priority: %+v %v", c, err)
+	}
+	// An explicit priority is kept.
+	c, err = f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Low", Priority: domain.Low, DueDate: &due})
+	if err != nil || c.Priority != domain.Low {
+		t.Fatalf("explicit priority: %+v %v", c, err)
+	}
+}

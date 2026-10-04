@@ -169,7 +169,7 @@ func TestInviteAcceptAndRoles(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = e.svc.Invite(ctx, member, ws.ID, "z@example.com", domain.RoleViewer)
-	mustCode(t, err, domain.ErrInsufficientRole)
+	mustCode(t, err, domain.ErrPolicy)
 	_, err = e.svc.Invites(ctx, member, ws.ID)
 	mustCode(t, err, domain.ErrInsufficientRole)
 
@@ -247,4 +247,84 @@ func TestAuthorizeForOtherModules(t *testing.T) {
 	}
 	_, err := e.svc.Authorize(ctx, ws.ID, uuid.New(), domain.PermView)
 	mustCode(t, err, domain.ErrNotFound)
+}
+
+func ptr[T any](v T) *T { return &v }
+
+func TestSettingsAndPolicies(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	owner := e.user(t, "Owner", "owner@example.com", "en")
+	member := e.user(t, "Member", "member@example.com", "en")
+	ws, _ := e.svc.Create(ctx, owner, "Team")
+	inv, err := e.svc.Invite(ctx, owner, ws.ID, "member@example.com", domain.RoleMember)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = inv
+	if _, err := e.svc.Accept(ctx, member, e.inviteToken(t)); err != nil {
+		t.Fatal(err)
+	}
+
+	// Everyone sees the settings; they start with the defaults.
+	got, err := e.svc.Settings(ctx, member, ws.ID)
+	if err != nil || got.InviteBy != domain.ByAdmins || got.InviteDays != 7 || !got.Features.Chat || got.WeekStart != 1 {
+		t.Fatalf("defaults: %+v %v", got, err)
+	}
+	// Only administrators change them, and bad values are refused.
+	_, err = e.svc.UpdateSettings(ctx, member, ws.ID, domain.SettingsPatch{InviteBy: ptr(domain.ByMembers)})
+	mustCode(t, err, domain.ErrInsufficientRole)
+	_, err = e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{InviteBy: ptr("nobody"), InviteDays: ptr(99),
+		AllowedDomains: ptr([]string{"not a domain"})})
+	mustCode(t, err, apperr.Validation)
+	_, err = e.svc.Settings(ctx, uuid.New(), ws.ID)
+	mustCode(t, err, domain.ErrNotFound)
+
+	// Members cannot invite until the administrators allow it; viewers' roles never grow.
+	_, err = e.svc.Invite(ctx, member, ws.ID, "new1@example.com", domain.RoleViewer)
+	mustCode(t, err, domain.ErrPolicy)
+	upd, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{InviteBy: ptr(domain.ByMembers), InviteDays: ptr(3),
+		AllowedDomains: ptr([]string{" @Example.com ", "example.com"})})
+	if err != nil || upd.InviteBy != domain.ByMembers || len(upd.AllowedDomains) != 1 || upd.AllowedDomains[0] != "example.com" {
+		t.Fatalf("update: %+v %v", upd, err)
+	}
+	if _, err := e.svc.Invite(ctx, member, ws.ID, "new1@example.com", domain.RoleViewer); err != nil {
+		t.Fatalf("members may invite now: %v", err)
+	}
+	_, err = e.svc.Invite(ctx, member, ws.ID, "new2@example.com", domain.RoleAdmin)
+	mustCode(t, err, domain.ErrInsufficientRole) // never above their own role
+	_, err = e.svc.Invite(ctx, owner, ws.ID, "stranger@elsewhere.org", domain.RoleMember)
+	mustCode(t, err, domain.ErrDomainNotAllowed)
+	invites, _ := e.svc.Invites(ctx, owner, ws.ID)
+	for _, in := range invites {
+		if in.Email == "new1@example.com" && in.ExpiresAt.After(time.Now().Add(4*24*time.Hour)) {
+			t.Fatalf("invitation should last 3 days, expires %v", in.ExpiresAt)
+		}
+	}
+
+	// An unchanged patch writes nothing; changes are listed in the audit log with who did them.
+	if _, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{InviteDays: ptr(3)}); err != nil {
+		t.Fatal(err)
+	}
+	log, err := e.svc.Audit(ctx, owner, ws.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var updates, invitesSent int
+	for _, en := range log {
+		switch en.Action {
+		case "settings.updated":
+			updates++
+			if en.Actor == nil || en.Actor.ID != owner {
+				t.Fatalf("actor missing: %+v", en)
+			}
+		case "invite.sent":
+			invitesSent++
+		}
+	}
+	if updates != 1 || invitesSent < 2 {
+		t.Fatalf("audit: %d updates, %d invites in %+v", updates, invitesSent, log)
+	}
+	_, err = e.svc.Audit(ctx, member, ws.ID)
+	mustCode(t, err, domain.ErrInsufficientRole)
 }

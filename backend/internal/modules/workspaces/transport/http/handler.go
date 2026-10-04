@@ -31,6 +31,9 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 		r.Patch("/", httpx.H(h.update))
 		r.Delete("/", httpx.H(h.delete))
 		r.Get("/members", httpx.H(h.members))
+		r.Get("/settings", httpx.H(h.settings))
+		r.Patch("/settings", httpx.H(h.updateSettings))
+		r.Get("/audit", httpx.H(h.audit))
 		r.Patch("/members/{userId}", httpx.H(h.changeRole))
 		r.Delete("/members/{userId}", httpx.H(h.removeMember))
 		r.Get("/invites", httpx.H(h.invites))
@@ -254,5 +257,97 @@ func (h *Handler) acceptInvite(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	httpx.WriteJSON(w, http.StatusOK, toAPI(ws))
+	return nil
+}
+
+func toSettings(s domain.Settings) api.WorkspaceSettings {
+	domains := s.AllowedDomains
+	if domains == nil {
+		domains = []string{}
+	}
+	return api.WorkspaceSettings{
+		Description: s.Description, InviteBy: api.WorkspaceSettingsInviteBy(s.InviteBy), InviteDays: s.InviteDays,
+		DefaultInviteRole: api.InviteRole(s.DefaultInviteRole), AllowedDomains: domains,
+		ProjectCreateBy: api.WorkspaceSettingsProjectCreateBy(s.ProjectCreateBy), ChannelCreateBy: api.WorkspaceSettingsChannelCreateBy(s.ChannelCreateBy),
+		BroadcastBy: api.WorkspaceSettingsBroadcastBy(s.BroadcastBy), DefaultPriority: api.WorkspaceSettingsDefaultPriority(s.DefaultPriority),
+		RequireDueDate: s.RequireDueDate, WeekStart: s.WeekStart,
+		Features: api.WorkspaceFeatures{Chat: s.Features.Chat, Docs: s.Features.Docs, Time: s.Features.Time,
+			Calendar: s.Features.Calendar, Integrations: s.Features.Integrations},
+	}
+}
+
+func (h *Handler) settings(w http.ResponseWriter, r *http.Request) error {
+	ws, err := pathUUID(r, "workspaceId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	s, err := h.svc.Settings(r.Context(), userID(r), ws)
+	if err != nil {
+		return err
+	}
+	httpx.WriteJSON(w, http.StatusOK, toSettings(s))
+	return nil
+}
+
+func (h *Handler) updateSettings(w http.ResponseWriter, r *http.Request) error {
+	ws, err := pathUUID(r, "workspaceId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	var in api.WorkspaceSettingsPatch
+	if err := httpx.DecodeJSON(w, r, &in); err != nil {
+		return err
+	}
+	p := domain.SettingsPatch{Description: in.Description, InviteDays: in.InviteDays, AllowedDomains: in.AllowedDomains,
+		RequireDueDate: in.RequireDueDate, WeekStart: in.WeekStart}
+	str := func(v *string) *string { return v }
+	if in.InviteBy != nil {
+		p.InviteBy = str((*string)(in.InviteBy))
+	}
+	if in.ProjectCreateBy != nil {
+		p.ProjectCreateBy = str((*string)(in.ProjectCreateBy))
+	}
+	if in.ChannelCreateBy != nil {
+		p.ChannelCreateBy = str((*string)(in.ChannelCreateBy))
+	}
+	if in.BroadcastBy != nil {
+		p.BroadcastBy = str((*string)(in.BroadcastBy))
+	}
+	if in.DefaultPriority != nil {
+		p.DefaultPriority = str((*string)(in.DefaultPriority))
+	}
+	if in.DefaultInviteRole != nil {
+		role := domain.Role(*in.DefaultInviteRole)
+		p.DefaultInviteRole = &role
+	}
+	if in.Features != nil {
+		p.Features = &domain.Features{Chat: in.Features.Chat, Docs: in.Features.Docs, Time: in.Features.Time,
+			Calendar: in.Features.Calendar, Integrations: in.Features.Integrations}
+	}
+	s, err := h.svc.UpdateSettings(r.Context(), userID(r), ws, p)
+	if err != nil {
+		return err
+	}
+	httpx.WriteJSON(w, http.StatusOK, toSettings(s))
+	return nil
+}
+
+func (h *Handler) audit(w http.ResponseWriter, r *http.Request) error {
+	ws, err := pathUUID(r, "workspaceId", domain.ErrNotFound)
+	if err != nil {
+		return err
+	}
+	list, err := h.svc.Audit(r.Context(), userID(r), ws)
+	if err != nil {
+		return err
+	}
+	out := make([]api.AuditEntry, len(list))
+	for i, e := range list {
+		out[i] = api.AuditEntry{Id: e.ID, Action: e.Action, At: e.At, Details: e.Details}
+		if e.Actor != nil {
+			out[i].Actor = &api.PersonRef{Id: e.Actor.ID, Name: e.Actor.Name, AvatarUrl: e.Actor.AvatarURL}
+		}
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
 	return nil
 }
