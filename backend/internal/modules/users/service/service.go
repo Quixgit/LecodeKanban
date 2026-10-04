@@ -30,6 +30,9 @@ type Repository interface {
 	Avatar(ctx context.Context, id uuid.UUID) (key, contentType string, ok bool, err error)
 	SetUploadedAvatar(ctx context.Context, id uuid.UUID, url, key, contentType string) error
 	ClearAvatar(ctx context.Context, id uuid.UUID) error
+	Cover(ctx context.Context, id uuid.UUID) (key, contentType string, ok bool, err error)
+	SetUploadedCover(ctx context.Context, id uuid.UUID, url, key, contentType string) error
+	ClearCover(ctx context.Context, id uuid.UUID) error
 }
 
 type Service struct {
@@ -104,12 +107,19 @@ func (s *Service) UpdateProfile(ctx context.Context, id uuid.UUID, p domain.Prof
 			v.Add("timezone", validation.OneOf, nil)
 		}
 	}
+	checkExtras(&v, &p)
 	if err := v.Err(); err != nil {
 		return domain.User{}, err
 	}
 	u, err := s.repo.UpdateProfile(ctx, id, p)
 	if err != nil {
 		return domain.User{}, err
+	}
+	if p.CoverPreset != nil && *p.CoverPreset != "" {
+		// A chosen preset replaces an uploaded cover picture.
+		if u, err = s.RemoveCover(ctx, id); err != nil {
+			return domain.User{}, err
+		}
 	}
 	_ = s.bus.Publish(ctx, events.ProfileUpdated{UserID: id})
 	return u, nil

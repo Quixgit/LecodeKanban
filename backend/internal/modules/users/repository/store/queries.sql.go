@@ -21,10 +21,19 @@ func (q *Queries) ClearAvatar(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const clearCover = `-- name: ClearCover :exec
+UPDATE users SET cover_url = NULL, cover_key = NULL, cover_type = NULL WHERE id = $1
+`
+
+func (q *Queries) ClearCover(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, clearCover, id)
+	return err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, name, password_hash, locale, email_verified_at, avatar_url)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio
+RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio, pronouns, linkedin, telegram, website, work_start, work_end, skills, cover_preset, cover_url, cover_key, cover_type
 `
 
 type CreateUserParams struct {
@@ -65,6 +74,17 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Location,
 		&i.Timezone,
 		&i.Bio,
+		&i.Pronouns,
+		&i.Linkedin,
+		&i.Telegram,
+		&i.Website,
+		&i.WorkStart,
+		&i.WorkEnd,
+		&i.Skills,
+		&i.CoverPreset,
+		&i.CoverUrl,
+		&i.CoverKey,
+		&i.CoverType,
 	)
 	return i, err
 }
@@ -85,8 +105,24 @@ func (q *Queries) GetAvatar(ctx context.Context, id uuid.UUID) (GetAvatarRow, er
 	return i, err
 }
 
+const getCover = `-- name: GetCover :one
+SELECT cover_key, cover_type FROM users WHERE id = $1
+`
+
+type GetCoverRow struct {
+	CoverKey  *string
+	CoverType *string
+}
+
+func (q *Queries) GetCover(ctx context.Context, id uuid.UUID) (GetCoverRow, error) {
+	row := q.db.QueryRow(ctx, getCover, id)
+	var i GetCoverRow
+	err := row.Scan(&i.CoverKey, &i.CoverType)
+	return i, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio FROM users WHERE email = $1
+SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio, pronouns, linkedin, telegram, website, work_start, work_end, skills, cover_preset, cover_url, cover_key, cover_type FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -111,12 +147,23 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Location,
 		&i.Timezone,
 		&i.Bio,
+		&i.Pronouns,
+		&i.Linkedin,
+		&i.Telegram,
+		&i.Website,
+		&i.WorkStart,
+		&i.WorkEnd,
+		&i.Skills,
+		&i.CoverPreset,
+		&i.CoverUrl,
+		&i.CoverKey,
+		&i.CoverType,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio FROM users WHERE id = $1
+SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio, pronouns, linkedin, telegram, website, work_start, work_end, skills, cover_preset, cover_url, cover_key, cover_type FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -141,12 +188,23 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Location,
 		&i.Timezone,
 		&i.Bio,
+		&i.Pronouns,
+		&i.Linkedin,
+		&i.Telegram,
+		&i.Website,
+		&i.WorkStart,
+		&i.WorkEnd,
+		&i.Skills,
+		&i.CoverPreset,
+		&i.CoverUrl,
+		&i.CoverKey,
+		&i.CoverType,
 	)
 	return i, err
 }
 
 const getUsersByIDs = `-- name: GetUsersByIDs :many
-SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio FROM users WHERE id = ANY($1::uuid[]) ORDER BY name
+SELECT id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio, pronouns, linkedin, telegram, website, work_start, work_end, skills, cover_preset, cover_url, cover_key, cover_type FROM users WHERE id = ANY($1::uuid[]) ORDER BY name
 `
 
 func (q *Queries) GetUsersByIDs(ctx context.Context, ids []uuid.UUID) ([]User, error) {
@@ -177,6 +235,17 @@ func (q *Queries) GetUsersByIDs(ctx context.Context, ids []uuid.UUID) ([]User, e
 			&i.Location,
 			&i.Timezone,
 			&i.Bio,
+			&i.Pronouns,
+			&i.Linkedin,
+			&i.Telegram,
+			&i.Website,
+			&i.WorkStart,
+			&i.WorkEnd,
+			&i.Skills,
+			&i.CoverPreset,
+			&i.CoverUrl,
+			&i.CoverKey,
+			&i.CoverType,
 		); err != nil {
 			return nil, err
 		}
@@ -189,7 +258,7 @@ func (q *Queries) GetUsersByIDs(ctx context.Context, ids []uuid.UUID) ([]User, e
 }
 
 const markEmailVerified = `-- name: MarkEmailVerified :one
-UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()) WHERE id = $1 RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio
+UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()) WHERE id = $1 RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio, pronouns, linkedin, telegram, website, work_start, work_end, skills, cover_preset, cover_url, cover_key, cover_type
 `
 
 func (q *Queries) MarkEmailVerified(ctx context.Context, id uuid.UUID) (User, error) {
@@ -214,6 +283,17 @@ func (q *Queries) MarkEmailVerified(ctx context.Context, id uuid.UUID) (User, er
 		&i.Location,
 		&i.Timezone,
 		&i.Bio,
+		&i.Pronouns,
+		&i.Linkedin,
+		&i.Telegram,
+		&i.Website,
+		&i.WorkStart,
+		&i.WorkEnd,
+		&i.Skills,
+		&i.CoverPreset,
+		&i.CoverUrl,
+		&i.CoverKey,
+		&i.CoverType,
 	)
 	return i, err
 }
@@ -306,6 +386,27 @@ func (q *Queries) SetUploadedAvatar(ctx context.Context, arg SetUploadedAvatarPa
 	return err
 }
 
+const setUploadedCover = `-- name: SetUploadedCover :exec
+UPDATE users SET cover_url = $1, cover_key = $2, cover_type = $3, cover_preset = '' WHERE id = $4
+`
+
+type SetUploadedCoverParams struct {
+	CoverUrl  *string
+	CoverKey  *string
+	CoverType *string
+	ID        uuid.UUID
+}
+
+func (q *Queries) SetUploadedCover(ctx context.Context, arg SetUploadedCoverParams) error {
+	_, err := q.db.Exec(ctx, setUploadedCover,
+		arg.CoverUrl,
+		arg.CoverKey,
+		arg.CoverType,
+		arg.ID,
+	)
+	return err
+}
+
 const updateUserProfile = `-- name: UpdateUserProfile :one
 UPDATE users
 SET name      = COALESCE($1, name),
@@ -314,20 +415,36 @@ SET name      = COALESCE($1, name),
     phone     = COALESCE($4, phone),
     location  = COALESCE($5, location),
     timezone  = COALESCE($6, timezone),
-    bio       = COALESCE($7, bio)
-WHERE id = $8
-RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio
+    bio       = COALESCE($7, bio),
+    pronouns  = COALESCE($8, pronouns),
+    linkedin  = COALESCE($9, linkedin),
+    telegram  = COALESCE($10, telegram),
+    website   = COALESCE($11, website),
+    work_start = COALESCE($12, work_start),
+    work_end   = COALESCE($13, work_end),
+    skills     = COALESCE($14::text[], skills),
+    cover_preset = COALESCE($15, cover_preset)
+WHERE id = $16
+RETURNING id, email, name, password_hash, email_verified_at, locale, avatar_url, failed_login_count, locked_until, created_at, updated_at, avatar_key, avatar_type, job_title, phone, location, timezone, bio, pronouns, linkedin, telegram, website, work_start, work_end, skills, cover_preset, cover_url, cover_key, cover_type
 `
 
 type UpdateUserProfileParams struct {
-	Name     *string
-	Locale   *string
-	JobTitle *string
-	Phone    *string
-	Location *string
-	Timezone *string
-	Bio      *string
-	ID       uuid.UUID
+	Name        *string
+	Locale      *string
+	JobTitle    *string
+	Phone       *string
+	Location    *string
+	Timezone    *string
+	Bio         *string
+	Pronouns    *string
+	Linkedin    *string
+	Telegram    *string
+	Website     *string
+	WorkStart   *string
+	WorkEnd     *string
+	Skills      []string
+	CoverPreset *string
+	ID          uuid.UUID
 }
 
 func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error) {
@@ -339,6 +456,14 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		arg.Location,
 		arg.Timezone,
 		arg.Bio,
+		arg.Pronouns,
+		arg.Linkedin,
+		arg.Telegram,
+		arg.Website,
+		arg.WorkStart,
+		arg.WorkEnd,
+		arg.Skills,
+		arg.CoverPreset,
 		arg.ID,
 	)
 	var i User
@@ -361,6 +486,17 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		&i.Location,
 		&i.Timezone,
 		&i.Bio,
+		&i.Pronouns,
+		&i.Linkedin,
+		&i.Telegram,
+		&i.Website,
+		&i.WorkStart,
+		&i.WorkEnd,
+		&i.Skills,
+		&i.CoverPreset,
+		&i.CoverUrl,
+		&i.CoverKey,
+		&i.CoverType,
 	)
 	return i, err
 }
