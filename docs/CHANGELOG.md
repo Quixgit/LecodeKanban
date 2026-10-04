@@ -27,6 +27,14 @@
 
 ### Added
 
+- **Settings is now the admin centre** (sidebar → Settings): an overview of every area with live counts, and a
+  section list with an animated highlight. Sections: *General* (workspace name, address, delete with typed
+  confirmation for the owner), *Custom fields*, *Labels* (create, recolour, rename, delete); *Members & roles* and
+  *Integrations* open their own pages. People who are not administrators can look but not change.
+- **Custom fields for cards** (ADR 0022): administrators define text, number, date, choice (with coloured options),
+  checkbox and link fields, reorder them and choose which show as chips on the board. They appear in the task
+  window under "Custom fields" for anyone who can edit the task, and persist per task.
+
 - **Channel context menu** in Chat: right-click a channel (or conversation) in the sidebar for *Channel details*,
   *Copy* (name, link, ID), *Star channel*, *Notify you about…*, *More options* (mark as read, open in a new tab)
   and *Leave channel*.

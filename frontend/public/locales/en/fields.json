@@ -1,0 +1,61 @@
+{
+  "intro": "Add your own fields to every task in this workspace: budget, story points, risk, customer… Anyone who can edit a task fills them in.",
+  "new": "New field",
+  "onCard": "On the board",
+  "onCardTip": "Show this field as a chip on the task on the board",
+  "onCardFor": "Show {{name}} on the board",
+  "moveUp": "Move {{name}} up",
+  "moveDown": "Move {{name}} down",
+  "edit": "Edit {{name}}",
+  "remove": "Delete {{name}}",
+  "removeTitle": "Delete the field “{{name}}”?",
+  "removeBody": "The field disappears from every task, and the values people entered are deleted. This cannot be undone.",
+  "removeConfirm": "Delete field",
+  "removed": "Field deleted",
+  "empty": {
+    "title": "No custom fields yet",
+    "hint": "Start from a suggestion or create your own.",
+    "readOnly": "Only workspace administrators can create fields.",
+    "suggestions": "Suggested fields"
+  },
+  "suggest": {
+    "budget": "Budget",
+    "points": "Story points",
+    "risk": "Risk",
+    "customer": "Customer",
+    "link": "Design link"
+  },
+  "kinds": {
+    "text": "Text",
+    "number": "Number",
+    "select": "Choice",
+    "date": "Date",
+    "checkbox": "Checkbox",
+    "url": "Link"
+  },
+  "editor": {
+    "newTitle": "New field",
+    "editTitle": "Edit field",
+    "description": "Pick what kind of value it holds. The kind cannot be changed later.",
+    "name": "Name",
+    "kind": "Type",
+    "kindLocked": "The type is fixed once the field exists.",
+    "options": "Choices",
+    "tone": "Colour",
+    "optionLabel": "Choice {{n}}",
+    "addOption": "Add a choice",
+    "removeOption": "Remove this choice",
+    "help": "Hint for editors",
+    "helpHint": "Shown under the field on the task. Optional.",
+    "onCard": "Show on the board",
+    "onCardHint": "A chip on the task card when the field has a value.",
+    "cancel": "Cancel",
+    "create": "Create field",
+    "save": "Save changes"
+  },
+  "card": {
+    "title": "Custom fields",
+    "empty": "Not set",
+    "clear": "Clear the value"
+  }
+}

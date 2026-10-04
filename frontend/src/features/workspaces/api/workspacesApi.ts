@@ -5,6 +5,9 @@ const ws = (workspaceId: string) => ({ params: { path: { workspaceId } } });
 export const workspacesApi = {
   list: () => unwrap(api.GET('/workspaces')),
   create: (name: string) => unwrap(api.POST('/workspaces', { body: { name } })),
+  rename: (id: string, name: string) =>
+    unwrap(api.PATCH('/workspaces/{workspaceId}', { ...ws(id), body: { name } })),
+  delete: (id: string) => unwrap(api.DELETE('/workspaces/{workspaceId}', ws(id))),
   members: (id: string) => unwrap(api.GET('/workspaces/{workspaceId}/members', ws(id))),
   invites: (id: string) => unwrap(api.GET('/workspaces/{workspaceId}/invites', ws(id))),
   invite: (id: string, email: string, role: InviteRole) =>

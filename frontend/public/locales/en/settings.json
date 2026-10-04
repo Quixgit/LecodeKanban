@@ -1,0 +1,90 @@
+{
+  "nav": {
+    "label": "Settings sections"
+  },
+  "groups": {
+    "workspace": "Workspace",
+    "tasks": "Tasks",
+    "access": "People & apps"
+  },
+  "sections": {
+    "overview": {
+      "title": "Overview",
+      "description": ""
+    },
+    "general": {
+      "title": "General",
+      "description": "The workspace name, its address, and the danger zone."
+    },
+    "fields": {
+      "title": "Custom fields",
+      "description": "Extra fields for every task: budget, points, risk, a link… shown in the task and, if you choose, on the board."
+    },
+    "labels": {
+      "title": "Labels",
+      "description": "The names and colours people tag tasks with."
+    },
+    "members": {
+      "title": "Members & roles",
+      "description": "Invite people and decide what each of them can do."
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Connect Google Calendar, GitHub and other tools."
+    }
+  },
+  "overview": {
+    "eyebrow": "Admin centre",
+    "yourRole": "Your role:",
+    "readOnly": "You can look around, but only workspace administrators can change these settings.",
+    "open": "Open"
+  },
+  "general": {
+    "nameTitle": "Workspace",
+    "nameDescription": "Teammates see this name in the workspace switcher and in invitations.",
+    "name": "Workspace name",
+    "slug": "Address",
+    "slugHint": "The short name used in links. It does not change.",
+    "save": "Save changes",
+    "saved": "Workspace updated",
+    "yourRole": "Your role:",
+    "dangerTitle": "Danger zone",
+    "deleteTitle": "Delete this workspace",
+    "deleteBody": "Removes the workspace with all its projects, tasks, files and chat. This cannot be undone.",
+    "deleteOwnersOnly": "Only the owner can delete the workspace.",
+    "deleteButton": "Delete workspace",
+    "confirmTitle": "Delete “{{name}}”?",
+    "confirmBody": "Every project, task, file and conversation in it will be gone for good.",
+    "typeName": "Type {{name}} to confirm",
+    "deleteConfirm": "Delete forever",
+    "cancel": "Cancel",
+    "deleted": "Workspace deleted"
+  },
+  "labels": {
+    "new": "New label",
+    "newTitle": "New label",
+    "editTitle": "Edit label",
+    "name": "Name",
+    "colour": "Colour",
+    "preview": "Preview",
+    "previewName": "Label",
+    "create": "Create label",
+    "save": "Save changes",
+    "cancel": "Cancel",
+    "edit": "Edit {{name}}",
+    "remove": "Delete {{name}}",
+    "empty": "No labels yet",
+    "emptyHint": "Create one here, or add labels right from a task.",
+    "removeTitle": "Delete the label “{{name}}”?",
+    "removeBody": "It is removed from every task that has it.",
+    "removeConfirm": "Delete label",
+    "removed": "Label deleted",
+    "tones": {
+      "neutral": "Grey",
+      "teal": "Teal",
+      "amber": "Amber",
+      "purple": "Purple",
+      "red": "Red"
+    }
+  }
+}

@@ -21,6 +21,21 @@ const ProfileRoute = lazy(() =>
 const SecurityRoute = lazy(() =>
   import('@/pages/profile/ProfileRoutes').then((m) => ({ default: m.SecurityRoute })),
 );
+const SettingsLayout = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.SettingsLayoutRoute })),
+);
+const SettingsOverview = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.OverviewRoute })),
+);
+const SettingsGeneral = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.GeneralRoute })),
+);
+const SettingsFields = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.FieldsRoute })),
+);
+const SettingsLabels = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.LabelsRoute })),
+);
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage'));
 const CalendarPage = lazy(() => import('@/pages/CalendarPage'));
@@ -138,12 +153,18 @@ export const routes: RouteObject[] = [
               { path: 'security', element: <SecurityRoute /> },
             ],
           },
-          // Settings is the workspace admin centre; these old addresses were the person's own pages.
           {
             path: 'settings',
             handle: page('settings'),
-            element: <Navigate to="/profile" replace />,
+            element: <SettingsLayout />,
+            children: [
+              { index: true, element: <SettingsOverview /> },
+              { path: 'general', element: <SettingsGeneral /> },
+              { path: 'fields', element: <SettingsFields /> },
+              { path: 'labels', element: <SettingsLabels /> },
+            ],
           },
+          // The person's own pages moved to /profile.
           { path: 'settings/profile', element: <Navigate to="/profile" replace /> },
           { path: 'settings/security', element: <Navigate to="/profile/security" replace /> },
           { path: 'settings/preferences', element: <Navigate to="/profile" replace /> },

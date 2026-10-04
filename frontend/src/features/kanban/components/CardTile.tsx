@@ -11,6 +11,7 @@ import {
 import { forwardRef, memo, type HTMLAttributes } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Card } from '@/features/cards';
+import { CardFieldChips } from '@/features/custom-fields';
 import { useLanguage } from '@/shared/i18n';
 import { cn } from '@/shared/lib/cn';
 import { daysUntil } from '@/shared/lib/dates';
@@ -171,6 +172,7 @@ export const CardTile = memo(
             )}
           </ul>
         )}
+        <CardFieldChips cardId={card.id} />
         {showProgress && (
           <div className="flex items-center gap-2">
             <ProgressBar

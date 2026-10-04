@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CardCustomFields } from '@/features/custom-fields';
 import { AssigneePicker, PRIORITIES, STATUSES, type Card } from '@/features/cards';
 import type { Member } from '@/shared/api';
 import { useLanguage } from '@/shared/i18n';
@@ -147,6 +148,7 @@ export function CardFields({
           </span>
         </Row>
       </dl>
+      <CardCustomFields cardId={card.id} workspaceId={workspaceId} editable={editable} />
       <div className="flex flex-col gap-1 border-t border-border-subtle pt-4 text-xs text-text-muted">
         <span>{t('fields.created', { date: formatDate(card.createdAt, language) })}</span>
         <span>{t('fields.updated', { date: formatDate(card.updatedAt, language) })}</span>
