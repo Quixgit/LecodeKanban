@@ -37,6 +37,12 @@ Base URL: `/api/v1`
 | --- | --- | --- | --- | --- | --- |
 | GET | `/users/me` | session |  | 200 |  |
 | PATCH | `/users/me` | session | UpdateProfileRequest | 200, 422 Error |  |
+| POST | `/users/me/avatar` | session |  | 200, 413 Error, 422 Error | Upload a profile picture (PNG, JPEG, WebP or GIF, up to 2 MB) |
+| DELETE | `/users/me/avatar` | session |  | 200 | Remove the profile picture |
+| GET | `/users/{userId}/avatar` | session |  | 200, 404 Error | A user's uploaded profile picture (signed-in users only) |
+| GET | `/users/me/sessions` | session |  | 200 | Where the caller is signed in |
+| POST | `/users/me/sessions/revoke-others` | session |  | 204 | Sign out everywhere except this device |
+| DELETE | `/users/me/sessions/{sessionId}` | session |  | 204, 404 Error | Sign one device out |
 | POST | `/users/me/password` | session | ChangePasswordRequest | 204, 401 Error, 422 Error |  |
 
 ## workspaces
@@ -287,6 +293,8 @@ Base URL: `/api/v1`
 - **EmailRequest** — `email`: string
 - **ResetPasswordRequest** — `token`: string, `password`: string
 - **ChangePasswordRequest** — `currentPassword?`: string, `newPassword`: string
+- **Device** — `id`: string, `startedAt`: string, `lastSeenAt`: string, `userAgent`: string, `ip`: string, `current`: boolean
+- **DeviceList** — `items`: array
 - **UpdateProfileRequest** — `name?`: string, `locale?`: Locale
 - **Role**: `owner` | `admin` | `member` | `viewer`
 - **InviteRole**: `admin` | `member` | `viewer`

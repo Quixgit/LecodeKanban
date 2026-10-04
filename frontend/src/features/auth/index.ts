@@ -13,3 +13,5 @@ export {
   useSessionExpiryListener,
   sessionKey,
 } from './hooks/useSession';
+export { StrengthMeter } from './components/StrengthMeter';
+export { password as passwordSchema } from './model/schemas';

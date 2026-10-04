@@ -210,6 +210,7 @@ WHERE user_id = $1
 GROUP BY family_id
 HAVING bool_or(revoked_at IS NULL AND expires_at > now() AND replaced_by IS NULL)
 ORDER BY max(created_at) DESC
+LIMIT 50
 `
 
 type ListUserSessionsRow struct {

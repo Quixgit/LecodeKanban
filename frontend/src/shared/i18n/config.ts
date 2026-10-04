@@ -20,6 +20,7 @@ export const NAMESPACES = [
   'wikiEditor',
   'chat',
   'integrations',
+  'settings',
   'showcase',
 ] as const;
 export type Namespace = (typeof NAMESPACES)[number];

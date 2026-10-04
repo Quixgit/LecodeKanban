@@ -23,11 +23,14 @@
     "provider_not_configured": "This sign-in method isn't configured yet.",
     "oauth_failed": "Sign-in with the provider failed. Please try again.",
     "oauth_email_unverified": "Your email isn't verified with that provider. Verify it there or use email and password.",
-    "oauth_account_conflict": "An account with this email was just created. Please try signing in again."
+    "oauth_account_conflict": "An account with this email was just created. Please try signing in again.",
+    "session_not_found": "That session no longer exists."
   },
   "users": {
     "not_found": "User not found.",
-    "email_taken": "An account with this email already exists."
+    "email_taken": "An account with this email already exists.",
+    "bad_avatar": "That file isn't a PNG, JPEG, WebP or GIF picture.",
+    "avatar_too_large": "That picture is too large."
   },
   "workspaces": {
     "not_found": "Workspace not found or you're not a member.",

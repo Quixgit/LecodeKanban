@@ -57,7 +57,8 @@ FROM refresh_tokens
 WHERE user_id = @user_id
 GROUP BY family_id
 HAVING bool_or(revoked_at IS NULL AND expires_at > now() AND replaced_by IS NULL)
-ORDER BY max(created_at) DESC;
+ORDER BY max(created_at) DESC
+LIMIT 50;
 
 -- name: RevokeUserRefreshFamily :execrows
 UPDATE refresh_tokens SET revoked_at = now()

@@ -131,3 +131,18 @@ Facts about what was checked, with how. Update on every phase.
   GitHub delivery; it is now exempt and verified by signature only.
 - Not covered yet: several repositories per project, GitHub Enterprise hosts beyond `LK_GITHUB_API_URL`,
   comments and labels sync, actions attributed to a system user rather than the person who connected.
+
+## Settings: profile, security, preferences
+
+- Go: `users/service` TestAvatars (type decided from the bytes so SVG and scripts are refused, size limit,
+  new address per picture, old file removed on replace, removal, somebody else's picture not served) and
+  `auth/service` TestDevices (one row per sign-in even after token rotation, current device marked, signing
+  out another person's session looks like a missing one, signed-out sessions cannot refresh, "sign out the
+  others" keeps this device).
+- Browser: profile (save is off until something changes, validation, header updates, upload / invalid file /
+  remove), security (wrong current password, mismatch, second device appears and is signed out, real password
+  change and restore), preferences (language, theme), axe on all three.
+- Found while testing: a person's signed-in devices pile up (every login is a session for 30 days), so the
+  list shows the 50 most recent.
+- Not covered yet: changing the email address, deleting the account, linking or unlinking Google/GitHub
+  sign-in from the page, two-factor authentication, picture cropping tools beyond the centred square.

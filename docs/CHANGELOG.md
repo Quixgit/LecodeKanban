@@ -20,6 +20,17 @@
 
 ### Added
 
+- **Settings pages** (`/settings`, ADR 0021): the Profile page that used to be empty is now a settings area with
+  three sections.
+  - **Profile**: profile photo (pick or drop a picture; it is cropped to a square and shrunk in the browser,
+    then stored; remove it any time), full name, email with verification status and a resend link, member
+    since, and which sign-in methods the account has.
+  - **Security**: change the password (or set one for provider-only accounts) with a strength meter, and
+    **Where you are signed in**: every device with browser, system, address and last activity, sign one out or
+    all the others.
+  - **Preferences**: language, light / dark / device theme, and notification sounds.
+  The header and everyone else's lists show the new photo straight away.
+
 - **GitHub integration** (ADR 0020, `docs/INTEGRATIONS.md`): connect GitHub once per workspace with an
   access token, link projects to repositories (the webhook is registered for you), and the two sides follow
   each other. Pull requests and issues that mention a task key such as `PLT-12` appear on the task, an
