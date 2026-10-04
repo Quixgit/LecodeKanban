@@ -180,6 +180,10 @@ Facts about what was checked, with how. Update on every phase.
 - Not covered: filter or sort the board by a field; field changes in the activity feed; templates per project;
   a viewer's read-only view in the browser (covered in Go).
 
+## adduser command
+
+- Go: name from the email, `Name <email>` parsing, generated passwords satisfy the platform's own rules and differ every time. Checked by hand against a local database: the new account signs in with the printed password; running again leaves existing accounts alone.
+- Passwords are printed once and never stored or logged by the tool.
 ## Dashboard trends
 
 - Go: `trend` (no baseline gives null, +50%, -75%), stats follow the requested period. Unit: MetricCard shows the

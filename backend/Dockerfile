@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Builds the API, worker, migrate and seed binaries into a distroless, non-root image.
+# Builds the API, worker, migrate, seed and adduser binaries into a distroless, non-root image.
 FROM golang:1.27-alpine AS build
 WORKDIR /src
 ENV CGO_ENABLED=0 GOFLAGS=-trimpath
@@ -7,7 +7,7 @@ COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
-    for cmd in server worker migrate seed; do \
+    for cmd in server worker migrate seed adduser; do \
       go build -ldflags="-s -w" -o /out/$cmd ./cmd/$cmd || exit 1; \
     done
 # Owned by distroless "nonroot" (65532) so a fresh named volume inherits writable ownership.
