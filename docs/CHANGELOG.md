@@ -25,6 +25,13 @@
   job title, phone, location, time zone (with a "use this device's time zone" button) and an about text. The old
   `/settings/profile`, `/settings/security` and `/settings/preferences` addresses redirect.
 
+### Fixed
+
+- **Dashboard trends**: the "Completed" and "New" cards showed +0.00% whenever the previous period had nothing to
+  compare with, and always compared fixed weeks. They now follow the selected period (7 / 14 / 30 days against the
+  period before it) and show "New" or "No change" instead of a fake percentage. `changePct` in the API is `null`
+  when there is no baseline.
+
 ### Added
 
 - **`adduser` command** (`make adduser`, `/app/adduser` in the image): creates verified accounts with a random one-time
