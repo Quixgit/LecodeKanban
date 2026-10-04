@@ -27,5 +27,6 @@ export function assignableRoles(actor: Role, target: Role, self: boolean): Role[
 }
 
 export function invitableRoles(actor: Role): InviteRole[] {
-  return canManageMembers(actor) ? INVITE_ROLES.filter((r) => rank[r] <= rank[actor]) : [];
+  // The server also needs the invite permission; the dialog is only opened by people who have it.
+  return INVITE_ROLES.filter((r) => rank[r] <= rank[actor]);
 }

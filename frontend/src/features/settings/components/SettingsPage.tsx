@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShieldAlert } from 'lucide-react';
-import { useCurrentWorkspace } from '@/features/workspaces';
+import { can, useCurrentWorkspace } from '@/features/workspaces';
 import { Skeleton } from '@/shared/ui';
 import type { WorkspaceSettings } from '../api/settingsApi';
 import { useWorkspaceSettings } from '../hooks/useSettings';
@@ -31,7 +31,7 @@ export function SettingsPage({
   const { t } = useTranslation('settings');
   const { workspace } = useCurrentWorkspace();
   const settings = useWorkspaceSettings(workspace?.id);
-  const canEdit = workspace?.role === 'owner' || workspace?.role === 'admin';
+  const canEdit = can(workspace, 'workspace.update');
   return (
     <div>
       <SectionHeader title={title} description={description} action={action} />

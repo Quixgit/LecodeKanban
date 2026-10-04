@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- **Roles & permissions** (Settings → Roles): about 25 permissions in groups. Change what Admin, Member and Viewer
+  may do (and reset to defaults), or create custom roles (start blank or from a role), assign them in Team, delete
+  them. The Owner keeps everything. The old "who can invite / create projects / create channels / @channel"
+  settings became permissions (ADR 0024). Needs migration `00029`.
+
 ### Changed
 
 - **Integrations page**: services are cards in a grid (no longer one stretched card). Each card has an

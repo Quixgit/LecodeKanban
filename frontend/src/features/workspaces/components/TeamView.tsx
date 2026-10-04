@@ -14,7 +14,7 @@ import {
   StatCard,
 } from '@/shared/ui';
 import { useCurrentWorkspace, useInvites, useMembers } from '../hooks/useWorkspaces';
-import { canManageMembers } from '../model/permissions';
+import { can } from '../model/can';
 import { useCurrentWorkspaceStore } from '../store/currentWorkspace';
 import { InviteDialog } from './InviteDialog';
 import { MembersTable } from './MembersTable';
@@ -39,9 +39,9 @@ export function TeamView({ currentUserId }: { currentUserId: string }) {
   const errorText = useErrorText();
   const { workspace, isLoading } = useCurrentWorkspace();
   const setCurrent = useCurrentWorkspaceStore((s) => s.setId);
-  const manage = !!workspace && canManageMembers(workspace.role);
+  const canInvite = can(workspace, 'members.invite');
   const members = useMembers(workspace?.id);
-  const invites = useInvites(workspace?.id, manage);
+  const invites = useInvites(workspace?.id, canInvite);
   const [query, setQuery] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
 
@@ -84,7 +84,7 @@ export function TeamView({ currentUserId }: { currentUserId: string }) {
           icon={<MailPlus />}
           iconTone="amber"
           label={t('kpi.pending')}
-          value={manage ? <CountUp value={invites.data?.length ?? 0} /> : '—'}
+          value={canInvite ? <CountUp value={invites.data?.length ?? 0} /> : '—'}
         />
         <StatCard
           icon={<BadgeCheck />}
@@ -111,7 +111,7 @@ export function TeamView({ currentUserId }: { currentUserId: string }) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            {manage && (
+            {canInvite && (
               <Button onClick={() => setInviteOpen(true)}>
                 <UserPlus />
                 {t('actions.invite')}
@@ -127,7 +127,7 @@ export function TeamView({ currentUserId }: { currentUserId: string }) {
         />
       </Card>
 
-      {manage && (
+      {canInvite && (
         <Card className="p-5">
           <CardHeader>
             <div>
@@ -145,7 +145,7 @@ export function TeamView({ currentUserId }: { currentUserId: string }) {
         </Card>
       )}
 
-      {manage && (
+      {canInvite && (
         <InviteDialog
           open={inviteOpen}
           onOpenChange={setInviteOpen}

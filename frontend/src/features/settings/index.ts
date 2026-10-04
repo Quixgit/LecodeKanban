@@ -9,3 +9,4 @@ export { OverviewPage } from './components/OverviewPage';
 export { RulesPage } from './components/RulesPage';
 export { SettingsLayout } from './components/SettingsLayout';
 export { useFeatureEnabled, useWorkspaceSettings, type FeatureKey } from './hooks/useSettings';
+export { RolesPage } from './components/RolesPage';

@@ -1,4 +1,4 @@
-import { Clock, Mail, ShieldCheck, UserPlus, UsersRound } from 'lucide-react';
+import { Clock, Mail, ShieldCheck, UsersRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Select, SettingsCard, TagInput } from '@/shared/ui';
@@ -36,22 +36,6 @@ function AccessBody({
     <>
       <SettingsCard title={t('access.cardTitle')} description={t('access.cardDescription')}>
         <SettingRow
-          icon={<UserPlus />}
-          title={t('access.inviteBy.title')}
-          description={t('access.inviteBy.description')}
-        >
-          <Select
-            label={t('access.inviteBy.title')}
-            disabled={!canEdit}
-            value={settings.inviteBy}
-            onValueChange={(v) => save({ inviteBy: v as 'admins' | 'members' })}
-            options={[
-              { value: 'admins', label: t('who.admins') },
-              { value: 'members', label: t('who.members') },
-            ]}
-          />
-        </SettingRow>
-        <SettingRow
           icon={<ShieldCheck />}
           title={t('access.defaultRole.title')}
           description={t('access.defaultRole.description')}
@@ -63,7 +47,7 @@ function AccessBody({
             onValueChange={(v) => save({ defaultInviteRole: v as 'admin' | 'member' | 'viewer' })}
             options={(['admin', 'member', 'viewer'] as const).map((r) => ({
               value: r,
-              label: t(`roles.${r}`),
+              label: t(`roles.names.${r}`),
             }))}
           />
         </SettingRow>

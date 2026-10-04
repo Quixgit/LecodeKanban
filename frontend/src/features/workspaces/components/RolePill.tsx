@@ -9,11 +9,12 @@ const tones: Record<Role, Tone> = {
   viewer: 'amber',
 };
 
-export function RolePill({ role }: { role: Role }) {
+/** A role as a pill; a person with a custom role shows its name, tinted like the role it ranks as. */
+export function RolePill({ role, label }: { role: Role; label?: string }) {
   const { t } = useTranslation('team');
   return (
     <Pill tone={tones[role]} size="sm">
-      {t(`roles.${role}`)}
+      {label ?? t(`roles.${role}`)}
     </Pill>
   );
 }

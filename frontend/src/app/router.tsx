@@ -37,6 +37,9 @@ const SettingsFeatures = lazy(() =>
 const SettingsAccess = lazy(() =>
   import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.AccessRoute })),
 );
+const SettingsRoles = lazy(() =>
+  import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.RolesRoute })),
+);
 const SettingsRules = lazy(() =>
   import('@/pages/settings/SettingsRoutes').then((m) => ({ default: m.RulesRoute })),
 );
@@ -199,6 +202,7 @@ export const routes: RouteObject[] = [
               { path: 'general', element: <SettingsGeneral /> },
               { path: 'features', element: <SettingsFeatures /> },
               { path: 'access', element: <SettingsAccess /> },
+              { path: 'roles', element: <SettingsRoles /> },
               { path: 'rules', element: <SettingsRules /> },
               { path: 'fields', element: <SettingsFields /> },
               { path: 'labels', element: <SettingsLabels /> },

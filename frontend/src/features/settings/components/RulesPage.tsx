@@ -1,4 +1,4 @@
-import { AtSign, CalendarClock, CalendarDays, FolderPlus, Flag, Hash } from 'lucide-react';
+import { CalendarClock, CalendarDays, Flag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Select, SettingsCard, Switch } from '@/shared/ui';
 import type { WorkspaceSettings } from '../api/settingsApi';
@@ -29,28 +29,8 @@ function RulesBody({
 }) {
   const { t } = useTranslation('settings');
   const { save } = useSaver(workspaceId);
-  const who = [
-    { value: 'admins', label: t('who.admins') },
-    { value: 'members', label: t('who.members') },
-  ];
   return (
     <>
-      <SettingsCard title={t('rules.projectsTitle')} description={t('rules.projectsDescription')}>
-        <SettingRow
-          icon={<FolderPlus />}
-          title={t('rules.projectCreateBy.title')}
-          description={t('rules.projectCreateBy.description')}
-        >
-          <Select
-            label={t('rules.projectCreateBy.title')}
-            disabled={!canEdit}
-            value={settings.projectCreateBy}
-            onValueChange={(v) => save({ projectCreateBy: v as 'admins' | 'members' })}
-            options={who}
-          />
-        </SettingRow>
-      </SettingsCard>
-
       <SettingsCard title={t('rules.tasksTitle')} description={t('rules.tasksDescription')}>
         <SettingRow
           icon={<Flag />}
@@ -93,38 +73,6 @@ function RulesBody({
             options={[
               { value: '1', label: t('rules.weekStart.monday') },
               { value: '0', label: t('rules.weekStart.sunday') },
-            ]}
-          />
-        </SettingRow>
-      </SettingsCard>
-
-      <SettingsCard title={t('rules.chatTitle')} description={t('rules.chatDescription')}>
-        <SettingRow
-          icon={<Hash />}
-          title={t('rules.channelCreateBy.title')}
-          description={t('rules.channelCreateBy.description')}
-        >
-          <Select
-            label={t('rules.channelCreateBy.title')}
-            disabled={!canEdit}
-            value={settings.channelCreateBy}
-            onValueChange={(v) => save({ channelCreateBy: v as 'admins' | 'members' })}
-            options={who}
-          />
-        </SettingRow>
-        <SettingRow
-          icon={<AtSign />}
-          title={t('rules.broadcast.title')}
-          description={t('rules.broadcast.description')}
-        >
-          <Select
-            label={t('rules.broadcast.title')}
-            disabled={!canEdit}
-            value={settings.broadcastBy}
-            onValueChange={(v) => save({ broadcastBy: v as 'everyone' | 'admins' })}
-            options={[
-              { value: 'everyone', label: t('who.everyone') },
-              { value: 'admins', label: t('who.admins') },
             ]}
           />
         </SettingRow>

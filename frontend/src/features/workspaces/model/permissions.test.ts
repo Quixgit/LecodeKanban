@@ -27,6 +27,6 @@ describe('RBAC mirror', () => {
     expect(assignableRoles('admin', 'member', false)).toEqual(['admin', 'member', 'viewer']);
     expect(assignableRoles('member', 'member', true)).toEqual(['member', 'viewer']);
     expect(invitableRoles('admin')).toEqual(['admin', 'member', 'viewer']);
-    expect(invitableRoles('member')).toEqual([]);
+    expect(invitableRoles('member')).toEqual(['member', 'viewer']);
   });
 });

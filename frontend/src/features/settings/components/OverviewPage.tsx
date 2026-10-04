@@ -4,7 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useLabels } from '@/features/cards';
 import { useCustomFields } from '@/features/custom-fields';
-import { RolePill, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
+import {
+  can,
+  RolePill,
+  useCurrentWorkspace,
+  useRoles,
+  useWorkspaceMembers,
+} from '@/features/workspaces';
 import { Pill, Skeleton } from '@/shared/ui';
 import { useWorkspaceSettings } from '../hooks/useSettings';
 import { SECTIONS, type SectionKey } from '../model/sections';
@@ -18,6 +24,7 @@ export function OverviewPage() {
   const labels = useLabels(workspace?.id);
   const members = useWorkspaceMembers(workspace?.id);
   const settings = useWorkspaceSettings(workspace?.id);
+  const roles = useRoles(workspace?.id);
   if (isLoading || !workspace) return <Skeleton className="h-64" />;
 
   const f = settings.data?.features;
@@ -27,13 +34,9 @@ export function OverviewPage() {
     fields: fields.data ? t('overview.count', { count: fields.data.length }) : undefined,
     labels: labels.data ? t('overview.count', { count: labels.data.length }) : undefined,
     members: members.data ? t('overview.people', { count: members.data.length }) : undefined,
-    access: settings.data
-      ? settings.data.inviteBy === 'admins'
-        ? t('overview.inviteAdmins')
-        : t('overview.inviteMembers')
-      : undefined,
+    roles: roles.data ? t('overview.roles', { count: roles.data.roles.length }) : undefined,
   };
-  const canEdit = workspace.role === 'owner' || workspace.role === 'admin';
+  const canEdit = can(workspace, 'workspace.update');
 
   return (
     <div className="flex flex-col gap-5">

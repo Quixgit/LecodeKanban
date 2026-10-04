@@ -1,4 +1,9 @@
-import { api, unwrap, type InviteRole, type Role } from '@/shared/api';
+import { api, unwrap, type components, type InviteRole, type Role } from '@/shared/api';
+
+export type RoleInput = components['schemas']['RoleInput'];
+export type RoleDefinition = components['schemas']['RoleDefinition'];
+export type RolesOverview = components['schemas']['RolesOverview'];
+export type PermissionInfo = components['schemas']['PermissionInfo'];
 
 const ws = (workspaceId: string) => ({ params: { path: { workspaceId } } });
 
@@ -29,6 +34,42 @@ export const workspacesApi = {
     unwrap(
       api.DELETE('/workspaces/{workspaceId}/members/{userId}', {
         params: { path: { workspaceId: id, userId } },
+      }),
+    ),
+  roles: (id: string) => unwrap(api.GET('/workspaces/{workspaceId}/roles', ws(id))),
+  assignCustomRole: (id: string, userId: string, roleId: string | null) =>
+    unwrap(
+      api.PUT('/workspaces/{workspaceId}/members/{userId}/custom-role', {
+        params: { path: { workspaceId: id, userId } },
+        body: { roleId },
+      }),
+    ),
+  createRole: (id: string, body: RoleInput) =>
+    unwrap(api.POST('/workspaces/{workspaceId}/roles', { ...ws(id), body })),
+  updateRole: (id: string, roleKey: string, body: RoleInput) =>
+    unwrap(
+      api.PATCH('/workspaces/{workspaceId}/roles/{roleKey}', {
+        params: { path: { workspaceId: id, roleKey } },
+        body,
+      }),
+    ),
+  deleteRole: (id: string, roleKey: string) =>
+    unwrap(
+      api.DELETE('/workspaces/{workspaceId}/roles/{roleKey}', {
+        params: { path: { workspaceId: id, roleKey } },
+      }),
+    ),
+  setRolePermissions: (id: string, roleKey: string, permissions: string[]) =>
+    unwrap(
+      api.PUT('/workspaces/{workspaceId}/roles/{roleKey}', {
+        params: { path: { workspaceId: id, roleKey } },
+        body: { permissions },
+      }),
+    ),
+  resetRole: (id: string, roleKey: string) =>
+    unwrap(
+      api.POST('/workspaces/{workspaceId}/roles/{roleKey}/reset', {
+        params: { path: { workspaceId: id, roleKey } },
       }),
     ),
   previewInvite: (token: string) =>

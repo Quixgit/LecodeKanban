@@ -17,7 +17,7 @@ import { useCard } from '@/features/cards';
 import { GithubCardPanel } from '@/features/integrations';
 import { useFeatureEnabled } from '@/features/settings';
 import { TimeTracker } from '@/features/time-tracking';
-import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
+import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import {
   ConfirmDialog,
   Drawer,
@@ -83,8 +83,8 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
   const [tab, setTab] = useState<Tab>('comments');
   const [confirm, setConfirm] = useState(false);
   const { expanded, setExpanded } = useCardDrawerStore();
-  const editable = !!workspace && workspace.role !== 'viewer';
-  const isAdmin = workspace?.role === 'owner' || workspace?.role === 'admin';
+  const editable = can(workspace, 'content.edit');
+  const isAdmin = can(workspace, 'time.manage');
 
   const open = (cardId: string) =>
     setParams((prev) => {

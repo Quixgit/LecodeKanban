@@ -31,7 +31,7 @@
     },
     "rules": {
       "title": "Rules & defaults",
-      "description": "Who creates projects and channels, defaults for new tasks and the calendar."
+      "description": "Defaults for new tasks and how the calendar looks."
     },
     "fields": {
       "title": "Custom fields",
@@ -48,6 +48,10 @@
     "audit": {
       "title": "Audit log",
       "description": "What the administrators changed, and when."
+    },
+    "roles": {
+      "title": "Roles & permissions",
+      "description": "Choose exactly what each role may do, or create your own roles."
     }
   },
   "overview": {
@@ -56,8 +60,7 @@
     "modulesOn": "{{on}} of {{total}} modules on",
     "count": "{{count}} defined",
     "people": "{{count}} people",
-    "inviteAdmins": "Only admins invite",
-    "inviteMembers": "Members can invite"
+    "roles": "{{count}} roles"
   },
   "general": {
     "nameTitle": "Workspace",
@@ -113,16 +116,57 @@
   },
   "saved": "Saved",
   "readOnly": "You can look around, but only workspace administrators can change these settings.",
-  "who": {
-    "admins": "Only administrators",
-    "members": "Every member",
-    "everyone": "Everyone"
-  },
   "roles": {
-    "owner": "Owner",
-    "admin": "Admin",
-    "member": "Member",
-    "viewer": "Viewer"
+    "new": "New role",
+    "newTitle": "New role",
+    "newDescription": "A custom role is a hand-picked set of permissions. Pick a starting point and adjust it after.",
+    "name": "Name",
+    "description": "Description",
+    "noDescription": "No description.",
+    "base": "Ranks as",
+    "baseHint": "Decides who may change whom: only people ranking higher can manage this role's members.",
+    "startFrom": "Start from",
+    "startFromHint": "Copies that role's permissions.",
+    "blank": "Nothing (just looking)",
+    "create": "Create role",
+    "cancel": "Cancel",
+    "saveProfile": "Save details",
+    "list": "Roles",
+    "custom": "Custom",
+    "changed": "Changed",
+    "people_one": "{{count}} person",
+    "people_other": "{{count}} people",
+    "reset": "Reset to defaults",
+    "resetTitle": "Reset the {{name}} role?",
+    "resetBody": "The role goes back to the permissions it started with. Everyone who has it is affected at once.",
+    "resetDone": "Role reset",
+    "delete": "Delete role",
+    "deleteTitle": "Delete the role “{{name}}”?",
+    "deleteBody_one": "{{count}} person who has it goes back to the {{base}} role.",
+    "deleteBody_other": "{{count}} people who have it go back to the {{base}} role.",
+    "deleted": "Role deleted",
+    "ownerLocked": "The owner always has every permission. This cannot be changed.",
+    "names": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member",
+      "viewer": "Viewer"
+    },
+    "about": {
+      "owner": "Runs the workspace. Always everything.",
+      "admin": "Manages people and settings. Starts with most permissions.",
+      "member": "Works on tasks, projects and chat. The usual teammate.",
+      "viewer": "Can look but not change anything."
+    },
+    "groups": {
+      "general": "General",
+      "tasks": "Tasks",
+      "projects": "Projects & boards",
+      "chat": "Chat",
+      "time": "Time tracking",
+      "people": "People",
+      "admin": "Administration"
+    }
   },
   "priority": {
     "low": "Low",
@@ -161,10 +205,6 @@
   "access": {
     "cardTitle": "Invitations",
     "cardDescription": "Rules for bringing new people into this workspace.",
-    "inviteBy": {
-      "title": "Who can invite",
-      "description": "Members can invite only up to their own role."
-    },
     "defaultRole": {
       "title": "Default role",
       "description": "Pre-selected in the invitation form."
@@ -188,12 +228,6 @@
     "openTeam": "Open the team page"
   },
   "rules": {
-    "projectsTitle": "Projects",
-    "projectsDescription": "Who can start new projects.",
-    "projectCreateBy": {
-      "title": "Who can create projects",
-      "description": "Administrators can always create them."
-    },
     "tasksTitle": "Tasks & calendar",
     "tasksDescription": "Defaults for new tasks and how the calendar looks.",
     "priority": {
@@ -209,16 +243,6 @@
       "description": "Used by the calendar.",
       "monday": "Monday",
       "sunday": "Sunday"
-    },
-    "chatTitle": "Chat",
-    "chatDescription": "Rules for channels and notifying many people at once.",
-    "channelCreateBy": {
-      "title": "Who can create channels",
-      "description": "Administrators can always create them."
-    },
-    "broadcast": {
-      "title": "Who can use @channel",
-      "description": "@channel notifies everyone in the channel."
     }
   },
   "audit": {
@@ -228,13 +252,9 @@
     "someone": "Someone",
     "keys": {
       "description": "description",
-      "inviteBy": "who can invite",
       "inviteDays": "invitation lifetime",
       "defaultInviteRole": "default role",
       "allowedDomains": "allowed domains",
-      "projectCreateBy": "who creates projects",
-      "channelCreateBy": "who creates channels",
-      "broadcastBy": "who uses @channel",
       "defaultPriority": "default priority",
       "requireDueDate": "due date requirement",
       "weekStart": "week start",
@@ -254,6 +274,92 @@
     "invite": {
       "sent": "invited {{email}} as {{role}}",
       "revoked": "revoked an invitation"
+    }
+  },
+  "perms": {
+    "workspace_view": {
+      "title": "See the workspace",
+      "description": "Open projects, tasks, chat and docs; always on."
+    },
+    "content_edit": {
+      "title": "Create and edit tasks",
+      "description": "Add tasks, edit them, move them on the board, comment, tick checklists, attach files."
+    },
+    "tasks_delete": {
+      "title": "Delete tasks",
+      "description": "Archive tasks, one by one or in bulk."
+    },
+    "content_moderate": {
+      "title": "Moderate content",
+      "description": "Delete other people's comments and attachments."
+    },
+    "projects_create": {
+      "title": "Create projects",
+      "description": "Start new projects."
+    },
+    "projects_edit": {
+      "title": "Edit projects",
+      "description": "Change a project's name, dates, team and look."
+    },
+    "projects_delete": {
+      "title": "Archive and delete projects",
+      "description": "Remove whole projects."
+    },
+    "boards_manage": {
+      "title": "Manage board columns",
+      "description": "Add, rename, reorder and remove columns."
+    },
+    "labels_manage": {
+      "title": "Manage labels",
+      "description": "Create, recolour and delete labels."
+    },
+    "fields_manage": {
+      "title": "Manage custom fields",
+      "description": "Define the extra fields of tasks."
+    },
+    "chat_channels_create": {
+      "title": "Create channels",
+      "description": "Start public and private channels."
+    },
+    "chat_broadcast": {
+      "title": "Use @channel",
+      "description": "Notify everyone in a channel at once."
+    },
+    "chat_moderate": {
+      "title": "Moderate chat",
+      "description": "Delete other people's messages and archive channels."
+    },
+    "time_manage": {
+      "title": "Manage others' time",
+      "description": "Edit and delete time entries of other people."
+    },
+    "integrations_manage": {
+      "title": "Manage integrations",
+      "description": "Connect and disconnect GitHub and similar tools."
+    },
+    "members_invite": {
+      "title": "Invite people",
+      "description": "Send invitations (never above their own role)."
+    },
+    "members_manage": {
+      "title": "Manage members",
+      "description": "Change roles and remove people."
+    },
+    "workspace_update": {
+      "title": "Manage settings",
+      "description": "Change workspace settings, modules and defaults."
+    },
+    "audit_view": {
+      "title": "See the audit log",
+      "description": "Read what administrators changed."
+    },
+    "roles_manage": {
+      "title": "Manage roles",
+      "description": "Change what roles can do and create custom roles."
+    },
+    "workspace_delete": {
+      "title": "Delete the workspace",
+      "description": "Only the owner; cannot be given to others."
     }
   }
 }

@@ -221,3 +221,11 @@ Facts about what was checked, with how. Update on every phase.
 - Browser: menu (axe) with details / copy / star / inline notification levels / temporary mute / mute and hide / split
   view / leave; member list on the new Members tab.
 - Not covered: "Edit default preferences" from the Slack menu (we have no per-user notification defaults page yet).
+
+## Roles and permissions
+
+- Go: permission catalog, defaults, `Access`, `Clean`; role overrides, custom roles (create / update / delete / assign,
+  name clash, limit, locked owner), escalation guard, invitations by permission, enforcement in projects, chat, time,
+  attachments, comments, cards, labels, boards, custom fields, GitHub, audit.
+- Unit: `can()`, invitable roles. Browser: Settings → Roles (axe, toggle + reset, create + delete a custom role).
+- Not covered: a module-level permission test in the browser for every action (covered by Go authz tests).
