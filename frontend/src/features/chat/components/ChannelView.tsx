@@ -1,45 +1,86 @@
 import { motion } from 'framer-motion';
-import { ClipboardList, Hash, Info, Lock, Star, UserRound, Users } from 'lucide-react';
+import { ClipboardList, Hash, Info, Lock, Star, UserRound, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
 import { cn } from '@/shared/lib/cn';
 import { transition } from '@/shared/motion';
-import {
-  AvatarGroup,
-  Button,
-  ConfirmDialog,
-  EmptyState,
-  IconButton,
-  Tooltip,
-  toast,
-} from '@/shared/ui';
+import { Button, ConfirmDialog, EmptyState, IconButton, Tooltip, toast } from '@/shared/ui';
 import { chatApi, type ChatMessage } from '../api/chatApi';
 import { useChannelMembers, useChatMutations, useMessages, usePins } from '../hooks/useChat';
 import { channelTitle } from '../model/channels';
-import { ChannelDetailsDialog } from './ChannelDetailsDialog';
+import { ChannelDetailsDialog, type DetailsTab } from './ChannelDetailsDialog';
 import { ChannelTabBar, FilesPanel, PinsPanel, type ChannelTab } from './ChannelTabs';
 import { Composer } from './Composer';
-import type { ChatOutletContext } from './ChatLayout';
+import { useChatContext } from './chatContext';
 import type { MessageActions } from './MessageItem';
 import { MessageList } from './MessageList';
-import { PersonAvatar, StatusBadge } from './PresenceDot';
+import { StatusBadge } from './PresenceDot';
 import { ThreadPanel } from './ThreadPanel';
 import { TypingIndicator } from './TypingIndicator';
 
 const THREAD_W = 400;
 
+const DETAILS_TABS = ['about', 'members', 'notifications'] as const;
+
+/** `?details=` may hold a tab, or "1" for the first tab. */
+function detailsParam(v: string | null): DetailsTab | null {
+  if (!v) return null;
+  return (DETAILS_TABS as readonly string[]).includes(v) ? (v as DetailsTab) : 'about';
+}
+
+/** The channel name: the page's only top-level heading, or a plain heading in the second pane. */
+function Heading({
+  embedded,
+  className,
+  children,
+}: {
+  embedded: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return embedded ? (
+    <h2 className={className}>{children}</h2>
+  ) : (
+    <h1 className={className}>{children}</h1>
+  );
+}
+
+/** The view state of a conversation (thread, tab…): in the address bar, or in memory for the split pane. */
+function useViewParams(embedded: boolean) {
+  const [url, setUrl] = useSearchParams();
+  const [local, setLocal] = useState(() => new URLSearchParams());
+  const params = embedded ? local : url;
+  const setParams = (
+    next: URLSearchParams | ((prev: URLSearchParams) => URLSearchParams),
+    options?: { replace?: boolean },
+  ) => {
+    if (!embedded) return setUrl(next, options);
+    setLocal((prev) => (typeof next === 'function' ? next(prev) : next));
+  };
+  return [params, setParams] as const;
+}
+
+interface ViewProps {
+  /** The conversation to show; by default the one in the address. */
+  channelId?: string;
+  /** Rendered in the second pane: its own view state, and a button to close it. */
+  embedded?: boolean;
+  onClosePane?: () => void;
+}
+
 /** One conversation: header, tabs, history, composer and the optional thread panel. */
-export function ChannelView() {
+export function ChannelView({ channelId: channelProp, embedded = false, onClosePane }: ViewProps) {
   const { t } = useTranslation('chat');
-  const { channelId } = useParams();
-  const ctx = useOutletContext<ChatOutletContext>();
+  const routeParams = useParams();
+  const channelId = channelProp ?? routeParams.channelId;
+  const ctx = useChatContext();
   const navigate = useNavigate();
   const errorText = useErrorText();
   const desktop = useMediaQuery('(min-width: 1024px)');
-  const [params, setParams] = useSearchParams();
+  const [params, setParams] = useViewParams(embedded);
   const threadId = params.get('thread') ?? undefined;
   const highlightId = params.get('m') ?? undefined;
   const tab = (params.get('tab') as ChannelTab | null) ?? 'messages';
@@ -48,22 +89,27 @@ export function ChannelView() {
   const msgs = useMessages(channel?.id);
   const members = useChannelMembers(channel?.id);
   const pins = usePins(channel?.id);
-  const [details, setDetails] = useState(params.get('details') === '1');
+  // Which tab of the details window is open (null: closed). The sidebar menu opens it with ?details=<tab>.
+  const [details, setDetails] = useState<DetailsTab | null>(() =>
+    detailsParam(params.get('details')),
+  );
   const [removing, setRemoving] = useState<ChatMessage | null>(null);
 
   // A link from the sidebar menu opens the details; drop the flag so it doesn't reopen on reload.
-  const wantsDetails = params.get('details') === '1';
+  const wantsDetails = params.get('details');
   useEffect(() => {
     if (!wantsDetails) return;
-    setDetails(true);
+    setDetails(detailsParam(wantsDetails) ?? 'about');
     setParams(
       (p) => {
-        p.delete('details');
-        return p;
+        const next = new URLSearchParams(p);
+        next.delete('details');
+        return next;
       },
       { replace: true },
     );
-  }, [wantsDetails, setParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantsDetails]);
 
   // Opening a conversation (and every message that arrives while it is on screen) marks it read.
   const unread = channel?.unread ?? 0;
@@ -91,7 +137,11 @@ export function ChannelView() {
         icon={<Hash />}
         title={t('missing.title')}
         description={t('missing.description')}
-        action={<Button onClick={() => navigate('/chat')}>{t('missing.back')}</Button>}
+        action={
+          <Button onClick={() => (embedded ? onClosePane?.() : navigate('/chat'))}>
+            {t('missing.back')}
+          </Button>
+        }
       />
     );
   }
@@ -160,19 +210,12 @@ export function ChannelView() {
       {(desktop || !showThread) && (
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="flex h-14 shrink-0 items-center gap-3 px-5">
-            {dmPeer ? (
-              <PersonAvatar
-                name={dmPeer.name}
-                src={dmPeer.avatarUrl}
-                online={ctx.online.has(dmPeer.id)}
-                status={ctx.statuses.get(dmPeer.id)}
-                size="sm"
-              />
-            ) : (
-              <Icon className="size-5 shrink-0 stroke-[1.6] text-text-muted" aria-hidden />
-            )}
+            <Icon className="size-5 shrink-0 stroke-[1.6] text-text-muted" aria-hidden />
             <div className="min-w-0 flex-1">
-              <h1 className="flex items-center gap-2 truncate text-md font-semibold text-text">
+              <Heading
+                embedded={embedded}
+                className="flex items-center gap-2 truncate text-md font-semibold text-text"
+              >
                 {title}
                 {dmPeer && <StatusBadge status={ctx.statuses.get(dmPeer.id)} />}
                 {channel.feed && (
@@ -180,11 +223,11 @@ export function ChannelView() {
                     {t('feed.badge')}
                   </span>
                 )}
-              </h1>
+              </Heading>
               {channel.topic && (
                 <button
                   type="button"
-                  onClick={() => setDetails(true)}
+                  onClick={() => setDetails('about')}
                   className="block max-w-full truncate text-left text-xs text-text-muted hover:text-text focus-visible:shadow-focus focus-visible:outline-none"
                 >
                   {channel.topic}
@@ -202,32 +245,35 @@ export function ChannelView() {
                 <Star className={cn(channel.starred && 'fill-warning text-warning')} />
               </IconButton>
             </Tooltip>
-            <Tooltip content={t('header.members')}>
+            <Tooltip content={t('header.details')}>
               <button
                 type="button"
-                onClick={() => setDetails(true)}
-                aria-label={t('header.members')}
-                className="hidden items-center gap-2 rounded-lg border border-border px-2 py-1 text-xs text-text-secondary outline-none transition-colors duration-micro hover:border-border-strong hover:bg-surface-muted focus-visible:shadow-focus sm:flex"
+                onClick={() => setDetails('about')}
+                aria-label={t('header.details')}
+                className="flex h-8 items-center gap-1.5 rounded-lg border border-border px-2.5 text-xs text-text-secondary outline-none transition-colors duration-micro hover:border-border-strong hover:bg-surface-muted focus-visible:shadow-focus"
               >
-                <AvatarGroup
-                  size="xs"
-                  max={3}
-                  total={channel.memberCount}
-                  people={roster.map((p) => ({ name: p.name, src: p.avatarUrl }))}
-                />
-                <span className="tabular-nums">{channel.memberCount}</span>
+                {channel.kind === 'dm' ? (
+                  <Info className="size-4" aria-hidden />
+                ) : (
+                  <>
+                    <Users className="size-4" aria-hidden />
+                    <span className="tabular-nums">{channel.memberCount}</span>
+                  </>
+                )}
               </button>
             </Tooltip>
-            <Tooltip content={t('header.details')}>
-              <IconButton
-                label={t('header.details')}
-                variant="ghost"
-                size="sm"
-                onClick={() => setDetails(true)}
-              >
-                <Info />
-              </IconButton>
-            </Tooltip>
+            {embedded && onClosePane && (
+              <Tooltip content={t('split.close')}>
+                <IconButton
+                  label={t('split.close')}
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClosePane}
+                >
+                  <X />
+                </IconButton>
+              </Tooltip>
+            )}
           </header>
           <ChannelTabBar value={tab} onChange={setTab} pinCount={pins.data?.length} />
 
@@ -365,8 +411,9 @@ export function ChannelView() {
       )}
 
       <ChannelDetailsDialog
-        open={details}
-        onOpenChange={setDetails}
+        open={details !== null}
+        initialTab={details ?? 'about'}
+        onOpenChange={(o) => !o && setDetails(null)}
         workspaceId={ctx.workspaceId}
         channel={channel}
         me={ctx.me}
@@ -375,7 +422,7 @@ export function ChannelView() {
         canWrite={ctx.canWrite}
         online={ctx.online}
         projects={ctx.projects}
-        onGone={() => navigate('/chat')}
+        onGone={() => (embedded ? onClosePane?.() : navigate('/chat'))}
       />
       <ConfirmDialog
         open={removing !== null}

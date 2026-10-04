@@ -1,4 +1,4 @@
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '../lib/cn';
 
 export interface TrendChipProps {
@@ -6,15 +6,18 @@ export interface TrendChipProps {
   value: number;
   format?: (abs: number) => string;
   className?: string;
+  /** No change: a flat dash instead of an arrow. */
+  flat?: boolean;
 }
 
 export function TrendChip({
   value,
   format = (v) => `${v.toFixed(2)}%`,
   className,
+  flat,
 }: TrendChipProps) {
   const up = value >= 0;
-  const Icon = up ? TrendingUp : TrendingDown;
+  const Icon = flat ? Minus : up ? TrendingUp : TrendingDown;
   return (
     <span
       className={cn(
@@ -24,7 +27,7 @@ export function TrendChip({
       )}
     >
       <Icon className="size-3.5" aria-hidden />
-      <span className="sr-only">{up ? '+' : '−'}</span>
+      {!flat && <span className="sr-only">{up ? '+' : '−'}</span>}
       {format(Math.abs(value))}
     </span>
   );

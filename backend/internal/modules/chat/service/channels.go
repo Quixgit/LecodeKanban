@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -444,11 +445,14 @@ func (s *Service) MarkRead(ctx context.Context, user, channel uuid.UUID) error {
 }
 
 // SetNotify sets how loudly a channel notifies the caller: all, mentions or muted.
-func (s *Service) SetNotify(ctx context.Context, user, channel uuid.UUID, level string) error {
+func (s *Service) SetNotify(ctx context.Context, user, channel uuid.UUID, level string, until *time.Time) error {
 	switch level {
 	case domain.NotifyAll, domain.NotifyMentions, domain.NotifyMuted:
 	default:
 		return apperr.New(domain.ErrBadLevel, "unknown notification level")
+	}
+	if until != nil && (level != domain.NotifyMuted || !until.After(time.Now()) || until.After(time.Now().AddDate(1, 0, 0))) {
+		return apperr.New(domain.ErrBadLevel, "a temporary mute needs a future end within a year")
 	}
 	ch, member, err := s.access(ctx, user, channel, false)
 	if err != nil {
@@ -457,5 +461,5 @@ func (s *Service) SetNotify(ctx context.Context, user, channel uuid.UUID, level 
 	if !member {
 		return apperr.New(domain.ErrNotMember, "join the channel first")
 	}
-	return s.repo.SetNotify(ctx, ch.ID, user, level)
+	return s.repo.SetNotify(ctx, ch.ID, user, level, until)
 }

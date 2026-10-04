@@ -222,3 +222,10 @@ Facts about what was checked, with how. Update on every phase.
 - Browser: the page (axe), the test-inbox warning, a test email appears in the list, the invitation link in the invite
   dialog.
 - The page cannot change the mail settings: credentials stay in `.env` by design.
+## Dashboard trend chips, chat menu, header and split view
+
+- Go: temporary mute round-trips, shows its end, is refused for a past time or a level other than muted, lifts to
+  "all". Unit: MetricCard (percentage, absolute delta, flat zero), mute end times (hour, tomorrow 9:00, next Monday).
+- Browser: menu (axe) with details / copy / star / inline notification levels / temporary mute / mute and hide / split
+  view / leave; member list on the new Members tab.
+- Not covered: "Edit default preferences" from the Slack menu (we have no per-user notification defaults page yet).

@@ -61,8 +61,10 @@ export const chatApi = {
   join: (id: string) => unwrap(api.POST('/chat/channels/{channelId}/join', channel(id))),
   leave: (id: string) => unwrap(api.POST('/chat/channels/{channelId}/leave', channel(id))),
   markRead: (id: string) => unwrap(api.POST('/chat/channels/{channelId}/read', channel(id))),
-  setNotify: (id: string, level: ChatNotifyLevel) =>
-    unwrap(api.PUT('/chat/channels/{channelId}/notify', { ...channel(id), body: { level } })),
+  setNotify: (id: string, level: ChatNotifyLevel, until?: string) =>
+    unwrap(
+      api.PUT('/chat/channels/{channelId}/notify', { ...channel(id), body: { level, until } }),
+    ),
   messages: (id: string, before?: string) =>
     unwrap(
       api.GET('/chat/channels/{channelId}/messages', {

@@ -175,7 +175,17 @@
     "leaveTitle": "Leave this channel?",
     "leaveBody": "You'll stop getting its unread badge. You can rejoin public channels any time.",
     "notify": "Notifications",
-    "notifyHint": "Choose what reaches you from this channel."
+    "notifyHint": "Choose what reaches you from this channel.",
+    "tabs": "Channel details sections",
+    "tab": {
+      "about": "About",
+      "members": "Members",
+      "notifications": "Notifications"
+    },
+    "findMember": "Find a member",
+    "pinned": "Pinned messages",
+    "files": "Files",
+    "joinFirst": "Join the channel to choose how it notifies you."
   },
   "header": {
     "members": "Show members",
@@ -437,6 +447,23 @@
     "leaveTitle": "Leave this channel?",
     "leaveBody": "You'll stop getting its messages. You can rejoin public channels any time.",
     "left": "You left the channel",
-    "saved": "Notification setting saved"
+    "saved": "Notification setting saved",
+    "viewDetails": "View channel details",
+    "searchIn": "Search in channel",
+    "mutedUntil": "Muted until {{when}}",
+    "tempMute": "Temporarily mute…",
+    "advanced": "Advanced settings",
+    "split": "Open in split view",
+    "splitHint": "opt click",
+    "mute": {
+      "hour": "1 hour",
+      "fourHours": "4 hours",
+      "tomorrow": "Until tomorrow",
+      "nextWeek": "Until next week"
+    }
+  },
+  "split": {
+    "label": "Second conversation",
+    "close": "Close split view"
   }
 }

@@ -78,7 +78,7 @@ func toMessage(m store.ChatMessage) domain.Message {
 
 func toMembership(m store.ChatMember) domain.Membership {
 	return domain.Membership{ChannelID: m.ChannelID, UserID: m.UserID, JoinedAt: m.JoinedAt,
-		LastReadAt: m.LastReadAt, Muted: m.Muted, MentionsOnly: m.MentionsOnly}
+		LastReadAt: m.LastReadAt, Muted: m.Muted || (m.MutedUntil != nil && m.MutedUntil.After(time.Now())), MentionsOnly: m.MentionsOnly}
 }
 
 func notFound(err error) error {
@@ -162,7 +162,7 @@ func (r *Repo) ChannelStates(ctx context.Context, ws, user uuid.UUID) ([]domain.
 			Channel: domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
 				Topic: c.Topic, DMKey: str(c.DmKey), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), FeedEvents: c.FeedEvents, CreatedBy: ptrID(c.CreatedBy), CreatedAt: c.CreatedAt,
 				LastMessageAt: c.LastMessageAt},
-			Joined: c.Joined, Muted: c.Muted, Notify: notifyLevel(c.Muted, c.MentionsOnly), Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}
+			Joined: c.Joined, Muted: c.Muted, Notify: notifyLevel(c.Muted, c.MentionsOnly), MutedUntil: untilOrNil(c.MutedUntil), Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}
 	}
 	return out, nil
 }
@@ -177,7 +177,7 @@ func (r *Repo) ChannelState(ctx context.Context, id, user uuid.UUID) (domain.Cha
 		Channel: domain.Channel{ID: c.ID, WorkspaceID: c.WorkspaceID, Kind: domain.Kind(c.Kind), Name: str(c.Name),
 			Topic: c.Topic, DMKey: str(c.DmKey), RefID: ptrID(c.RefID), Feed: c.Feed, FeedProjectID: ptrID(c.FeedProjectID), FeedEvents: c.FeedEvents, CreatedBy: ptrID(c.CreatedBy),
 			CreatedAt: c.CreatedAt, LastMessageAt: c.LastMessageAt},
-		Joined: c.Joined, Muted: c.Muted, Notify: notifyLevel(c.Muted, c.MentionsOnly), Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}, nil
+		Joined: c.Joined, Muted: c.Muted, Notify: notifyLevel(c.Muted, c.MentionsOnly), MutedUntil: untilOrNil(c.MutedUntil), Starred: c.Starred, Unread: int(c.Unread), Mentions: int(c.Mentions)}, nil
 }
 
 // --- members
@@ -231,9 +231,11 @@ func (r *Repo) MarkRead(ctx context.Context, channel, user uuid.UUID) error {
 	return r.q.MarkRead(ctx, store.MarkReadParams{ChannelID: channel, UserID: user})
 }
 
-func (r *Repo) SetNotify(ctx context.Context, channel, user uuid.UUID, level string) error {
+func (r *Repo) SetNotify(ctx context.Context, channel, user uuid.UUID, level string, until *time.Time) error {
+	// A temporary mute is "muted until": the permanent flag stays off so it lifts by itself.
+	temporary := level == domain.NotifyMuted && until != nil
 	return r.q.SetNotify(ctx, store.SetNotifyParams{ChannelID: channel, UserID: user,
-		Muted: level == domain.NotifyMuted, MentionsOnly: level == domain.NotifyMentions})
+		Muted: level == domain.NotifyMuted && !temporary, MentionsOnly: level == domain.NotifyMentions, MutedUntil: until})
 }
 
 // --- messages
@@ -604,4 +606,12 @@ func notifyLevel(muted, mentionsOnly bool) string {
 		return domain.NotifyMentions
 	}
 	return domain.NotifyAll
+}
+
+// untilOrNil turns the "no temporary mute" sentinel of the queries into nil.
+func untilOrNil(t time.Time) *time.Time {
+	if t.Unix() <= 0 {
+		return nil
+	}
+	return &t
 }

@@ -125,7 +125,7 @@ func strs[T ~string](in *[]T) []string {
 
 func toChannel(v service.ChannelView) api.ChatChannel {
 	out := api.ChatChannel{Id: v.ID, WorkspaceId: v.WorkspaceID, Kind: api.ChatChannelKind(v.Kind), Topic: v.Topic,
-		Joined: v.Joined, Muted: v.Muted, Notify: api.ChatChannelNotify(v.Notify), Starred: v.Starred, Feed: v.Feed, FeedProjectId: v.FeedProjectID, FeedEvents: feedEvents(v.FeedEvents), Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
+		Joined: v.Joined, Muted: v.Muted, Notify: api.ChatChannelNotify(v.Notify), MutedUntil: v.MutedUntil, Starred: v.Starred, Feed: v.Feed, FeedProjectId: v.FeedProjectID, FeedEvents: feedEvents(v.FeedEvents), Unread: v.Unread, Mentions: v.Mentions, MemberCount: v.MemberCount,
 		LastMessageAt: v.LastMessageAt, People: people(v.People)}
 	if v.Name != "" {
 		n := v.Name
@@ -340,7 +340,7 @@ func (h *Handler) notify(w http.ResponseWriter, r *http.Request) error {
 	if err := httpx.DecodeJSON(w, r, &in); err != nil {
 		return err
 	}
-	if err := h.svc.SetNotify(r.Context(), userID(r), id, string(in.Level)); err != nil {
+	if err := h.svc.SetNotify(r.Context(), userID(r), id, string(in.Level), in.Until); err != nil {
 		return err
 	}
 	httpx.NoContent(w)

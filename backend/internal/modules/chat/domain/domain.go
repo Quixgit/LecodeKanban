@@ -71,12 +71,14 @@ type Membership struct {
 // ChannelState is a channel as one user sees it.
 type ChannelState struct {
 	Channel
-	Joined   bool
-	Muted    bool
-	Notify   string
-	Starred  bool
-	Unread   int
-	Mentions int
+	Joined bool
+	Muted  bool
+	Notify string
+	// MutedUntil is set while a temporary mute is in effect.
+	MutedUntil *time.Time
+	Starred    bool
+	Unread     int
+	Mentions   int
 }
 
 type Message struct {

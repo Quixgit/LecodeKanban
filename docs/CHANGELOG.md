@@ -32,6 +32,19 @@
   period before it) and show "New" or "No change" instead of a fake percentage. `changePct` in the API is `null`
   when there is no baseline.
 
+### Changed
+
+- **Dashboard trends are back**: the green up / red down arrows with a percentage return. When the previous period had
+  nothing to compare with, the arrow shows how many more (or fewer) tasks there are (`+5`), and a flat dash when nothing
+  changed, instead of a meaningless `+0.00%`.
+- **Chat channel menu** now follows Slack: *Channel details ›* (View channel details, Search in channel), *Copy ›*,
+  *Star channel*, the three notification choices right in the menu with a tick, *More options ›* (Temporarily mute for
+  1 hour, 4 hours, until tomorrow or next week; mark as read; open in a new tab; advanced settings), *Open in split view*
+  (also opt/alt + click) and *Leave channel*. Temporary mutes lift by themselves. API: `PUT …/notify` takes `until`.
+- **Chat header**: the member avatars and the second "info" icon (both opened the same window) are replaced by one
+  button. The window it opens now has tabs: About (name, topic, task feed, links to pins and files, leave / archive),
+  Members (searchable, add people) and Notifications (the three levels, temporary mute).
+
 ### Added
 
 - **Email page in the admin centre** (Settings → Email): shows how the server sends mail (SMTP or Mailgun), warns plainly
@@ -40,6 +53,7 @@
   a *Send me a test email* button. It lists the `.env` lines to connect a real provider.
 - **Invitation link**: after inviting, the dialog shows the link with a copy button, so an invitation can be handed over
   by hand when an email does not arrive.
+- **Split view in chat**: a second conversation next to the open one, with its own threads and tabs.
 
 - **Admin centre redesigned and extended**: one card of grouped sections (Workspace, People, Work, System) with an
   animated highlight, tiles with a short status on the overview, and every setting as a row with its control, saved

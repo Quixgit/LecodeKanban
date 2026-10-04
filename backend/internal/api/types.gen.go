@@ -1847,6 +1847,9 @@ type ChatChannel struct {
 	Mentions int  `json:"mentions"`
 	Muted    bool `json:"muted"`
 
+	// MutedUntil Set while a temporary mute is in effect
+	MutedUntil *time.Time `json:"mutedUntil"`
+
 	// Name Null for direct messages and for project and card conversations
 	Name *string `json:"name"`
 
@@ -2039,6 +2042,9 @@ type ChatMessagePage struct {
 // ChatNotifyInput defines model for ChatNotifyInput.
 type ChatNotifyInput struct {
 	Level ChatNotifyInputLevel `json:"level"`
+
+	// Until With level muted: the mute lifts at this time (within a year)
+	Until *time.Time `json:"until,omitempty"`
 }
 
 // ChatNotifyInputLevel defines model for ChatNotifyInput.Level.
