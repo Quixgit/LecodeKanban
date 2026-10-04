@@ -1,0 +1,20 @@
+{
+  "close": "Close",
+  "loading": "Loading profile",
+  "unavailable": "Profile not available",
+  "message": "Send message",
+  "skills": "Skills",
+  "localTime": "Local time",
+  "offset": "{{hours}} h from you",
+  "working": "Working now",
+  "offHours": "Outside working hours",
+  "hours": "Working hours",
+  "location": "Location",
+  "email": "Email",
+  "phone": "Phone",
+  "website": "Website",
+  "role": "Position",
+  "joined": "Joined the workspace",
+  "noTitle": "Teammate",
+  "visibleToTeam": "Visible to people in this workspace"
+}

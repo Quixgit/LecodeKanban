@@ -236,6 +236,35 @@ func (s *Service) Members(ctx context.Context, user, ws uuid.UUID) ([]domain.Mem
 	return out, nil
 }
 
+// MemberProfile is the profile card of a teammate: who they are and how to reach them.
+type MemberProfile struct {
+	User     usersdomain.User
+	Role     domain.Role
+	JoinedAt time.Time
+}
+
+// MemberProfile returns a member's profile to anyone in the same workspace.
+func (s *Service) MemberProfile(ctx context.Context, user, ws, target uuid.UUID) (MemberProfile, error) {
+	if _, err := s.authorize(ctx, s.repo, ws, user, domain.PermView); err != nil {
+		return MemberProfile{}, err
+	}
+	rows, err := s.repo.Members(ctx, ws)
+	if err != nil {
+		return MemberProfile{}, err
+	}
+	for _, m := range rows {
+		if m.UserID != target {
+			continue
+		}
+		u, err := s.users.Get(ctx, target)
+		if err != nil {
+			return MemberProfile{}, err
+		}
+		return MemberProfile{User: u, Role: m.Role, JoinedAt: m.JoinedAt}, nil
+	}
+	return MemberProfile{}, apperr.New(domain.ErrMemberNotFound, "member not found")
+}
+
 // ChangeRole updates a member's role under the RBAC policy and last-owner protection.
 func (s *Service) ChangeRole(ctx context.Context, actor, ws, target uuid.UUID, to domain.Role) error {
 	if !to.Valid() {

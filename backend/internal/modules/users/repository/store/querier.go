@@ -12,8 +12,10 @@ import (
 
 type Querier interface {
 	ClearAvatar(ctx context.Context, id uuid.UUID) error
+	ClearCover(ctx context.Context, id uuid.UUID) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetAvatar(ctx context.Context, id uuid.UUID) (GetAvatarRow, error)
+	GetCover(ctx context.Context, id uuid.UUID) (GetCoverRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetUsersByIDs(ctx context.Context, ids []uuid.UUID) ([]User, error)
@@ -24,6 +26,7 @@ type Querier interface {
 	SetAvatarIfEmpty(ctx context.Context, arg SetAvatarIfEmptyParams) error
 	SetPasswordHash(ctx context.Context, arg SetPasswordHashParams) error
 	SetUploadedAvatar(ctx context.Context, arg SetUploadedAvatarParams) error
+	SetUploadedCover(ctx context.Context, arg SetUploadedCoverParams) error
 	UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error)
 }
 

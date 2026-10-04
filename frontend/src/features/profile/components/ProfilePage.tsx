@@ -4,13 +4,17 @@ import {
   Briefcase,
   CalendarDays,
   Clock,
+  Globe,
+  Link2,
   Mail,
   MailWarning,
   MapPin,
   Phone,
+  Send,
   UserRound,
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Controller, useForm, type Control } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '@/features/auth';
 import { useErrorText } from '@/shared/hooks/useErrorText';
@@ -24,9 +28,24 @@ import { useProfileMutations } from '../hooks/useProfile';
 import { deviceTimezone, TIMEZONES } from '../model/timezone';
 import { profileSchema, type ProfileValues } from '../model/schemas';
 import { AvatarEditor } from './AvatarEditor';
+import { TagInput } from './TagInput';
 
 const PROVIDERS = ['google', 'github'] as const;
-const FIELDS = ['name', 'jobTitle', 'phone', 'location', 'timezone', 'bio'] as const;
+const FIELDS = [
+  'name',
+  'jobTitle',
+  'phone',
+  'location',
+  'timezone',
+  'bio',
+  'pronouns',
+  'linkedin',
+  'telegram',
+  'website',
+  'workStart',
+  'workEnd',
+  'skills',
+] as const;
 
 /** Photo, personal details, work details, and the account's email and sign-in methods. */
 export function ProfilePage() {
@@ -43,6 +62,13 @@ export function ProfilePage() {
     location: user?.location ?? '',
     timezone: user?.timezone ?? '',
     bio: user?.bio ?? '',
+    pronouns: user?.pronouns ?? '',
+    linkedin: user?.linkedin ?? '',
+    telegram: user?.telegram ?? '',
+    website: user?.website ?? '',
+    workStart: user?.workStart ?? '',
+    workEnd: user?.workEnd ?? '',
+    skills: user?.skills ?? [],
   };
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
@@ -64,25 +90,19 @@ export function ProfilePage() {
           location: u.location,
           timezone: u.timezone,
           bio: u.bio,
+          pronouns: u.pronouns,
+          linkedin: u.linkedin,
+          telegram: u.telegram,
+          website: u.website,
+          workStart: u.workStart,
+          workEnd: u.workEnd,
+          skills: u.skills,
         });
         toast.success(t('profile.saved'));
       },
       onError: (e) => applyServerFieldErrors(e, form.setError, FIELDS),
     }),
   );
-  const discard = (
-    <>
-      {dirty && (
-        <Button type="button" variant="ghost" onClick={() => form.reset()}>
-          {t('profile.reset')}
-        </Button>
-      )}
-      <Button type="submit" loading={update.isPending} disabled={!dirty}>
-        {t('profile.save')}
-      </Button>
-    </>
-  );
-
   return (
     <div className="flex flex-col gap-6">
       <SettingsCard title={t('avatar.title')} description={t('avatar.description')}>
@@ -105,6 +125,17 @@ export function ProfilePage() {
               hint={user.emailVerified ? undefined : t('profile.emailUnverifiedHint')}
             >
               <Input value={user.email} readOnly leadingIcon={<Mail />} aria-readonly />
+            </Field>
+            <Field
+              label={t('profile.pronouns')}
+              hint={t('profile.pronounsHint')}
+              error={fe(errors.pronouns?.message)}
+            >
+              <Input
+                maxLength={30}
+                placeholder="she/her · he/him · they/them"
+                {...form.register('pronouns')}
+              />
             </Field>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -141,11 +172,7 @@ export function ProfilePage() {
           </div>
         </SettingsCard>
 
-        <SettingsCard
-          title={t('profile.work')}
-          description={t('profile.workDescription')}
-          footer={discard}
-        >
+        <SettingsCard title={t('profile.work')} description={t('profile.workDescription')}>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label={t('profile.jobTitle')} error={fe(errors.jobTitle?.message)}>
               <Input
@@ -208,8 +235,64 @@ export function ProfilePage() {
                 {t('profile.useDevice')}
               </Button>
             </div>
+            <Field label={t('profile.workStart')} error={fe(errors.workStart?.message)}>
+              <Input type="time" leadingIcon={<Clock />} {...form.register('workStart')} />
+            </Field>
+            <Field
+              label={t('profile.workEnd')}
+              hint={t('profile.workHint')}
+              error={fe(errors.workEnd?.message)}
+            >
+              <Input type="time" leadingIcon={<Clock />} {...form.register('workEnd')} />
+            </Field>
+          </div>
+        </SettingsCard>
+
+        <SettingsCard title={t('links.title')} description={t('links.description')}>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              label={t('links.linkedin')}
+              hint={t('links.linkedinHint')}
+              error={fe(errors.linkedin?.message)}
+            >
+              <Input
+                leadingIcon={<Link2 />}
+                placeholder="linkedin.com/in/…"
+                maxLength={200}
+                {...form.register('linkedin')}
+              />
+            </Field>
+            <Field
+              label={t('links.telegram')}
+              hint={t('links.telegramHint')}
+              error={fe(errors.telegram?.message)}
+            >
+              <Input
+                leadingIcon={<Send />}
+                placeholder="@username"
+                maxLength={64}
+                {...form.register('telegram')}
+              />
+            </Field>
             <Field
               className="sm:col-span-2"
+              label={t('links.website')}
+              error={fe(errors.website?.message)}
+            >
+              <Input
+                type="url"
+                leadingIcon={<Globe />}
+                placeholder="https://"
+                maxLength={200}
+                {...form.register('website')}
+              />
+            </Field>
+          </div>
+        </SettingsCard>
+
+        <SettingsCard title={t('about.title')} description={t('about.description')}>
+          <div className="grid gap-5">
+            <Field
               label={t('profile.bio')}
               hint={t('profile.bioCount', { count: bioLength, max: 500 })}
               error={fe(errors.bio?.message)}
@@ -221,8 +304,39 @@ export function ProfilePage() {
                 {...form.register('bio')}
               />
             </Field>
+            <Field
+              label={t('skills.title')}
+              hint={t('skills.hint')}
+              error={fe(errors.skills?.message)}
+            >
+              <SkillsField control={form.control} placeholder={t('skills.placeholder')} />
+            </Field>
           </div>
         </SettingsCard>
+
+        <AnimatePresence>
+          {dirty && (
+            <motion.div
+              role="region"
+              aria-label={t('profile.unsaved')}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              transition={{ duration: 0.2 }}
+              className="sticky bottom-4 z-10 flex items-center justify-between gap-3 rounded-xl border border-border bg-surface/95 px-4 py-3 shadow-lg backdrop-blur"
+            >
+              <span className="text-sm text-text-secondary">{t('profile.unsaved')}</span>
+              <span className="flex gap-2">
+                <Button type="button" variant="ghost" onClick={() => form.reset()}>
+                  {t('profile.reset')}
+                </Button>
+                <Button type="submit" loading={update.isPending}>
+                  {t('profile.save')}
+                </Button>
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </form>
 
       <SettingsCard title={t('signin.title')} description={t('signin.description')}>
@@ -244,5 +358,33 @@ export function ProfilePage() {
         </ul>
       </SettingsCard>
     </div>
+  );
+}
+
+/** The skills tag box. `Field` hands it the id its label points at. */
+function SkillsField({
+  control,
+  placeholder,
+  id,
+}: {
+  control: Control<ProfileValues>;
+  placeholder: string;
+  id?: string;
+}) {
+  return (
+    <Controller
+      control={control}
+      name="skills"
+      render={({ field }) => (
+        <TagInput
+          id={id}
+          value={field.value}
+          onChange={(next) => field.onChange(next)}
+          max={10}
+          maxLength={30}
+          placeholder={placeholder}
+        />
+      )}
+    />
   );
 }

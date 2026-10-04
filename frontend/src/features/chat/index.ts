@@ -10,4 +10,5 @@ export { PersonAvatar } from './components/PresenceDot';
 export { ProjectChatButton } from './components/ProjectChatButton';
 export { CardChat, ScopeChat } from './components/ScopeChat';
 export { useScopeUnread } from './hooks/useScope';
+export { chatApi } from './api/chatApi';
 export type { ChatChannel } from './api/chatApi';

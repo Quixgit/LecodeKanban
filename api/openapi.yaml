@@ -254,6 +254,51 @@ paths:
             image/*:
               schema: { type: string, format: binary }
         "404": { $ref: "#/components/responses/Error" }
+  /users/me/cover:
+    post:
+      tags: [users]
+      operationId: uploadCover
+      summary: Upload a profile background (PNG, JPEG, WebP or GIF, up to 5 MB)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "413": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [users]
+      operationId: removeCover
+      summary: Remove the uploaded profile background
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+  /users/{userId}/cover:
+    parameters: [{ name: userId, in: path, required: true, schema: { type: string, format: uuid } }]
+    get:
+      tags: [users]
+      operationId: getCover
+      summary: A user's uploaded profile background (signed-in users only)
+      responses:
+        "200":
+          description: The image
+          content:
+            image/*:
+              schema: { type: string, format: binary }
+        "404": { $ref: "#/components/responses/Error" }
   /users/me/sessions:
     get:
       tags: [users]
@@ -373,6 +418,17 @@ paths:
     parameters:
       - $ref: "#/components/parameters/WorkspaceId"
       - { name: userId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [workspaces]
+      operationId: getMemberProfile
+      summary: A teammate's profile card
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MemberProfile" }
+        "404": { $ref: "#/components/responses/Error" }
     patch:
       tags: [workspaces]
       operationId: updateMemberRole
@@ -2547,7 +2603,7 @@ components:
       enum: [en, uk]
     User:
       type: object
-      required: [id, email, name, locale, avatarUrl, emailVerified, hasPassword, providers, createdAt, jobTitle, phone, location, timezone, bio]
+      required: [id, email, name, locale, avatarUrl, emailVerified, hasPassword, providers, createdAt, jobTitle, phone, location, timezone, bio, pronouns, linkedin, telegram, website, workStart, workEnd, skills, coverPreset, coverUrl]
       properties:
         id: { type: string, format: uuid }
         email: { type: string, description: Email address (validated server-side) }
@@ -2565,6 +2621,15 @@ components:
         location: { type: string }
         timezone: { type: string, description: IANA time zone name, empty when not set }
         bio: { type: string }
+        pronouns: { type: string }
+        linkedin: { type: string, description: Full LinkedIn address, empty when not set }
+        telegram: { type: string, description: Telegram user name without the @, empty when not set }
+        website: { type: string }
+        workStart: { type: string, description: "Working day start, HH:MM, empty when not set" }
+        workEnd: { type: string }
+        skills: { type: array, items: { type: string } }
+        coverPreset: { type: string, description: Id of a ready-made profile background, empty when none }
+        coverUrl: { type: string, nullable: true, description: Uploaded profile background, if any }
     Session:
       type: object
       required: [user]
@@ -2631,6 +2696,14 @@ components:
         location: { type: string, maxLength: 100 }
         timezone: { type: string, description: IANA time zone name or empty }
         bio: { type: string, maxLength: 500 }
+        pronouns: { type: string, maxLength: 30 }
+        linkedin: { type: string, description: A LinkedIn address or just the handle; empty clears }
+        telegram: { type: string, description: "@name, t.me/name or just the name; empty clears" }
+        website: { type: string, maxLength: 200 }
+        workStart: { type: string, description: "HH:MM; send with workEnd, both empty clears" }
+        workEnd: { type: string }
+        skills: { type: array, maxItems: 10, items: { type: string, maxLength: 30 } }
+        coverPreset: { type: string, description: "A preset id (a preset replaces an uploaded cover); empty clears the preset" }
     Role:
       type: string
       enum: [owner, admin, member, viewer]
@@ -2660,6 +2733,30 @@ components:
         name: { type: string }
         email: { type: string }
         avatarUrl: { type: string, nullable: true }
+    MemberProfile:
+      type: object
+      required: [id, name, email, avatarUrl, role, joinedAt, jobTitle, pronouns, phone, location, timezone, bio, linkedin, telegram, website, workStart, workEnd, skills, coverPreset, coverUrl]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        avatarUrl: { type: string, nullable: true }
+        role: { $ref: "#/components/schemas/Role" }
+        joinedAt: { type: string, format: date-time }
+        jobTitle: { type: string }
+        pronouns: { type: string }
+        phone: { type: string }
+        location: { type: string }
+        timezone: { type: string }
+        bio: { type: string }
+        linkedin: { type: string }
+        telegram: { type: string }
+        website: { type: string }
+        workStart: { type: string }
+        workEnd: { type: string }
+        skills: { type: array, items: { type: string } }
+        coverPreset: { type: string }
+        coverUrl: { type: string, nullable: true }
     Member:
       type: object
       required: [user, role, joinedAt]

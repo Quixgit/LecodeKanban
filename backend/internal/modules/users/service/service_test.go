@@ -218,3 +218,70 @@ func TestProfileDetails(t *testing.T) {
 		t.Fatalf("clearing the time zone: %v", err)
 	}
 }
+
+func TestProfileExtrasAndCover(t *testing.T) {
+	s, _ := setup(t)
+	disk, err := local.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.WithAvatars(disk)
+	ctx := context.Background()
+	u, _ := s.Create(ctx, domain.NewUser{Email: "x@example.com", Name: "X"})
+
+	got, err := s.UpdateProfile(ctx, u.ID, domain.ProfilePatch{
+		Pronouns: ptr(" she/her "), LinkedIn: ptr("anna-k"), Telegram: ptr("https://t.me/@anna_k1"),
+		Website: ptr("example.com/me"), WorkStart: ptr("09:00"), WorkEnd: ptr("17:30"),
+		Skills: ptr([]string{" Go ", "go", "Design", ""}), CoverPreset: ptr("ocean")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Pronouns != "she/her" || got.LinkedIn != "https://www.linkedin.com/in/anna-k" || got.Telegram != "anna_k1" ||
+		got.Website != "https://example.com/me" || got.WorkStart != "09:00" || got.CoverPreset != "ocean" ||
+		len(got.Skills) != 2 || got.Skills[0] != "Go" {
+		t.Fatalf("normalised: %+v", got)
+	}
+	// Leaving fields out keeps them; an empty value clears one.
+	got, _ = s.UpdateProfile(ctx, u.ID, domain.ProfilePatch{Telegram: ptr("")})
+	if got.Telegram != "" || got.LinkedIn == "" || len(got.Skills) != 2 {
+		t.Fatalf("partial: %+v", got)
+	}
+	for name, p := range map[string]domain.ProfilePatch{
+		"linkedin": {LinkedIn: ptr("https://evil.example.com/in/x")},
+		"telegram": {Telegram: ptr("ab")},
+		"website":  {Website: ptr("javascript:alert(1)")},
+		"workEnd":  {WorkStart: ptr("18:00"), WorkEnd: ptr("09:00")},
+		"skills":   {Skills: ptr([]string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"})},
+		"cover":    {CoverPreset: ptr("neon")},
+	} {
+		if _, err := s.UpdateProfile(ctx, u.ID, p); !apperr.IsCode(err, apperr.Validation) {
+			t.Errorf("%s accepted: %v", name, err)
+		}
+	}
+	got, _ = s.UpdateProfile(ctx, u.ID, domain.ProfilePatch{WorkStart: ptr(""), WorkEnd: ptr("")})
+	if got.WorkStart != "" {
+		t.Fatalf("clearing hours: %+v", got)
+	}
+
+	// An uploaded cover wins over a preset; choosing a preset again drops the upload.
+	if _, err := s.SetCover(ctx, u.ID, bytes.NewReader([]byte("<svg onload=alert(1)>"))); !apperr.IsCode(err, domain.ErrBadCover) {
+		t.Fatalf("svg cover accepted: %v", err)
+	}
+	if _, err := s.SetCover(ctx, u.ID, bytes.NewReader(make([]byte, service.MaxCoverBytes+1))); !apperr.IsCode(err, domain.ErrCoverTooLarge) {
+		t.Fatalf("oversized cover: %v", err)
+	}
+	got, err = s.SetCover(ctx, u.ID, bytes.NewReader(pictureBytes("png")))
+	if err != nil || got.CoverURL == nil || got.CoverPreset != "" {
+		t.Fatalf("cover: %+v %v", got, err)
+	}
+	if _, kind, err := s.OpenCover(ctx, u.ID); err != nil || kind != "image/png" {
+		t.Fatalf("open cover: %v %q", err, kind)
+	}
+	got, _ = s.UpdateProfile(ctx, u.ID, domain.ProfilePatch{CoverPreset: ptr("forest")})
+	if got.CoverURL != nil || got.CoverPreset != "forest" {
+		t.Fatalf("preset replaces upload: %+v", got)
+	}
+	if _, _, err := s.OpenCover(ctx, u.ID); !apperr.IsCode(err, domain.ErrNotFound) {
+		t.Fatalf("file still served: %v", err)
+	}
+}

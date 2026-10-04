@@ -23,6 +23,8 @@ func toDomain(u store.User) domain.User {
 		AvatarURL: u.AvatarUrl, EmailVerifiedAt: u.EmailVerifiedAt,
 		HasPassword: u.PasswordHash != nil, CreatedAt: u.CreatedAt,
 		JobTitle: u.JobTitle, Phone: u.Phone, Location: u.Location, Timezone: u.Timezone, Bio: u.Bio,
+		Pronouns: u.Pronouns, LinkedIn: u.Linkedin, Telegram: u.Telegram, Website: u.Website,
+		WorkStart: u.WorkStart, WorkEnd: u.WorkEnd, Skills: u.Skills, CoverPreset: u.CoverPreset, CoverURL: u.CoverUrl,
 	}
 }
 
@@ -101,8 +103,14 @@ func (r *Repo) UpdateProfile(ctx context.Context, id uuid.UUID, p domain.Profile
 		s := string(*p.Locale)
 		locale = &s
 	}
+	var skills []string
+	if p.Skills != nil {
+		skills = append([]string{}, *p.Skills...)
+	}
 	u, err := r.q.UpdateUserProfile(ctx, store.UpdateUserProfileParams{ID: id, Name: p.Name, Locale: locale,
-		JobTitle: p.JobTitle, Phone: p.Phone, Location: p.Location, Timezone: p.Timezone, Bio: p.Bio})
+		JobTitle: p.JobTitle, Phone: p.Phone, Location: p.Location, Timezone: p.Timezone, Bio: p.Bio,
+		Pronouns: p.Pronouns, Linkedin: p.LinkedIn, Telegram: p.Telegram, Website: p.Website,
+		WorkStart: p.WorkStart, WorkEnd: p.WorkEnd, Skills: skills, CoverPreset: p.CoverPreset})
 	if err != nil {
 		return domain.User{}, notFound(err)
 	}
@@ -154,3 +162,20 @@ func (r *Repo) SetUploadedAvatar(ctx context.Context, id uuid.UUID, url, key, co
 }
 
 func (r *Repo) ClearAvatar(ctx context.Context, id uuid.UUID) error { return r.q.ClearAvatar(ctx, id) }
+
+func (r *Repo) Cover(ctx context.Context, id uuid.UUID) (key, contentType string, ok bool, err error) {
+	row, err := r.q.GetCover(ctx, id)
+	if err != nil {
+		return "", "", false, notFound(err)
+	}
+	if row.CoverKey == nil || row.CoverType == nil {
+		return "", "", false, nil
+	}
+	return *row.CoverKey, *row.CoverType, true, nil
+}
+
+func (r *Repo) SetUploadedCover(ctx context.Context, id uuid.UUID, url, key, contentType string) error {
+	return r.q.SetUploadedCover(ctx, store.SetUploadedCoverParams{ID: id, CoverUrl: &url, CoverKey: &key, CoverType: &contentType})
+}
+
+func (r *Repo) ClearCover(ctx context.Context, id uuid.UUID) error { return r.q.ClearCover(ctx, id) }

@@ -180,6 +180,19 @@ Facts about what was checked, with how. Update on every phase.
 - Not covered: filter or sort the board by a field; field changes in the activity feed; templates per project;
   a viewer's read-only view in the browser (covered in Go).
 
+## Profile v2 and teammate card
+
+- Go: `users/service` TestProfileExtrasAndCover (address normalisation, refusals for foreign LinkedIn hosts, short
+  Telegram names, `javascript:` websites, reversed hours, too many skills, unknown preset; partial patches keep
+  fields; cover upload accepts only real pictures, size limit, a preset replaces the upload and removes the file),
+  `workspaces/service` TestMemberProfile (members see each other; outsiders and non-members get nothing).
+- Unit: local time and working-hours maths in other time zones.
+- Browser: background preset / upload / reset, links and skills saved and tidied, server refusal shown, another
+  person's card from the Team page (axe), message button opens the DM, card from a chat message and from the channel
+  member list.
+- Privacy: email and phone are visible to everyone in the workspace (as in most team tools); there is no per-field
+  visibility switch yet.
+- Not covered: an @mention opens the card (wired, but not exercised in the browser).
 ## adduser command
 
 - Go: name from the email, `Name <email>` parsing, generated passwords satisfy the platform's own rules and differ every time. Checked by hand against a local database: the new account signs in with the printed password; running again leaves existing accounts alone.

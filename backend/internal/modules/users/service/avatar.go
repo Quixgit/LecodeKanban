@@ -100,3 +100,75 @@ func (s *Service) OpenAvatar(ctx context.Context, id uuid.UUID) (io.ReadSeekClos
 	}
 	return f, kind, nil
 }
+
+// MaxCoverBytes is the largest cover picture accepted (the web client shrinks it to about 1600 px wide).
+const MaxCoverBytes = 5 << 20
+
+// SetCover stores a new profile cover picture, replacing the previous one and any preset.
+func (s *Service) SetCover(ctx context.Context, id uuid.UUID, r io.Reader) (domain.User, error) {
+	if s.storage == nil {
+		return domain.User{}, apperr.New(domain.ErrBadCover, "pictures are not enabled")
+	}
+	data, err := io.ReadAll(io.LimitReader(r, MaxCoverBytes+1))
+	if err != nil {
+		return domain.User{}, err
+	}
+	if len(data) > MaxCoverBytes {
+		return domain.User{}, apperr.New(domain.ErrCoverTooLarge, "picture is too large").WithMeta("maxBytes", MaxCoverBytes)
+	}
+	kind := http.DetectContentType(data)
+	if !pictureTypes[kind] {
+		return domain.User{}, apperr.New(domain.ErrBadCover, "not a supported picture")
+	}
+	old, _, had, err := s.repo.Cover(ctx, id)
+	if err != nil {
+		return domain.User{}, err
+	}
+	name := uuid.New()
+	key := name.String()[:2] + "/" + name.String()
+	if _, err := s.storage.Put(ctx, key, bytes.NewReader(data), MaxCoverBytes); err != nil {
+		return domain.User{}, err
+	}
+	url := "/api/v1/users/" + id.String() + "/cover?v=" + name.String()[:8]
+	if err := s.repo.SetUploadedCover(ctx, id, url, key, kind); err != nil {
+		_ = s.storage.Delete(ctx, key)
+		return domain.User{}, err
+	}
+	if had {
+		_ = s.storage.Delete(ctx, old)
+	}
+	_ = s.bus.Publish(ctx, events.ProfileUpdated{UserID: id})
+	return s.repo.Get(ctx, id)
+}
+
+// RemoveCover deletes the uploaded cover picture (a preset, if any, is kept).
+func (s *Service) RemoveCover(ctx context.Context, id uuid.UUID) (domain.User, error) {
+	old, _, had, err := s.repo.Cover(ctx, id)
+	if err != nil {
+		return domain.User{}, err
+	}
+	if err := s.repo.ClearCover(ctx, id); err != nil {
+		return domain.User{}, err
+	}
+	if had && s.storage != nil {
+		_ = s.storage.Delete(ctx, old)
+	}
+	_ = s.bus.Publish(ctx, events.ProfileUpdated{UserID: id})
+	return s.repo.Get(ctx, id)
+}
+
+// OpenCover returns the stored cover picture of a user and its type.
+func (s *Service) OpenCover(ctx context.Context, id uuid.UUID) (io.ReadSeekCloser, string, error) {
+	key, kind, ok, err := s.repo.Cover(ctx, id)
+	if err != nil {
+		return nil, "", err
+	}
+	if !ok || s.storage == nil {
+		return nil, "", apperr.New(domain.ErrNotFound, "no picture")
+	}
+	f, err := s.storage.Open(ctx, key)
+	if err != nil {
+		return nil, "", apperr.New(domain.ErrNotFound, "no picture")
+	}
+	return f, kind, nil
+}
