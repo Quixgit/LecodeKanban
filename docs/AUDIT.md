@@ -253,3 +253,8 @@ Facts about what was checked, with how. Update on every phase.
 - Browser: switch on, section menu (settings, tasks with counts), a section without a menu closes the column, axe on the
   rail, choice survives a reload, switch back.
 - Not covered: the rail below the lg breakpoint (the mobile drawer is unchanged).
+
+## Chat appearance
+
+- Unit: theme maths (default untouched, light text on dark / dark on light, AA for accents and muted text on every preset).
+- Browser: pick a theme (axe on the themed sidebar and chat), reload keeps it, own colour, reset.
