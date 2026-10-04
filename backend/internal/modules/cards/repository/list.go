@@ -222,8 +222,9 @@ func (r *Repo) InWorkspace(ctx context.Context, ws uuid.UUID, ids []uuid.UUID) (
 
 // Stats gathers dashboard data.
 func (r *Repo) Stats(ctx context.Context, ws uuid.UUID, today time.Time, days int) (domain.Stats, error) {
-	weekStart := today.AddDate(0, 0, -6)
-	prevWeekStart := weekStart.AddDate(0, 0, -7)
+	// The KPIs follow the period the dashboard shows: the last `days` days against the `days` before.
+	weekStart := today.AddDate(0, 0, -(days - 1))
+	prevWeekStart := weekStart.AddDate(0, 0, -days)
 	k, err := r.q.CardKPIs(ctx, store.CardKPIsParams{WorkspaceID: ws, Today: today, WeekStart: &weekStart, PrevWeekStart: &prevWeekStart})
 	if err != nil {
 		return domain.Stats{}, err

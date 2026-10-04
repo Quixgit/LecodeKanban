@@ -193,3 +193,7 @@ Facts about what was checked, with how. Update on every phase.
 - Privacy: email and phone are visible to everyone in the workspace (as in most team tools); there is no per-field
   visibility switch yet.
 - Not covered: an @mention opens the card (wired, but not exercised in the browser).
+## Dashboard trends
+
+- Go: `trend` (no baseline gives null, +50%, -75%), stats follow the requested period. Unit: MetricCard shows the
+  fallback and never +0.00%. Browser: checked by screenshot on the demo data (+164.00% for new tasks).

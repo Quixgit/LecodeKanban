@@ -2705,7 +2705,7 @@ export interface components {
             workStart?: string;
             workEnd?: string;
             skills?: string[];
-            /** @description A preset id; empty keeps the current choice, a preset replaces an uploaded cover */
+            /** @description A preset id (a preset replaces an uploaded cover); empty clears the preset */
             coverPreset?: string;
         };
         /** @enum {string} */
@@ -3284,8 +3284,8 @@ export interface components {
         Trend: {
             value: number;
             previous: number;
-            /** @description Percent change vs previous period (0 when previous is 0) */
-            changePct: number;
+            /** @description Percent change vs the previous period; null when the previous period had nothing to compare */
+            changePct: number | null;
         };
         DashboardStats: {
             active: number;

@@ -380,7 +380,7 @@ Base URL: `/api/v1`
 - **BulkResult** — `updated`: integer
 - **DailyActivity** — `date`: string, `todo`: integer, `in_progress`: integer, `in_review`: integer, `done`: integer
 - **ActivityItem** — `id`: integer, `card`: object, `project`: ProjectRef, `actor`: object \| null, `from`: object \| null, `to`: TaskStatus, `at`: string
-- **Trend** — `value`: integer, `previous`: integer, `changePct`: number
+- **Trend** — `value`: integer, `previous`: integer, `changePct`: number \| null
 - **DashboardStats** — `active`: integer, `total`: integer, `inReview`: integer, `overdue`: integer, `completedThisWeek`: Trend, `createdThisWeek`: Trend, `statusCounts`: StatusCounts, `daily`: array, `activity`: array
 - **WikiVisibility**: `private` | `shared` | `workspace`
 - **WikiStatus**: `draft` | `published` | `outdated`
