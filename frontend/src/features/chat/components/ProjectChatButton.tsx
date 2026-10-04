@@ -21,7 +21,7 @@ export function ProjectChatButton({ projectId, name }: { projectId: string; name
             <span
               role="status"
               aria-label={t('sidebar.unread', { count: unread })}
-              className="pointer-events-none absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-danger px-1 text-2xs font-semibold tabular-nums text-white ring-2 ring-surface"
+              className="pointer-events-none absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-danger-ink px-1 text-2xs font-semibold tabular-nums text-white ring-2 ring-surface"
             >
               {unread > 99 ? '99+' : unread}
             </span>
