@@ -18,6 +18,13 @@
   (start/stop, "Log time" and "Entries" folds). Blocks are framed, the chat scrollbar only shows on hover,
   and two accessibility issues were fixed (definition list structure, attachment hint contrast).
 
+### Changed
+
+- **Profile is its own page** (`/profile`, opened from the account menu at the top right), with tabs *Profile* and
+  *Security*. It no longer repeats language, theme and notification sounds (they are in the header). New fields:
+  job title, phone, location, time zone (with a "use this device's time zone" button) and an about text. The old
+  `/settings/profile`, `/settings/security` and `/settings/preferences` addresses redirect.
+
 ### Added
 
 - **Channel context menu** in Chat: right-click a channel (or conversation) in the sidebar for *Channel details*,
