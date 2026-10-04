@@ -810,6 +810,119 @@ export interface paths {
         patch: operations["updateLabel"];
         trace?: never;
     };
+    "/workspaces/{workspaceId}/custom-fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** Custom fields of the workspace, in display order */
+        get: operations["listCustomFields"];
+        put?: never;
+        /** Define a field (workspace administrators) */
+        post: operations["createCustomField"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/custom-fields/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["reorderCustomFields"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/custom-fields/values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Values of many cards at once (for the board); up to 500 cards */
+        post: operations["listCardFieldValues"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/custom-fields/{fieldId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fieldId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteCustomField"];
+        options?: never;
+        head?: never;
+        patch: operations["updateCustomField"];
+        trace?: never;
+    };
+    "/cards/{cardId}/field-values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getCardFieldValues"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cards/{cardId}/field-values/{fieldId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+                fieldId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Set a value (null or an empty value clears it) */
+        put: operations["setCardFieldValue"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cards/{cardId}/checklist": {
         parameters: {
             query?: never;
@@ -2795,6 +2908,50 @@ export interface components {
             items: components["schemas"]["Card"][];
             /** @description More cards match than were returned */
             truncated: boolean;
+        };
+        FieldOption: {
+            /** @description Stable id; leave empty for a new option */
+            id: string;
+            label: string;
+            tone: components["schemas"]["Tone"];
+        };
+        /** @enum {string} */
+        CustomFieldKind: "text" | "number" | "date" | "select" | "checkbox" | "url";
+        CustomField: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: string;
+            kind: components["schemas"]["CustomFieldKind"];
+            options: components["schemas"]["FieldOption"][];
+            /** @description Shown as a chip on the board card */
+            showOnCard: boolean;
+            position: number;
+        };
+        CustomFieldInput: {
+            name: string;
+            description?: string;
+            kind: components["schemas"]["CustomFieldKind"];
+            options?: components["schemas"]["FieldOption"][];
+            showOnCard?: boolean;
+        };
+        CustomFieldPatch: {
+            name?: string;
+            description?: string;
+            options?: components["schemas"]["FieldOption"][];
+            showOnCard?: boolean;
+        };
+        CardFieldValue: {
+            /** Format: uuid */
+            cardId: string;
+            /** Format: uuid */
+            fieldId: string;
+            /** @description A string (text, url, date YYYY-MM-DD, select option id), a number or a boolean by field kind */
+            value: unknown;
+        };
+        CardFieldValueInput: {
+            /** @description Same shape as CardFieldValue.value; null clears */
+            value: unknown;
         };
         Label: {
             /** Format: uuid */
@@ -5281,6 +5438,204 @@ export interface operations {
                     "application/json": components["schemas"]["Label"];
                 };
             };
+        };
+    };
+    listCustomFields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Fields */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomField"][];
+                };
+            };
+        };
+    };
+    createCustomField: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomFieldInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomField"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    reorderCustomFields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listCardFieldValues: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    cardIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Values */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardFieldValue"][];
+                };
+            };
+        };
+    };
+    deleteCustomField: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fieldId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateCustomField: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fieldId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomFieldPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomField"];
+                };
+            };
+        };
+    };
+    getCardFieldValues: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The card's values */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardFieldValue"][];
+                };
+            };
+        };
+    };
+    setCardFieldValue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+                fieldId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardFieldValueInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: components["responses"]["Error"];
         };
     };
     listChecklist: {

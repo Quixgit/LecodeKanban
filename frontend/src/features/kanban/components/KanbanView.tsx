@@ -20,6 +20,7 @@ import { ProjectChatButton } from '@/features/chat';
 import { useAllProjects } from '@/features/projects';
 import { LiveIndicator } from '@/features/realtime';
 import { TASK_SEARCH_ID, TasksToolbar, baseQuery, useTaskFilters } from '@/features/tasks-list';
+import { BoardFieldsProvider } from '@/features/custom-fields';
 import { useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { useHotkey } from '@/shared/hooks/useHotkey';
@@ -377,31 +378,33 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
           />
         </Panel>
       )}
-      <Board
-        ref={boardRef}
-        cards={cards}
-        columns={columns}
-        lanes={lanes}
-        containers={containers}
-        swimlane={swimlane}
-        collapsed={store.collapsed}
-        collapsedLanes={store.collapsedLanes}
-        onToggleLane={store.toggleLane}
-        canEdit={canEdit}
-        canManageColumns={canEdit && mode.kind === 'project'}
-        onToggleColumn={store.toggleColumn}
-        onColumnAction={(col, a) => columnsRef.current?.act(col, a)}
-        onAddColumn={() => columnsRef.current?.add()}
-        onOpen={openCard}
-        onDrop={onDrop}
-        quickAdd={{
-          busy: create.isPending,
-          projects: mode.kind === 'all' && swimlane !== 'project' ? projectOptions : undefined,
-          projectId: quickAddProject,
-          onProjectChange: store.setQuickAddProject,
-          onCreate: quickCreate,
-        }}
-      />
+      <BoardFieldsProvider workspaceId={ws} cardIds={cards.map((c) => c.id)}>
+        <Board
+          ref={boardRef}
+          cards={cards}
+          columns={columns}
+          lanes={lanes}
+          containers={containers}
+          swimlane={swimlane}
+          collapsed={store.collapsed}
+          collapsedLanes={store.collapsedLanes}
+          onToggleLane={store.toggleLane}
+          canEdit={canEdit}
+          canManageColumns={canEdit && mode.kind === 'project'}
+          onToggleColumn={store.toggleColumn}
+          onColumnAction={(col, a) => columnsRef.current?.act(col, a)}
+          onAddColumn={() => columnsRef.current?.add()}
+          onOpen={openCard}
+          onDrop={onDrop}
+          quickAdd={{
+            busy: create.isPending,
+            projects: mode.kind === 'all' && swimlane !== 'project' ? projectOptions : undefined,
+            projectId: quickAddProject,
+            onProjectChange: store.setQuickAddProject,
+            onCreate: quickCreate,
+          }}
+        />
+      </BoardFieldsProvider>
       {mode.kind === 'project' && (
         <ColumnManager
           ref={columnsRef}

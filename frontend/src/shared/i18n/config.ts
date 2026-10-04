@@ -21,6 +21,8 @@ export const NAMESPACES = [
   'chat',
   'integrations',
   'profile',
+  'fields',
+  'settings',
   'showcase',
 ] as const;
 export type Namespace = (typeof NAMESPACES)[number];

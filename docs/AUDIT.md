@@ -166,3 +166,16 @@ Facts about what was checked, with how. Update on every phase.
   clearing), absence of language/theme controls, redirects from the old `/settings/*` addresses, security tab.
 - Not covered: job title is not yet shown on the Team page; changing the email address.
 - Until the Settings admin centre ships (next PR) `/settings` redirects to the profile.
+
+## Settings admin centre and custom fields
+
+- Go: `customfields/domain` (value rules per kind, including refusing `javascript:` links and out-of-range numbers),
+  `customfields/service` TestFieldsAndValues (admins only define, unique names case-insensitively and reusable after
+  delete, select options, order, members fill / viewers read / outsiders see nothing, bad values refused, another
+  workspace's field refused, removing an option drops its values, clearing, limit of 30, board lookup limit).
+- Unit: value formatting and board chips.
+- Browser: settings overview + navigation + axe, rename workspace and restore, delete confirmation needs the typed
+  name, labels create / edit / delete, custom fields define (number, choice), duplicate refused, reorder, fill on a
+  task, values survive reload, chips on the board, delete.
+- Not covered: filter or sort the board by a field; field changes in the activity feed; templates per project;
+  a viewer's read-only view in the browser (covered in Go).

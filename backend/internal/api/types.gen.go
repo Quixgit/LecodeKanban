@@ -360,6 +360,36 @@ func (e ChatStatusInputKind) Valid() bool {
 	}
 }
 
+// Defines values for CustomFieldKind.
+const (
+	Checkbox CustomFieldKind = "checkbox"
+	Date     CustomFieldKind = "date"
+	Number   CustomFieldKind = "number"
+	Select   CustomFieldKind = "select"
+	Text     CustomFieldKind = "text"
+	Url      CustomFieldKind = "url"
+)
+
+// Valid indicates whether the value is a known member of the CustomFieldKind enum.
+func (e CustomFieldKind) Valid() bool {
+	switch e {
+	case Checkbox:
+		return true
+	case Date:
+		return true
+	case Number:
+		return true
+	case Select:
+		return true
+	case Text:
+		return true
+	case Url:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GithubLinkKind.
 const (
 	Issue GithubLinkKind = "issue"
@@ -1474,6 +1504,21 @@ type CardBoard struct {
 	Truncated bool `json:"truncated"`
 }
 
+// CardFieldValue defines model for CardFieldValue.
+type CardFieldValue struct {
+	CardId  openapi_types.UUID `json:"cardId"`
+	FieldId openapi_types.UUID `json:"fieldId"`
+
+	// Value A string (text, url, date YYYY-MM-DD, select option id), a number or a boolean by field kind
+	Value interface{} `json:"value"`
+}
+
+// CardFieldValueInput defines model for CardFieldValueInput.
+type CardFieldValueInput struct {
+	// Value Same shape as CardFieldValue.value; null clears
+	Value interface{} `json:"value"`
+}
+
 // CardInput defines model for CardInput.
 type CardInput struct {
 	AssigneeIds *[]openapi_types.UUID `json:"assigneeIds,omitempty"`
@@ -1878,6 +1923,39 @@ type CsrfToken struct {
 	Token string `json:"token"`
 }
 
+// CustomField defines model for CustomField.
+type CustomField struct {
+	Description string             `json:"description"`
+	Id          openapi_types.UUID `json:"id"`
+	Kind        CustomFieldKind    `json:"kind"`
+	Name        string             `json:"name"`
+	Options     []FieldOption      `json:"options"`
+	Position    int                `json:"position"`
+
+	// ShowOnCard Shown as a chip on the board card
+	ShowOnCard bool `json:"showOnCard"`
+}
+
+// CustomFieldInput defines model for CustomFieldInput.
+type CustomFieldInput struct {
+	Description *string         `json:"description,omitempty"`
+	Kind        CustomFieldKind `json:"kind"`
+	Name        string          `json:"name"`
+	Options     *[]FieldOption  `json:"options,omitempty"`
+	ShowOnCard  *bool           `json:"showOnCard,omitempty"`
+}
+
+// CustomFieldKind defines model for CustomFieldKind.
+type CustomFieldKind string
+
+// CustomFieldPatch defines model for CustomFieldPatch.
+type CustomFieldPatch struct {
+	Description *string        `json:"description,omitempty"`
+	Name        *string        `json:"name,omitempty"`
+	Options     *[]FieldOption `json:"options,omitempty"`
+	ShowOnCard  *bool          `json:"showOnCard,omitempty"`
+}
+
 // DailyActivity defines model for DailyActivity.
 type DailyActivity struct {
 	Date       openapi_types.Date `json:"date"`
@@ -1942,6 +2020,14 @@ type FieldError struct {
 	Code   string                  `json:"code"`
 	Field  string                  `json:"field"`
 	Params *map[string]interface{} `json:"params,omitempty"`
+}
+
+// FieldOption defines model for FieldOption.
+type FieldOption struct {
+	// Id Stable id; leave empty for a new option
+	Id    string `json:"id"`
+	Label string `json:"label"`
+	Tone  Tone   `json:"tone"`
 }
 
 // GithubLink defines model for GithubLink.
@@ -3125,6 +3211,16 @@ type SearchChatParams struct {
 	Before      *time.Time `form:"before,omitempty" json:"before,omitempty"`
 }
 
+// ReorderCustomFieldsJSONBody defines parameters for ReorderCustomFields.
+type ReorderCustomFieldsJSONBody struct {
+	Ids []openapi_types.UUID `json:"ids"`
+}
+
+// ListCardFieldValuesJSONBody defines parameters for ListCardFieldValues.
+type ListCardFieldValuesJSONBody struct {
+	CardIds []openapi_types.UUID `json:"cardIds"`
+}
+
 // ListNotificationsParams defines parameters for ListNotifications.
 type ListNotificationsParams struct {
 	// Before Only older than this time
@@ -3194,6 +3290,9 @@ type AddChecklistItemJSONRequestBody = ChecklistItemInput
 // CreateCommentJSONRequestBody defines body for CreateComment for application/json ContentType.
 type CreateCommentJSONRequestBody = CommentInput
 
+// SetCardFieldValueJSONRequestBody defines body for SetCardFieldValue for application/json ContentType.
+type SetCardFieldValueJSONRequestBody = CardFieldValueInput
+
 // MoveCardJSONRequestBody defines body for MoveCard for application/json ContentType.
 type MoveCardJSONRequestBody = CardMove
 
@@ -3229,6 +3328,9 @@ type MoveColumnJSONRequestBody = Neighbours
 
 // UpdateCommentJSONRequestBody defines body for UpdateComment for application/json ContentType.
 type UpdateCommentJSONRequestBody = CommentInput
+
+// UpdateCustomFieldJSONRequestBody defines body for UpdateCustomField for application/json ContentType.
+type UpdateCustomFieldJSONRequestBody = CustomFieldPatch
 
 // UpdateLabelJSONRequestBody defines body for UpdateLabel for application/json ContentType.
 type UpdateLabelJSONRequestBody = LabelPatch
@@ -3301,6 +3403,15 @@ type OpenChatDirectJSONRequestBody = ChatDirectInput
 
 // SetChatStatusJSONRequestBody defines body for SetChatStatus for application/json ContentType.
 type SetChatStatusJSONRequestBody = ChatStatusInput
+
+// CreateCustomFieldJSONRequestBody defines body for CreateCustomField for application/json ContentType.
+type CreateCustomFieldJSONRequestBody = CustomFieldInput
+
+// ReorderCustomFieldsJSONRequestBody defines body for ReorderCustomFields for application/json ContentType.
+type ReorderCustomFieldsJSONRequestBody ReorderCustomFieldsJSONBody
+
+// ListCardFieldValuesJSONRequestBody defines body for ListCardFieldValues for application/json ContentType.
+type ListCardFieldValuesJSONRequestBody ListCardFieldValuesJSONBody
 
 // UpdateGithubJSONRequestBody defines body for UpdateGithub for application/json ContentType.
 type UpdateGithubJSONRequestBody = GithubPatch

@@ -41,6 +41,14 @@ export function useWorkspaceMutations(workspaceId: string) {
   const qc = useQueryClient();
   const refresh = () => qc.invalidateQueries({ queryKey: ['workspaces'] });
   return {
+    rename: useMutation({
+      mutationFn: (name: string) => workspacesApi.rename(workspaceId, name),
+      onSuccess: refresh,
+    }),
+    deleteWorkspace: useMutation({
+      mutationFn: () => workspacesApi.delete(workspaceId),
+      onSuccess: refresh,
+    }),
     invite: useMutation({
       mutationFn: (v: { email: string; role: InviteRole }) =>
         workspacesApi.invite(workspaceId, v.email, v.role),

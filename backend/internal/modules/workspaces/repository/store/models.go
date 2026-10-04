@@ -107,6 +107,14 @@ type CardCounter struct {
 	Next      int32
 }
 
+type CardFieldValue struct {
+	CardID      uuid.UUID
+	FieldID     uuid.UUID
+	WorkspaceID uuid.UUID
+	Value       []byte
+	UpdatedAt   time.Time
+}
+
 type CardLabel struct {
 	CardID  uuid.UUID
 	LabelID uuid.UUID
@@ -241,6 +249,19 @@ type Comment struct {
 type CommentMention struct {
 	CommentID uuid.UUID
 	UserID    uuid.UUID
+}
+
+type CustomField struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Name        string
+	Description string
+	Kind        string
+	Options     []byte
+	ShowOnCard  bool
+	Position    int32
+	ArchivedAt  *time.Time
+	CreatedAt   time.Time
 }
 
 type GithubConnection struct {

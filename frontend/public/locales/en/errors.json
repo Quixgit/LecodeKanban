@@ -139,5 +139,11 @@
     "project_not_linked": "This task's project has no GitHub repository yet.",
     "upstream": "GitHub didn't respond as expected. Please try again.",
     "bad_signature": "The delivery could not be verified."
+  },
+  "fields": {
+    "not_found": "That field no longer exists.",
+    "name_taken": "A field with this name already exists.",
+    "too_many": "You've reached the limit of 30 custom fields.",
+    "bad_value": "That value doesn't fit this field."
   }
 }

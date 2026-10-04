@@ -25,6 +25,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/chat"
 	chatservice "github.com/reliabilix/lecodekanban/backend/internal/modules/chat/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/comments"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/customfields"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/github"
 	githubclient "github.com/reliabilix/lecodekanban/backend/internal/modules/github/client"
 	githubsvc "github.com/reliabilix/lecodekanban/backend/internal/modules/github/service"
@@ -105,6 +106,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 
 	commentsMod := comments.New(comments.Deps{Pool: pool, Bus: bus, Cards: cardsMod.Service,
 		Workspaces: wsMod.Service, Users: usersMod.Service})
+	customFieldsMod := customfields.New(customfields.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service})
 	attachmentsMod := attachments.New(attachments.Deps{Pool: pool, Bus: bus, Storage: storage,
 		MaxBytes: cfg.AttachmentMaxBytes(), Cards: cardsMod.Service, Workspaces: wsMod.Service, Users: usersMod.Service})
 	timeMod := timetracking.New(timetracking.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service,
@@ -189,6 +191,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			boardsMod.HTTP.PrivateRoutes(r)
 			cardsMod.HTTP.PrivateRoutes(r)
 			commentsMod.HTTP.PrivateRoutes(r)
+			customFieldsMod.HTTP.PrivateRoutes(r)
 			attachmentsMod.HTTP.PrivateRoutes(r)
 			timeMod.HTTP.PrivateRoutes(r)
 			wikiMod.HTTP.PrivateRoutes(r)
