@@ -374,6 +374,9 @@ func TestExportNeedsThePermission(t *testing.T) {
 	}
 	if _, _, err := f.Cards.Export(f.ctx, f.member, f.ws, domain.Filter{}); err != nil {
 		t.Fatalf("member with the permission: %v", err)
+	}
+}
+
 func TestFilterAndSortByCustomField(t *testing.T) {
 	f := setup(t)
 	mk := func(title string) uuid.UUID {
