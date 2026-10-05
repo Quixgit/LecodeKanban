@@ -780,10 +780,14 @@ paths:
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
         - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardFilterFieldId"
+        - $ref: "#/components/parameters/CardFilterFieldValue"
+        - $ref: "#/components/parameters/CardFilterFieldMatch"
         - $ref: "#/components/parameters/CardParentId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
         - { name: sort, in: query, schema: { type: string, enum: [key, title, assignee, project, progress, deadline, priority, position, updated] } }
+        - { name: sortField, in: query, description: Sort by this custom field instead of `sort`; cards without a value come last, schema: { type: string, format: uuid } }
         - { name: order, in: query, schema: { type: string, enum: [asc, desc] } }
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/PageSize"
@@ -818,6 +822,9 @@ paths:
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
         - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardFilterFieldId"
+        - $ref: "#/components/parameters/CardFilterFieldValue"
+        - $ref: "#/components/parameters/CardFilterFieldMatch"
         - $ref: "#/components/parameters/CardParentId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
@@ -1023,6 +1030,9 @@ paths:
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
         - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardFilterFieldId"
+        - $ref: "#/components/parameters/CardFilterFieldValue"
+        - $ref: "#/components/parameters/CardFilterFieldMatch"
         - $ref: "#/components/parameters/CardParentId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
@@ -2698,6 +2708,9 @@ components:
     CardPriority: { name: priority, in: query, schema: { $ref: "#/components/schemas/Priority" } }
     CardQuery: { name: q, in: query, schema: { type: string }, description: Search in title or key (e.g. LK-12) }
     CardLabelId: { name: labelId, in: query, schema: { type: string, format: uuid } }
+    CardFilterFieldId: { name: fieldId, in: query, description: Only cards that have a value in this custom field (with fieldValue), schema: { type: string, format: uuid } }
+    CardFilterFieldValue: { name: fieldValue, in: query, description: The value to match in the custom field, schema: { type: string } }
+    CardFilterFieldMatch: { name: fieldMatch, in: query, description: "eq (default) or contains (text and link fields)", schema: { type: string, enum: [eq, contains] } }
     CardParentId: { name: parentId, in: query, description: Only subtasks of this card, schema: { type: string, format: uuid } }
     ColumnId: { name: columnId, in: path, required: true, schema: { type: string, format: uuid } }
     ViewId: { name: viewId, in: path, required: true, schema: { type: string, format: uuid } }

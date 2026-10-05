@@ -4,6 +4,12 @@
 
 ### Added
 
+- **Filter and sort by a custom field**: in the task filter (board, list and calendar) pick a field and a value — a
+  choice, yes/no, a number or date, or a text search for text and link fields — and sort the list by any field
+  (cards without a value last; numbers sort as numbers). Needs migration `00032` (a published view of field values).
+
+### Added
+
 - **Chat appearance** (palette button in the chat header): eight ready-made themes (Aubergine, Ocean, Forest…) or your
   own sidebar and accent colours. The text colour, borders and the active row follow the colours and stay readable
   (AA); the choice is remembered per browser.

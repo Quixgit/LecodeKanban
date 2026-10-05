@@ -107,6 +107,13 @@ type CardCounter struct {
 	Next      int32
 }
 
+type CardFieldDirectory struct {
+	CardID      uuid.UUID
+	FieldID     uuid.UUID
+	WorkspaceID uuid.UUID
+	Value       []byte
+}
+
 type CardFieldValue struct {
 	CardID      uuid.UUID
 	FieldID     uuid.UUID
