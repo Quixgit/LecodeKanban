@@ -1,13 +1,14 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Suspense } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useChangeLanguage } from '@/features/auth';
 import { pageTransition } from '@/shared/motion';
-import { GridBackdrop, Skeleton } from '@/shared/ui';
+import { Skeleton } from '@/shared/ui';
 import { LanguageSwitcher } from '../app-shell/header/LanguageSwitcher';
 import { ThemeToggle } from '../app-shell/header/ThemeToggle';
 import { BrandLogo } from '../app-shell/sidebar/BrandLogo';
-import { BrandPanel } from './BrandPanel';
+import { BoardScene } from './art/BoardScene';
+import { DocsScene } from './art/DocsScene';
 
 function FormSkeleton() {
   return (
@@ -21,24 +22,38 @@ function FormSkeleton() {
   );
 }
 
-/** One shared backdrop: the sign-in card on the left, the product pitch on the right (lg+). */
+/** Sign-in and friends: one calm card in the middle, a scene in each bottom corner on wide screens. */
 export function AuthLayout() {
   const location = useLocation();
   const changeLanguage = useChangeLanguage();
+  const reduce = useReducedMotion();
+  const rise = (side: 'left' | 'right') => ({
+    initial: reduce ? false : { opacity: 0, x: side === 'left' ? -28 : 28, y: 16 },
+    animate: { opacity: 1, x: 0, y: 0 },
+    transition: { duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] as const },
+  });
   return (
-    <div className="relative isolate flex min-h-dvh flex-col bg-bg">
-      <GridBackdrop />
-      <header className="mx-auto flex w-full max-w-[1240px] items-center justify-between px-6 py-6 sm:px-10">
-        <Link to="/" className="rounded-lg">
+    <div className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-bg">
+      {/* A quiet wash of brand colour at the top, and a paler one at the foot. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            'radial-gradient(60% 50% at 50% 0%, rgb(var(--c-primary) / 0.10), transparent 70%), radial-gradient(50% 40% at 50% 100%, rgb(var(--c-review-bar) / 0.07), transparent 70%)',
+        }}
+      />
+
+      <div className="absolute right-4 top-4 z-10 flex items-center gap-2 sm:right-6 sm:top-5">
+        <ThemeToggle />
+        <LanguageSwitcher onChange={changeLanguage} />
+      </div>
+
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-14 sm:py-16">
+        <Link to="/" className="mb-6 rounded-lg [&_span]:text-2xl" aria-label="LecodeKanban">
           <BrandLogo collapsed={false} />
         </Link>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <LanguageSwitcher onChange={changeLanguage} />
-        </div>
-      </header>
-      <main className="mx-auto grid w-full max-w-[1240px] flex-1 grid-cols-1 items-center gap-12 px-6 pb-10 sm:px-10 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:justify-between lg:gap-16">
-        <div className="mx-auto w-full max-w-[460px] rounded-3xl border border-border bg-surface/90 p-7 shadow-lg backdrop-blur-sm sm:p-9">
+        <div className="w-full max-w-[440px] rounded-2xl border border-border bg-surface p-7 shadow-lg sm:p-9">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}
@@ -53,11 +68,26 @@ export function AuthLayout() {
             </motion.div>
           </AnimatePresence>
         </div>
-        <BrandPanel />
+        <p className="mt-6 text-xs text-text-muted">© {new Date().getFullYear()} LecodeKanban</p>
       </main>
-      <footer className="pb-6 text-center text-xs text-text-muted">
-        © {new Date().getFullYear()} LecodeKanban
-      </footer>
+
+      {/* The scenes stand in the corners and never reach under the card. */}
+      <motion.div
+        aria-hidden
+        data-testid="auth-scene"
+        {...rise('left')}
+        className="pointer-events-none absolute bottom-0 left-0 hidden w-[clamp(240px,25vw,430px)] min-[1100px]:block"
+      >
+        <BoardScene />
+      </motion.div>
+      <motion.div
+        aria-hidden
+        data-testid="auth-scene"
+        {...rise('right')}
+        className="pointer-events-none absolute bottom-0 right-0 hidden w-[clamp(240px,25vw,430px)] min-[1100px]:block"
+      >
+        <DocsScene />
+      </motion.div>
     </div>
   );
 }

@@ -409,3 +409,10 @@ Facts about what was checked, with how. Update on every phase.
 - Vitest: the helper uses the API on a secure page, falls back to the copy command when the API is missing or refuses, reports failure, and keeps the hidden field inside an open dialog and gives focus back.
 - Browser: with `navigator.clipboard` removed and the page marked not secure (an `http://` deployment), the invitation link is copied from the dialog, the toast says so, and pasting into a field gives the same link.
 - Not covered one by one in the browser: the other thirteen copy buttons (link of a task, page, channel or message, GitHub branch and setup values, recovery codes, a code block, Markdown); they all go through the same helper. A real phone browser was not tried.
+
+## Sign-in page in a calmer style
+
+- Vitest: the isometric projection (origin, left/right, height, block faces, wall matrices).
+- Browser (axe): login in light and dark passes; the two corner scenes exist, are hidden from assistive technology and do not overlap the card; registration still reports mismatched passwords; phone width has no horizontal scroll. Screenshots (light 1440, dark 1440, light 1180 on the registration page, light 390) checked by eye.
+- Found by the browser tests and fixed here: after joining by invitation the app sent the person back to the invitation (the remembered invitation was written again); the two-factor tests, which register fresh accounts, were covered by the welcome guide since it was added and now skip it.
+- Not covered: the Ukrainian text on these pages by eye, the password-reset and verification pages with the new layout (same card, not opened), a very tall screen where the scenes could float far above the bottom, the motion itself (checked as stills).

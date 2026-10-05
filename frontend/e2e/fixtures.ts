@@ -45,3 +45,9 @@ export async function openKanban(page: Page, swimlane: 'none' | 'project' = 'non
 
 export const test = base;
 export { expect };
+
+/** A freshly registered account is met by the welcome guide; tests that are about something else skip it. */
+export async function skipWelcome(page: Page) {
+  await page.getByRole('dialog').getByRole('button', { name: 'Skip setup' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+}

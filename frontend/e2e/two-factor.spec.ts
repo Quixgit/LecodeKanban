@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from './fixtures';
+import { expect, skipWelcome, test } from './fixtures';
 
 import { totp } from './totp';
 
@@ -25,6 +25,7 @@ test.describe('Two-step verification', () => {
     await page.getByLabel('Confirm password').fill(password);
     await page.getByRole('button', { name: 'Create account' }).click();
     await page.waitForURL((u) => !u.pathname.startsWith('/register'));
+    await skipWelcome(page);
 
     await page.goto('/profile/security');
     const card = page.getByRole('region', { name: 'Two-step verification' });
@@ -107,6 +108,7 @@ test.describe('Workspace requires two-step verification', () => {
     await page.getByLabel('Confirm password').fill(password);
     await page.getByRole('button', { name: 'Create account' }).click();
     await page.waitForURL((u) => !u.pathname.startsWith('/register'));
+    await skipWelcome(page);
 
     // Requiring it needs the owner to have it first.
     await page.goto('/settings/access');
