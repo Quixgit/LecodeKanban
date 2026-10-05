@@ -4,6 +4,14 @@
 
 ### Changed
 
+- **Sign-in and registration pages redone.** The background is now an engineering grid that fades toward the edges,
+  slow pools of brand light, film grain and a few lines of light running down the grid (all gradients, so it is
+  sharp at any size and follows light/dark). The right side shows the product itself instead of a toy board: a
+  sprint header with who is online, throughput / cycle time / on-time numbers that count up and draw themselves,
+  a four-column board whose cards move through the workflow, a feed of what just happened, two collaborators'
+  cursors and two floating notices; it tilts a little with the pointer and stands still with reduced motion.
+  Registration asks for the **password twice** and says when they differ.
+
 - **Time tracking, redone as one system.** _On a task:_ a single panel in the order a person thinks — Start/Stop timer
   (a live clock on the button), an estimate with a progress bar (teal, amber near the limit, red when over, "2h left /
   1h over"), "Log time" in a small dialog (quick amounts 15m–8h, any day, a note) and the log grouped by day with
