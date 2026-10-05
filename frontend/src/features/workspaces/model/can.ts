@@ -21,6 +21,7 @@ export type PermissionKey =
   | 'members.manage'
   | 'workspace.update'
   | 'audit.view'
+  | 'data.export'
   | 'roles.manage'
   | 'workspace.delete';
 

@@ -56,6 +56,10 @@
     "email": {
       "title": "Email",
       "description": "Is email leaving the server? Delivery method, the queue, the latest emails and a test."
+    },
+    "data": {
+      "title": "Data & export",
+      "description": "Download your tasks as a spreadsheet."
     }
   },
   "overview": {
@@ -467,6 +471,10 @@
     "workspace_delete": {
       "title": "Delete the workspace",
       "description": "Only the owner; cannot be given to others."
+    },
+    "data_export": {
+      "title": "Export data",
+      "description": "Download the workspace’s tasks as a spreadsheet."
     }
   },
   "email": {
@@ -523,5 +531,17 @@
       "leaf": "Leaf",
       "flame": "Flame"
     }
+  },
+  "data": {
+    "tasksTitle": "Tasks",
+    "tasksDescription": "One row per task with status, priority, due date, people, labels and project.",
+    "scope": {
+      "title": "What to export",
+      "description": "Everything in the workspace, or a single project.",
+      "all": "All projects"
+    },
+    "download": "Download CSV",
+    "hint": "Opens in Excel, Numbers and Google Sheets. Very large workspaces are cut at the first rows.",
+    "noAccess": "You do not have permission to export data."
   }
 }

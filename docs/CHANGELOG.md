@@ -16,6 +16,9 @@
 
 ### Added
 
+- **Export tasks** (Settings → Data & export): download the workspace's tasks, or one project's, as a CSV that opens in
+  Excel, Numbers and Google Sheets (UTF-8, cells that look like formulas are neutralised). New permission **Export data**
+  (`data.export`): administrators have it by default; it can be given to any role.
 - **Team**: each person's job title shows under their name in the members table.
 - **Require two-step verification** (Settings → Access & invitations → Security): everyone must turn on 2FA before
   opening the workspace. The server refuses a member who has none (`workspaces.two_factor_required`); the workspace

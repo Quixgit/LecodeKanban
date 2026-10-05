@@ -278,6 +278,11 @@ Facts about what was checked, with how. Update on every phase.
 - Unit: theme maths (default untouched, light text on dark / dark on light, AA for accents and muted text on every preset).
 - Browser: pick a theme (axe on the themed sidebar and chat), reload keeps it, own colour, reset.
 
+## Export tasks
+
+- Go: export needs the permission (members refused, owner allowed, grantable to members); formula cells neutralised.
+- Browser: the page offers the download (axe) and the file has the header row and data rows.
+- Not covered: export of other data (comments, time entries, docs) and a truncation notice in the UI.
 ## Rail: chat and docs lists
 
 - Browser: in the rail layout the channel list is inside the rail and not in the page; the docs tree too; axe on the rail.

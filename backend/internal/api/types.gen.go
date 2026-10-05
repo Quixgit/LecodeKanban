@@ -3988,6 +3988,11 @@ type ListCardFieldValuesJSONBody struct {
 	CardIds []openapi_types.UUID `json:"cardIds"`
 }
 
+// ExportTasksParams defines parameters for ExportTasks.
+type ExportTasksParams struct {
+	ProjectId *openapi_types.UUID `form:"projectId,omitempty" json:"projectId,omitempty"`
+}
+
 // AssignCustomRoleJSONBody defines parameters for AssignCustomRole.
 type AssignCustomRoleJSONBody struct {
 	RoleId *openapi_types.UUID `json:"roleId"`

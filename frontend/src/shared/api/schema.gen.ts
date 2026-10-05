@@ -1069,6 +1069,25 @@ export interface paths {
         patch: operations["updateSavedView"];
         trace?: never;
     };
+    "/workspaces/{workspaceId}/export/tasks.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** Download the tasks as a CSV spreadsheet (needs the export permission) */
+        get: operations["exportTasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/cards/board": {
         parameters: {
             query?: never;
@@ -6475,6 +6494,31 @@ export interface operations {
                     "application/json": components["schemas"]["SavedView"];
                 };
             };
+        };
+    };
+    exportTasks: {
+        parameters: {
+            query?: {
+                projectId?: string;
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A CSV file; X-Export-Truncated says whether the row cap was hit */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            403: components["responses"]["Error"];
         };
     };
     boardCards: {

@@ -132,6 +132,7 @@ Base URL: `/api/v1`
 | PATCH | `/cards/{cardId}` | session | CardPatch | 200, 409 Error |  |
 | DELETE | `/cards/{cardId}` | session |  | 204 |  |
 | POST | `/cards/{cardId}/move` | session | CardMove | 200, 409 Error |  |
+| GET | `/workspaces/{workspaceId}/export/tasks.csv` | session |  | 200, 403 Error | Download the tasks as a CSV spreadsheet (needs the export permission) |
 | GET | `/workspaces/{workspaceId}/cards/board` | session |  | 200 |  |
 | GET | `/workspaces/{workspaceId}/labels` | session |  | 200 |  |
 | POST | `/workspaces/{workspaceId}/labels` | session | LabelInput | 201, 409 Error |  |
