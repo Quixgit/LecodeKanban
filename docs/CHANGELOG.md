@@ -105,6 +105,11 @@
 
 ### Fixed
 
+- **Copy buttons work on a plain http address.** Copying a link (task, page, channel, message, invitation, share), a branch
+  name, recovery codes, a code block or Markdown did nothing when the platform was opened by `http://<address>`, because
+  browsers expose `navigator.clipboard` only on https and localhost. One helper (`shared/lib/clipboard`) now uses the
+  API when it is there and the browser's copy command otherwise, and every copy button tells the person when it still
+  fails.
 - **Statuses in two languages**: a board's default columns are stored with the names of the language it was created in,
   so an English reader saw Ukrainian names (and "До виконання · To Do" in the task window's status list). Default
   columns now show the status name in the reader's own language everywhere (board headers, the task window, the

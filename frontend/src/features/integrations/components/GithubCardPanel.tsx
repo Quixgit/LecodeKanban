@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import {
   Check,
   Copy,
@@ -64,7 +65,8 @@ export function GithubCardPanel({ cardId }: { cardId: string }) {
   if (!data || (!data.active && data.links.length === 0)) return null;
 
   const copy = () =>
-    void navigator.clipboard.writeText(data.branch).then(() => {
+    void copyText(data.branch).then((ok) => {
+      if (!ok) return toast.error(t('github.copyFailed'));
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     });

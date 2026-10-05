@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import { NodeViewContent, NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
 import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
@@ -15,7 +16,7 @@ export function CodeBlockView({ node, updateAttributes, editor }: NodeViewProps)
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(node.textContent);
+      if (!(await copyText(node.textContent))) throw new Error('copy failed');
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {

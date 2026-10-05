@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import { Bell, BellOff, BellRing, Copy, Info } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -65,7 +66,7 @@ export function ChannelContextMenu({
 
   const copy = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      if (!(await copyText(text))) throw new Error('copy failed');
       toast.success(t('menu.copied'));
     } catch {
       toast.error(t('menu.copyFailed'));

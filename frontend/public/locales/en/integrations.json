@@ -89,7 +89,8 @@
         "Put the client ID and secret into the server settings: LK_GOOGLE_CLIENT_ID and LK_GOOGLE_CLIENT_SECRET, set LK_PUBLIC_URL to this site's address, and restart the server.",
         "Come back to this page and press Connect."
       ]
-    }
+    },
+    "copyFailed": "Could not copy. Select the text and copy it by hand."
   },
   "google_calendar": {
     "name": "Google Calendar",
@@ -157,7 +158,8 @@
       "issueCreated": "GitHub issue created"
     },
     "showToken": "Show the token",
-    "hideToken": "Hide the token"
+    "hideToken": "Hide the token",
+    "copyFailed": "Could not copy the branch name"
   },
   "back": "All integrations",
   "notFound": "This integration does not exist"

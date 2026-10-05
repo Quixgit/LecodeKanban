@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import {
   Bell,
   BellOff,
@@ -95,7 +96,8 @@ function Details({
   const navigate = useNavigate();
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/chat/${channel.id}`);
+      if (!(await copyText(`${window.location.origin}/chat/${channel.id}`)))
+        throw new Error('copy failed');
       toast.success(t('menu.copied'));
     } catch {
       toast.error(t('menu.copyFailed'));

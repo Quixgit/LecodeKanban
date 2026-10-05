@@ -67,7 +67,8 @@
     "savedBadge": "Saved",
     "pinnedToast": "Message pinned",
     "unpinnedToast": "Message unpinned",
-    "openProfile": "Open {{name}}'s profile"
+    "openProfile": "Open {{name}}'s profile",
+    "linkCopyFailed": "Could not copy the link"
   },
   "list": {
     "label": "Messages",

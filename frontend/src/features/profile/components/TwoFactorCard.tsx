@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import { Check, Copy, Download, ShieldCheck, ShieldOff } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -123,11 +124,11 @@ function CodesDialog({ codes, onClose }: { codes: string[]; onClose: () => void 
   const text = codes.join('\n');
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      if (!(await copyText(text))) throw new Error('copy failed');
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
-      // Clipboard blocked: the codes are selectable.
+      toast.error(t('twoFactor.copyFailed'));
     }
   };
   const download = () => {

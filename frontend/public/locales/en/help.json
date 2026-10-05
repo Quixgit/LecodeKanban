@@ -305,6 +305,15 @@
     "changes": [
       {
         "date": "October 2026",
+        "tag": "fix",
+        "title": "Copy buttons work on every address",
+        "text": "Copying a link, a branch name, recovery codes or a code block did nothing when the platform was opened by a plain http address; it now works everywhere, and says so if the browser still refuses.",
+        "tech": [
+          "the browser exposes navigator.clipboard only on https and localhost; copying now falls back to the browser's copy command"
+        ]
+      },
+      {
+        "date": "October 2026",
         "tag": "feature",
         "title": "Task templates and recurring tasks",
         "text": "Save a task as a template with its checklist, subtasks and due offset, create tasks from it in one step, and let daily, weekly or monthly tasks create themselves on a schedule.",

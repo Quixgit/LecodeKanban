@@ -169,7 +169,8 @@
     "regenerateTitle": "New recovery codes",
     "regenerateDescription": "The old codes stop working. Enter a current code to confirm.",
     "regenerate": "Create new codes",
-    "turnedOff": "Two-step verification is off"
+    "turnedOff": "Two-step verification is off",
+    "copyFailed": "Could not copy. Select the codes and copy them by hand, or download them."
   },
   "notify": {
     "title": "Notifications",

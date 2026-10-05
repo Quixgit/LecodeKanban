@@ -403,3 +403,9 @@ Facts about what was checked, with how. Update on every phase.
 ## Email setup instructions
 
 - Found on a real deployment: with `LK_SMTP_HOST=smtp-relay.gmail.com` in `.env` the API log still showed `smtp_host: mailpit`, because `docker-compose.yml` reads `LK_PROD_SMTP_*`. The page, README and `.env.example` now say so. Not covered: the compose file itself is unchanged; a UI test for the snippet text.
+
+## Copy buttons
+
+- Vitest: the helper uses the API on a secure page, falls back to the copy command when the API is missing or refuses, reports failure, and keeps the hidden field inside an open dialog and gives focus back.
+- Browser: with `navigator.clipboard` removed and the page marked not secure (an `http://` deployment), the invitation link is copied from the dialog, the toast says so, and pasting into a field gives the same link.
+- Not covered one by one in the browser: the other thirteen copy buttons (link of a task, page, channel or message, GitHub branch and setup values, recovery codes, a code block, Markdown); they all go through the same helper. A real phone browser was not tried.
