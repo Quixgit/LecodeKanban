@@ -315,3 +315,8 @@ Facts about what was checked, with how. Update on every phase.
   restoring a parent brings the subtask; viewers are refused; a restored task is live again.
 - Browser: delete a task, find it in the trash (axe), restore it, see it in the task list.
 - Not covered: deleting forever (the trash is not emptied; attachment files would need cleaning with it).
+## Interface: shortcuts, density, phone menu
+
+- Unit: accent tokens pass AA (light and dark) for every offered accent and for extremes (yellow, white, black…).
+- Browser: `?` dialog (axe) and g-then-letter jumps; density persists across reload; the icon menu on a phone (axe); 2FA
+  flow now runs in the dark theme (axe on the dialog).

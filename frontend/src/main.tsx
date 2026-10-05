@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from '@/app/App';
 import { initI18n } from '@/shared/i18n';
 import { reloadOnce } from '@/shared/lib/reload';
+import '@/shared/lib/density';
 import '@/shared/styles/globals.css';
 
 // A tab opened before a deployment asks for chunks that no longer exist: fetch the new bundle.

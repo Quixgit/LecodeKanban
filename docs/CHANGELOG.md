@@ -8,6 +8,14 @@
   tasks wait there, newest first, and can be restored. A task comes back with the subtasks that were deleted with it; a
   subtask whose parent is still in the trash asks you to restore the parent first; a task whose project is gone cannot
   come back. Whoever may delete tasks may look and restore; the activity feed records "restored the task".
+- **Keyboard help on every page**: `?` opens a dialog with the shortcuts of the page you are on and the ones that work
+  everywhere (⌘/Ctrl+K, and `G` then a letter to jump: D dashboard, P projects, T tasks, L calendar, C chat, O docs,
+  M team, S settings). Pages register their own shortcuts; the board's own dialog was folded into it.
+- **Density** (Profile → Interface): comfortable or compact — rows, controls and the header shrink to show more. The side
+  menu style (classic or icon menu) is switchable there too.
+- **Icon menu on phones**: in the drawer, tap an icon and its menu opens next to the strip.
+- Accent colours are tested for AA contrast in both themes (buttons, links and tints), including extreme picks; the 2FA
+  QR code sits on white so it scans in the dark theme.
 
 ### Fixed
 

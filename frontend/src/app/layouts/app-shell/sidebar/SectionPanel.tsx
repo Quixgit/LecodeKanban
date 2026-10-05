@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import { STATUSES, useCardCounts } from '@/features/cards';
@@ -16,6 +16,9 @@ import { statusTone, toneClasses, type TaskStatus } from '@/shared/ui';
 
 const ACTIVE_ID = 'panel-active-item';
 
+/** In a drawer the highlight must not be a shared-layout element: it would keep the closing drawer on screen. */
+const PlainHighlight = createContext(false);
+
 function PanelLink({
   to,
   end,
@@ -29,6 +32,7 @@ function PanelLink({
   children: ReactNode;
   trail?: ReactNode;
 }) {
+  const plain = useContext(PlainHighlight);
   return (
     <li>
       <NavLink
@@ -45,14 +49,17 @@ function PanelLink({
       >
         {({ isActive }) => (
           <>
-            {isActive && (
-              <motion.span
-                layoutId={ACTIVE_ID}
-                transition={transition.spring}
-                aria-hidden
-                className="absolute inset-0 rounded-lg bg-primary-subtle"
-              />
-            )}
+            {isActive &&
+              (plain ? (
+                <span aria-hidden className="absolute inset-0 rounded-lg bg-primary-subtle" />
+              ) : (
+                <motion.span
+                  layoutId={ACTIVE_ID}
+                  transition={transition.spring}
+                  aria-hidden
+                  className="absolute inset-0 rounded-lg bg-primary-subtle"
+                />
+              ))}
             {lead && <span className="relative flex shrink-0 [&_svg]:size-4">{lead}</span>}
             <span className="relative min-w-0 flex-1 truncate">{children}</span>
             {trail && <span className="tabular relative text-xs text-text-muted">{trail}</span>}
@@ -207,7 +214,7 @@ const MENUS: Record<string, () => ReactNode> = {
 };
 
 /** The menu for the section you are in: what is inside it, one click away. */
-export function SectionPanel({ itemKey }: { itemKey: string }) {
+export function SectionPanel({ itemKey, plain = false }: { itemKey: string; plain?: boolean }) {
   const { t } = useTranslation('nav');
   if (ownsList(itemKey)) return <OwnList />;
   const Menu = MENUS[itemKey];
@@ -224,7 +231,9 @@ export function SectionPanel({ itemKey }: { itemKey: string }) {
         animate="visible"
         className="min-h-0 flex-1 overflow-y-auto px-3 pb-4"
       >
-        <Menu />
+        <PlainHighlight.Provider value={plain}>
+          <Menu />
+        </PlainHighlight.Provider>
       </motion.div>
     </nav>
   );
