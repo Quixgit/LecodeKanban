@@ -4,6 +4,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
 	"slices"
 	"time"
 
@@ -147,11 +148,42 @@ func (s *Service) Notify(ctx context.Context, n domain.Notification) error {
 	if n.ActorID != nil && *n.ActorID == n.UserID {
 		return nil
 	}
+	// A kind the person switched off in their preferences is not delivered.
+	if off, err := s.repo.IsDisabled(ctx, n.UserID, n.Kind); err != nil || off {
+		return err
+	}
 	if _, err := s.repo.Insert(ctx, n); err != nil {
 		return err
 	}
 	s.hint(ctx, n.WorkspaceID, n.UserID, n.ActorID)
 	return nil
+}
+
+// Pref is one kind and whether the person wants it.
+type Pref struct {
+	Kind    domain.Kind
+	Enabled bool
+}
+
+// Prefs lists every kind with the person's choice (on unless they switched it off).
+func (s *Service) Prefs(ctx context.Context, user uuid.UUID) ([]Pref, error) {
+	off, err := s.repo.Disabled(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Pref, len(domain.Kinds))
+	for i, k := range domain.Kinds {
+		out[i] = Pref{Kind: k, Enabled: !off[k]}
+	}
+	return out, nil
+}
+
+// SetPref turns one kind on or off for the person.
+func (s *Service) SetPref(ctx context.Context, user uuid.UUID, kind domain.Kind, enabled bool) error {
+	if !kind.Valid() {
+		return apperr.New(domain.ErrUnknownKind, "unknown notification kind")
+	}
+	return s.repo.SetPref(ctx, user, kind, enabled)
 }
 
 func (s *Service) hint(ctx context.Context, ws, user uuid.UUID, actor *uuid.UUID) {

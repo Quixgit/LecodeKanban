@@ -2,7 +2,8 @@
   "nav": {
     "label": "Profile sections",
     "profile": "Profile",
-    "security": "Security"
+    "security": "Security",
+    "notifications": "Notifications"
   },
   "avatar": {
     "title": "Profile photo",
@@ -129,6 +130,40 @@
       "slate": "Slate",
       "dawn": "Dawn",
       "mint": "Mint"
+    }
+  },
+  "notify": {
+    "title": "Notifications",
+    "description": "Choose what reaches your bell. Everything is on until you switch it off.",
+    "kinds": {
+      "assigned": {
+        "title": "Put on a task",
+        "description": "Someone assigns a task to you."
+      },
+      "mention": {
+        "title": "Mentions",
+        "description": "You are named, or reached with @channel or @here."
+      },
+      "dm": {
+        "title": "Direct messages",
+        "description": "Someone writes to you privately."
+      },
+      "task_commented": {
+        "title": "Comments on your tasks",
+        "description": "Someone writes on a task you work on."
+      },
+      "task_moved": {
+        "title": "Tasks that move",
+        "description": "A task you work on changes column."
+      },
+      "task_updated": {
+        "title": "Task edits",
+        "description": "A task you work on is edited."
+      },
+      "meeting": {
+        "title": "Meeting reminders",
+        "description": "A calendar meeting is about to start."
+      }
     }
   }
 }

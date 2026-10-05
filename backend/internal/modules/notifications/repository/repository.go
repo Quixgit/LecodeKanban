@@ -12,9 +12,12 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/notifications/repository/store"
 )
 
-type Repo struct{ q *store.Queries }
+type Repo struct {
+	q    *store.Queries
+	pool *pgxpool.Pool
+}
 
-func New(pool *pgxpool.Pool) *Repo { return &Repo{q: store.New(pool)} }
+func New(pool *pgxpool.Pool) *Repo { return &Repo{q: store.New(pool), pool: pool} }
 
 func nullID(id *uuid.UUID) uuid.NullUUID {
 	if id == nil {
