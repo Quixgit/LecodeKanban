@@ -4,6 +4,9 @@
 
 ### Added
 
+- **`adduser -reset`** gives an existing account a new one-time password, lifts a sign-in lock and signs the person out of
+  other devices. For people who lost a password while email is not configured; it never creates an account.
+
 - **Welcome wizards.** A new account is walked through setup in an animated full-screen guide: name the workspace,
   who you are (name and job title), a photo, contacts (phone, Telegram, WhatsApp, time zone and working hours) and
   inviting teammates. Someone who joins by invitation gets a shorter one (about you, photo, contacts) that

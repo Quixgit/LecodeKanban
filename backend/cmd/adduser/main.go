@@ -2,6 +2,11 @@
 // password for each new account; hand it over privately and ask the person to change it
 // (Profile → Security). Existing accounts are only added to the workspace.
 //
+// With -reset it instead gives existing accounts a new one-time password (and lifts a sign-in lock), for
+// people who lost theirs while email is not set up. Their other sessions are signed out.
+//
+//	go run ./cmd/adduser -reset a.petrenko@example.com
+//
 //	go run ./cmd/adduser -workspace "Acme Studio" [-role member] [-locale en] \
 //	    a.petrenko@example.com "Anna Petrenko <anna@example.com>" ...
 package main
@@ -35,11 +40,71 @@ func main() {
 	workspace := flag.String("workspace", "", "workspace name or slug to add the people to")
 	role := flag.String("role", "member", "role in the workspace: admin, member or viewer")
 	locale := flag.String("locale", "en", "interface language of the new accounts: en or uk")
+	reset := flag.Bool("reset", false, "give existing accounts a new one-time password instead of adding people")
 	flag.Parse()
-	if err := run(*workspace, *role, *locale, flag.Args()); err != nil {
+	var err error
+	if *reset {
+		err = resetPasswords(flag.Args())
+	} else {
+		err = run(*workspace, *role, *locale, flag.Args())
+	}
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "adduser:", err)
 		os.Exit(1)
 	}
+}
+
+// resetPasswords sets a fresh random password on each existing account, lifts its sign-in lock and signs it out
+// everywhere. An address with no account is an error: this never creates one.
+func resetPasswords(args []string) error {
+	if len(args) == 0 {
+		return errors.New("usage: adduser -reset email...")
+	}
+	url := os.Getenv("LK_DATABASE_URL")
+	if url == "" {
+		return errors.New("LK_DATABASE_URL is required")
+	}
+	ctx := context.Background()
+	pool, err := db.Connect(ctx, url, 2)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	users := userssvc.New(usersrepo.New(pool), eventbus.New())
+
+	fmt.Printf("%-40s %s\n", "EMAIL", "PASSWORD")
+	for _, arg := range args {
+		email, _, err := parse(arg)
+		if err != nil {
+			return err
+		}
+		cred, err := users.CredentialsByEmail(ctx, email)
+		if apperr.IsCode(err, usersdomain.ErrNotFound) {
+			return fmt.Errorf("%s: no such account (use adduser without -reset to create it)", email)
+		}
+		if err != nil {
+			return fmt.Errorf("%s: %w", email, err)
+		}
+		plain, err := password()
+		if err != nil {
+			return err
+		}
+		hash, err := crypto.HashPassword(plain, crypto.DefaultArgon2)
+		if err != nil {
+			return err
+		}
+		if err := users.SetPasswordHash(ctx, cred.User.ID, hash); err != nil {
+			return fmt.Errorf("%s: %w", email, err)
+		}
+		if err := users.ResetLoginFailures(ctx, cred.User.ID); err != nil {
+			return fmt.Errorf("%s: %w", email, err)
+		}
+		if _, err := pool.Exec(ctx, `UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL`, cred.User.ID); err != nil {
+			return fmt.Errorf("%s: %w", email, err)
+		}
+		fmt.Printf("%-40s %s\n", email, plain)
+	}
+	return nil
 }
 
 // nameFromEmail turns "a.petrenko@x" into "A Petrenko".

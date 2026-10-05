@@ -363,3 +363,7 @@ Facts about what was checked, with how. Update on every phase.
 - Not covered: every step in Ukrainian and in dark on desktop by eye, sending real invitation email (enqueued only), a screen-reader pass of the orbit art (hidden from assistive tech), photo upload inside the wizard beyond the existing avatar flow.
 - Invitation page: Go checks that the preview says an unknown address has no account; the browser test follows the link as a newcomer (no sign-in offered, address locked, account created, joined, short wizard). Not covered by a browser test: the existing-account branch (sign in with the address filled in, forgot-password link) and the Ukrainian text.
 - Invitee who registers without a return path: the browser test checks they land on the invitation (no wizard), join, and get the short guide with no workspace-name step. Not covered: sign-in through Google/GitHub (same code path, providers are not configured here).
+## adduser -reset
+
+- By hand against a real database: a locked account (nine failures) was reset, the lock and the counter cleared, and the browser signed in with the printed password. An address with no account is refused and creates nothing.
+- Not covered: an automated test (the command is a thin script over the users service, whose password and lock methods are tested elsewhere); signing out other devices was not observed, only written as an update of the refresh tokens.
