@@ -7,7 +7,8 @@ import { Skeleton } from '@/shared/ui';
 import { LanguageSwitcher } from '../app-shell/header/LanguageSwitcher';
 import { ThemeToggle } from '../app-shell/header/ThemeToggle';
 import { BrandLogo } from '../app-shell/sidebar/BrandLogo';
-import { AuthBackdrop, BrandPanel } from './BrandPanel';
+import { AuthBackdrop } from './AuthBackdrop';
+import { BrandPanel } from './BrandPanel';
 
 function FormSkeleton() {
   return (

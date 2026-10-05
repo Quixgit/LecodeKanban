@@ -343,3 +343,9 @@ Facts about what was checked, with how. Update on every phase.
 - Browser (axe): estimate → progress, log with a quick amount and a note, edit to 90 minutes, delete; timesheet add through task search, week navigation; header timer menu; phone width without horizontal scroll. Screenshots of the timesheet checked by eye in light and dark; the card panel in light.
 - Found by the browser test, fixed: lengthening an entry made it end in the future and be refused (the start now moves earlier).
 - Not covered: the Ukrainian layout by eye, dark theme of the card panel and the menu, the person filter in the browser (permission checked in Go), exporting the timesheet, billable hours, approvals, day/week goals per person (the 8-hour bar is a fixed reference).
+## Sign-in and registration pages
+
+- Vitest: the registration schema wants the confirmation and equality (required / mismatch messages), the old password rules still hold.
+- Browser (axe, light and dark): login shows the form and the showcase with no violations; registration with two different passwords shows "Passwords don't match." and stays; phone width has no horizontal scroll. The two-factor e2e that creates accounts now fills the repeated password. Screenshots (light/dark, English/Ukrainian, desktop/phone) checked by eye.
+- A real finding from axe: the collaborator tags on the showcase had white text on a mid-tone fill below the contrast limit; they are now inverse-of-surface chips.
+- Not covered: the invitation-accept page (it has no password field), password reveal behaviour, a screen-reader pass of the decorative showcase (it is hidden from assistive technology).

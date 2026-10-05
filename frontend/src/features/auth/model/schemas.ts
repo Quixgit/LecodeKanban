@@ -42,15 +42,22 @@ export function passwordScore(v: string): number {
 export const loginSchema = z.object({ email, password: z.string().min(1, required) });
 export type LoginValues = z.infer<typeof loginSchema>;
 
-export const registerSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, required)
-    .max(100, fieldMessage('validation.max_length', { max: 100 })),
-  email,
-  password,
-});
+export const registerSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, required)
+      .max(100, fieldMessage('validation.max_length', { max: 100 })),
+    email,
+    password,
+    /** Typed twice so a slip of the finger cannot lock a new person out of their own account. */
+    confirm: z.string().min(1, required),
+  })
+  .refine((v) => v.password === v.confirm, {
+    path: ['confirm'],
+    message: fieldMessage('validation.passwords_mismatch'),
+  });
 export type RegisterValues = z.infer<typeof registerSchema>;
 
 export const forgotSchema = z.object({ email });

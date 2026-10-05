@@ -16,7 +16,7 @@ import { OAuthButtons, OrDivider } from './OAuthButtons';
 import { StrengthMeter } from './StrengthMeter';
 import { useNextPath } from './useNextPath';
 
-const FIELDS = ['name', 'email', 'password'] as const;
+const FIELDS = ['name', 'email', 'password', 'confirm'] as const;
 
 export function RegisterForm() {
   const { t } = useTranslation('auth');
@@ -31,9 +31,9 @@ export function RegisterForm() {
     mode: 'onTouched',
   });
 
-  const onSubmit = handleSubmit((values) =>
+  const onSubmit = handleSubmit(({ name, email, password }) =>
     signUp.mutate(
-      { ...values, locale: language },
+      { name, email, password, locale: language },
       {
         onSuccess: () => navigate(next, { replace: true }),
         onError: (err) => applyServerFieldErrors(err, setError, FIELDS),
@@ -78,6 +78,15 @@ export function RegisterForm() {
           />
         </Field>
         <StrengthMeter password={watch('password') ?? ''} />
+        <Field label={t('fields.confirmPassword')} error={fe(formState.errors.confirm?.message)}>
+          <PasswordInput
+            autoComplete="new-password"
+            placeholder={t('fields.confirmPlaceholder')}
+            showLabel={t('password.show')}
+            hideLabel={t('password.hide')}
+            {...register('confirm')}
+          />
+        </Field>
         <Button type="submit" size="lg" block loading={signUp.isPending} className="mt-1">
           {t('register.submit')}
         </Button>
