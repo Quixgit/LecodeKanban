@@ -231,6 +231,23 @@ export interface paths {
         patch: operations["updateMe"];
         trace?: never;
     };
+    "/users/me/onboarding/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the welcome wizard as finished or skipped */
+        post: operations["completeOnboarding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/me/avatar": {
         parameters: {
             query?: never;
@@ -3115,6 +3132,10 @@ export interface components {
             linkedin: string;
             /** @description Telegram user name without the @ */
             telegram: string;
+            /** @description International number with a leading +, empty when not set */
+            whatsapp: string;
+            /** @description The person has finished (or skipped) the welcome wizard */
+            onboarded: boolean;
             website: string;
             /** @description Working day start, HH:MM, empty when not set */
             workStart: string;
@@ -3214,6 +3235,8 @@ export interface components {
             linkedin?: string;
             /** @description @name, t.me/name or just the name; empty clears */
             telegram?: string;
+            /** @description A number in any common spelling or a wa.me link; empty clears */
+            whatsapp?: string;
             website?: string;
             /** @description HH:MM; send with workEnd, both empty clears */
             workStart?: string;
@@ -3423,6 +3446,7 @@ export interface components {
             bio: string;
             linkedin: string;
             telegram: string;
+            whatsapp: string;
             website: string;
             workStart: string;
             workEnd: string;
@@ -5208,6 +5232,26 @@ export interface operations {
                 };
             };
             422: components["responses"]["Error"];
+        };
+    };
+    completeOnboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The profile, now marked as onboarded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
         };
     };
     uploadAvatar: {

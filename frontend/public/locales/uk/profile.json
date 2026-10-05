@@ -101,7 +101,9 @@
     "linkedinHint": "Адреса профілю або лише ваш нік.",
     "telegram": "Telegram",
     "telegramHint": "@ім'я або посилання t.me.",
-    "website": "Вебсайт"
+    "website": "Вебсайт",
+    "whatsapp": "WhatsApp",
+    "whatsappHint": "Номер із кодом країни."
   },
   "about": {
     "title": "Знайомство",

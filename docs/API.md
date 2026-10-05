@@ -38,6 +38,7 @@ Base URL: `/api/v1`
 | --- | --- | --- | --- | --- | --- |
 | GET | `/users/me` | session |  | 200 |  |
 | PATCH | `/users/me` | session | UpdateProfileRequest | 200, 422 Error |  |
+| POST | `/users/me/onboarding/complete` | session |  | 200 | Mark the welcome wizard as finished or skipped |
 | POST | `/users/me/avatar` | session |  | 200, 413 Error, 422 Error | Upload a profile picture (PNG, JPEG, WebP or GIF, up to 2 MB) |
 | DELETE | `/users/me/avatar` | session |  | 200 | Remove the profile picture |
 | GET | `/users/{userId}/avatar` | session |  | 200, 404 Error | A user's uploaded profile picture (signed-in users only) |
@@ -340,7 +341,7 @@ Base URL: `/api/v1`
 - **CsrfToken** — `token`: string
 - **AuthProviders** — `google`: boolean, `github`: boolean
 - **Locale**: `en` | `uk`
-- **User** — `id`: string, `email`: string, `name`: string, `locale`: Locale, `avatarUrl`: string \| null, `emailVerified`: boolean, `hasPassword`: boolean, `providers`: array, `createdAt`: string, `jobTitle`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `pronouns`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
+- **User** — `id`: string, `email`: string, `name`: string, `locale`: Locale, `avatarUrl`: string \| null, `emailVerified`: boolean, `hasPassword`: boolean, `providers`: array, `createdAt`: string, `jobTitle`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `pronouns`: string, `linkedin`: string, `telegram`: string, `whatsapp`: string, `onboarded`: boolean, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
 - **Session** — `user`: User
 - **RegisterRequest** — `name`: string, `email`: string, `password`: string, `locale?`: Locale
 - **LoginRequest** — `email`: string, `password`: string
@@ -356,7 +357,7 @@ Base URL: `/api/v1`
 - **ChangePasswordRequest** — `currentPassword?`: string, `newPassword`: string
 - **Device** — `id`: string, `startedAt`: string, `lastSeenAt`: string, `userAgent`: string, `ip`: string, `current`: boolean
 - **DeviceList** — `items`: array
-- **UpdateProfileRequest** — `name?`: string, `locale?`: Locale, `jobTitle?`: string, `phone?`: string, `location?`: string, `timezone?`: string, `bio?`: string, `pronouns?`: string, `linkedin?`: string, `telegram?`: string, `website?`: string, `workStart?`: string, `workEnd?`: string, `skills?`: array, `coverPreset?`: string
+- **UpdateProfileRequest** — `name?`: string, `locale?`: Locale, `jobTitle?`: string, `phone?`: string, `location?`: string, `timezone?`: string, `bio?`: string, `pronouns?`: string, `linkedin?`: string, `telegram?`: string, `whatsapp?`: string, `website?`: string, `workStart?`: string, `workEnd?`: string, `skills?`: array, `coverPreset?`: string
 - **Role**: `owner` | `admin` | `member` | `viewer`
 - **InviteRole**: `admin` | `member` | `viewer`
 - **Workspace** — `id`: string, `name`: string, `slug`: string, `twoFactorBlocked`: boolean, `role`: Role, `permissions`: array, `customRole`: object \| null, `memberCount`: integer, `createdAt`: string
@@ -374,7 +375,7 @@ Base URL: `/api/v1`
 - **MailItem** — `id`: integer, `recipient`: string, `subject`: string, `status`: string, `attempts`: integer, `error`: string \| null, `at`: string
 - **MailStatus** — `provider`: string, `host`: string, `from`: string, `capturing`: boolean, `waiting`: integer, `failed`: integer, `recent`: array
 - **MemberUser** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `jobTitle`: string
-- **MemberProfile** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `role`: Role, `joinedAt`: string, `jobTitle`: string, `pronouns`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
+- **MemberProfile** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `role`: Role, `joinedAt`: string, `jobTitle`: string, `pronouns`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `linkedin`: string, `telegram`: string, `whatsapp`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
 - **Member** — `user`: MemberUser, `role`: Role, `customRole`: object \| null, `joinedAt`: string
 - **UpdateMemberRequest** — `role`: Role
 - **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string, `link?`: string

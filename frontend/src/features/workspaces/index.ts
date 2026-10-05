@@ -21,5 +21,5 @@ export {
   invitableRoles,
   canManageMembers,
 } from './model/permissions';
-export { useWorkspaceMutations } from './hooks/useWorkspaces';
+export { useWorkspaceMutations, useCreateWorkspace } from './hooks/useWorkspaces';
 export { TwoFactorGate } from './components/TwoFactorGate';

@@ -285,3 +285,42 @@ func TestProfileExtrasAndCover(t *testing.T) {
 		t.Fatalf("file still served: %v", err)
 	}
 }
+
+func TestWhatsAppAndOnboarding(t *testing.T) {
+	svc, _ := setup(t)
+	ctx := context.Background()
+	u, err := svc.Create(ctx, domain.NewUser{Email: "wa@example.com", Name: "Wa Tester"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u.Onboarded() {
+		t.Fatal("a new account has not been through the wizard")
+	}
+	for in, want := range map[string]string{
+		"+380 67 123-45-67":          "+380671234567",
+		"380671234567":               "+380671234567",
+		"wa.me/380671234567":         "+380671234567",
+		"https://wa.me/380671234567": "+380671234567",
+		"(050) 123 45 67":            "+0501234567",
+		"":                           "",
+	} {
+		got, err := svc.UpdateProfile(ctx, u.ID, domain.ProfilePatch{Whatsapp: &in})
+		if err != nil || got.Whatsapp != want {
+			t.Fatalf("%q → %q (want %q) %v", in, got.Whatsapp, want, err)
+		}
+	}
+	for _, bad := range []string{"12", "call me", "+38067abc", "1234567890123456"} {
+		bad := bad
+		if _, err := svc.UpdateProfile(ctx, u.ID, domain.ProfilePatch{Whatsapp: &bad}); err == nil {
+			t.Fatalf("%q must be refused", bad)
+		}
+	}
+	done, err := svc.CompleteOnboarding(ctx, u.ID)
+	if err != nil || !done.Onboarded() {
+		t.Fatalf("complete: %+v %v", done, err)
+	}
+	again, _ := svc.CompleteOnboarding(ctx, u.ID)
+	if again.OnboardedAt == nil || !again.OnboardedAt.Equal(*done.OnboardedAt) {
+		t.Fatal("completing twice keeps the first time")
+	}
+}

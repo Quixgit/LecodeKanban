@@ -501,6 +501,8 @@ type User struct {
 	CoverUrl         *string
 	CoverKey         *string
 	CoverType        *string
+	Whatsapp         string
+	OnboardedAt      *time.Time
 }
 
 type UserDirectory struct {

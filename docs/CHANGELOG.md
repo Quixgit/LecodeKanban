@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added
+
+- **Welcome wizards.** A new account is walked through setup in an animated full-screen guide: name the workspace,
+  who you are (name and job title), a photo, contacts (phone, Telegram, WhatsApp, time zone and working hours) and
+  inviting teammates. Someone who joins by invitation gets a shorter one (about you, photo, contacts) that
+  introduces the team they joined. Each step saves as it goes, only the workspace name is required, "Skip setup"
+  closes it, and Help → Quick start can run it again. WhatsApp is a new profile field, shown on the member card.
+  Existing accounts are marked as already set up (migration 00036).
+
 ### Changed
 
 - **Sign-in and registration pages redone.** The background is now an engineering grid that fades toward the edges,

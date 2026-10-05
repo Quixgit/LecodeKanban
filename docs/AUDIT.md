@@ -355,3 +355,9 @@ Facts about what was checked, with how. Update on every phase.
 - Browser (axe, light and dark): login shows the form and the showcase with no violations; registration with two different passwords shows "Passwords don't match." and stays; phone width has no horizontal scroll. The two-factor e2e that creates accounts now fills the repeated password. Screenshots (light/dark, English/Ukrainian, desktop/phone) checked by eye.
 - A real finding from axe: the collaborator tags on the showcase had white text on a mid-tone fill below the contrast limit; they are now inverse-of-surface chips.
 - Not covered: the invitation-accept page (it has no password field), password reveal behaviour, a screen-reader pass of the decorative showcase (it is hidden from assistive technology).
+## Welcome wizards
+
+- Go (database): onboarding completes once and is idempotent, WhatsApp is normalised and a bad value refused, the profile returns `onboarded`.
+- Vitest: step lists for both modes, progress, optional steps, Telegram/WhatsApp/email validators, draft defaults.
+- Browser (axe): a new account sees the create wizard, names the workspace, fills about/contacts, finishes and does not see it again; skip closes it; an invited account gets the short wizard and joins its workspace. Screenshots checked by eye (light desktop, dark phone).
+- Not covered: every step in Ukrainian and in dark on desktop by eye, sending real invitation email (enqueued only), a screen-reader pass of the orbit art (hidden from assistive tech), photo upload inside the wizard beyond the existing avatar flow.

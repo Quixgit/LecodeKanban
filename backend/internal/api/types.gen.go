@@ -2837,6 +2837,7 @@ type MemberProfile struct {
 	Telegram    string             `json:"telegram"`
 	Timezone    string             `json:"timezone"`
 	Website     string             `json:"website"`
+	Whatsapp    string             `json:"whatsapp"`
 	WorkEnd     string             `json:"workEnd"`
 	WorkStart   string             `json:"workStart"`
 }
@@ -3473,6 +3474,9 @@ type UpdateProfileRequest struct {
 	// Timezone IANA time zone name or empty
 	Timezone *string `json:"timezone,omitempty"`
 	Website  *string `json:"website,omitempty"`
+
+	// Whatsapp A number in any common spelling or a wa.me link; empty clears
+	Whatsapp *string `json:"whatsapp,omitempty"`
 	WorkEnd  *string `json:"workEnd,omitempty"`
 
 	// WorkStart HH:MM; send with workEnd, both empty clears
@@ -3499,10 +3503,13 @@ type User struct {
 	JobTitle      string             `json:"jobTitle"`
 
 	// Linkedin Full LinkedIn address
-	Linkedin  string          `json:"linkedin"`
-	Locale    Locale          `json:"locale"`
-	Location  string          `json:"location"`
-	Name      string          `json:"name"`
+	Linkedin string `json:"linkedin"`
+	Locale   Locale `json:"locale"`
+	Location string `json:"location"`
+	Name     string `json:"name"`
+
+	// Onboarded The person has finished (or skipped) the welcome wizard
+	Onboarded bool            `json:"onboarded"`
 	Phone     string          `json:"phone"`
 	Pronouns  string          `json:"pronouns"`
 	Providers []UserProviders `json:"providers"`
@@ -3514,6 +3521,9 @@ type User struct {
 	// Timezone IANA time zone name
 	Timezone string `json:"timezone"`
 	Website  string `json:"website"`
+
+	// Whatsapp International number with a leading +, empty when not set
+	Whatsapp string `json:"whatsapp"`
 	WorkEnd  string `json:"workEnd"`
 
 	// WorkStart Working day start, HH:MM, empty when not set

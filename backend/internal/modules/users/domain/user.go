@@ -37,6 +37,8 @@ type User struct {
 	Pronouns        string
 	LinkedIn        string // full https://www.linkedin.com/in/... address, empty when not set
 	Telegram        string // username without the @
+	Whatsapp        string // international number with a leading +, digits only
+	OnboardedAt     *time.Time
 	Website         string
 	WorkStart       string // HH:MM, empty when not set
 	WorkEnd         string
@@ -46,6 +48,9 @@ type User struct {
 }
 
 func (u User) EmailVerified() bool { return u.EmailVerifiedAt != nil }
+
+// Onboarded reports whether the person has been through (or skipped) the welcome wizard.
+func (u User) Onboarded() bool { return u.OnboardedAt != nil }
 
 // Credentials are the sensitive login fields, only exposed to the auth module.
 type Credentials struct {
@@ -82,6 +87,7 @@ type ProfilePatch struct {
 	Pronouns    *string
 	LinkedIn    *string
 	Telegram    *string
+	Whatsapp    *string
 	Website     *string
 	WorkStart   *string
 	WorkEnd     *string
