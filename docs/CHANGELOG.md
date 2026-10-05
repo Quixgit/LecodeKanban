@@ -4,6 +4,12 @@
 
 ### Added
 
+- **Chat appearance** (palette button in the chat header): eight ready-made themes (Aubergine, Ocean, Forest…) or your
+  own sidebar and accent colours. The text colour, borders and the active row follow the colours and stay readable
+  (AA); the choice is remembered per browser.
+
+### Added
+
 - **Icon-rail menu** (optional, "Icon menu" button at the bottom of the sidebar; "Classic menu" switches back; the
   choice is remembered). A strip of icons, then — for Projects, Tasks, Integrations and Settings — a second column
   with that section's menu (projects, task statuses with counts, modules, settings sections), then the content. In

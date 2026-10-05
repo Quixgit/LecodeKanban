@@ -5,9 +5,14 @@ import { describe, expect, it } from 'vitest';
 /**
  * Feature code must style through design tokens: no raw hex / rgb() colours, no arbitrary radii,
  * shadows or pixel font sizes. Brand artwork (the app shell logo, auth panel) lives in `app/`.
- * Third-party brand marks that must keep their colours are listed here.
+ * Third-party brand marks that must keep their colours are listed here, and so is the chat theme palette
+ * (colours the user picks are data, not design values).
  */
-const ALLOWED = new Set(['features/auth/components/OAuthButtons.tsx', 'features/ui-showcase']);
+const ALLOWED = new Set([
+  'features/auth/components/OAuthButtons.tsx',
+  'features/ui-showcase',
+  'features/chat/model/theme.ts',
+]);
 const SRC = join(process.cwd(), 'src');
 const RAW = /#[0-9a-fA-F]{3,8}\b|\brgba?\(\s*\d|\brounded-\[|\bshadow-\[|\btext-\[\d+px\]/;
 
