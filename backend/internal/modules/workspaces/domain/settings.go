@@ -31,13 +31,26 @@ type Settings struct {
 	DefaultPriority   string   `json:"defaultPriority"`   // low | medium | high
 	RequireDueDate    bool     `json:"requireDueDate"`    // new tasks need a due date
 	WeekStart         int      `json:"weekStart"`         // 0 Sunday, 1 Monday
+	RequireAssignee   bool     `json:"requireAssignee"`   // new tasks need an assignee
+	ChatAllowDirect   bool     `json:"chatAllowDirect"`   // people may open direct messages
+	ChatAllowFiles    bool     `json:"chatAllowFiles"`    // files may be shared in chat
+	ChatEditMinutes   int      `json:"chatEditMinutes"`   // how long a message can be edited (0: always)
+	TimeAllowManual   bool     `json:"timeAllowManual"`   // time may be logged by hand
+	AccentColor       string   `json:"accentColor"`       // #rrggbb, or empty for the platform's own
+	Icon              string   `json:"icon"`              // one of Icons
 	Features          Features `json:"features"`
 }
+
+// Icons are the glyphs a workspace can pick (the names the client draws).
+var Icons = []string{"building", "rocket", "briefcase", "layers", "globe", "flask", "shield", "sparkles", "leaf", "flame"}
+
+var colourRE = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
 
 func Defaults() Settings {
 	return Settings{
 		InviteDays: 7, DefaultInviteRole: RoleMember, AllowedDomains: []string{},
 		DefaultPriority: "medium", WeekStart: 1,
+		ChatAllowDirect: true, ChatAllowFiles: true, TimeAllowManual: true, Icon: "building",
 		Features: Features{Chat: true, Docs: true, Time: true, Calendar: true, Integrations: true},
 	}
 }
@@ -51,6 +64,13 @@ type SettingsPatch struct {
 	DefaultPriority   *string
 	RequireDueDate    *bool
 	WeekStart         *int
+	RequireAssignee   *bool
+	ChatAllowDirect   *bool
+	ChatAllowFiles    *bool
+	ChatEditMinutes   *int
+	TimeAllowManual   *bool
+	AccentColor       *string
+	Icon              *string
 	Features          *Features
 }
 
@@ -126,6 +146,40 @@ func (s Settings) Apply(p SettingsPatch) (Settings, []string) {
 	if p.RequireDueDate != nil {
 		s.RequireDueDate = *p.RequireDueDate
 	}
+	if p.RequireAssignee != nil {
+		s.RequireAssignee = *p.RequireAssignee
+	}
+	if p.ChatAllowDirect != nil {
+		s.ChatAllowDirect = *p.ChatAllowDirect
+	}
+	if p.ChatAllowFiles != nil {
+		s.ChatAllowFiles = *p.ChatAllowFiles
+	}
+	if p.TimeAllowManual != nil {
+		s.TimeAllowManual = *p.TimeAllowManual
+	}
+	if p.ChatEditMinutes != nil {
+		if *p.ChatEditMinutes < 0 || *p.ChatEditMinutes > 43200 {
+			bad = append(bad, "chatEditMinutes")
+		} else {
+			s.ChatEditMinutes = *p.ChatEditMinutes
+		}
+	}
+	if p.AccentColor != nil {
+		c := strings.ToLower(strings.TrimSpace(*p.AccentColor))
+		if c != "" && !colourRE.MatchString(c) {
+			bad = append(bad, "accentColor")
+		} else {
+			s.AccentColor = c
+		}
+	}
+	if p.Icon != nil {
+		if !slices.Contains(Icons, *p.Icon) {
+			bad = append(bad, "icon")
+		} else {
+			s.Icon = *p.Icon
+		}
+	}
 	if p.Features != nil {
 		s.Features = *p.Features
 	}
@@ -167,6 +221,13 @@ func (s Settings) Changes(next Settings) []string {
 	add("defaultPriority", s.DefaultPriority != next.DefaultPriority)
 	add("requireDueDate", s.RequireDueDate != next.RequireDueDate)
 	add("weekStart", s.WeekStart != next.WeekStart)
+	add("requireAssignee", s.RequireAssignee != next.RequireAssignee)
+	add("chatAllowDirect", s.ChatAllowDirect != next.ChatAllowDirect)
+	add("chatAllowFiles", s.ChatAllowFiles != next.ChatAllowFiles)
+	add("chatEditMinutes", s.ChatEditMinutes != next.ChatEditMinutes)
+	add("timeAllowManual", s.TimeAllowManual != next.TimeAllowManual)
+	add("accentColor", s.AccentColor != next.AccentColor)
+	add("icon", s.Icon != next.Icon)
 	add("features", s.Features != next.Features)
 	return out
 }

@@ -292,6 +292,9 @@ func toSettings(s domain.Settings) api.WorkspaceSettings {
 		DefaultInviteRole: api.InviteRole(s.DefaultInviteRole), AllowedDomains: domains,
 		DefaultPriority: api.WorkspaceSettingsDefaultPriority(s.DefaultPriority),
 		RequireDueDate:  s.RequireDueDate, WeekStart: s.WeekStart,
+		RequireAssignee: s.RequireAssignee, ChatAllowDirect: s.ChatAllowDirect, ChatAllowFiles: s.ChatAllowFiles,
+		ChatEditMinutes: s.ChatEditMinutes, TimeAllowManual: s.TimeAllowManual, AccentColor: s.AccentColor,
+		Icon: api.WorkspaceSettingsIcon(s.Icon),
 		Features: api.WorkspaceFeatures{Chat: s.Features.Chat, Docs: s.Features.Docs, Time: s.Features.Time,
 			Calendar: s.Features.Calendar, Integrations: s.Features.Integrations},
 	}
@@ -320,7 +323,13 @@ func (h *Handler) updateSettings(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	p := domain.SettingsPatch{Description: in.Description, InviteDays: in.InviteDays, AllowedDomains: in.AllowedDomains,
-		RequireDueDate: in.RequireDueDate, WeekStart: in.WeekStart}
+		RequireDueDate: in.RequireDueDate, WeekStart: in.WeekStart, RequireAssignee: in.RequireAssignee,
+		ChatAllowDirect: in.ChatAllowDirect, ChatAllowFiles: in.ChatAllowFiles, ChatEditMinutes: in.ChatEditMinutes,
+		TimeAllowManual: in.TimeAllowManual, AccentColor: in.AccentColor}
+	if in.Icon != nil {
+		icon := string(*in.Icon)
+		p.Icon = &icon
+	}
 	str := func(v *string) *string { return v }
 	if in.DefaultPriority != nil {
 		p.DefaultPriority = str((*string)(in.DefaultPriority))

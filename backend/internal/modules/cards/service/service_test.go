@@ -354,3 +354,17 @@ func TestWorkspaceTaskPolicies(t *testing.T) {
 		t.Fatalf("explicit priority: %+v %v", c, err)
 	}
 }
+
+func TestRequireAssignee(t *testing.T) {
+	f := setup(t)
+	yes := true
+	if _, err := f.Workspaces.UpdateSettings(f.ctx, f.owner, f.ws, wsdomain.SettingsPatch{RequireAssignee: &yes}); err != nil {
+		t.Fatal(err)
+	}
+	_, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Nobody"})
+	mustCode(t, err, apperr.Validation)
+	if _, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Someone",
+		AssigneeIDs: []uuid.UUID{f.member}}); err != nil {
+		t.Fatalf("with an assignee: %v", err)
+	}
+}

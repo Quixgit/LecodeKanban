@@ -4,6 +4,7 @@ import type { Member } from '@/shared/api';
 import { IconButton, Skeleton } from '@/shared/ui';
 import type { ChatChannel } from '../api/chatApi';
 import { useChatMutations, useThread } from '../hooks/useChat';
+import { useChatRules } from '../hooks/useChatRules';
 import { Composer } from './Composer';
 import { MessageItem, type MessageActions } from './MessageItem';
 
@@ -34,6 +35,7 @@ export function ThreadPanel({
   onError,
 }: Props) {
   const { t } = useTranslation('chat');
+  const { allowFiles } = useChatRules();
   const thread = useThread(rootId);
   const m = useChatMutations(workspaceId);
   const name = channel.name ? `#${channel.name}` : t('thread.conversation');
@@ -110,7 +112,7 @@ export function ThreadPanel({
             label={t('thread.composerLabel')}
             placeholder={t('thread.placeholder')}
             members={members}
-            uploadTo={channel.id}
+            uploadTo={allowFiles ? channel.id : undefined}
             broadcast={false}
             onSend={(body, fileIds) =>
               m.post

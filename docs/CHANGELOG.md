@@ -4,6 +4,14 @@
 
 ### Added
 
+- **Workspace look** (Settings → General): an icon and an accent colour for the workspace. The colour paints buttons,
+  highlights and links for every member, in light and dark themes (text stays readable, AA).
+- **More rules** (Settings → Rules), all enforced by the server: require an assignee on new tasks; direct messages
+  on/off (personal notes always work); file sharing in chat on/off; how long a chat message can be edited (any time,
+  5 min … 1 day); logging time by hand on/off. The screens stop offering what is switched off.
+
+### Added
+
 - **Roles & permissions** (Settings → Roles): about 25 permissions in groups. Change what Admin, Member and Viewer
   may do (and reset to defaults), or create custom roles (start blank or from a role), assign them in Team, delete
   them. The Owner keeps everything. The old "who can invite / create projects / create channels / @channel"

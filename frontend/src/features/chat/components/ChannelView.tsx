@@ -10,6 +10,7 @@ import { transition } from '@/shared/motion';
 import { Button, ConfirmDialog, EmptyState, IconButton, Tooltip, toast } from '@/shared/ui';
 import { chatApi, type ChatMessage } from '../api/chatApi';
 import { useChannelMembers, useChatMutations, useMessages, usePins } from '../hooks/useChat';
+import { useChatRules } from '../hooks/useChatRules';
 import { channelTitle } from '../model/channels';
 import { ChannelDetailsDialog, type DetailsTab } from './ChannelDetailsDialog';
 import { ChannelTabBar, FilesPanel, PinsPanel, type ChannelTab } from './ChannelTabs';
@@ -73,6 +74,7 @@ interface ViewProps {
 
 /** One conversation: header, tabs, history, composer and the optional thread panel. */
 export function ChannelView({ channelId: channelProp, embedded = false, onClosePane }: ViewProps) {
+  const { allowFiles } = useChatRules();
   const { t } = useTranslation('chat');
   const routeParams = useParams();
   const channelId = channelProp ?? routeParams.channelId;
@@ -351,7 +353,7 @@ export function ChannelView({ channelId: channelProp, embedded = false, onCloseP
                       name: channel.name ? `#${title}` : title,
                     })}
                     members={ctx.members}
-                    uploadTo={channel.id}
+                    uploadTo={allowFiles ? channel.id : undefined}
                     broadcast={channel.kind !== 'dm'}
                     onTyping={() => void chatApi.typing(channel.id).catch(() => undefined)}
                     hint={!showThread}

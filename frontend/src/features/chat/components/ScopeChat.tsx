@@ -7,6 +7,7 @@ import { Button, ConfirmDialog, EmptyState, Skeleton, toast } from '@/shared/ui'
 import { MessagesSquare } from 'lucide-react';
 import { chatApi, type ChatMessage } from '../api/chatApi';
 import { useChatMutations, useMessages } from '../hooks/useChat';
+import { useChatRules } from '../hooks/useChatRules';
 import { useScopeChannel, type ScopeKind } from '../hooks/useScope';
 import { Composer } from './Composer';
 import { MessageList } from './MessageList';
@@ -17,6 +18,7 @@ import { TypingIndicator } from './TypingIndicator';
 
 /** An embeddable chat (board drawer, card drawer): same feed, composer and threads as /chat. */
 export function ScopeChat({ kind, refId }: { kind: ScopeKind; refId: string }) {
+  const { allowFiles } = useChatRules();
   const { t } = useTranslation('chat');
   const errorText = useErrorText();
   const { workspace } = useCurrentWorkspace();
@@ -139,7 +141,7 @@ export function ScopeChat({ kind, refId }: { kind: ScopeKind; refId: string }) {
             )}
             members={members.data ?? []}
             hint={false}
-            uploadTo={channel.id}
+            uploadTo={allowFiles ? channel.id : undefined}
             onTyping={() => void chatApi.typing(channel.id).catch(() => undefined)}
             onSend={(body, fileIds) =>
               m.post.mutateAsync({ channel: channel.id, body, fileIds }).catch((e) => {

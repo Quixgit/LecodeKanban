@@ -7,6 +7,7 @@ import { useErrorText } from '@/shared/hooks/useErrorText';
 import { Button, Field, Input, Modal, SettingsCard, Skeleton, Textarea, toast } from '@/shared/ui';
 import { useSaver } from '../hooks/useSaver';
 import { useWorkspaceSettings } from '../hooks/useSettings';
+import { AppearanceCard } from './AppearanceCard';
 import { SectionHeader } from './SectionHeader';
 
 /** Workspace name, address and the delete button (owners only). */
@@ -82,6 +83,15 @@ function GeneralForm({
           </p>
         </SettingsCard>
       </form>
+
+      {settings.data && (
+        <AppearanceCard
+          workspaceId={workspace.id}
+          name={workspace.name}
+          settings={settings.data}
+          canEdit={canEdit}
+        />
+      )}
 
       <SettingsCard
         title={t('general.aboutTitle')}

@@ -19,6 +19,7 @@ import { pageTransition } from '@/shared/motion';
 import { Header } from './header/Header';
 import { PageSkeleton } from './PageSkeleton';
 import { MobileNav } from './sidebar/MobileNav';
+import { useWorkspaceAccent } from '@/features/settings';
 import { Sidebar } from './sidebar/Sidebar';
 import { useShellCommands } from './useShellCommands';
 import { useViewer } from './useViewer';
@@ -35,6 +36,7 @@ export function AppShell() {
   const { user } = useSession();
   const { workspace } = useCurrentWorkspace();
   useSessionExpiryListener();
+  useWorkspaceAccent(workspace?.id); // the workspace's accent colour
   useWorkspaceEvents(workspace?.id); // live updates from teammates, for every page
   useNotificationSounds(user?.id, workspace?.id); // a soft signal for new messages and tasks
   useMeetingToasts(user?.id, workspace?.id); // a pop-up shortly before a calendar meeting

@@ -10,6 +10,7 @@ import { EmptyState } from '@/shared/ui';
 import type { Member } from '@/shared/api';
 import type { ChatChannel, ChatStatus } from '../api/chatApi';
 import { useChannels } from '../hooks/useChat';
+import { useChatRules } from '../hooks/useChatRules';
 import { useOnline, useStatuses } from '../hooks/usePresence';
 import { MyStatus } from './MyStatus';
 import { useChatUiStore } from '../store/chatUiStore';
@@ -55,6 +56,7 @@ export function ChatLayout() {
   const match = useMatch('/chat/:channelId');
   const activeId = match?.params.channelId;
   const setLast = useChatUiStore((s) => s.setLastChannel);
+  const rules = useChatRules();
   const [dialog, setDialog] = useState<'create' | 'browse' | 'direct' | 'search' | null>(null);
   // A second conversation shown next to the open one ("Open in split view").
   const [split, setSplit] = useState<string | null>(null);
@@ -130,7 +132,7 @@ export function ChatLayout() {
                 online={online}
                 statuses={statuses}
                 onSearch={() => setDialog('search')}
-                onNewMessage={() => setDialog('direct')}
+                onNewMessage={rules.allowDirect ? () => setDialog('direct') : undefined}
                 onSplit={desktop ? (id) => setSplit(id === activeId ? null : id) : undefined}
                 onSearchIn={(ch) => {
                   setSearchSeed(ch.name ? `in:#${ch.name} ` : '');

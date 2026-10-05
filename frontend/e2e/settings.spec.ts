@@ -293,4 +293,45 @@ test.describe('Settings admin centre', () => {
     // Revoke it again so the list stays tidy.
     await page.getByRole('button', { name: 'Revoke' }).first().click();
   });
+
+  test('look and chat/time rules: icon, accent colour, switching chat features off', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page);
+    const main = page.getByRole('main');
+
+    // Look: an icon and an accent colour that paint the whole app for every member.
+    await page.goto('/settings/general');
+    await main.getByRole('radio', { name: 'Rocket' }).click();
+    await expect(page.getByText('Saved').first()).toBeVisible();
+    await main.getByRole('radio', { name: '#15803D' }).click();
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.getElementById('lk-workspace-accent')?.textContent ?? ''),
+      )
+      .toContain('--c-primary-solid');
+    await page.reload();
+    await expect(main.getByRole('radio', { name: '#15803D' })).toBeChecked();
+    await axeClean(page);
+
+    // Rules: direct messages and files can be switched off for the whole workspace.
+    await page.goto('/settings/rules');
+    await main.getByRole('switch', { name: 'Direct messages' }).click();
+    await expect(page.getByText('Saved').first()).toBeVisible();
+    await page.goto('/chat');
+    await expect(page.getByRole('button', { name: 'New message' })).toHaveCount(0);
+    await page.goto('/settings/rules');
+    await main.getByRole('switch', { name: 'Direct messages' }).click();
+    await page.goto('/chat');
+    await expect(page.getByRole('button', { name: 'New message' })).toBeVisible();
+
+    // Back to the platform look.
+    await page.goto('/settings/general');
+    await main.getByRole('button', { name: 'Back to the platform colour' }).click();
+    await main.getByRole('radio', { name: 'Building' }).click();
+    await expect
+      .poll(() => page.evaluate(() => !!document.getElementById('lk-workspace-accent')))
+      .toBe(false);
+  });
 });
