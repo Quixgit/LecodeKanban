@@ -46,6 +46,13 @@ type Repository interface {
 	IdentityUser(ctx context.Context, provider, providerUserID string) (uuid.UUID, error)
 	LinkIdentity(ctx context.Context, userID uuid.UUID, provider, providerUserID, email string) error
 	ListProviders(ctx context.Context, userID uuid.UUID) ([]string, error)
+	TwoFactor(ctx context.Context, userID uuid.UUID) (*repository.TwoFactor, error)
+	StartTwoFactor(ctx context.Context, userID uuid.UUID, sealed []byte) (bool, error)
+	EnableTwoFactor(ctx context.Context, userID uuid.UUID, step int64, recovery [][]byte) (bool, error)
+	AcceptStep(ctx context.Context, userID uuid.UUID, step int64) (bool, error)
+	UseRecovery(ctx context.Context, userID uuid.UUID, hash []byte) (bool, error)
+	ReplaceRecovery(ctx context.Context, userID uuid.UUID, recovery [][]byte) error
+	DisableTwoFactor(ctx context.Context, userID uuid.UUID) error
 }
 
 // MailQueue enqueues transactional email (mailer.Enqueue bound to the pool).
@@ -79,14 +86,15 @@ type Service struct {
 	tokens *authtoken.Manager
 	bus    *eventbus.Bus
 	mail   MailQueue
+	sealer *crypto.Sealer
 	now    func() time.Time
 	// dummyHash keeps login timing similar for unknown emails (no user enumeration by timing).
 	dummyHash string
 }
 
-func New(cfg Config, users Users, repo Repository, tokens *authtoken.Manager, bus *eventbus.Bus, mail MailQueue) *Service {
+func New(cfg Config, users Users, repo Repository, tokens *authtoken.Manager, bus *eventbus.Bus, mail MailQueue, sealer *crypto.Sealer) *Service {
 	dummy, _ := crypto.HashPassword("lecodekanban-dummy-password", cfg.Argon)
-	return &Service{cfg: cfg, users: users, repo: repo, tokens: tokens, bus: bus, mail: mail, now: time.Now, dummyHash: dummy}
+	return &Service{cfg: cfg, users: users, repo: repo, tokens: tokens, bus: bus, mail: mail, sealer: sealer, now: time.Now, dummyHash: dummy}
 }
 
 // newSession creates a fresh refresh-token family and access token.
