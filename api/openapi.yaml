@@ -1142,6 +1142,35 @@ paths:
             text/csv:
               schema: { type: string }
         "403": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/cards/trash:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [cards]
+      operationId: listTrash
+      summary: Deleted tasks, newest first (needs the permission to delete tasks)
+      parameters:
+        - $ref: "#/components/parameters/CardProjectId"
+      responses:
+        "200":
+          description: Deleted tasks
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TrashList" }
+        "403": { $ref: "#/components/responses/Error" }
+  /cards/{cardId}/restore:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    post:
+      tags: [cards]
+      operationId: restoreCard
+      summary: Bring a deleted task back, with the subtasks deleted with it
+      responses:
+        "200":
+          description: The restored task
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Card" }
+        "404": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
   /workspaces/{workspaceId}/cards/board:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -3451,6 +3480,17 @@ components:
         status: { $ref: "#/components/schemas/TaskStatus" }
         afterId: { type: string, format: uuid, nullable: true, description: Card that will be directly above }
         beforeId: { type: string, format: uuid, nullable: true, description: Card that will be directly below }
+    TrashItem:
+      type: object
+      required: [card, deletedAt]
+      properties:
+        card: { $ref: "#/components/schemas/Card" }
+        deletedAt: { type: string, format: date-time }
+    TrashList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/TrashItem" } }
     CardBoard:
       type: object
       required: [items, truncated]

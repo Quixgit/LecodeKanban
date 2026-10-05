@@ -97,6 +97,7 @@ const ChatSavedRoute = lazy(() =>
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
+const TrashPage = lazy(() => import('@/pages/TrashPage'));
 const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'));
 const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmailPage'));
 const InvitePage = lazy(() => import('@/pages/InvitePage'));
@@ -153,6 +154,7 @@ export const routes: RouteObject[] = [
             ),
           },
           { path: 'tasks', handle: page('tasks'), element: <TasksPage /> },
+          { path: 'trash', handle: page('trash'), element: <TrashPage /> },
           { path: 'tasks/:status', handle: page('tasks'), element: <TasksPage /> },
           {
             path: 'docs',

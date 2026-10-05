@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- **Trash** (`/trash`; a button in the task toolbar, the Tasks menu of the icon rail and the command palette): deleted
+  tasks wait there, newest first, and can be restored. A task comes back with the subtasks that were deleted with it; a
+  subtask whose parent is still in the trash asks you to restore the parent first; a task whose project is gone cannot
+  come back. Whoever may delete tasks may look and restore; the activity feed records "restored the task".
+
 ### Fixed
 
 - **Statuses in two languages**: a board's default columns are stored with the names of the language it was created in,

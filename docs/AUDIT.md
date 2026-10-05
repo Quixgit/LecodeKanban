@@ -308,3 +308,10 @@ Facts about what was checked, with how. Update on every phase.
 - Go: all kinds on by default; unknown kind refused; a switched-off kind is not delivered while others are; switching on restores it.
 - Browser: toggle persists across reload (axe).
 - Not covered: per-channel/per-project overrides and email notifications (the product sends none of those kinds by email).
+
+## Trash
+
+- Go: trash lists the parent (not its subtask), newest first; subtask restore is refused while the parent is trashed;
+  restoring a parent brings the subtask; viewers are refused; a restored task is live again.
+- Browser: delete a task, find it in the trash (axe), restore it, see it in the task list.
+- Not covered: deleting forever (the trash is not emptied; attachment files would need cleaning with it).

@@ -98,6 +98,12 @@ func Register(bus *eventbus.Bus, d Deps) {
 		}
 		return record(ctx, ofCard(e.Card), activitydomain.CardDeleted, map[string]any{"title": e.Title})
 	})
+	eventbus.Subscribe(bus, func(ctx context.Context, e cardevents.CardRestored) error {
+		if err := d.Projects.Recount(ctx, e.ProjectID); err != nil {
+			return err
+		}
+		return record(ctx, ofCard(e.Card), activitydomain.CardRestored, map[string]any{"title": e.Title})
+	})
 	eventbus.Subscribe(bus, func(ctx context.Context, e cardevents.ChecklistChanged) error {
 		if err := d.Projects.Recount(ctx, e.ProjectID); err != nil {
 			return err

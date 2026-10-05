@@ -25,6 +25,7 @@ export const cardKeys = {
   stats: (ws: string, days: number) => ['cards', ws, 'stats', days] as const,
   board: (ws: string, q: BoardQuery) => ['cards', ws, 'board', q] as const,
   one: (id: string) => ['card', id] as const,
+  trash: (ws: string, project?: string) => ['cards', ws, 'trash', project ?? 'all'] as const,
 };
 
 export function useCard(id: string | undefined) {
@@ -111,4 +112,26 @@ export function useCardMutations(workspaceId: string) {
       onSettled: refresh,
     }),
   };
+}
+
+/** Deleted tasks, newest first (whoever may delete tasks may look). */
+export function useTrash(workspaceId: string | undefined, projectId?: string) {
+  return useQuery({
+    queryKey: cardKeys.trash(workspaceId ?? '', projectId),
+    queryFn: () => cardsApi.trash(workspaceId!, projectId),
+    enabled: !!workspaceId,
+  });
+}
+
+/** Brings a task back; boards, lists and the trash refetch. */
+export function useRestoreCard(workspaceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => cardsApi.restore(id),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: cardKeys.all(workspaceId) }),
+        qc.invalidateQueries({ queryKey: ['projects', workspaceId] }),
+      ]),
+  });
 }

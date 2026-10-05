@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
@@ -105,6 +106,9 @@ function TasksMenu() {
           {t(`tasks.${s}`)}
         </PanelLink>
       ))}
+      <PanelLink to="/trash" lead={<Trash2 aria-hidden />}>
+        {t('panel.trash')}
+      </PanelLink>
     </Group>
   );
 }

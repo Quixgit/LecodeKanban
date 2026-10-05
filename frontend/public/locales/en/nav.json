@@ -95,6 +95,10 @@
     "chat": {
       "title": "Chat",
       "subtitle": "Talk with your team"
+    },
+    "trash": {
+      "title": "Trash",
+      "subtitle": "Deleted tasks you can bring back"
     }
   },
   "panel": {
@@ -102,6 +106,7 @@
     "allProjects": "All projects",
     "yourProjects": "Projects",
     "allIntegrations": "All integrations",
-    "modules": "Modules"
+    "modules": "Modules",
+    "trash": "Trash"
   }
 }
