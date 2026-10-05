@@ -13,6 +13,7 @@ const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 /** Endpoints where a 401 is a real answer, not an expired access token. */
 const NO_REFRESH = [
   '/auth/login',
+  '/auth/login/two-factor',
   '/auth/register',
   '/auth/refresh',
   '/auth/logout',
