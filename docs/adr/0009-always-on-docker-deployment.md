@@ -6,7 +6,7 @@
 ## Context
 
 Until phase 3 the app ran from `make dev` (air + Vite) started in an interactive session; when
-the session ended the app on `http://23.19.228.158:47100` went down. The owner wants it reachable
+the session ended the app on `http://203.0.113.10:47100` went down. The owner wants it reachable
 permanently. The deploy user has no sudo and no systemd linger, but is in the `docker` group, and
 `docker.service` is enabled at boot.
 

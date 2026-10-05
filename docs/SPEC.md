@@ -104,7 +104,7 @@ progress fills; KPI count-up; soft hover elevation; animated segmented control. 
 
 ## Deployment
 
-Multi-stage Dockerfiles (non-root), production `docker-compose.yml` in `/opt/reliabilix/lecodekanban`
+Multi-stage Dockerfiles (non-root), production `docker-compose.yml` in `/opt/lecodekanban`
 (a reverse proxy / Cloudflare handles TLS), healthchecks, named volumes, `.env` for secrets, Postgres
 backup script. Make targets: `dev`, `test`, `lint`, `migrate-up`, `gen`, `seed`.
 

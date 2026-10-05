@@ -23,14 +23,14 @@ const ch = (id: string, name: string, over: Partial<ChatChannel> = {}): ChatChan
   }) as ChatChannel;
 const channels = [ch('c1', 'dev-ops'), ch('c2', 'design')];
 const people = [
-  { id: 'p1', name: 'Anna Sarkisian' },
+  { id: 'p1', name: 'Anna Petrenko' },
   { id: 'p2', name: 'Ben' },
 ];
 const parse = (s: string) => parseQuery(s, channels, people, 'me', 'You');
 
 describe('parseQuery', () => {
   it('turns complete modifiers into filters and keeps the rest as text', () => {
-    const r = parse('release in:#dev-ops from:@annasarkisian has:link is:thread with:me notes ');
+    const r = parse('release in:#dev-ops from:@annapetrenko has:link is:thread with:me notes ');
     expect(r.text).toBe('release notes');
     expect(r.filters).toMatchObject({
       channel: { id: 'c1' },

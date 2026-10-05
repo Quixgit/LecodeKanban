@@ -2,8 +2,8 @@
 // password for each new account; hand it over privately and ask the person to change it
 // (Profile → Security). Existing accounts are only added to the workspace.
 //
-//	go run ./cmd/adduser -workspace "Reliabilix Studio" [-role member] [-locale en] \
-//	    a.sarkisian@example.com "Anna Sarkisian <anna@example.com>" ...
+//	go run ./cmd/adduser -workspace "Acme Studio" [-role member] [-locale en] \
+//	    a.petrenko@example.com "Anna Petrenko <anna@example.com>" ...
 package main
 
 import (
@@ -42,7 +42,7 @@ func main() {
 	}
 }
 
-// nameFromEmail turns "a.sarkisian@x" into "A Sarkisian".
+// nameFromEmail turns "a.petrenko@x" into "A Petrenko".
 func nameFromEmail(addr string) string {
 	local, _, _ := strings.Cut(addr, "@")
 	parts := strings.FieldsFunc(local, func(r rune) bool { return r == '.' || r == '_' || r == '-' })
