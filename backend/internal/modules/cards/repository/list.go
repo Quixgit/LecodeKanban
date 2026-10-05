@@ -43,6 +43,16 @@ func where(ws uuid.UUID, f domain.Filter, today time.Time) (string, []any) {
 	if f.LabelID != nil {
 		conds = append(conds, "EXISTS (SELECT 1 FROM card_labels l WHERE l.card_id = c.id AND l.label_id = "+arg(*f.LabelID)+")")
 	}
+	if f.FieldID != nil && f.FieldValue != "" {
+		fid := arg(*f.FieldID)
+		if f.FieldContains {
+			conds = append(conds, "EXISTS (SELECT 1 FROM card_field_directory v WHERE v.card_id = c.id AND v.field_id = "+fid+
+				" AND (v.value #>> '{}') ILIKE "+arg("%"+escapeLike(f.FieldValue)+"%")+")")
+		} else {
+			conds = append(conds, "EXISTS (SELECT 1 FROM card_field_directory v WHERE v.card_id = c.id AND v.field_id = "+fid+
+				" AND (v.value #>> '{}') = "+arg(f.FieldValue)+")")
+		}
+	}
 	if f.ParentID != nil {
 		conds = append(conds, "c.parent_id = "+arg(*f.ParentID))
 	}
@@ -135,6 +145,12 @@ func (r *Repo) List(ctx context.Context, ws uuid.UUID, f domain.Filter, today ti
 	dir := "ASC"
 	if f.Desc {
 		dir = "DESC"
+	}
+	if f.SortField != nil {
+		// Cards without a value come last. jsonb orders numbers as numbers and strings as strings.
+		args = append(args, *f.SortField)
+		expr = fmt.Sprintf("(SELECT v.value FROM card_field_directory v WHERE v.card_id = c.id AND v.field_id = $%d) %%[1]s NULLS LAST", len(args))
+		ok = true
 	}
 	if !ok {
 		expr, dir = sortExprs["updated"], "DESC"

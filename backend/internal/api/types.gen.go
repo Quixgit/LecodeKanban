@@ -1188,6 +1188,24 @@ func (e CardDue) Valid() bool {
 	}
 }
 
+// Defines values for CardFilterFieldMatch.
+const (
+	CardFilterFieldMatchContains CardFilterFieldMatch = "contains"
+	CardFilterFieldMatchEq       CardFilterFieldMatch = "eq"
+)
+
+// Valid indicates whether the value is a known member of the CardFilterFieldMatch enum.
+func (e CardFilterFieldMatch) Valid() bool {
+	switch e {
+	case CardFilterFieldMatchContains:
+		return true
+	case CardFilterFieldMatchEq:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for IntegrationProvider.
 const (
 	IntegrationProviderGoogleCalendar IntegrationProvider = "google_calendar"
@@ -1293,6 +1311,24 @@ func (e ExportWikiSpaceParamsFormat) Valid() bool {
 	}
 }
 
+// Defines values for ListCardsParamsFieldMatch.
+const (
+	ListCardsParamsFieldMatchContains ListCardsParamsFieldMatch = "contains"
+	ListCardsParamsFieldMatchEq       ListCardsParamsFieldMatch = "eq"
+)
+
+// Valid indicates whether the value is a known member of the ListCardsParamsFieldMatch enum.
+func (e ListCardsParamsFieldMatch) Valid() bool {
+	switch e {
+	case ListCardsParamsFieldMatchContains:
+		return true
+	case ListCardsParamsFieldMatchEq:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListCardsParamsDue.
 const (
 	ListCardsParamsDueMonth   ListCardsParamsDue = "month"
@@ -1377,6 +1413,24 @@ func (e ListCardsParamsOrder) Valid() bool {
 	}
 }
 
+// Defines values for BoardCardsParamsFieldMatch.
+const (
+	BoardCardsParamsFieldMatchContains BoardCardsParamsFieldMatch = "contains"
+	BoardCardsParamsFieldMatchEq       BoardCardsParamsFieldMatch = "eq"
+)
+
+// Valid indicates whether the value is a known member of the BoardCardsParamsFieldMatch enum.
+func (e BoardCardsParamsFieldMatch) Valid() bool {
+	switch e {
+	case BoardCardsParamsFieldMatchContains:
+		return true
+	case BoardCardsParamsFieldMatchEq:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for BoardCardsParamsDue.
 const (
 	BoardCardsParamsDueMonth   BoardCardsParamsDue = "month"
@@ -1398,6 +1452,24 @@ func (e BoardCardsParamsDue) Valid() bool {
 	case BoardCardsParamsDueToday:
 		return true
 	case BoardCardsParamsDueWeek:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CardStatusCountsParamsFieldMatch.
+const (
+	CardStatusCountsParamsFieldMatchContains CardStatusCountsParamsFieldMatch = "contains"
+	CardStatusCountsParamsFieldMatchEq       CardStatusCountsParamsFieldMatch = "eq"
+)
+
+// Valid indicates whether the value is a known member of the CardStatusCountsParamsFieldMatch enum.
+func (e CardStatusCountsParamsFieldMatch) Valid() bool {
+	switch e {
+	case CardStatusCountsParamsFieldMatchContains:
+		return true
+	case CardStatusCountsParamsFieldMatchEq:
 		return true
 	default:
 		return false
@@ -3415,6 +3487,15 @@ type CardAssigneeId = openapi_types.UUID
 // CardDue defines model for CardDue.
 type CardDue string
 
+// CardFilterFieldId defines model for CardFilterFieldId.
+type CardFilterFieldId = openapi_types.UUID
+
+// CardFilterFieldMatch defines model for CardFilterFieldMatch.
+type CardFilterFieldMatch string
+
+// CardFilterFieldValue defines model for CardFilterFieldValue.
+type CardFilterFieldValue = string
+
 // CardId defines model for CardId.
 type CardId = openapi_types.UUID
 
@@ -3592,17 +3673,32 @@ type ListCardsParams struct {
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
 	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
+	// FieldId Only cards that have a value in this custom field (with fieldValue)
+	FieldId *CardFilterFieldId `form:"fieldId,omitempty" json:"fieldId,omitempty"`
+
+	// FieldValue The value to match in the custom field
+	FieldValue *CardFilterFieldValue `form:"fieldValue,omitempty" json:"fieldValue,omitempty"`
+
+	// FieldMatch eq (default) or contains (text and link fields)
+	FieldMatch *ListCardsParamsFieldMatch `form:"fieldMatch,omitempty" json:"fieldMatch,omitempty"`
+
 	// ParentId Only subtasks of this card
 	ParentId *CardParentId `form:"parentId,omitempty" json:"parentId,omitempty"`
 
 	// Q Search in title or key (e.g. LK-12)
-	Q        *CardQuery            `form:"q,omitempty" json:"q,omitempty"`
-	Due      *ListCardsParamsDue   `form:"due,omitempty" json:"due,omitempty"`
-	Sort     *ListCardsParamsSort  `form:"sort,omitempty" json:"sort,omitempty"`
-	Order    *ListCardsParamsOrder `form:"order,omitempty" json:"order,omitempty"`
-	Page     *Page                 `form:"page,omitempty" json:"page,omitempty"`
-	PageSize *PageSize             `form:"pageSize,omitempty" json:"pageSize,omitempty"`
+	Q    *CardQuery           `form:"q,omitempty" json:"q,omitempty"`
+	Due  *ListCardsParamsDue  `form:"due,omitempty" json:"due,omitempty"`
+	Sort *ListCardsParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
+
+	// SortField Sort by this custom field instead of `sort`; cards without a value come last
+	SortField *openapi_types.UUID   `form:"sortField,omitempty" json:"sortField,omitempty"`
+	Order     *ListCardsParamsOrder `form:"order,omitempty" json:"order,omitempty"`
+	Page      *Page                 `form:"page,omitempty" json:"page,omitempty"`
+	PageSize  *PageSize             `form:"pageSize,omitempty" json:"pageSize,omitempty"`
 }
+
+// ListCardsParamsFieldMatch defines parameters for ListCards.
+type ListCardsParamsFieldMatch string
 
 // ListCardsParamsDue defines parameters for ListCards.
 type ListCardsParamsDue string
@@ -3620,6 +3716,15 @@ type BoardCardsParams struct {
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
 	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
+	// FieldId Only cards that have a value in this custom field (with fieldValue)
+	FieldId *CardFilterFieldId `form:"fieldId,omitempty" json:"fieldId,omitempty"`
+
+	// FieldValue The value to match in the custom field
+	FieldValue *CardFilterFieldValue `form:"fieldValue,omitempty" json:"fieldValue,omitempty"`
+
+	// FieldMatch eq (default) or contains (text and link fields)
+	FieldMatch *BoardCardsParamsFieldMatch `form:"fieldMatch,omitempty" json:"fieldMatch,omitempty"`
+
 	// ParentId Only subtasks of this card
 	ParentId *CardParentId `form:"parentId,omitempty" json:"parentId,omitempty"`
 
@@ -3627,6 +3732,9 @@ type BoardCardsParams struct {
 	Q   *CardQuery           `form:"q,omitempty" json:"q,omitempty"`
 	Due *BoardCardsParamsDue `form:"due,omitempty" json:"due,omitempty"`
 }
+
+// BoardCardsParamsFieldMatch defines parameters for BoardCards.
+type BoardCardsParamsFieldMatch string
 
 // BoardCardsParamsDue defines parameters for BoardCards.
 type BoardCardsParamsDue string
@@ -3643,6 +3751,15 @@ type CardStatusCountsParams struct {
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
 	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
+	// FieldId Only cards that have a value in this custom field (with fieldValue)
+	FieldId *CardFilterFieldId `form:"fieldId,omitempty" json:"fieldId,omitempty"`
+
+	// FieldValue The value to match in the custom field
+	FieldValue *CardFilterFieldValue `form:"fieldValue,omitempty" json:"fieldValue,omitempty"`
+
+	// FieldMatch eq (default) or contains (text and link fields)
+	FieldMatch *CardStatusCountsParamsFieldMatch `form:"fieldMatch,omitempty" json:"fieldMatch,omitempty"`
+
 	// ParentId Only subtasks of this card
 	ParentId *CardParentId `form:"parentId,omitempty" json:"parentId,omitempty"`
 
@@ -3650,6 +3767,9 @@ type CardStatusCountsParams struct {
 	Q   *CardQuery                 `form:"q,omitempty" json:"q,omitempty"`
 	Due *CardStatusCountsParamsDue `form:"due,omitempty" json:"due,omitempty"`
 }
+
+// CardStatusCountsParamsFieldMatch defines parameters for CardStatusCounts.
+type CardStatusCountsParamsFieldMatch string
 
 // CardStatusCountsParamsDue defines parameters for CardStatusCounts.
 type CardStatusCountsParamsDue string
