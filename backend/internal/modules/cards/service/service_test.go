@@ -355,25 +355,17 @@ func TestWorkspaceTaskPolicies(t *testing.T) {
 	}
 }
 
-func TestExportNeedsThePermission(t *testing.T) {
+func TestRequireAssignee(t *testing.T) {
 	f := setup(t)
-	if _, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Exported"}); err != nil {
+	yes := true
+	if _, err := f.Workspaces.UpdateSettings(f.ctx, f.owner, f.ws, wsdomain.SettingsPatch{RequireAssignee: &yes}); err != nil {
 		t.Fatal(err)
 	}
-	// Members cannot download everything by default; the owner can.
-	_, _, err := f.Cards.Export(f.ctx, f.member, f.ws, domain.Filter{})
-	mustCode(t, err, wsdomain.ErrInsufficientRole)
-	views, truncated, err := f.Cards.Export(f.ctx, f.owner, f.ws, domain.Filter{})
-	if err != nil || truncated || len(views) == 0 {
-		t.Fatalf("owner export: %d %v %v", len(views), truncated, err)
-	}
-	// The permission can be given to members.
-	perms := append(wsdomain.RoleDefaults(wsdomain.RoleMember), wsdomain.PermExport)
-	if err := f.Workspaces.SetRolePermissions(f.ctx, f.owner, f.ws, wsdomain.RoleMember, perms); err != nil {
-		t.Fatal(err)
-	}
-	if _, _, err := f.Cards.Export(f.ctx, f.member, f.ws, domain.Filter{}); err != nil {
-		t.Fatalf("member with the permission: %v", err)
+	_, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Nobody"})
+	mustCode(t, err, apperr.Validation)
+	if _, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Someone",
+		AssigneeIDs: []uuid.UUID{f.member}}); err != nil {
+		t.Fatalf("with an assignee: %v", err)
 	}
 }
 
@@ -428,5 +420,27 @@ func TestFilterAndSortByCustomField(t *testing.T) {
 	got, _, err = f.Cards.List(f.ctx, f.member, f.ws, domain.Filter{FieldID: &field, FieldValue: "candid", FieldContains: true}, pagination.Params{Page: 1, Size: 50})
 	if err != nil || len(got) != 1 || got[0].Title != "Alpha" {
 		t.Fatalf("contains: %v %v", titles(got), err)
+	}
+}
+
+func TestExportNeedsThePermission(t *testing.T) {
+	f := setup(t)
+	if _, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Exported"}); err != nil {
+		t.Fatal(err)
+	}
+	// Members cannot download everything by default; the owner can.
+	_, _, err := f.Cards.Export(f.ctx, f.member, f.ws, domain.Filter{})
+	mustCode(t, err, wsdomain.ErrInsufficientRole)
+	views, truncated, err := f.Cards.Export(f.ctx, f.owner, f.ws, domain.Filter{})
+	if err != nil || truncated || len(views) == 0 {
+		t.Fatalf("owner export: %d %v %v", len(views), truncated, err)
+	}
+	// The permission can be given to members.
+	perms := append(wsdomain.RoleDefaults(wsdomain.RoleMember), wsdomain.PermExport)
+	if err := f.Workspaces.SetRolePermissions(f.ctx, f.owner, f.ws, wsdomain.RoleMember, perms); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := f.Cards.Export(f.ctx, f.member, f.ws, domain.Filter{}); err != nil {
+		t.Fatalf("member with the permission: %v", err)
 	}
 }

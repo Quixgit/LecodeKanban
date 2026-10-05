@@ -165,11 +165,30 @@ func (s *Service) CreateChannel(ctx context.Context, user, ws uuid.UUID, in Chan
 	return s.channelView(ctx, user, created)
 }
 
+// talksToOthers is false for the caller's own notes (a "conversation" with oneself).
+func talksToOthers(user uuid.UUID, others []uuid.UUID) bool {
+	for _, o := range others {
+		if o != user {
+			return true
+		}
+	}
+	return false
+}
+
 // OpenDM returns the direct conversation with the given people (creating it on first use).
 // A one-person list is the caller's own notes.
 func (s *Service) OpenDM(ctx context.Context, user, ws uuid.UUID, others []uuid.UUID) (ChannelView, error) {
 	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent); err != nil {
 		return ChannelView{}, err
+	}
+	if talksToOthers(user, others) {
+		policy, err := s.ws.Policy(ctx, ws)
+		if err != nil {
+			return ChannelView{}, err
+		}
+		if !policy.ChatAllowDirect {
+			return ChannelView{}, apperr.New(wsdomain.ErrPolicy, "direct messages are switched off in this workspace")
+		}
 	}
 	ids, err := s.members(ctx, ws, append([]uuid.UUID{user}, others...))
 	if err != nil {

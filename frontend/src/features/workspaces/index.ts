@@ -6,6 +6,7 @@ export { RolePill } from './components/RolePill';
 export {
   useWorkspaces,
   useCurrentWorkspace,
+  useInvites,
   useMembers as useWorkspaceMembers,
   useRoleMutations,
   useRoles,
@@ -21,3 +22,4 @@ export {
   canManageMembers,
 } from './model/permissions';
 export { useWorkspaceMutations } from './hooks/useWorkspaces';
+export { TwoFactorGate } from './components/TwoFactorGate';

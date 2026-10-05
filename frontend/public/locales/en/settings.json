@@ -68,7 +68,52 @@
     "modulesOn": "{{on}} of {{total}} modules on",
     "count": "{{count}} defined",
     "people": "{{count}} people",
-    "roles": "{{count}} roles"
+    "roles": "{{count}} roles",
+    "kpi": {
+      "members": "Members",
+      "invites": "Open invitations",
+      "projects": "Projects",
+      "tasks": "Open tasks"
+    },
+    "setup": {
+      "title": "Get the workspace ready",
+      "steps": {
+        "describe": {
+          "title": "Describe the workspace",
+          "hint": "A line for your team on what it is for."
+        },
+        "look": {
+          "title": "Give it a look",
+          "hint": "Pick an icon and an accent colour."
+        },
+        "invite": {
+          "title": "Invite your team",
+          "hint": "A workspace is better with people in it."
+        },
+        "email": {
+          "title": "Make email work",
+          "hint": "Invitations and reminders need real delivery."
+        },
+        "roles": {
+          "title": "Tune roles",
+          "hint": "Decide exactly what each role may do."
+        },
+        "fields": {
+          "title": "Add custom fields",
+          "hint": "Budget, risk, a link: whatever tasks need."
+        },
+        "labels": {
+          "title": "Create labels",
+          "hint": "Names and colours people tag tasks with."
+        }
+      }
+    },
+    "activity": {
+      "title": "Recent changes",
+      "all": "See all",
+      "empty": "Nothing has been changed yet."
+    },
+    "allSettings": "All settings"
   },
   "general": {
     "nameTitle": "Workspace",
@@ -233,7 +278,13 @@
     },
     "peopleTitle": "People",
     "peopleDescription": "Invite, change roles or remove members.",
-    "openTeam": "Open the team page"
+    "openTeam": "Open the team page",
+    "securityTitle": "Security",
+    "securityDescription": "Protect the workspace beyond passwords.",
+    "twoFactor": {
+      "title": "Require two-step verification",
+      "description": "Everyone must turn on two-step verification before they can open this workspace. You need it on yourself first."
+    }
   },
   "rules": {
     "tasksTitle": "Tasks & calendar",
@@ -251,6 +302,48 @@
       "description": "Used by the calendar.",
       "monday": "Monday",
       "sunday": "Sunday"
+    },
+    "assignee": {
+      "title": "Require an assignee",
+      "description": "New tasks cannot be created without someone assigned."
+    },
+    "chatTitle": "Chat",
+    "chatDescription": "What people may do in chat.",
+    "direct": {
+      "title": "Direct messages",
+      "description": "Let people open private conversations with each other. Personal notes always work."
+    },
+    "files": {
+      "title": "Sharing files",
+      "description": "Allow files to be attached to chat messages."
+    },
+    "editWindow": {
+      "title": "Editing messages",
+      "description": "How long after sending a person can still edit a message.",
+      "always": "Any time",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes"
+    },
+    "timeTitle": "Time tracking",
+    "timeDescription": "How time is recorded on tasks.",
+    "manualTime": {
+      "title": "Logging time by hand",
+      "description": "Allow adding time after the fact. Timers keep working either way."
+    },
+    "docsTitle": "Docs",
+    "docsDescription": "Defaults for new docs spaces. Whoever creates a space can still change them.",
+    "docsVisibility": {
+      "title": "Who can reach a new space",
+      "description": "Pre-selected when someone creates a space.",
+      "private": "Only the author",
+      "shared": "People it is shared with",
+      "workspace": "Everyone in the workspace"
+    },
+    "docsDepth": {
+      "title": "How deep pages nest",
+      "description": "Pre-selected nesting depth for new spaces.",
+      "levels_one": "{{count}} level",
+      "levels_other": "{{count}} levels"
     }
   },
   "audit": {
@@ -266,7 +359,17 @@
       "defaultPriority": "default priority",
       "requireDueDate": "due date requirement",
       "weekStart": "week start",
-      "features": "modules"
+      "features": "modules",
+      "requireAssignee": "assignee requirement",
+      "chatAllowDirect": "direct messages",
+      "chatAllowFiles": "file sharing",
+      "chatEditMinutes": "message edit window",
+      "timeAllowManual": "manual time",
+      "docsVisibility": "docs visibility",
+      "docsMaxDepth": "docs depth",
+      "accentColor": "accent colour",
+      "icon": "icon",
+      "requireTwoFactor": "two-step requirement"
     },
     "settings": {
       "updated": "changed settings: {{what}}"
@@ -406,6 +509,28 @@
     "setupTitle": "Connect a mail provider",
     "setupDescription": "Set these in the server's .env file (secrets stay out of the browser).",
     "setupAfter": "Then run: docker compose up -d api worker. Use “Send me a test email” to check."
+  },
+  "look": {
+    "title": "Look",
+    "description": "An icon and a colour for this workspace. Everyone in it sees them.",
+    "preview": "How the workspace looks to your team",
+    "icon": "Icon",
+    "accent": "Accent colour",
+    "defaultAccent": "Platform colour",
+    "custom": "Your own",
+    "reset": "Back to the platform colour",
+    "icons": {
+      "building": "Building",
+      "rocket": "Rocket",
+      "briefcase": "Briefcase",
+      "layers": "Layers",
+      "globe": "Globe",
+      "flask": "Flask",
+      "shield": "Shield",
+      "sparkles": "Sparkles",
+      "leaf": "Leaf",
+      "flame": "Flame"
+    }
   },
   "data": {
     "tasksTitle": "Tasks",

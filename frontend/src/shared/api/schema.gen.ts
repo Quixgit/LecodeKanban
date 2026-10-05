@@ -3039,6 +3039,8 @@ export interface components {
             id: string;
             name: string;
             slug: string;
+            /** @description The workspace requires two-step verification and the caller has not turned it on */
+            twoFactorBlocked: boolean;
             role: components["schemas"]["Role"];
             /** @description What the caller may do here */
             permissions: string[];
@@ -3069,6 +3071,29 @@ export interface components {
             requireDueDate: boolean;
             /** @description 0 Sunday */
             weekStart: number;
+            /** @description New tasks need an assignee */
+            requireAssignee: boolean;
+            /** @description People may open direct messages */
+            chatAllowDirect: boolean;
+            /** @description Files may be shared in chat */
+            chatAllowFiles: boolean;
+            /** @description How long a chat message can be edited; 0 means always */
+            chatEditMinutes: number;
+            /** @description Time may be logged by hand */
+            timeAllowManual: boolean;
+            /** @description Members need two-step verification to enter the workspace */
+            requireTwoFactor: boolean;
+            /**
+             * @description Who can reach a new docs space by default
+             * @enum {string}
+             */
+            docsVisibility: "private" | "shared" | "workspace";
+            /** @description How deep pages nest in new spaces */
+            docsMaxDepth: number;
+            /** @description #rrggbb or empty for the platform colour */
+            accentColor: string;
+            /** @enum {string} */
+            icon: "building" | "rocket" | "briefcase" | "layers" | "globe" | "flask" | "shield" | "sparkles" | "leaf" | "flame";
             features: components["schemas"]["WorkspaceFeatures"];
         };
         WorkspaceSettingsPatch: {
@@ -3080,6 +3105,18 @@ export interface components {
             defaultPriority?: "low" | "medium" | "high";
             requireDueDate?: boolean;
             weekStart?: number;
+            requireAssignee?: boolean;
+            chatAllowDirect?: boolean;
+            chatAllowFiles?: boolean;
+            chatEditMinutes?: number;
+            timeAllowManual?: boolean;
+            requireTwoFactor?: boolean;
+            /** @enum {string} */
+            docsVisibility?: "private" | "shared" | "workspace";
+            docsMaxDepth?: number;
+            accentColor?: string;
+            /** @enum {string} */
+            icon?: "building" | "rocket" | "briefcase" | "layers" | "globe" | "flask" | "shield" | "sparkles" | "leaf" | "flame";
             features?: components["schemas"]["WorkspaceFeatures"];
         };
         AuditEntry: {

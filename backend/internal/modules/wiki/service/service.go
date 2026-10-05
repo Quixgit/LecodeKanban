@@ -21,6 +21,7 @@ import (
 // Workspaces is the workspace RBAC the wiki builds on (workspaces.Service satisfies it).
 type Workspaces interface {
 	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
+	Policy(ctx context.Context, ws uuid.UUID) (wsdomain.Settings, error)
 }
 
 // Teams resolves team membership for grants. The product has no teams yet; the adapter in

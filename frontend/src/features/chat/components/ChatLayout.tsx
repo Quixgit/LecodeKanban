@@ -10,6 +10,7 @@ import { EmptyState, IconButton, Tooltip } from '@/shared/ui';
 import type { Member } from '@/shared/api';
 import type { ChatChannel, ChatStatus } from '../api/chatApi';
 import { useChannels } from '../hooks/useChat';
+import { useChatRules } from '../hooks/useChatRules';
 import { useOnline, useStatuses } from '../hooks/usePresence';
 import { accentVars, sidebarVars } from '../model/theme';
 import { useChatThemeStore } from '../store/chatThemeStore';
@@ -58,6 +59,7 @@ export function ChatLayout() {
   const match = useMatch('/chat/:channelId');
   const activeId = match?.params.channelId;
   const setLast = useChatUiStore((s) => s.setLastChannel);
+  const rules = useChatRules();
   const [dialog, setDialog] = useState<'create' | 'browse' | 'direct' | 'search' | null>(null);
   const [looks, setLooks] = useState(false);
   const sidebarColour = useChatThemeStore((s) => s.sidebar);
@@ -153,7 +155,7 @@ export function ChatLayout() {
                 online={online}
                 statuses={statuses}
                 onSearch={() => setDialog('search')}
-                onNewMessage={() => setDialog('direct')}
+                onNewMessage={rules.allowDirect ? () => setDialog('direct') : undefined}
                 onSplit={desktop ? (id) => setSplit(id === activeId ? null : id) : undefined}
                 onSearchIn={(ch) => {
                   setSearchSeed(ch.name ? `in:#${ch.name} ` : '');

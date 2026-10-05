@@ -72,3 +72,14 @@ func (r *Repo) MailOverview(ctx context.Context, ws uuid.UUID) (store.MailQueueC
 	rows, err := r.q.ListWorkspaceMail(ctx, ws)
 	return counts, rows, err
 }
+
+// RequiresTwoFactor is a cheap look at one setting, used on every authorised request.
+func (r *Repo) RequiresTwoFactor(ctx context.Context, ws uuid.UUID) (bool, error) {
+	var on *bool
+	err := r.pool.QueryRow(ctx,
+		`SELECT (data->>'requireTwoFactor')::boolean FROM workspace_settings WHERE workspace_id = $1`, ws).Scan(&on)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	return on != nil && *on, err
+}

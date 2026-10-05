@@ -11,5 +11,7 @@ export { RulesPage } from './components/RulesPage';
 export { SettingsLayout } from './components/SettingsLayout';
 export { useFeatureEnabled, useWorkspaceSettings, type FeatureKey } from './hooks/useSettings';
 export { RolesPage } from './components/RolesPage';
+export { useWorkspaceAccent } from './hooks/useWorkspaceAccent';
+export { WorkspaceGlyph } from './components/WorkspaceGlyph';
 export { GROUPS, SECTIONS } from './model/sections';
 export { DataPage } from './components/DataPage';

@@ -9,6 +9,7 @@ import (
 	usersdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/users/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/repository"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/validation"
 )
 
@@ -30,6 +31,16 @@ func (s *Service) Policy(ctx context.Context, ws uuid.UUID) (domain.Settings, er
 func (s *Service) UpdateSettings(ctx context.Context, actor, ws uuid.UUID, p domain.SettingsPatch) (domain.Settings, error) {
 	if _, err := s.authorize(ctx, s.repo, ws, actor, domain.PermUpdate); err != nil {
 		return domain.Settings{}, err
+	}
+	// Whoever switches the requirement on must already meet it, or they would lock themselves out.
+	if p.RequireTwoFactor != nil && *p.RequireTwoFactor && s.twoFactor != nil {
+		on, err := s.twoFactor.Enabled(ctx, actor)
+		if err != nil {
+			return domain.Settings{}, err
+		}
+		if !on {
+			return domain.Settings{}, apperr.New(domain.ErrTwoFactorRequired, "turn on two-step verification for yourself first")
+		}
 	}
 	var out domain.Settings
 	err := s.repo.InTx(ctx, func(tx *repository.Repo) error {

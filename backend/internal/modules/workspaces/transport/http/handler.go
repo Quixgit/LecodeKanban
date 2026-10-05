@@ -68,7 +68,7 @@ func pathUUID(r *http.Request, name string, notFound apperr.Code) (uuid.UUID, er
 
 func toAPI(w domain.Workspace) api.Workspace {
 	out := api.Workspace{Id: w.ID, Name: w.Name, Slug: w.Slug, Role: api.Role(w.Role), MemberCount: w.MemberCount, CreatedAt: w.CreatedAt,
-		Permissions: permStrings(w.Permissions)}
+		Permissions: permStrings(w.Permissions), TwoFactorBlocked: w.TwoFactorBlocked}
 	if w.CustomRole != nil {
 		out.CustomRole = &api.RoleRef{Id: w.CustomRole.ID, Name: w.CustomRole.Name}
 	}
@@ -292,6 +292,10 @@ func toSettings(s domain.Settings) api.WorkspaceSettings {
 		DefaultInviteRole: api.InviteRole(s.DefaultInviteRole), AllowedDomains: domains,
 		DefaultPriority: api.WorkspaceSettingsDefaultPriority(s.DefaultPriority),
 		RequireDueDate:  s.RequireDueDate, WeekStart: s.WeekStart,
+		RequireTwoFactor: s.RequireTwoFactor, RequireAssignee: s.RequireAssignee, ChatAllowDirect: s.ChatAllowDirect, ChatAllowFiles: s.ChatAllowFiles,
+		ChatEditMinutes: s.ChatEditMinutes, TimeAllowManual: s.TimeAllowManual, AccentColor: s.AccentColor,
+		DocsVisibility: api.WorkspaceSettingsDocsVisibility(s.DocsVisibility), DocsMaxDepth: s.DocsMaxDepth,
+		Icon: api.WorkspaceSettingsIcon(s.Icon),
 		Features: api.WorkspaceFeatures{Chat: s.Features.Chat, Docs: s.Features.Docs, Time: s.Features.Time,
 			Calendar: s.Features.Calendar, Integrations: s.Features.Integrations},
 	}
@@ -320,7 +324,18 @@ func (h *Handler) updateSettings(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	p := domain.SettingsPatch{Description: in.Description, InviteDays: in.InviteDays, AllowedDomains: in.AllowedDomains,
-		RequireDueDate: in.RequireDueDate, WeekStart: in.WeekStart}
+		RequireDueDate: in.RequireDueDate, WeekStart: in.WeekStart, RequireAssignee: in.RequireAssignee,
+		ChatAllowDirect: in.ChatAllowDirect, ChatAllowFiles: in.ChatAllowFiles, ChatEditMinutes: in.ChatEditMinutes,
+		TimeAllowManual: in.TimeAllowManual, AccentColor: in.AccentColor, RequireTwoFactor: in.RequireTwoFactor}
+	if in.DocsVisibility != nil {
+		dv := string(*in.DocsVisibility)
+		p.DocsVisibility = &dv
+	}
+	p.DocsMaxDepth = in.DocsMaxDepth
+	if in.Icon != nil {
+		icon := string(*in.Icon)
+		p.Icon = &icon
+	}
 	str := func(v *string) *string { return v }
 	if in.DefaultPriority != nil {
 		p.DefaultPriority = str((*string)(in.DefaultPriority))

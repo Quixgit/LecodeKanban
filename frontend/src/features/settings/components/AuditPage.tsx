@@ -4,13 +4,14 @@ import { useCurrentWorkspace } from '@/features/workspaces';
 import { useLanguage } from '@/shared/i18n';
 import { formatDate, formatRelative } from '@/shared/lib/format';
 import { Avatar, EmptyState, Skeleton } from '@/shared/ui';
-import type { AuditEntry } from '../api/settingsApi';
 import { useAudit } from '../hooks/useSettings';
+import { useDescribeAudit } from '../hooks/useDescribeAudit';
 import { SectionHeader } from './SectionHeader';
 
 /** What the administrators changed, newest first. */
 export function AuditPage() {
   const { t } = useTranslation('settings');
+  const describe = useDescribeAudit();
   const { language } = useLanguage();
   const { workspace } = useCurrentWorkspace();
   const canSee = workspace?.role === 'owner' || workspace?.role === 'admin';
@@ -45,7 +46,7 @@ export function AuditPage() {
               <div className="min-w-0 flex-1">
                 <p className="text-sm text-text">
                   <span className="font-medium">{e.actor?.name ?? t('audit.someone')}</span>{' '}
-                  {describe(e, t)}
+                  {describe(e)}
                 </p>
                 <time
                   dateTime={e.at}
@@ -61,34 +62,4 @@ export function AuditPage() {
       )}
     </div>
   );
-}
-
-function describe(e: AuditEntry, t: (k: string, o?: Record<string, unknown>) => string): string {
-  const d = e.details as Record<string, unknown>;
-  switch (e.action) {
-    case 'settings.updated': {
-      const changed = Array.isArray(d.changed) ? (d.changed as string[]) : [];
-      return t('audit.settings.updated', {
-        what: changed.map((c) => t(`audit.keys.${c}`, { defaultValue: c })).join(', '),
-      });
-    }
-    case 'workspace.renamed':
-      return t('audit.workspace.renamed', { name: String(d.name ?? '') });
-    case 'member.role_changed':
-      return t('audit.member.role_changed', {
-        from: t(`roles.names.${String(d.from)}`),
-        to: t(`roles.names.${String(d.to)}`),
-      });
-    case 'member.removed':
-      return d.self ? t('audit.member.left') : t('audit.member.removed');
-    case 'invite.sent':
-      return t('audit.invite.sent', {
-        email: String(d.email ?? ''),
-        role: t(`roles.names.${String(d.role)}`),
-      });
-    case 'invite.revoked':
-      return t('audit.invite.revoked');
-    default:
-      return e.action;
-  }
 }

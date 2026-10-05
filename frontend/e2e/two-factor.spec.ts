@@ -1,23 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
-import { createHmac } from 'node:crypto';
 import { expect, test } from './fixtures';
 
-const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-
-/** RFC 6238 code for a base32 secret, `shift` 30-second steps from now. */
-function totp(secret: string, shift = 0): string {
-  let bits = '';
-  for (const c of secret.replace(/\s/g, '').toUpperCase())
-    bits += B32.indexOf(c).toString(2).padStart(5, '0');
-  const key = Buffer.from(bits.match(/.{8}/g)!.map((b) => parseInt(b, 2)));
-  const counter = Math.floor(Date.now() / 30_000) + shift;
-  const msg = Buffer.alloc(8);
-  msg.writeBigUInt64BE(BigInt(counter));
-  const h = createHmac('sha1', key).update(msg).digest();
-  const o = h[h.length - 1]! & 0xf;
-  const n = ((h[o]! & 0x7f) << 24) | (h[o + 1]! << 16) | (h[o + 2]! << 8) | h[o + 3]!;
-  return String(n % 1_000_000).padStart(6, '0');
-}
+import { totp } from './totp';
 
 test.describe('Two-step verification', () => {
   test('turn on, sign in with a code and a recovery code, turn off', async ({ page }) => {
@@ -99,5 +83,60 @@ test.describe('Two-step verification', () => {
     await off.getByLabel('Code from the app, or a recovery code').fill(codes[1]!);
     await off.getByRole('button', { name: 'Turn off' }).click();
     await expect(card.getByText('Two-step verification is off')).toBeVisible();
+  });
+});
+
+test.describe('Workspace requires two-step verification', () => {
+  test('the owner turns it on, a member without it is held at the door', async ({ page }) => {
+    const email = `req-${Date.now().toString(36)}@example.com`;
+    const password = 'Kanban-Board-2026';
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.addInitScript(() => localStorage.setItem('lk-lang', 'en'));
+    await page.goto('/register');
+    await page.getByLabel('Full name').fill('Req Tester');
+    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Password', { exact: true }).fill(password);
+    await page.getByRole('button', { name: 'Create account' }).click();
+    await page.waitForURL((u) => !u.pathname.startsWith('/register'));
+
+    // Requiring it needs the owner to have it first.
+    await page.goto('/settings/access');
+    const main = page.getByRole('main');
+    await main.getByRole('switch', { name: 'Require two-step verification' }).click();
+    await expect(
+      page
+        .getByText('Turn on two-step verification for yourself first')
+        .or(page.getByText(/requires two-step verification/i))
+        .first(),
+    ).toBeVisible();
+
+    await page.goto('/profile/security');
+    const card = page.getByRole('region', { name: 'Two-step verification' });
+    await card.getByRole('button', { name: 'Turn on' }).click();
+    const dialog = page.getByRole('dialog');
+    const secret = (await dialog.locator('code').first().innerText()).trim();
+    await dialog.getByLabel('6-digit code').fill(totp(secret));
+    await dialog.getByRole('button', { name: 'Turn on' }).click();
+    await page.getByRole('button', { name: 'I have saved them' }).click();
+
+    await page.goto('/settings/access');
+    await main.getByRole('switch', { name: 'Require two-step verification' }).click();
+    await expect(main.getByRole('switch', { name: 'Require two-step verification' })).toBeChecked();
+
+    // Turning their own factor off leaves them without it: the workspace closes behind them.
+    await page.goto('/profile/security');
+    await card.getByRole('button', { name: 'Turn off' }).click();
+    const off = page.getByRole('dialog');
+    await off.getByLabel('Current password').fill(password);
+    await off.getByLabel('Code from the app, or a recovery code').fill(totp(secret, 1));
+    await off.getByRole('button', { name: 'Turn off' }).click();
+    await expect(card.getByText('Two-step verification is off')).toBeVisible();
+
+    await page.goto('/tasks');
+    await expect(
+      page.getByRole('heading', { name: /asks for two-step verification/ }),
+    ).toBeVisible();
+    await page.getByRole('link', { name: 'Turn on two-step verification' }).click();
+    await expect(page).toHaveURL(/\/profile\/security$/);
   });
 });

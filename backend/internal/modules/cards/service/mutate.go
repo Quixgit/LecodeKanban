@@ -108,6 +108,9 @@ func (s *Service) Create(ctx context.Context, user, ws uuid.UUID, in domain.NewC
 	if policy.RequireDueDate && in.DueDate == nil {
 		v.Add("dueDate", validation.Required, nil)
 	}
+	if policy.RequireAssignee && len(in.AssigneeIDs) == 0 {
+		v.Add("assigneeIds", validation.Required, nil)
+	}
 	validateFields(&v, &in.Title, &in.Description, &in.Priority)
 	if !in.Status.Valid() {
 		v.OneOf("status", string(in.Status), "todo", "in_progress", "in_review", "done")
