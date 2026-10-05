@@ -1,4 +1,4 @@
-import { MessagesSquare } from 'lucide-react';
+import { MessagesSquare, Palette } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useMatch, useNavigate } from 'react-router-dom';
@@ -6,12 +6,15 @@ import { useSession } from '@/features/auth';
 import { useAllProjects } from '@/features/projects';
 import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
-import { EmptyState } from '@/shared/ui';
+import { EmptyState, IconButton, Tooltip } from '@/shared/ui';
 import type { Member } from '@/shared/api';
 import type { ChatChannel, ChatStatus } from '../api/chatApi';
 import { useChannels } from '../hooks/useChat';
 import { useChatRules } from '../hooks/useChatRules';
 import { useOnline, useStatuses } from '../hooks/usePresence';
+import { accentVars, sidebarVars } from '../model/theme';
+import { useChatThemeStore } from '../store/chatThemeStore';
+import { ChatAppearanceDialog } from './ChatAppearanceDialog';
 import { MyStatus } from './MyStatus';
 import { useChatUiStore } from '../store/chatUiStore';
 import { useTypingListener } from '../store/typingStore';
@@ -58,6 +61,10 @@ export function ChatLayout() {
   const setLast = useChatUiStore((s) => s.setLastChannel);
   const rules = useChatRules();
   const [dialog, setDialog] = useState<'create' | 'browse' | 'direct' | 'search' | null>(null);
+  const [looks, setLooks] = useState(false);
+  const sidebarColour = useChatThemeStore((s) => s.sidebar);
+  const accentColour = useChatThemeStore((s) => s.accent);
+  const theme = { sidebar: sidebarColour, accent: accentColour };
   // A second conversation shown next to the open one ("Open in split view").
   const [split, setSplit] = useState<string | null>(null);
   const [searchSeed, setSearchSeed] = useState('');
@@ -108,16 +115,32 @@ export function ChatLayout() {
 
   return (
     <ChatContext.Provider value={context}>
-      <div className="flex h-[calc(100dvh-var(--header-h)-3rem)] min-h-[30rem] overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-sm">
+      <div
+        style={accentVars(theme)}
+        className="flex h-[calc(100dvh-var(--header-h)-3rem)] min-h-[30rem] overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-sm"
+      >
         {showList && (
           <aside
             aria-label={t('sidebar.title')}
-            className="flex w-full shrink-0 flex-col border-r border-border-subtle bg-surface lg:w-72"
+            style={sidebarVars(theme)}
+            className="flex w-full shrink-0 flex-col border-r border-border-subtle bg-surface text-text transition-colors duration-ui lg:w-72"
           >
             <div className="flex h-11 items-center gap-2 px-4 pt-1">
               <MessagesSquare className="size-4 stroke-[1.6] text-primary-ink" aria-hidden />
               <h2 className="text-md font-semibold text-text">{t('sidebar.title')}</h2>
-              <MyStatus workspaceId={workspace.id} className="ml-auto" />
+              <span className="ml-auto flex items-center gap-1">
+                <Tooltip content={t('appearance.open')}>
+                  <IconButton
+                    label={t('appearance.open')}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLooks(true)}
+                  >
+                    <Palette />
+                  </IconButton>
+                </Tooltip>
+                <MyStatus workspaceId={workspace.id} />
+              </span>
             </div>
             <div className="min-h-0 flex-1">
               <ChannelList
@@ -186,6 +209,7 @@ export function ChatLayout() {
           me={me}
           onOpened={open}
         />
+        <ChatAppearanceDialog open={looks} onOpenChange={setLooks} />
         <SearchDialog
           open={dialog === 'search'}
           onOpenChange={(o) => !o && setDialog(null)}

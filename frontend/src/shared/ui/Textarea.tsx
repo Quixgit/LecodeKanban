@@ -1,5 +1,6 @@
 import { forwardRef, type TextareaHTMLAttributes } from 'react';
 import { cn } from '../lib/cn';
+import { fieldGlow, fieldGlowInvalid, fieldSurface } from './fieldStyles';
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   invalid?: boolean;
@@ -11,9 +12,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       ref={ref}
       aria-invalid={invalid || undefined}
       className={cn(
-        'min-h-24 w-full resize-y rounded-lg border bg-surface px-3 py-2.5 text-base text-text outline-none transition-[border-color,box-shadow] duration-micro ease-out placeholder:text-text-faint',
-        'focus:border-primary focus:shadow-focus',
-        invalid ? 'border-danger' : 'border-border hover:border-border-strong',
+        'min-h-24 w-full resize-y rounded-lg px-3 py-2.5 text-base text-text outline-none placeholder:text-text-faint focus-visible:shadow-none',
+        fieldSurface,
+        invalid ? fieldGlowInvalid : cn('border-border', fieldGlow),
         className,
       )}
       {...props}

@@ -465,5 +465,26 @@
   "split": {
     "label": "Second conversation",
     "close": "Close split view"
+  },
+  "appearance": {
+    "title": "Chat appearance",
+    "description": "Choose the colours of your chat. Only you see them, on this browser.",
+    "themes": "Themes",
+    "custom": "Your own colours",
+    "sidebar": "Sidebar",
+    "accent": "Accent",
+    "reset": "Reset to default",
+    "done": "Done",
+    "open": "Chat appearance",
+    "presets": {
+      "default": "Default",
+      "aubergine": "Aubergine",
+      "ocean": "Ocean",
+      "forest": "Forest",
+      "sunset": "Sunset",
+      "graphite": "Graphite",
+      "mint": "Mint",
+      "sand": "Sand"
+    }
   }
 }

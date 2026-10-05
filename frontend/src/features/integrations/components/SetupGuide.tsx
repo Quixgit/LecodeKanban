@@ -1,7 +1,7 @@
 import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Modal } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 import type { IntegrationEntry } from '../api/integrationsApi';
 import { PROVIDERS } from '../model/providers';
 
@@ -31,28 +31,15 @@ function Copyable({ value, label }: { value: string; label: string }) {
 }
 
 /** The one-time server setup for a provider, with the exact values to paste. */
-export function SetupGuide({
-  entry,
-  open,
-  onOpenChange,
-}: {
-  entry: IntegrationEntry;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+export function SetupGuide({ entry }: { entry: IntegrationEntry }) {
   const { t } = useTranslation('integrations');
   const key = entry.provider;
   const steps = t(`setup.${key}.steps`, { returnObjects: true }) as string[];
   return (
-    <Modal
-      open={open}
-      onOpenChange={onOpenChange}
-      size="lg"
-      title={t(`setup.${key}.title`)}
-      description={t('setup.intro')}
-      footer={<Button onClick={() => onOpenChange(false)}>{t('setup.done')}</Button>}
-    >
-      <ol className="flex flex-col gap-4">
+    <section aria-label={t(`setup.${key}.title`)}>
+      <h2 className="text-md font-semibold text-text">{t(`setup.${key}.title`)}</h2>
+      <p className="mt-1 text-sm text-text-muted">{t('setup.intro')}</p>
+      <ol className="mt-5 flex flex-col gap-4">
         {steps.map((step, i) => (
           <li key={i} className="flex gap-3">
             <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary-soft text-xs font-semibold text-primary-ink">
@@ -70,6 +57,6 @@ export function SetupGuide({
       <p className="mt-5 rounded-lg bg-surface-muted p-3 text-xs text-text-muted">
         {t('setup.docs')}
       </p>
-    </Modal>
+    </section>
   );
 }

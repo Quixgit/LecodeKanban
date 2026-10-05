@@ -22,7 +22,7 @@ export function Tooltip({ content, children, side = 'top', enabled = true }: Too
           side={side}
           sideOffset={8}
           className={cn(
-            'z-50 rounded-md bg-text px-2.5 py-1.5 text-xs font-medium text-surface shadow-md',
+            'z-50 max-w-64 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text shadow-lg',
             'origin-[var(--radix-tooltip-content-transform-origin)] data-[state=delayed-open]:animate-[lk-pop-in_var(--dur-micro)_var(--ease-out)]',
           )}
         >

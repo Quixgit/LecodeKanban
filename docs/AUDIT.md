@@ -250,3 +250,23 @@ Facts about what was checked, with how. Update on every phase.
 
 - Go: workspace defaults apply to new spaces; an explicit choice wins; depth below 2 refused.
 - Browser: set and persist the default visibility.
+## UI polish
+
+- Unit: existing MetricCard/overlay tests; browser: settings, kanban, task window suites pass with the new fields and close button.
+- Not covered: visual regression of the mint outline (checked by eye).
+
+## Integration pages
+
+- Browser (with the stand-ins): Google Calendar and GitHub flows now run on the module pages (connect, settings,
+  pause, disconnect), axe on the page.
+
+## Icon-rail menu
+
+- Browser: switch on, section menu (settings, tasks with counts), a section without a menu closes the column, axe on the
+  rail, choice survives a reload, switch back.
+- Not covered: the rail below the lg breakpoint (the mobile drawer is unchanged).
+
+## Chat appearance
+
+- Unit: theme maths (default untouched, light text on dark / dark on light, AA for accents and muted text on every preset).
+- Browser: pick a theme (axe on the themed sidebar and chat), reload keeps it, own colour, reset.

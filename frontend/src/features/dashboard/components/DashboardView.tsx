@@ -49,6 +49,12 @@ export function DashboardView() {
   const s = stats.data;
   const label = t('kpi.vsLastWeek', { days });
   const period = t('kpi.period', { days });
+  const created = s.daily.map((d) => d.todo);
+  const done = s.daily.map((d) => d.done);
+  const net = created.reduce((a, n, i) => a + n - done[i]!, 0);
+  const before = s.active - net;
+  let run = 0;
+  const backlog = s.daily.map((d) => (run += d.todo - d.done));
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
       <div className="flex flex-col gap-6">
@@ -57,6 +63,11 @@ export function DashboardView() {
             title={t('kpi.active')}
             value={<CountUp value={s.active} />}
             total={s.total}
+            trend={before > 0 ? (net / before) * 100 : null}
+            delta={net}
+            trendLabel={label}
+            spark={backlog}
+            inverse
             caption={`${s.inReview} ${t('kpi.inReview')}`}
           />
           <MetricCard
@@ -65,6 +76,7 @@ export function DashboardView() {
             trend={s.completedThisWeek.changePct}
             trendLabel={label}
             delta={s.completedThisWeek.value - s.completedThisWeek.previous}
+            spark={done}
           />
           <MetricCard
             title={`${t('kpi.created')} · ${period}`}
@@ -72,6 +84,7 @@ export function DashboardView() {
             trend={s.createdThisWeek.changePct}
             trendLabel={label}
             delta={s.createdThisWeek.value - s.createdThisWeek.previous}
+            spark={created}
           />
           <MetricCard
             title={t('kpi.overdue')}

@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, Info, X, XCircle } from 'lucide-react';
+import { CheckCircle2, Info, XCircle } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CloseButton } from './CloseButton';
 import { cn } from '../lib/cn';
 import { transition } from '../motion/presets';
 import { useToastStore, type ToastItem } from './toastStore';
@@ -37,14 +38,11 @@ function ToastCard({ toast }: { toast: ToastItem }) {
         <p className="text-base font-medium text-text">{toast.title}</p>
         {toast.description && <p className="mt-0.5 text-sm text-text-muted">{toast.description}</p>}
       </div>
-      <button
-        type="button"
+      <CloseButton
+        label={t('actions.dismiss')}
         onClick={() => dismiss(toast.id)}
-        aria-label={t('actions.dismiss')}
-        className="rounded-md p-0.5 text-text-faint transition-colors hover:text-text"
-      >
-        <X className="size-4" />
-      </button>
+        className="size-7"
+      />
     </motion.li>
   );
 }
