@@ -2,7 +2,9 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 test.describe('Sign-in and registration pages', () => {
-  test('login: the showcase is there, the form passes axe, light and dark', async ({ page }) => {
+  test('login: the corner scenes are there and clear of the card, the form passes axe, light and dark', async ({
+    page,
+  }) => {
     for (const theme of ['light', 'dark'] as const) {
       await page.addInitScript((t) => {
         localStorage.setItem('lk-lang', 'en');
@@ -11,9 +13,15 @@ test.describe('Sign-in and registration pages', () => {
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.goto('/login');
       await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
-      await expect(
-        page.getByRole('heading', { name: /One workspace for how your team ships/ }),
-      ).toBeVisible();
+      // The scenes in the corners are decoration: hidden from assistive technology, and clear of the card.
+      await expect(page.getByTestId('auth-scene')).toHaveCount(2);
+      const card = await page.getByRole('heading', { name: 'Welcome back' }).boundingBox();
+      for (const scene of await page.getByTestId('auth-scene').all()) {
+        const box = await scene.boundingBox();
+        expect(box && card && (box.x + box.width <= card.x || box.x >= card.x + card.width)).toBe(
+          true,
+        );
+      }
       await page.waitForTimeout(1200);
       const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
       expect(axe.violations.map((v) => `${theme} ${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);

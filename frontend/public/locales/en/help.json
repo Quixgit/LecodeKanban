@@ -305,6 +305,24 @@
     "changes": [
       {
         "date": "October 2026",
+        "tag": "improvement",
+        "title": "A calmer sign-in page",
+        "text": "The sign-in, registration and password pages are now a single card in the middle with an animated scene in each bottom corner (a Kanban board with the people working on it, and a wall of charts), in the platform's colours, light and dark.",
+        "tech": [
+          "no API changes; the scenes are SVG, hidden from assistive technology and from screens under 1100 px"
+        ]
+      },
+      {
+        "date": "October 2026",
+        "tag": "fix",
+        "title": "Joining a workspace by invitation no longer bounces back",
+        "text": "After pressing “Join workspace” an invited person was sent straight back to the invitation; now they land in the workspace and meet the short welcome guide.",
+        "tech": [
+          "the remembered invitation is cleared on joining and not set again"
+        ]
+      },
+      {
+        "date": "October 2026",
         "tag": "fix",
         "title": "Copy buttons work on every address",
         "text": "Copying a link, a branch name, recovery codes or a code block did nothing when the platform was opened by a plain http address; it now works everywhere, and says so if the browser still refuses.",

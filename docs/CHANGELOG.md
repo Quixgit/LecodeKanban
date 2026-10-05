@@ -35,6 +35,11 @@
 
 ### Changed
 
+- **Sign-in, registration and password pages redone again, in a calmer style.** One centred card under the logo on a quiet
+  wash of brand colour, and an animated isometric scene in each bottom corner on screens 1100 px and wider: a Kanban board
+  with a card that travels between columns and people working on it, and a wall of charts with a magnifying glass. The
+  scenes are SVG in the platform's tokens (light and dark), stand still with reduced motion, are hidden from assistive
+  technology and never reach under the card. The product pitch panel and its text are gone.
 - **Email setup instructions fixed.** In a docker deployment the API and worker read `LK_PROD_SMTP_HOST/PORT/TLS`, not
   `LK_SMTP_HOST/PORT/TLS` (those are the host-side Mailpit for `make dev` and `make seed`), but Settings → Email, the README
   and `.env.example` said the latter, so a provider set that way was silently ignored and mail kept going to Mailpit.
@@ -105,6 +110,8 @@
 
 ### Fixed
 
+- **Joining by invitation no longer bounced back.** After "Join workspace" the remembered invitation was written again and the app sent
+  the person back to it; it is now cleared on joining and not set again.
 - **Copy buttons work on a plain http address.** Copying a link (task, page, channel, message, invitation, share), a branch
   name, recovery codes, a code block or Markdown did nothing when the platform was opened by `http://<address>`, because
   browsers expose `navigator.clipboard` only on https and localhost. One helper (`shared/lib/clipboard`) now uses the

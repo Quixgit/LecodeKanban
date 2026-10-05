@@ -48,10 +48,13 @@ export function AcceptInviteView({ token, user, onSwitchAccount }: Props) {
   const usable = !!data && !data.accepted && !data.expired;
   const wrongAccount = !!user && !!data && user.email.toLowerCase() !== data.email.toLowerCase();
   const failed = !!preview.error;
+  const joined = accept.isSuccess;
   useEffect(() => {
+    // Once joined the invitation is spent: remembering it again would send the person back to it.
+    if (joined) return;
     if (usable && !wrongAccount) pendingInvite.set(token);
     else if (failed || (data && !usable) || wrongAccount) pendingInvite.clear();
-  }, [usable, wrongAccount, failed, data, token]);
+  }, [joined, usable, wrongAccount, failed, data, token]);
 
   if (preview.isPending) {
     return (
