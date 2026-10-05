@@ -8,6 +8,33 @@
   8 one-time recovery codes, sign in with password + code, turn off with password + code, make new recovery codes.
   Accounts with it on cannot sign in with Google/GitHub (use email and password). Needs migration `00030`
   (ADR 0025).
+- **Chat appearance** (palette button in the chat header): eight ready-made themes (Aubergine, Ocean, Forest…) or your
+  own sidebar and accent colours. The text colour, borders and the active row follow the colours and stay readable
+  (AA); the choice is remembered per browser.
+
+### Added
+
+- **Icon-rail menu** (optional, "Icon menu" button at the bottom of the sidebar; "Classic menu" switches back; the
+  choice is remembered). A strip of icons, then — for Projects, Tasks, Integrations and Settings — a second column
+  with that section's menu (projects, task statuses with counts, modules, settings sections), then the content. In
+  this mode the admin centre does not repeat its own section list.
+
+### Changed
+
+- **Integrations**: one look for every module. A card opens the module's own page (`/integrations/<module>`) with
+  a header (status, Active switch) and its settings or, when the server is not set up yet, the setup steps. The
+  side panels and the setup dialog are gone.
+
+### Changed
+
+- **Fields** (inputs, text areas, selects, the chat composer) share one look: a soft mint outline on hover and a
+  stronger one while typing.
+- **Close buttons** (windows, side panels, thread, notifications) are one soft tile whose cross turns on hover.
+- **Tooltips** are now styled cards (surface, border, shadow) instead of plain dark chips.
+- **Dashboard**: every KPI has a trend chip (percent, or absolute change when there is nothing to compare with),
+  green/red by meaning (a growing backlog is red), and a small sparkline. Active tasks show the net change.
+- Removed the "Live" indicator from the board. Settings keeps its section list still while the content changes
+  (less flicker).
 
 ### Added
 

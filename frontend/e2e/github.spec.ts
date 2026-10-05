@@ -94,10 +94,11 @@ test.describe('GitHub integration', () => {
 
     const tile = page.locator('[data-provider="github"]');
     await expect(tile).toContainText('Not connected');
-    await tile.getByRole('button', { name: 'Connect', exact: true }).click();
-    const drawer = page.getByRole('dialog');
+    await tile.getByRole('link', { name: 'GitHub' }).click();
+    await expect(page).toHaveURL(/\/integrations\/github$/);
+    const drawer = page.getByRole('main');
     const axe = await new AxeBuilder({ page })
-      .include('[role=dialog]')
+      .include('main')
       .withTags(['wcag2a', 'wcag2aa'])
       .analyze();
     expect(axe.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
@@ -246,16 +247,13 @@ test.describe('GitHub integration', () => {
 
     // Disconnecting removes the webhook.
     await page.goto('/integrations');
-    await page
-      .locator('[data-provider="github"]')
-      .getByRole('button', { name: 'Settings' })
-      .click();
+    await page.locator('[data-provider="github"]').getByRole('link', { name: 'GitHub' }).click();
     await page.getByRole('button', { name: 'Disconnect' }).click();
     await page
       .getByRole('group', { name: 'Disconnect GitHub?' })
       .getByRole('button', { name: 'Yes, disconnect' })
       .click();
-    await expect(page.getByRole('dialog').getByText('Connected as')).toHaveCount(0, {
+    await expect(page.getByRole('main').getByText('Connected as')).toHaveCount(0, {
       timeout: 15_000,
     });
     expect((await fake(page)).hooks).toHaveLength(0);

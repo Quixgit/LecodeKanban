@@ -1,7 +1,6 @@
-import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Member } from '@/shared/api';
-import { IconButton, Skeleton } from '@/shared/ui';
+import { CloseButton, Skeleton } from '@/shared/ui';
 import type { ChatChannel } from '../api/chatApi';
 import { useChatMutations, useThread } from '../hooks/useChat';
 import { Composer } from './Composer';
@@ -46,9 +45,7 @@ export function ThreadPanel({
           <h2 className="truncate text-md font-semibold text-text">{t('thread.title')}</h2>
           <p className="truncate text-xs text-text-muted">{name}</p>
         </div>
-        <IconButton label={t('thread.close')} variant="ghost" size="sm" onClick={onClose}>
-          <X />
-        </IconButton>
+        <CloseButton label={t('thread.close')} onClick={onClose} />
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto pb-2 pt-3">
         {thread.isPending ? (

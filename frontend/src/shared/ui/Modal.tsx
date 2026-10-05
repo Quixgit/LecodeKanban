@@ -1,12 +1,11 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRestoreFocus } from '../hooks/useRestoreFocus';
 import { cn } from '../lib/cn';
 import { backdrop, scaleIn } from '../motion/presets';
-import { IconButton } from './IconButton';
+import { CloseButton } from './CloseButton';
 
 export interface ModalProps {
   open: boolean;
@@ -81,9 +80,7 @@ export function Modal({
                       )}
                     </div>
                     <Dialog.Close asChild>
-                      <IconButton label={t('actions.close')} variant="ghost" size="sm">
-                        <X />
-                      </IconButton>
+                      <CloseButton label={t('actions.close')} />
                     </Dialog.Close>
                   </div>
                   {children && (

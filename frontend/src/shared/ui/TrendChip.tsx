@@ -8,6 +8,8 @@ export interface TrendChipProps {
   className?: string;
   /** No change: a flat dash instead of an arrow. */
   flat?: boolean;
+  /** Lower is better (overdue, open backlog): a rise is shown as bad. */
+  inverse?: boolean;
 }
 
 export function TrendChip({
@@ -15,14 +17,16 @@ export function TrendChip({
   format = (v) => `${v.toFixed(2)}%`,
   className,
   flat,
+  inverse,
 }: TrendChipProps) {
   const up = value >= 0;
+  const good = inverse ? !up : up;
   const Icon = flat ? Minus : up ? TrendingUp : TrendingDown;
   return (
     <span
       className={cn(
         'tabular inline-flex h-6 items-center gap-1 rounded-sm px-1.5 text-xs font-medium',
-        up ? 'bg-done-soft text-done-ink' : 'bg-danger-soft text-danger-ink',
+        good ? 'bg-done-soft text-done-ink' : 'bg-danger-soft text-danger-ink',
         className,
       )}
     >

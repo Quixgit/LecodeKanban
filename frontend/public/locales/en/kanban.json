@@ -94,14 +94,6 @@
   "wip": {
     "exceeded": "{{column}} is over its WIP limit of {{limit}}."
   },
-  "live": {
-    "live": "Live",
-    "connecting": "Connecting",
-    "offline": "Offline",
-    "liveHint": "Changes from teammates appear instantly.",
-    "connectingHint": "Connecting to live updates…",
-    "offlineHint": "Live updates are off. Reconnecting…"
-  },
   "toolbar": {
     "more": "More options"
   }
