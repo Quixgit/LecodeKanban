@@ -493,6 +493,16 @@ type UserToken struct {
 	CreatedAt time.Time
 }
 
+type UserTwoFactor struct {
+	UserID         uuid.UUID
+	Secret         []byte
+	Enabled        bool
+	LastStep       int64
+	RecoveryHashes [][]byte
+	CreatedAt      time.Time
+	EnabledAt      *time.Time
+}
+
 type WikiAudit struct {
 	ID          int64
 	WorkspaceID uuid.UUID
