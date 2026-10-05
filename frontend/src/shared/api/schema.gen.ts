@@ -3211,6 +3211,8 @@ export interface components {
             name: string;
             email: string;
             avatarUrl: string | null;
+            /** @description Empty when the person has not set one */
+            jobTitle: string;
         };
         MemberProfile: {
             /** Format: uuid */

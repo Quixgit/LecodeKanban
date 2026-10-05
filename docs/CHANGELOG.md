@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+- **Statuses in two languages**: a board's default columns are stored with the names of the language it was created in,
+  so an English reader saw Ukrainian names (and "До виконання · To Do" in the task window's status list). Default
+  columns now show the status name in the reader's own language everywhere (board headers, the task window, the
+  activity feed); a column the team renamed keeps its name.
 ### Changed
 
 - **Icon-rail menu**: Chat and Docs now keep their lists (channels, the page tree) in the rail's second column instead
@@ -13,6 +19,7 @@
 - **Export tasks** (Settings → Data & export): download the workspace's tasks, or one project's, as a CSV that opens in
   Excel, Numbers and Google Sheets (UTF-8, cells that look like formulas are neutralised). New permission **Export data**
   (`data.export`): administrators have it by default; it can be given to any role.
+- **Team**: each person's job title shows under their name in the members table.
 - **Require two-step verification** (Settings → Access & invitations → Security): everyone must turn on 2FA before
   opening the workspace. The server refuses a member who has none (`workspaces.two_factor_required`); the workspace
   shows a page that says why and links to Profile → Security. Whoever switches it on must already have 2FA.

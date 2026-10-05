@@ -19,7 +19,7 @@ const ws = (role: Workspace['role']): Workspace => ({
   twoFactorBlocked: false,
 });
 const member = (id: string, name: string, role: Member['role']): Member => ({
-  user: { id, name, email: `${id}@example.com`, avatarUrl: null },
+  user: { id, name, email: `${id}@example.com`, avatarUrl: null, jobTitle: '' },
   role,
   customRole: null,
   joinedAt: '2026-02-03T00:00:00Z',
@@ -43,6 +43,22 @@ describe('MembersTable', () => {
     expect(screen.getAllByRole('combobox', { name: 'Change role' })).toHaveLength(3);
     expect(screen.getByText('You')).toBeInTheDocument();
     expect(screen.getAllByText('February 3, 2026')).toHaveLength(3);
+  });
+
+  it('shows each person’s job title under their name', () => {
+    const titled = [
+      { ...members[0]!, user: { ...members[0]!.user, jobTitle: 'Head of Design' } },
+      ...members.slice(1),
+    ];
+    renderWithProviders(
+      <MembersTable
+        workspace={ws('owner')}
+        members={titled}
+        currentUserId="u1"
+        onLeft={() => {}}
+      />,
+    );
+    expect(screen.getByText('Head of Design')).toBeInTheDocument();
   });
 
   it('shows read-only roles to viewers and only a leave action for themselves', () => {

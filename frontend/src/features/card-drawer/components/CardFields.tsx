@@ -4,6 +4,7 @@ import { CardCustomFields } from '@/features/custom-fields';
 import { AssigneePicker, PRIORITIES, STATUSES, type Card } from '@/features/cards';
 import type { Member } from '@/shared/api';
 import { useLanguage } from '@/shared/i18n';
+import { isDefaultColumnName } from '@/shared/lib/columnName';
 import { isPast } from '@/shared/lib/dates';
 import { formatDate } from '@/shared/lib/format';
 import {
@@ -60,10 +61,9 @@ export function CardFields({
               onValueChange={(columnId) => editor.move.mutate({ columnId })}
               options={columns.data.columns.map((c) => ({
                 value: c.id,
-                label:
-                  c.name === t(`common:status.${c.status}`)
-                    ? c.name
-                    : `${c.name} · ${t(`common:status.${c.status}`)}`,
+                label: isDefaultColumnName(c.name, c.status)
+                  ? t(`common:status.${c.status}`)
+                  : `${c.name} · ${t(`common:status.${c.status}`)}`,
               }))}
             />
           ) : editable ? (

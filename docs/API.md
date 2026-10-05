@@ -356,7 +356,7 @@ Base URL: `/api/v1`
 - **RoleRef** — `id`: string, `name`: string
 - **MailItem** — `id`: integer, `recipient`: string, `subject`: string, `status`: string, `attempts`: integer, `error`: string \| null, `at`: string
 - **MailStatus** — `provider`: string, `host`: string, `from`: string, `capturing`: boolean, `waiting`: integer, `failed`: integer, `recent`: array
-- **MemberUser** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null
+- **MemberUser** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `jobTitle`: string
 - **MemberProfile** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `role`: Role, `joinedAt`: string, `jobTitle`: string, `pronouns`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
 - **Member** — `user`: MemberUser, `role`: Role, `customRole`: object \| null, `joinedAt`: string
 - **UpdateMemberRequest** — `role`: Role
