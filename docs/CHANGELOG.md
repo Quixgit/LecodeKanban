@@ -35,6 +35,9 @@
 
 ### Changed
 
+- **Email setup instructions fixed.** In a docker deployment the API and worker read `LK_PROD_SMTP_HOST/PORT/TLS`, not
+  `LK_SMTP_HOST/PORT/TLS` (those are the host-side Mailpit for `make dev` and `make seed`), but Settings → Email, the README
+  and `.env.example` said the latter, so a provider set that way was silently ignored and mail kept going to Mailpit.
 - **Sign-in and registration pages redone.** The background is now an engineering grid that fades toward the edges,
   slow pools of brand light, film grain and a few lines of light running down the grid (all gradients, so it is
   sharp at any size and follows light/dark). The right side shows the product itself instead of a toy board: a
