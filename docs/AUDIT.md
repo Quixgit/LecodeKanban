@@ -349,3 +349,9 @@ Facts about what was checked, with how. Update on every phase.
 - Vitest: screenshot checks and base64 encoding; locale parity for the new help strings (changes, plans, support, inbox).
 - Browser (axe): required-field messages, a request with a screenshot appears in "Your requests" and in the owner's inbox with its picture, resolve changes the chip; the What's new tabs show API notes, the roadmap and versions. The email is enqueued (checked in the job table); actual SMTP delivery is not tested here.
 - Not covered: replying inside the platform (answers go by email), notifying by chat, the Ukrainian layout of the new cards by eye, a request from someone who left the workspace, editing or deleting a sent request.
+## Sign-in and registration pages
+
+- Vitest: the registration schema wants the confirmation and equality (required / mismatch messages), the old password rules still hold.
+- Browser (axe, light and dark): login shows the form and the showcase with no violations; registration with two different passwords shows "Passwords don't match." and stays; phone width has no horizontal scroll. The two-factor e2e that creates accounts now fills the repeated password. Screenshots (light/dark, English/Ukrainian, desktop/phone) checked by eye.
+- A real finding from axe: the collaborator tags on the showcase had white text on a mid-tone fill below the contrast limit; they are now inverse-of-surface chips.
+- Not covered: the invitation-accept page (it has no password field), password reveal behaviour, a screen-reader pass of the decorative showcase (it is hidden from assistive technology).
