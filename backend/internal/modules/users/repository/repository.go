@@ -23,8 +23,8 @@ func toDomain(u store.User) domain.User {
 		AvatarURL: u.AvatarUrl, EmailVerifiedAt: u.EmailVerifiedAt,
 		HasPassword: u.PasswordHash != nil, CreatedAt: u.CreatedAt,
 		JobTitle: u.JobTitle, Phone: u.Phone, Location: u.Location, Timezone: u.Timezone, Bio: u.Bio,
-		Pronouns: u.Pronouns, LinkedIn: u.Linkedin, Telegram: u.Telegram, Website: u.Website,
-		WorkStart: u.WorkStart, WorkEnd: u.WorkEnd, Skills: u.Skills, CoverPreset: u.CoverPreset, CoverURL: u.CoverUrl,
+		Pronouns: u.Pronouns, LinkedIn: u.Linkedin, Telegram: u.Telegram, Whatsapp: u.Whatsapp, Website: u.Website,
+		OnboardedAt: u.OnboardedAt, WorkStart: u.WorkStart, WorkEnd: u.WorkEnd, Skills: u.Skills, CoverPreset: u.CoverPreset, CoverURL: u.CoverUrl,
 	}
 }
 
@@ -109,7 +109,7 @@ func (r *Repo) UpdateProfile(ctx context.Context, id uuid.UUID, p domain.Profile
 	}
 	u, err := r.q.UpdateUserProfile(ctx, store.UpdateUserProfileParams{ID: id, Name: p.Name, Locale: locale,
 		JobTitle: p.JobTitle, Phone: p.Phone, Location: p.Location, Timezone: p.Timezone, Bio: p.Bio,
-		Pronouns: p.Pronouns, Linkedin: p.LinkedIn, Telegram: p.Telegram, Website: p.Website,
+		Pronouns: p.Pronouns, Linkedin: p.LinkedIn, Telegram: p.Telegram, Whatsapp: p.Whatsapp, Website: p.Website,
 		WorkStart: p.WorkStart, WorkEnd: p.WorkEnd, Skills: skills, CoverPreset: p.CoverPreset})
 	if err != nil {
 		return domain.User{}, notFound(err)
@@ -179,3 +179,12 @@ func (r *Repo) SetUploadedCover(ctx context.Context, id uuid.UUID, url, key, con
 }
 
 func (r *Repo) ClearCover(ctx context.Context, id uuid.UUID) error { return r.q.ClearCover(ctx, id) }
+
+// MarkOnboarded records that the person finished (or skipped) the welcome wizard; repeating it changes nothing.
+func (r *Repo) MarkOnboarded(ctx context.Context, id uuid.UUID) (domain.User, error) {
+	u, err := r.q.MarkOnboarded(ctx, id)
+	if err != nil {
+		return domain.User{}, notFound(err)
+	}
+	return toDomain(u), nil
+}

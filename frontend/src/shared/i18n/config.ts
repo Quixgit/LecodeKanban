@@ -18,6 +18,7 @@ export const NAMESPACES = [
   'dashboard',
   'performance',
   'help',
+  'onboarding',
   'wiki',
   'wikiEditor',
   'chat',

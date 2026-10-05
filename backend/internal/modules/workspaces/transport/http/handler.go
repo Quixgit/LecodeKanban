@@ -397,7 +397,7 @@ func (h *Handler) memberProfile(w http.ResponseWriter, r *http.Request) error {
 	httpx.WriteJSON(w, http.StatusOK, api.MemberProfile{
 		Id: u.ID, Name: u.Name, Email: u.Email, AvatarUrl: u.AvatarURL, Role: api.Role(p.Role), JoinedAt: p.JoinedAt,
 		JobTitle: u.JobTitle, Pronouns: u.Pronouns, Phone: u.Phone, Location: u.Location, Timezone: u.Timezone,
-		Bio: u.Bio, Linkedin: u.LinkedIn, Telegram: u.Telegram, Website: u.Website,
+		Bio: u.Bio, Linkedin: u.LinkedIn, Telegram: u.Telegram, Whatsapp: u.Whatsapp, Website: u.Website,
 		WorkStart: u.WorkStart, WorkEnd: u.WorkEnd, Skills: skills, CoverPreset: u.CoverPreset, CoverUrl: u.CoverURL,
 	})
 	return nil

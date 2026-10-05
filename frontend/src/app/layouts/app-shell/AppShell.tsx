@@ -13,6 +13,7 @@ import { MemberCardDialog } from '@/features/member-card';
 import { useNotificationSounds } from '@/features/notification-sounds';
 import { useMeetingToasts } from '@/features/notifications';
 import { usePresenceHeartbeat } from '@/features/chat';
+import { OnboardingGate } from '@/features/onboarding';
 import { useWorkspaceEvents } from '@/features/realtime';
 import { TwoFactorGate, useCurrentWorkspace } from '@/features/workspaces';
 import { pageTransition } from '@/shared/motion';
@@ -22,6 +23,7 @@ import { MobileNav } from './sidebar/MobileNav';
 import { useWorkspaceAccent } from '@/features/settings';
 import { useShellLayout } from '@/shared/lib/shellLayout';
 import { GlobalShortcuts } from './GlobalShortcuts';
+import { BrandLogo } from './sidebar/BrandLogo';
 import { Sidebar } from './sidebar/Sidebar';
 import { useShellCommands } from './useShellCommands';
 import { useViewer } from './useViewer';
@@ -85,6 +87,7 @@ export function AppShell() {
       </div>
       <CommandPalette commands={commands} />
       <GlobalShortcuts />
+      <OnboardingGate logo={<BrandLogo collapsed={false} />} />
     </div>
   );
 }

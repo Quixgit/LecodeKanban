@@ -210,6 +210,17 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/User" }
         "422": { $ref: "#/components/responses/Error" }
+  /users/me/onboarding/complete:
+    post:
+      tags: [users]
+      operationId: completeOnboarding
+      summary: Mark the welcome wizard as finished or skipped
+      responses:
+        "200":
+          description: The profile, now marked as onboarded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
   /users/me/avatar:
     post:
       tags: [users]
@@ -3101,7 +3112,7 @@ components:
       enum: [en, uk]
     User:
       type: object
-      required: [id, email, name, locale, avatarUrl, emailVerified, hasPassword, providers, createdAt, jobTitle, phone, location, timezone, bio, pronouns, linkedin, telegram, website, workStart, workEnd, skills, coverPreset, coverUrl]
+      required: [id, email, name, locale, avatarUrl, emailVerified, hasPassword, providers, createdAt, jobTitle, phone, location, timezone, bio, pronouns, linkedin, telegram, whatsapp, onboarded, website, workStart, workEnd, skills, coverPreset, coverUrl]
       properties:
         id: { type: string, format: uuid }
         email: { type: string, description: Email address (validated server-side) }
@@ -3122,6 +3133,8 @@ components:
         pronouns: { type: string }
         linkedin: { type: string, description: Full LinkedIn address, empty when not set }
         telegram: { type: string, description: Telegram user name without the @, empty when not set }
+        whatsapp: { type: string, description: "International number with a leading +, empty when not set" }
+        onboarded: { type: boolean, description: The person has finished (or skipped) the welcome wizard }
         website: { type: string }
         workStart: { type: string, description: "Working day start, HH:MM, empty when not set" }
         workEnd: { type: string }
@@ -3231,6 +3244,7 @@ components:
         pronouns: { type: string, maxLength: 30 }
         linkedin: { type: string, description: A LinkedIn address or just the handle; empty clears }
         telegram: { type: string, description: "@name, t.me/name or just the name; empty clears" }
+        whatsapp: { type: string, description: "A number in any common spelling or a wa.me link; empty clears" }
         website: { type: string, maxLength: 200 }
         workStart: { type: string, description: "HH:MM; send with workEnd, both empty clears" }
         workEnd: { type: string }
@@ -3401,7 +3415,7 @@ components:
         jobTitle: { type: string, description: Empty when the person has not set one }
     MemberProfile:
       type: object
-      required: [id, name, email, avatarUrl, role, joinedAt, jobTitle, pronouns, phone, location, timezone, bio, linkedin, telegram, website, workStart, workEnd, skills, coverPreset, coverUrl]
+      required: [id, name, email, avatarUrl, role, joinedAt, jobTitle, pronouns, phone, location, timezone, bio, linkedin, telegram, whatsapp, website, workStart, workEnd, skills, coverPreset, coverUrl]
       properties:
         id: { type: string, format: uuid }
         name: { type: string }
@@ -3417,6 +3431,7 @@ components:
         bio: { type: string }
         linkedin: { type: string }
         telegram: { type: string }
+        whatsapp: { type: string }
         website: { type: string }
         workStart: { type: string }
         workEnd: { type: string }

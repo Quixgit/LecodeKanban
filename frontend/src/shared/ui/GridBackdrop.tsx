@@ -17,7 +17,7 @@ const STREAMS = [
   { left: '91%', delay: '7.9s', duration: '11.5s' },
 ] as const;
 
-export function AuthBackdrop() {
+export function GridBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-bg">
       {/* Pools of light, drifting slowly. */}

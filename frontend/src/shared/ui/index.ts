@@ -45,3 +45,4 @@ export * from './ProfileCover';
 export * from './coverPresets';
 export * from './Reveal';
 export * from './HelpLink';
+export * from './GridBackdrop';
