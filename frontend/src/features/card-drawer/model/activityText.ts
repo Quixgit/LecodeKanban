@@ -28,6 +28,8 @@ export function describeEntry(e: ActivityEntry, t: TFunction, l: Lookups): strin
       return [t('card:activity.created')];
     case 'card.deleted':
       return [t('card:activity.deleted')];
+    case 'card.restored':
+      return [t('card:activity.restored')];
     case 'card.moved':
       return [
         t('card:activity.moved', {

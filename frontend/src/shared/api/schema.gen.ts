@@ -1107,6 +1107,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/cards/trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** Deleted tasks, newest first (needs the permission to delete tasks) */
+        get: operations["listTrash"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cards/{cardId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bring a deleted task back, with the subtasks deleted with it */
+        post: operations["restoreCard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/cards/board": {
         parameters: {
             query?: never;
@@ -3495,6 +3533,14 @@ export interface components {
              * @description Card that will be directly below
              */
             beforeId?: string | null;
+        };
+        TrashItem: {
+            card: components["schemas"]["Card"];
+            /** Format: date-time */
+            deletedAt: string;
+        };
+        TrashList: {
+            items: components["schemas"]["TrashItem"][];
         };
         CardBoard: {
             items: components["schemas"]["Card"][];
@@ -6586,6 +6632,54 @@ export interface operations {
             };
             403: components["responses"]["Error"];
             422: components["responses"]["Error"];
+        };
+    };
+    listTrash: {
+        parameters: {
+            query?: {
+                projectId?: components["parameters"]["CardProjectId"];
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted tasks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrashList"];
+                };
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    restoreCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The restored task */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            404: components["responses"]["Error"];
         };
     };
     boardCards: {

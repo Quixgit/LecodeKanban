@@ -314,6 +314,12 @@ Facts about what was checked, with how. Update on every phase.
 - Browser: Data page checks a file, lists the skipped line, imports, the task shows on the board (axe on the preview).
 - Not covered: creating missing labels/people (they are reported and left empty), updating existing tasks by key, the 2000-row/2 MB limits end to end, docs and chat export (documents already export per page; chat export is a separate step).
 
+## Trash
+
+- Go: trash lists the parent (not its subtask), newest first; subtask restore is refused while the parent is trashed;
+  restoring a parent brings the subtask; viewers are refused; a restored task is live again.
+- Browser: delete a task, find it in the trash (axe), restore it, see it in the task list.
+- Not covered: deleting forever (the trash is not emptied; attachment files would need cleaning with it).
 ## Interface: shortcuts, density, phone menu
 
 - Unit: accent tokens pass AA (light and dark) for every offered accent and for extremes (yellow, white, black…).

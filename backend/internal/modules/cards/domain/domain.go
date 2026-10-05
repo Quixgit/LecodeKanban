@@ -59,9 +59,11 @@ type Card struct {
 	CompletedAt *time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	Assignees   []uuid.UUID
-	Labels      []uuid.UUID
-	ParentID    *uuid.UUID
+	// ArchivedAt is when the task went to the trash (nil for a live task).
+	ArchivedAt *time.Time
+	Assignees  []uuid.UUID
+	Labels     []uuid.UUID
+	ParentID   *uuid.UUID
 
 	SubtaskTotal    int
 	SubtaskDone     int
@@ -210,6 +212,8 @@ var (
 	ErrLabelExists     = apperr.Define("cards.label_exists", http.StatusConflict)
 	ErrItemNotFound    = apperr.Define("cards.checklist_item_not_found", http.StatusNotFound)
 	ErrChecklistFull   = apperr.Define("cards.checklist_full", http.StatusUnprocessableEntity)
+	// ErrCannotRestore: the task's project is gone, or its parent task is still in the trash.
+	ErrCannotRestore = apperr.Define("cards.cannot_restore", http.StatusUnprocessableEntity)
 )
 
 // MaxChecklistItems bounds one card's checklist.

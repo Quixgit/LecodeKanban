@@ -1,7 +1,8 @@
-import { Plus, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PRIORITIES, type Label } from '@/features/cards';
+import { can, useCurrentWorkspace } from '@/features/workspaces';
 import type { Member } from '@/shared/api';
 import {
   Button,
@@ -11,8 +12,11 @@ import {
   DropdownSeparator,
   DropdownTrigger,
   FilterSelect,
+  IconButton,
   Input,
+  Tooltip,
 } from '@/shared/ui';
+import { Link } from 'react-router-dom';
 import type { TaskFilters } from '../model/filters';
 import { FieldFilter } from './FieldFilter';
 
@@ -48,6 +52,7 @@ export function TasksToolbar({
   extra,
 }: Props) {
   const { t } = useTranslation(['tasks', 'common']);
+  const { workspace } = useCurrentWorkspace();
   const [q, setQ] = useState(filters.q);
   /** Last value we wrote to the URL, to tell our own debounced update from an outside change. */
   const pushed = useRef(filters.q);
@@ -163,6 +168,15 @@ export function TasksToolbar({
         </DropdownContent>
       </Dropdown>
       <div className="ml-auto flex flex-wrap items-center gap-2.5">
+        {can(workspace, 'tasks.delete') && (
+          <Tooltip content={t('trash.open')}>
+            <IconButton asChild label={t('trash.open')} variant="outline">
+              <Link to="/trash">
+                <Trash2 />
+              </Link>
+            </IconButton>
+          </Tooltip>
+        )}
         {extra}
         {canCreate && (
           <Button onClick={onCreate}>

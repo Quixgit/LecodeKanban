@@ -115,7 +115,8 @@
       "unchecked": "unchecked “{{text}}”",
       "changed": "edited “{{text}}”",
       "removed": "removed “{{text}}”"
-    }
+    },
+    "restored": "restored the task from the trash"
   },
   "subtasks": {
     "title": "Subtasks",

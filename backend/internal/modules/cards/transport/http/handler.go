@@ -33,6 +33,8 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Get("/workspaces/{workspaceId}/cards/board", httpx.H(h.board))
 	r.Get("/workspaces/{workspaceId}/export/tasks.csv", httpx.H(h.exportCSV))
 	r.Post("/workspaces/{workspaceId}/import/tasks", httpx.H(h.importCSV))
+	r.Get("/workspaces/{workspaceId}/cards/trash", httpx.H(h.trash))
+	r.Post("/cards/{cardId}/restore", httpx.H(h.restore))
 	r.Get("/workspaces/{workspaceId}/labels", httpx.H(h.labels))
 	r.Post("/workspaces/{workspaceId}/labels", httpx.H(h.createLabel))
 	r.Patch("/labels/{labelId}", httpx.H(h.updateLabel))

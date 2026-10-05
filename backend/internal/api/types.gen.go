@@ -3105,6 +3105,17 @@ type TokenRequest struct {
 // Tone defines model for Tone.
 type Tone string
 
+// TrashItem defines model for TrashItem.
+type TrashItem struct {
+	Card      Card      `json:"card"`
+	DeletedAt time.Time `json:"deletedAt"`
+}
+
+// TrashList defines model for TrashList.
+type TrashList struct {
+	Items []TrashItem `json:"items"`
+}
+
 // Trend defines model for Trend.
 type Trend struct {
 	// ChangePct Percent change vs the previous period; null when the previous period had nothing to compare
@@ -3974,6 +3985,11 @@ type CardStatusCountsParamsFieldMatch string
 
 // CardStatusCountsParamsDue defines parameters for CardStatusCounts.
 type CardStatusCountsParamsDue string
+
+// ListTrashParams defines parameters for ListTrash.
+type ListTrashParams struct {
+	ProjectId *CardProjectId `form:"projectId,omitempty" json:"projectId,omitempty"`
+}
 
 // SearchChatParams defines parameters for SearchChat.
 type SearchChatParams struct {

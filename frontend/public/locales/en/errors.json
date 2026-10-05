@@ -90,7 +90,8 @@
     "checklist_full": "A checklist can have at most {{max}} items.",
     "import_empty": "The file is empty.",
     "import_too_big": "The file is too large (up to {{max}} rows or 2 MB).",
-    "import_no_title_column": "The file needs a Title column."
+    "import_no_title_column": "The file needs a Title column.",
+    "cannot_restore": "This task cannot be restored: its project is gone, or its parent task is still in the trash (restore the parent first)."
   },
   "projects": {
     "not_found": "Project not found or archived.",
