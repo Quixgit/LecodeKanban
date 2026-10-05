@@ -2514,6 +2514,25 @@ type GithubTokenInput struct {
 	Token string `json:"token"`
 }
 
+// ImportResult defines model for ImportResult.
+type ImportResult struct {
+	Created int         `json:"created"`
+	DryRun  bool        `json:"dryRun"`
+	Rows    []ImportRow `json:"rows"`
+	Skipped int         `json:"skipped"`
+}
+
+// ImportRow defines model for ImportRow.
+type ImportRow struct {
+	// Error Why the row was skipped (a code); absent when it is imported
+	Error *string `json:"error,omitempty"`
+	Line  int     `json:"line"`
+	Title string  `json:"title"`
+
+	// Warnings Fields left empty (codes)
+	Warnings []string `json:"warnings"`
+}
+
 // IntegrationConnect defines model for IntegrationConnect.
 type IntegrationConnect struct {
 	Url string `json:"url"`
@@ -4009,6 +4028,17 @@ type ExportTasksParams struct {
 	ProjectId *openapi_types.UUID `form:"projectId,omitempty" json:"projectId,omitempty"`
 }
 
+// ImportTasksMultipartBody defines parameters for ImportTasks.
+type ImportTasksMultipartBody struct {
+	File openapi_types.File `json:"file"`
+}
+
+// ImportTasksParams defines parameters for ImportTasks.
+type ImportTasksParams struct {
+	ProjectId openapi_types.UUID `form:"projectId" json:"projectId"`
+	DryRun    *bool              `form:"dryRun,omitempty" json:"dryRun,omitempty"`
+}
+
 // AssignCustomRoleJSONBody defines parameters for AssignCustomRole.
 type AssignCustomRoleJSONBody struct {
 	RoleId *openapi_types.UUID `json:"roleId"`
@@ -4232,6 +4262,9 @@ type LinkGithubRepoJSONRequestBody = GithubRepoInput
 
 // ConnectGithubJSONRequestBody defines body for ConnectGithub for application/json ContentType.
 type ConnectGithubJSONRequestBody = GithubTokenInput
+
+// ImportTasksMultipartRequestBody defines body for ImportTasks for multipart/form-data ContentType.
+type ImportTasksMultipartRequestBody ImportTasksMultipartBody
 
 // UpdateIntegrationJSONRequestBody defines body for UpdateIntegration for application/json ContentType.
 type UpdateIntegrationJSONRequestBody = IntegrationPatch

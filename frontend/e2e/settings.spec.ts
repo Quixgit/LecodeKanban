@@ -381,4 +381,27 @@ test.describe('Settings admin centre', () => {
     );
     expect(text.split('\n').length).toBeGreaterThan(2);
   });
+
+  test('data: check a CSV, then import its tasks', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page);
+    await page.goto('/settings/data');
+    const main = page.getByRole('main');
+    const title = `Imported ${stamp()}`;
+    await main.getByLabel('CSV file').setInputFiles({
+      name: 'tasks.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(
+        `Title,Status,Priority,Due date\n${title},in progress,high,2031-01-02\n,todo,,\n`,
+      ),
+    });
+    await main.getByRole('button', { name: 'Check the file' }).click();
+    await expect(main.getByText('1 tasks can be created, 1 will be skipped.')).toBeVisible();
+    await expect(main.getByText(/Line 3/)).toBeVisible();
+    await axeClean(page);
+    await main.getByRole('button', { name: 'Import 1 tasks' }).click();
+    await expect(page.getByText('1 tasks imported')).toBeVisible();
+    await page.goto('/tasks');
+    await expect(page.getByText(title).first()).toBeVisible();
+  });
 });

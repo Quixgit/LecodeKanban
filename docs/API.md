@@ -133,8 +133,9 @@ Base URL: `/api/v1`
 | DELETE | `/cards/{cardId}` | session |  | 204 |  |
 | POST | `/cards/{cardId}/move` | session | CardMove | 200, 409 Error |  |
 | GET | `/workspaces/{workspaceId}/export/tasks.csv` | session |  | 200, 403 Error | Download the tasks as a CSV spreadsheet (needs the export permission) |
+| POST | `/workspaces/{workspaceId}/import/tasks` | session |  | 200, 403 Error, 422 Error | Create tasks from a CSV file; dryRun only reports what would happen |
 | GET | `/workspaces/{workspaceId}/cards/trash` | session |  | 200, 403 Error | Deleted tasks, newest first (needs the permission to delete tasks) |
-| POST | `/cards/{cardId}/restore` | session |  | 200, 404 Error, 422 Error | Bring a deleted task back, with the subtasks deleted with it |
+| POST | `/cards/{cardId}/restore` | session |  | 200, 404 Error | Bring a deleted task back, with the subtasks deleted with it |
 | GET | `/workspaces/{workspaceId}/cards/board` | session |  | 200 |  |
 | GET | `/workspaces/{workspaceId}/labels` | session |  | 200 |  |
 | POST | `/workspaces/{workspaceId}/labels` | session | LabelInput | 201, 409 Error |  |
@@ -440,6 +441,8 @@ Base URL: `/api/v1`
 - **WikiNodeInput** — `parentId?`: string \| null, `kind`: string, `title`: string, `icon?`: string, `afterId?`: string \| null, `templateId?`: string, `lang?`: string
 - **WikiNodePatch** — `title?`: string, `icon?`: string, `cover?`: string, `status?`: WikiStatus, `tags?`: array, `reviewDays?`: integer, `fullWidth?`: boolean, `verify?`: boolean, `projectIds?`: array
 - **WikiMoveInput** — `spaceId?`: string \| null, `parentId?`: string \| null, `beforeId?`: string \| null, `afterId?`: string \| null, `confirmWiden?`: boolean
+- **ImportRow** — `line`: integer, `title`: string, `error?`: string, `warnings`: array
+- **ImportResult** — `dryRun`: boolean, `created`: integer, `skipped`: integer, `rows`: array
 - **WikiTrashItem** — `node`: WikiNode, `expiresAt`: string
 - **WikiVisibilityInput** — `visibility`: object \| null, `workspaceRole?`: WikiWorkspaceRole
 - **WikiGrantInput** — `role`: WikiRole
