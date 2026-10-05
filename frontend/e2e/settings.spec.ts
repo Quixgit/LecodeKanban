@@ -153,6 +153,19 @@ test.describe('Settings admin centre', () => {
     await expect(page.locator('article').getByText('High').first()).toBeVisible();
     await expect(page.locator('article').getByText('1,200').first()).toBeVisible();
 
+    // The board can be narrowed to a field value: only the task we marked High stays.
+    await openKanban(page);
+    const total = await page.locator('article').count();
+    await page.getByRole('button', { name: 'Filter tasks' }).click();
+    await page.getByRole('combobox', { name: 'Custom field' }).click();
+    await page.getByRole('option', { name: risk }).click();
+    await page.getByRole('combobox', { name: 'Value' }).click();
+    await page.getByRole('option', { name: 'High' }).click();
+    await expect(page).toHaveURL(/fieldId=/);
+    await expect.poll(() => page.locator('article').count()).toBe(1);
+    expect(total).toBeGreaterThan(1);
+    await page.keyboard.press('Escape');
+
     // Delete both fields: the values and the chips are gone.
     await page.goto('/settings/fields');
     for (const f of [budget, risk]) {
