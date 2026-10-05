@@ -108,13 +108,14 @@ export function AcceptInviteView({ token, user, onSwitchAccount }: Props) {
         <FormAlert>{accept.error ? errorText(accept.error) : null}</FormAlert>
         {!user && p.hasAccount && (
           <>
+            <p className="text-xs text-text-muted">{t('auth:invite.hasAccountHint')}</p>
             <Button asChild size="lg" block>
               <Link to={`/login?next=${next}&email=${email}`}>
                 {t('auth:invite.signInToAccept')}
               </Link>
             </Button>
             <Link
-              to="/forgot-password"
+              to={`/forgot-password?email=${email}`}
               className="text-sm font-medium text-primary-ink hover:underline"
             >
               {t('auth:invite.forgot')}
