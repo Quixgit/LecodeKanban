@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MailCheck, MailX, PartyPopper } from 'lucide-react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import type { User } from '@/shared/api';
@@ -7,6 +8,7 @@ import { useErrorText } from '@/shared/hooks/useErrorText';
 import { Button, EmptyState, FormAlert, Skeleton, toast } from '@/shared/ui';
 import { workspacesApi } from '../api/workspacesApi';
 import { workspaceKeys } from '../hooks/useWorkspaces';
+import { pendingInvite } from '../model/pendingInvite';
 import { useCurrentWorkspaceStore } from '../store/currentWorkspace';
 
 interface Props {
@@ -31,12 +33,25 @@ export function AcceptInviteView({ token, user, onSwitchAccount }: Props) {
   const accept = useMutation({
     mutationFn: () => workspacesApi.acceptInvite(token),
     onSuccess: async (ws) => {
+      pendingInvite.clear();
       setCurrent(ws.id);
-      await qc.invalidateQueries({ queryKey: workspaceKeys.all });
+      // Wait for the fresh list (not just mark it stale): the welcome guide reads it on arrival, and an old list
+      // would still say this person owns only their own workspace and offer to create one.
+      await qc.refetchQueries({ queryKey: workspaceKeys.all, type: 'all' });
       toast.success(t('auth:invite.joined', { workspace: ws.name }));
       navigate('/team', { replace: true });
     },
   });
+
+  // Remember an open invitation until it is accepted; forget it once it is unusable or belongs to someone else.
+  const data = preview.data;
+  const usable = !!data && !data.accepted && !data.expired;
+  const wrongAccount = !!user && !!data && user.email.toLowerCase() !== data.email.toLowerCase();
+  const failed = !!preview.error;
+  useEffect(() => {
+    if (usable && !wrongAccount) pendingInvite.set(token);
+    else if (failed || (data && !usable) || wrongAccount) pendingInvite.clear();
+  }, [usable, wrongAccount, failed, data, token]);
 
   if (preview.isPending) {
     return (
@@ -89,6 +104,7 @@ export function AcceptInviteView({ token, user, onSwitchAccount }: Props) {
     ? t('auth:invite.body', { inviter: p.inviterName, workspace: p.workspaceName, role })
     : t('auth:invite.bodyNoInviter', { workspace: p.workspaceName, role });
   const next = encodeURIComponent(`/invite/${token}`);
+  const email = encodeURIComponent(p.email);
   const mismatch = user && user.email.toLowerCase() !== p.email.toLowerCase();
 
   return (
@@ -105,14 +121,30 @@ export function AcceptInviteView({ token, user, onSwitchAccount }: Props) {
 
       <div className="mt-7 flex w-full max-w-xs flex-col gap-2.5">
         <FormAlert>{accept.error ? errorText(accept.error) : null}</FormAlert>
-        {!user && (
+        {!user && p.hasAccount && (
+          <>
+            <p className="text-xs text-text-muted">{t('auth:invite.hasAccountHint')}</p>
+            <Button asChild size="lg" block>
+              <Link to={`/login?next=${next}&email=${email}`}>
+                {t('auth:invite.signInToAccept')}
+              </Link>
+            </Button>
+            <Link
+              to={`/forgot-password?email=${email}`}
+              className="text-sm font-medium text-primary-ink hover:underline"
+            >
+              {t('auth:invite.forgot')}
+            </Link>
+          </>
+        )}
+        {!user && !p.hasAccount && (
           <>
             <Button asChild size="lg" block>
-              <Link to={`/login?next=${next}`}>{t('auth:invite.signInToAccept')}</Link>
+              <Link to={`/register?next=${next}&email=${email}`}>
+                {t('auth:invite.registerToAccept')}
+              </Link>
             </Button>
-            <Button asChild size="lg" variant="secondary" block>
-              <Link to={`/register?next=${next}`}>{t('auth:invite.registerToAccept')}</Link>
-            </Button>
+            <p className="text-xs text-text-muted">{t('auth:invite.newHint')}</p>
           </>
         )}
         {user && mismatch && (

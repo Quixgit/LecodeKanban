@@ -3,11 +3,11 @@ import { Suspense } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useChangeLanguage } from '@/features/auth';
 import { pageTransition } from '@/shared/motion';
-import { Skeleton } from '@/shared/ui';
+import { GridBackdrop, Skeleton } from '@/shared/ui';
 import { LanguageSwitcher } from '../app-shell/header/LanguageSwitcher';
 import { ThemeToggle } from '../app-shell/header/ThemeToggle';
 import { BrandLogo } from '../app-shell/sidebar/BrandLogo';
-import { AuthBackdrop, BrandPanel } from './BrandPanel';
+import { BrandPanel } from './BrandPanel';
 
 function FormSkeleton() {
   return (
@@ -27,7 +27,7 @@ export function AuthLayout() {
   const changeLanguage = useChangeLanguage();
   return (
     <div className="relative isolate flex min-h-dvh flex-col bg-bg">
-      <AuthBackdrop />
+      <GridBackdrop />
       <header className="mx-auto flex w-full max-w-[1240px] items-center justify-between px-6 py-6 sm:px-10">
         <Link to="/" className="rounded-lg">
           <BrandLogo collapsed={false} />

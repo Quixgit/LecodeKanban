@@ -9,6 +9,7 @@ import {
   Mail,
   MailWarning,
   MapPin,
+  MessageCircle,
   Phone,
   Send,
   UserRound,
@@ -41,6 +42,7 @@ const FIELDS = [
   'pronouns',
   'linkedin',
   'telegram',
+  'whatsapp',
   'website',
   'workStart',
   'workEnd',
@@ -65,6 +67,7 @@ export function ProfilePage() {
     pronouns: user?.pronouns ?? '',
     linkedin: user?.linkedin ?? '',
     telegram: user?.telegram ?? '',
+    whatsapp: user?.whatsapp ?? '',
     website: user?.website ?? '',
     workStart: user?.workStart ?? '',
     workEnd: user?.workEnd ?? '',
@@ -93,6 +96,7 @@ export function ProfilePage() {
           pronouns: u.pronouns,
           linkedin: u.linkedin,
           telegram: u.telegram,
+          whatsapp: u.whatsapp,
           website: u.website,
           workStart: u.workStart,
           workEnd: u.workEnd,
@@ -274,6 +278,19 @@ export function ProfilePage() {
                 placeholder="@username"
                 maxLength={64}
                 {...form.register('telegram')}
+              />
+            </Field>
+            <Field
+              label={t('links.whatsapp')}
+              hint={t('links.whatsappHint')}
+              error={fe(errors.whatsapp?.message)}
+            >
+              <Input
+                type="tel"
+                leadingIcon={<MessageCircle />}
+                placeholder="+380 67 123 45 67"
+                maxLength={40}
+                {...form.register('whatsapp')}
               />
             </Field>
             <Field

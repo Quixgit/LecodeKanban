@@ -8,6 +8,7 @@ import {
   Link2,
   Mail,
   MapPin,
+  MessageCircle,
   MessageSquare,
   Phone,
   Send,
@@ -168,6 +169,18 @@ function Card({ profile }: { profile: MemberProfile }) {
                 rel="noopener noreferrer"
               >
                 @{profile.telegram}
+              </a>
+            </Row>
+          )}
+          {profile.whatsapp && (
+            <Row icon={MessageCircle} label="WhatsApp">
+              <a
+                className={linkClass}
+                href={`https://wa.me/${profile.whatsapp.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {profile.whatsapp}
               </a>
             </Row>
           )}

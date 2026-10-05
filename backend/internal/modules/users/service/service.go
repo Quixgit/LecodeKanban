@@ -23,6 +23,7 @@ type Repository interface {
 	CredentialsByID(ctx context.Context, id uuid.UUID) (domain.Credentials, error)
 	UpdateProfile(ctx context.Context, id uuid.UUID, p domain.ProfilePatch) (domain.User, error)
 	SetPasswordHash(ctx context.Context, id uuid.UUID, hash string) error
+	MarkOnboarded(ctx context.Context, id uuid.UUID) (domain.User, error)
 	MarkEmailVerified(ctx context.Context, id uuid.UUID) (domain.User, error)
 	RecordLoginFailure(ctx context.Context, id uuid.UUID, threshold int, lock time.Duration) (int, *time.Time, error)
 	ResetLoginFailures(ctx context.Context, id uuid.UUID) error
@@ -72,6 +73,11 @@ func (s *Service) CredentialsByEmail(ctx context.Context, email string) (domain.
 
 func (s *Service) CredentialsByID(ctx context.Context, id uuid.UUID) (domain.Credentials, error) {
 	return s.repo.CredentialsByID(ctx, id)
+}
+
+// CompleteOnboarding records that the person finished (or skipped) the welcome wizard. Repeating it is harmless.
+func (s *Service) CompleteOnboarding(ctx context.Context, id uuid.UUID) (domain.User, error) {
+	return s.repo.MarkOnboarded(ctx, id)
 }
 
 // UpdateProfile validates and applies a profile patch.

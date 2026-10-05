@@ -38,6 +38,7 @@ Base URL: `/api/v1`
 | --- | --- | --- | --- | --- | --- |
 | GET | `/users/me` | session |  | 200 |  |
 | PATCH | `/users/me` | session | UpdateProfileRequest | 200, 422 Error |  |
+| POST | `/users/me/onboarding/complete` | session |  | 200 | Mark the welcome wizard as finished or skipped |
 | POST | `/users/me/avatar` | session |  | 200, 413 Error, 422 Error | Upload a profile picture (PNG, JPEG, WebP or GIF, up to 2 MB) |
 | DELETE | `/users/me/avatar` | session |  | 200 | Remove the profile picture |
 | GET | `/users/{userId}/avatar` | session |  | 200, 404 Error | A user's uploaded profile picture (signed-in users only) |
@@ -93,6 +94,7 @@ Base URL: `/api/v1`
 | DELETE | `/workspaces/{workspaceId}/invites/{inviteId}` | session |  | 204, 404 Error |  |
 | GET | `/invites/{token}` | public |  | 200, 404 Error |  |
 | POST | `/invites/{token}/accept` | session |  | 200, 403 Error, 410 Error |  |
+| GET | `/meta` | session |  | 200 | Which build is running and on what |
 
 ## projects
 
@@ -147,19 +149,14 @@ Base URL: `/api/v1`
 | PATCH | `/checklist-items/{itemId}` | session | ChecklistItemPatch | 200 |  |
 | DELETE | `/checklist-items/{itemId}` | session |  | 204 |  |
 
-## templates
+## support
 
 | Method | Path | Auth | Request | Responses | Summary |
 | --- | --- | --- | --- | --- | --- |
-| GET | `/workspaces/{workspaceId}/templates` | session |  | 200 |  |
-| POST | `/workspaces/{workspaceId}/templates` | session | TaskTemplateInput | 201, 409 Error, 422 Error |  |
-| PUT | `/templates/{templateId}` | session | TaskTemplateInput | 200, 409 Error, 422 Error |  |
-| DELETE | `/templates/{templateId}` | session |  | 204 |  |
-| POST | `/templates/{templateId}/use` | session | UseTemplateRequest | 201, 422 Error | Create a task (with its checklist and subtasks) from the template |
-| GET | `/workspaces/{workspaceId}/recurring` | session |  | 200 |  |
-| POST | `/workspaces/{workspaceId}/recurring` | session | RecurringTaskInput | 201, 422 Error |  |
-| PUT | `/recurring/{recurringId}` | session | RecurringTaskInput | 200, 422 Error |  |
-| DELETE | `/recurring/{recurringId}` | session |  | 204 |  |
+| GET | `/workspaces/{workspaceId}/support` | session |  | 200 | Support requests; people who manage support see everyone's, others their own |
+| POST | `/workspaces/{workspaceId}/support` | session | SupportRequestInput | 201, 422 Error, 429 Error | Write to the people who run the workspace |
+| PATCH | `/support/{requestId}` | session | SupportRequestPatch | 200, 403 Error | Change a request's status (needs the support permission) |
+| GET | `/support/{requestId}/screenshot` | session |  | 200, 404 Error |  |
 
 ## customFields
 
@@ -200,6 +197,9 @@ Base URL: `/api/v1`
 | POST | `/cards/{cardId}/time` | session | TimeLogInput | 201, 422 Error |  |
 | POST | `/cards/{cardId}/timer` | session |  | 201 |  |
 | GET | `/timer` | session |  | 200 |  |
+| PUT | `/cards/{cardId}/time-estimate` | session | TimeEstimateInput | 200, 422 Error |  |
+| GET | `/workspaces/{workspaceId}/time` | session |  | 200, 403 Error, 422 Error | One person's time entries in a period, with their tasks |
+| PATCH | `/time-entries/{entryId}` | session | TimeEntryPatch | 200, 403 Error, 409 Error, 422 Error |  |
 | DELETE | `/time-entries/{entryId}` | session |  | 204, 403 Error |  |
 | POST | `/time-entries/{entryId}/stop` | session |  | 200, 409 Error |  |
 
@@ -334,14 +334,33 @@ Base URL: `/api/v1`
 | POST | `/cards/{cardId}/github/issue` | session |  | 201, 409 Error | Open a GitHub issue for the card in its project's repository |
 | POST | `/integrations/github/webhook` | public |  | 204, 401 Error | Where GitHub delivers pull request and issue events (signed with the workspace secret) |
 
+## templates
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/templates` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/templates` | session | TaskTemplateInput | 201, 409 Error, 422 Error |  |
+| PUT | `/templates/{templateId}` | session | TaskTemplateInput | 200, 409 Error, 422 Error |  |
+| DELETE | `/templates/{templateId}` | session |  | 204 |  |
+| POST | `/templates/{templateId}/use` | session | UseTemplateRequest | 201, 422 Error | Create a task (with its checklist and subtasks) from the template |
+| GET | `/workspaces/{workspaceId}/recurring` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/recurring` | session | RecurringTaskInput | 201, 422 Error |  |
+| PUT | `/recurring/{recurringId}` | session | RecurringTaskInput | 200, 422 Error |  |
+| DELETE | `/recurring/{recurringId}` | session |  | 204 |  |
+
 ## Schemas
 
+- **TaskTemplateInput** — `name`: string, `title`: string, `description?`: string, `priority?`: Priority, `labelIds?`: array, `assigneeIds?`: array, `checklist?`: array, `subtasks?`: array, `dueInDays?`: integer \| null
+- **TaskTemplate** — `id`: string, `name`: string, `title`: string, `description`: string, `priority`: Priority, `labelIds`: array, `assigneeIds`: array, `checklist`: array, `subtasks`: array, `dueInDays`: integer \| null, `createdAt`: string
+- **UseTemplateRequest** — `projectId`: string, `columnId?`: string \| null, `title?`: string \| null, `dueDate?`: string \| null
+- **RecurringTaskInput** — `templateId`: string, `projectId`: string, `freq`: string, `weekdays?`: array, `monthDay?`: integer, `hour`: integer, `timezone?`: string, `active?`: boolean
+- **RecurringTask** — `id`: string, `templateId`: string, `projectId`: string, `freq`: string, `weekdays`: array, `monthDay`: integer \| null, `hour`: integer, `timezone`: string, `active`: boolean, `nextRunAt`: string, `lastRunAt`: string \| null, `lastCardId`: string \| null, `lastError`: string \| null
 - **ErrorResponse** — `error`: object
 - **FieldError** — `field`: string, `code`: string, `params?`: object
 - **CsrfToken** — `token`: string
 - **AuthProviders** — `google`: boolean, `github`: boolean
 - **Locale**: `en` | `uk`
-- **User** — `id`: string, `email`: string, `name`: string, `locale`: Locale, `avatarUrl`: string \| null, `emailVerified`: boolean, `hasPassword`: boolean, `providers`: array, `createdAt`: string, `jobTitle`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `pronouns`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
+- **User** — `id`: string, `email`: string, `name`: string, `locale`: Locale, `avatarUrl`: string \| null, `emailVerified`: boolean, `hasPassword`: boolean, `providers`: array, `createdAt`: string, `jobTitle`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `pronouns`: string, `linkedin`: string, `telegram`: string, `whatsapp`: string, `onboarded`: boolean, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
 - **Session** — `user`: User
 - **RegisterRequest** — `name`: string, `email`: string, `password`: string, `locale?`: Locale
 - **LoginRequest** — `email`: string, `password`: string
@@ -357,7 +376,7 @@ Base URL: `/api/v1`
 - **ChangePasswordRequest** — `currentPassword?`: string, `newPassword`: string
 - **Device** — `id`: string, `startedAt`: string, `lastSeenAt`: string, `userAgent`: string, `ip`: string, `current`: boolean
 - **DeviceList** — `items`: array
-- **UpdateProfileRequest** — `name?`: string, `locale?`: Locale, `jobTitle?`: string, `phone?`: string, `location?`: string, `timezone?`: string, `bio?`: string, `pronouns?`: string, `linkedin?`: string, `telegram?`: string, `website?`: string, `workStart?`: string, `workEnd?`: string, `skills?`: array, `coverPreset?`: string
+- **UpdateProfileRequest** — `name?`: string, `locale?`: Locale, `jobTitle?`: string, `phone?`: string, `location?`: string, `timezone?`: string, `bio?`: string, `pronouns?`: string, `linkedin?`: string, `telegram?`: string, `whatsapp?`: string, `website?`: string, `workStart?`: string, `workEnd?`: string, `skills?`: array, `coverPreset?`: string
 - **Role**: `owner` | `admin` | `member` | `viewer`
 - **InviteRole**: `admin` | `member` | `viewer`
 - **Workspace** — `id`: string, `name`: string, `slug`: string, `twoFactorBlocked`: boolean, `role`: Role, `permissions`: array, `customRole`: object \| null, `memberCount`: integer, `createdAt`: string
@@ -375,12 +394,12 @@ Base URL: `/api/v1`
 - **MailItem** — `id`: integer, `recipient`: string, `subject`: string, `status`: string, `attempts`: integer, `error`: string \| null, `at`: string
 - **MailStatus** — `provider`: string, `host`: string, `from`: string, `capturing`: boolean, `waiting`: integer, `failed`: integer, `recent`: array
 - **MemberUser** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `jobTitle`: string
-- **MemberProfile** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `role`: Role, `joinedAt`: string, `jobTitle`: string, `pronouns`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `linkedin`: string, `telegram`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
+- **MemberProfile** — `id`: string, `name`: string, `email`: string, `avatarUrl`: string \| null, `role`: Role, `joinedAt`: string, `jobTitle`: string, `pronouns`: string, `phone`: string, `location`: string, `timezone`: string, `bio`: string, `linkedin`: string, `telegram`: string, `whatsapp`: string, `website`: string, `workStart`: string, `workEnd`: string, `skills`: array, `coverPreset`: string, `coverUrl`: string \| null
 - **Member** — `user`: MemberUser, `role`: Role, `customRole`: object \| null, `joinedAt`: string
 - **UpdateMemberRequest** — `role`: Role
 - **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string, `link?`: string
 - **CreateInviteRequest** — `email`: string, `role`: InviteRole
-- **InvitePreview** — `workspaceName`: string, `inviterName`: string \| null, `email`: string, `role`: InviteRole, `expired`: boolean, `accepted`: boolean
+- **InvitePreview** — `workspaceName`: string, `inviterName`: string \| null, `email`: string, `role`: InviteRole, `expired`: boolean, `accepted`: boolean, `hasAccount`: boolean
 - **TaskStatus**: `todo` | `in_progress` | `in_review` | `done`
 - **Priority**: `high` | `medium` | `low`
 - **ProjectStatus**: `pending` | `in_progress` | `completed`
@@ -427,7 +446,13 @@ Base URL: `/api/v1`
 - **CommentInput** — `body`: string
 - **Attachment** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `previewable`: boolean, `uploadedBy`: object \| null, `createdAt`: string
 - **TimeEntry** — `id`: string, `cardId`: string, `user`: object \| null, `startedAt`: string, `endedAt`: string \| null, `seconds`: integer, `running`: boolean, `note`: string, `manual`: boolean
-- **TimeSummary** — `entries`: array, `totalSeconds`: integer
+- **TimeSummary** — `entries`: array, `totalSeconds`: integer, `estimateSeconds`: integer \| null
+- **TimeEstimateInput** — `seconds`: integer \| null
+- **TimeEstimate** — `seconds`: integer \| null
+- **TimeEntryPatch** — `seconds?`: integer, `note?`: string, `startedAt?`: string
+- **TimesheetEntry** — `entry`: TimeEntry, `card`: TimesheetCard
+- **TimesheetCard** — `id`: string, `key`: string, `title`: string, `project`: ProjectRef
+- **Timesheet** — `entries`: array, `totalSeconds`: integer
 - **TimeLogInput** — `seconds`: integer, `note?`: string, `startedAt?`: string
 - **RunningTimer** — `entry?`: TimeEntry
 - **ActivityEntry** — `id`: integer, `kind`: string, `data`: object, `actor`: object \| null, `at`: string
@@ -466,11 +491,13 @@ Base URL: `/api/v1`
 - **PerformancePerson** — `person`: PersonRef, `open`: integer, `done`: integer, `overdue`: integer
 - **PerformanceProject** — `project`: ProjectRef, `total`: integer, `done`: integer, `overdue`: integer, `doneInPeriod`: integer, `donePrevious`: integer
 - **PerformanceReport** — `days`: integer, `throughput`: Trend, `cycleTime`: DurationStat, `leadTime`: DurationStat, `lateDone`: integer, `doneWithDue`: integer, `previousLateDone`: integer, `previousDoneWithDue`: integer, `overdueNow`: integer, `wipInProgress`: integer, `wipInReview`: integer, `weekly`: array, `daily`: array, `histogram`: array, `aged`: array, `people`: array, `unassignedOpen`: integer, `projects`: array
-- **TaskTemplateInput** — `name`: string, `title`: string, `description?`: string, `priority?`: Priority, `labelIds?`: array, `assigneeIds?`: array, `checklist?`: array, `subtasks?`: array, `dueInDays?`: integer \| null
-- **TaskTemplate** — `id`: string, `name`: string, `title`: string, `description`: string, `priority`: Priority, `labelIds`: array, `assigneeIds`: array, `checklist`: array, `subtasks`: array, `dueInDays`: integer \| null, `createdAt`: string
-- **UseTemplateRequest** — `projectId`: string, `columnId?`: string \| null, `title?`: string \| null, `dueDate?`: string \| null
-- **RecurringTaskInput** — `templateId`: string, `projectId`: string, `freq`: string, `weekdays?`: array, `monthDay?`: integer, `hour`: integer, `timezone?`: string, `active?`: boolean
-- **RecurringTask** — `id`: string, `templateId`: string, `projectId`: string, `freq`: string, `weekdays`: array, `monthDay`: integer \| null, `hour`: integer, `timezone`: string, `active`: boolean, `nextRunAt`: string, `lastRunAt`: string \| null, `lastCardId`: string \| null, `lastError`: string \| null
+- **SupportKind**: `problem` | `idea` | `question`
+- **SupportStatus**: `new` | `in_progress` | `resolved`
+- **SupportScreenshotInput** — `contentType`: string, `data`: string
+- **SupportRequestInput** — `kind`: SupportKind, `subject`: string, `message`: string, `pageUrl?`: string, `userAgent?`: string, `screenshot?`: SupportScreenshotInput
+- **SupportRequestPatch** — `status`: SupportStatus
+- **SupportRequest** — `id`: string, `kind`: SupportKind, `subject`: string, `message`: string, `pageUrl`: string, `userAgent`: string, `hasScreenshot`: boolean, `status`: SupportStatus, `author`: object \| null, `createdAt`: string, `updatedAt`: string, `resolvedAt`: string \| null
+- **BuildInfo** — `version`: string, `commit`: string, `builtAt`: string, `goVersion`: string, `database`: string
 - **WikiTrashItem** — `node`: WikiNode, `expiresAt`: string
 - **WikiVisibilityInput** — `visibility`: object \| null, `workspaceRole?`: WikiWorkspaceRole
 - **WikiGrantInput** — `role`: WikiRole

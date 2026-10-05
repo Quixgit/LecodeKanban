@@ -107,6 +107,12 @@ type CardCounter struct {
 	Next      int32
 }
 
+type CardEstimate struct {
+	CardID    uuid.UUID
+	Seconds   int32
+	UpdatedAt time.Time
+}
+
 type CardFieldDirectory struct {
 	CardID      uuid.UUID
 	FieldID     uuid.UUID
@@ -454,6 +460,23 @@ type SavedView struct {
 	UpdatedAt   time.Time
 }
 
+type SupportRequest struct {
+	ID             uuid.UUID
+	WorkspaceID    uuid.UUID
+	AuthorID       uuid.UUID
+	Kind           string
+	Subject        string
+	Message        string
+	PageUrl        string
+	UserAgent      string
+	Screenshot     []byte
+	ScreenshotType *string
+	Status         string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	ResolvedAt     *time.Time
+}
+
 type TaskTemplate struct {
 	ID          uuid.UUID
 	WorkspaceID uuid.UUID
@@ -514,6 +537,8 @@ type User struct {
 	CoverUrl         *string
 	CoverKey         *string
 	CoverType        *string
+	Whatsapp         string
+	OnboardedAt      *time.Time
 }
 
 type UserDirectory struct {

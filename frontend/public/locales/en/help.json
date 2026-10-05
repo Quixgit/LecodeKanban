@@ -3,7 +3,8 @@
     "title": "How can we help?",
     "subtitle": "Search the guides, shortcuts and pages of the platform.",
     "placeholder": "Search help, shortcuts and pages…",
-    "clear": "Clear search"
+    "clear": "Clear search",
+    "contact": "Contact the team"
   },
   "results": {
     "count_one": "{{count}} result",
@@ -275,57 +276,193 @@
   },
   "whatsNew": {
     "title": "What's new",
-    "subtitle": "Recent changes in plain words",
-    "items": [
+    "subtitle": "Releases, what is coming and exactly what runs",
+    "tabs": {
+      "changes": "Changes",
+      "planned": "Planned",
+      "versions": "Versions"
+    },
+    "tag": {
+      "feature": "New",
+      "improvement": "Improved",
+      "fix": "Fixed"
+    },
+    "status": {
+      "in_progress": "In progress",
+      "planned": "Planned"
+    },
+    "plannedNote": "What we intend to build next. Order and timing may change.",
+    "versions": {
+      "platform": "This build",
+      "web": "Web app",
+      "webBuilt": "Web built",
+      "api": "API",
+      "apiBuilt": "API built",
+      "runtime": "Runtime",
+      "database": "Database",
+      "libraries": "Libraries"
+    },
+    "changes": [
       {
         "date": "October 2026",
+        "tag": "improvement",
+        "title": "Time tracking redesigned",
+        "text": "One flow: timer and estimate on the task, a header menu with recent tasks, and a weekly timesheet on the Time page.",
+        "tech": [
+          "GET /workspaces/{id}/time · PATCH /time-entries/{id} · PUT /cards/{id}/time-estimate",
+          "migration 00033 (card_estimates)"
+        ]
+      },
+      {
+        "date": "October 2026",
+        "tag": "improvement",
+        "title": "New sign-in and registration",
+        "text": "A live product preview next to the form; registration asks for the password twice.",
+        "tech": [
+          "no API changes"
+        ]
+      },
+      {
+        "date": "October 2026",
+        "tag": "feature",
+        "title": "Support requests",
+        "text": "Write to the workspace administrators from Help: a problem, an idea or a question, with a screenshot. Administrators get an email and an inbox with statuses.",
+        "tech": [
+          "POST/GET /workspaces/{id}/support · PATCH /support/{id} · GET /support/{id}/screenshot",
+          "permission support.manage · migration 00035",
+          "screenshots: PNG/JPEG/WebP ≤ 2 MB, checked by their first bytes"
+        ]
+      },
+      {
+        "date": "October 2026",
+        "tag": "feature",
         "title": "Performance page",
-        "text": "How the team works: throughput, cycle and lead time, overdue share, work in progress, burn-up and flow charts, workload per person."
+        "text": "Throughput, cycle and lead time, overdue share, work in progress, burn-up, cumulative flow and workload.",
+        "tech": [
+          "GET /workspaces/{id}/analytics/performance (7/30/90 days)",
+          "permission analytics.view · no new tables"
+        ]
       },
       {
         "date": "October 2026",
+        "tag": "feature",
         "title": "Import tasks from CSV",
-        "text": "Check a spreadsheet first, then create the tasks. The file you export imports back as it is."
+        "text": "Check the file first, then import; the exported file imports back unchanged.",
+        "tech": [
+          "POST /workspaces/{id}/import/tasks?projectId=&dryRun= (multipart)",
+          "limits: 2000 rows, 2 MB"
+        ]
       },
       {
         "date": "October 2026",
+        "tag": "feature",
         "title": "Trash for tasks",
-        "text": "Deleted tasks wait in the Trash and can be restored with their subtasks."
+        "text": "Deleted tasks wait in the Trash and are restored with their subtasks.",
+        "tech": [
+          "GET /workspaces/{id}/cards/trash · POST /cards/{id}/restore"
+        ]
       },
       {
         "date": "October 2026",
-        "title": "Shortcuts help and density",
-        "text": "Press ? on any page to see its shortcuts. Choose a compact or comfortable interface density in your profile."
+        "tag": "improvement",
+        "title": "Shortcut help and interface density",
+        "text": "Press ? on any page; choose a compact or comfortable density.",
+        "tech": [
+          "one shortcut catalogue feeds the dialog, the board, the editor and Help"
+        ]
       },
       {
         "date": "September 2026",
+        "tag": "feature",
         "title": "Two-factor sign-in",
-        "text": "Protect your account with an authenticator app; administrators can require it for everyone."
+        "text": "Authenticator app with one-time recovery codes; administrators can require it.",
+        "tech": [
+          "TOTP (RFC 6238), secrets sealed with AES-GCM",
+          "migration 00030"
+        ]
       },
       {
         "date": "September 2026",
+        "tag": "feature",
         "title": "Notification preferences",
-        "text": "Switch off the kinds of notifications you do not need."
+        "text": "Switch off the kinds of notifications you do not need.",
+        "tech": [
+          "GET/PUT /users/me/notification-prefs · migration 00031"
+        ]
       },
       {
         "date": "September 2026",
-        "title": "Custom field filters",
-        "text": "Filter and sort tasks by the value of a custom field."
+        "tag": "improvement",
+        "title": "Filter and sort by custom field",
+        "text": "Narrow or order tasks by a custom field's value.",
+        "tech": [
+          "migration 00032 (card_field_directory view)"
+        ]
       },
       {
         "date": "September 2026",
+        "tag": "feature",
         "title": "Export tasks as CSV",
-        "text": "Download tasks for one project or all of them as a spreadsheet."
+        "text": "One row per task, for a project or the whole workspace.",
+        "tech": [
+          "GET /workspaces/{id}/export/tasks.csv (UTF-8 with BOM)"
+        ]
       },
       {
         "date": "September 2026",
-        "title": "A calmer menu",
-        "text": "Chat channels and the page tree now live in the menu's second column, like everywhere else."
+        "tag": "fix",
+        "title": "Column names follow the interface language",
+        "text": "Default columns no longer show names in the language the board was created in.",
+        "tech": [
+          "display-time translation, renamed columns keep their name"
+        ]
+      }
+    ],
+    "planned": [
+      {
+        "status": "in_progress",
+        "title": "Task templates and recurring tasks",
+        "text": "Start a task from a template with its checklist and subtasks, and let daily, weekly or monthly tasks create themselves."
       },
       {
-        "date": "September 2026",
-        "title": "Workspace look and rules",
-        "text": "Choose an accent colour and set the rules of the workspace: required due date, default priority and more."
+        "status": "planned",
+        "title": "Global search",
+        "text": "One search across tasks, documents and chat, with filters."
+      },
+      {
+        "status": "planned",
+        "title": "Digest emails and reminders",
+        "text": "Daily or weekly summaries, and reminders for overdue tasks (SLA)."
+      },
+      {
+        "status": "planned",
+        "title": "Working hours and time zones",
+        "text": "Respected in the calendar and in reminders."
+      },
+      {
+        "status": "planned",
+        "title": "Automations",
+        "text": "“If … then …” rules, for example assign a reviewer when a task moves to In Review."
+      },
+      {
+        "status": "planned",
+        "title": "Public read-only links",
+        "text": "Share a document or a board without an account."
+      },
+      {
+        "status": "planned",
+        "title": "Webhooks and API tokens",
+        "text": "Integrate with your own tools."
+      },
+      {
+        "status": "planned",
+        "title": "Project templates",
+        "text": "Start a project from a saved structure of columns, labels and tasks."
+      },
+      {
+        "status": "planned",
+        "title": "Replies to support requests",
+        "text": "Answer a request inside the platform and keep the thread."
       }
     ]
   },
@@ -342,7 +479,58 @@
     "ask": "Write an email"
   },
   "support": {
-    "title": "Still stuck?",
-    "description": "Ask the person responsible for the workspace — they will see your message in chat."
+    "title": "Contact the team",
+    "subtitle": "Report a problem, suggest an idea or ask a question. The people who run this workspace get an email.",
+    "kind": {
+      "label": "Type",
+      "problem": "Problem",
+      "idea": "Idea",
+      "question": "Question"
+    },
+    "subject": "Subject",
+    "message": "Details",
+    "messageHint": "What happened, what you expected, and the steps to repeat it.",
+    "placeholder": {
+      "problem": "Something does not work",
+      "idea": "I would like to be able to…",
+      "question": "How do I…"
+    },
+    "required": "This field is required.",
+    "screenshot": "Attach a screenshot",
+    "removeScreenshot": "Remove",
+    "screenshotProblem": {
+      "type": "Use a PNG, JPEG or WebP image.",
+      "size": "The image is over 2 MB."
+    },
+    "attachPage": "Include the page address and my browser",
+    "attachPageHint": "Helps the team reproduce the problem.",
+    "send": "Send",
+    "sent": "Sent. The team has been told.",
+    "mine": "Your requests",
+    "noneYet": "You have not sent anything yet.",
+    "status": {
+      "new": "New",
+      "in_progress": "In progress",
+      "resolved": "Resolved"
+    },
+    "action": {
+      "new": "Mark as new",
+      "in_progress": "Start work",
+      "resolved": "Mark as resolved"
+    },
+    "someone": "Someone",
+    "page": "Page",
+    "browser": "Browser",
+    "screenshotOf": "Screenshot for “{{subject}}”",
+    "replyByEmail": "Reply to the author by email"
+  },
+  "inbox": {
+    "title": "Support inbox",
+    "subtitle": "Requests from people in this workspace.",
+    "newCount_one": "{{count}} new",
+    "newCount_other": "{{count}} new",
+    "filter": "Filter requests",
+    "all": "All",
+    "empty": "No requests here."
   }
 }

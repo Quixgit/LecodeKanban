@@ -19,6 +19,7 @@ const (
 	maxSkillLen = 30
 )
 
+var whatsappDigits = regexp.MustCompile(`^[0-9]{8,15}$`)
 var telegramName = regexp.MustCompile(`^[A-Za-z0-9_]{5,32}$`)
 var linkedinPath = regexp.MustCompile(`^[A-Za-z0-9_%\-.]{2,100}$`)
 
@@ -65,6 +66,32 @@ func cleanTelegram(in string) (string, bool) {
 	return in, telegramName.MatchString(in)
 }
 
+// cleanWhatsApp accepts a number in any common spelling ("+380 67 123-45-67", "380671234567", wa.me/…) and returns
+// it as "+" and 8–15 digits, which is what a wa.me link needs.
+func cleanWhatsApp(in string) (string, bool) {
+	in = strings.TrimSpace(in)
+	if in == "" {
+		return "", true
+	}
+	for _, prefix := range []string{"https://", "http://", "wa.me/", "api.whatsapp.com/send?phone="} {
+		in = strings.TrimPrefix(in, prefix)
+	}
+	var digits strings.Builder
+	for _, r := range in {
+		switch {
+		case r >= '0' && r <= '9':
+			digits.WriteRune(r)
+		case strings.ContainsRune("+ -().", r):
+		default:
+			return "", false
+		}
+	}
+	if !whatsappDigits.MatchString(digits.String()) {
+		return "", false
+	}
+	return "+" + digits.String(), true
+}
+
 func cleanWebsite(in string) (string, bool) {
 	in = strings.TrimSpace(in)
 	if in == "" {
@@ -105,6 +132,13 @@ func checkExtras(v *validation.V, p *domain.ProfilePatch) {
 			v.Add("telegram", validation.OneOf, nil)
 		}
 		p.Telegram = &s
+	}
+	if p.Whatsapp != nil {
+		s, ok := cleanWhatsApp(*p.Whatsapp)
+		if !ok {
+			v.Add("whatsapp", validation.OneOf, nil)
+		}
+		p.Whatsapp = &s
 	}
 	if p.Website != nil {
 		s, ok := cleanWebsite(*p.Website)

@@ -20,6 +20,7 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetUsersByIDs(ctx context.Context, ids []uuid.UUID) ([]User, error)
 	MarkEmailVerified(ctx context.Context, id uuid.UUID) (User, error)
+	MarkOnboarded(ctx context.Context, id uuid.UUID) (User, error)
 	// Increments the failure counter and locks the account once it reaches the threshold.
 	RecordLoginFailure(ctx context.Context, arg RecordLoginFailureParams) (RecordLoginFailureRow, error)
 	ResetLoginFailures(ctx context.Context, id uuid.UUID) error

@@ -5,7 +5,7 @@
 
 ## Context
 
-The app is served directly from the host's public IP `23.19.228.158` (requested by the owner),
+The app is served directly from the host's public IP `203.0.113.10` (requested by the owner),
 not only behind a reverse proxy. The host already runs other services on common ports
 (80, 443, 3000, 5173, 8080, 8087, 8090, 8094, 11000, 18080, …).
 

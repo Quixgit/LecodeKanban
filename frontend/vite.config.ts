@@ -6,11 +6,35 @@ import { defineConfig } from 'vite';
 
 const pkg = JSON.parse(
   readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8'),
-) as { version: string };
+) as {
+  version: string;
+  dependencies: Record<string, string>;
+  devDependencies: Record<string, string>;
+};
+
+/** The libraries worth naming on the Help page, with the versions this build was made with. */
+const SHOWN_LIBS = [
+  'react',
+  'react-router-dom',
+  '@tanstack/react-query',
+  'framer-motion',
+  'recharts',
+  'tailwindcss',
+  'vite',
+  'typescript',
+];
+const libs = Object.fromEntries(
+  SHOWN_LIBS.flatMap((name) => {
+    const range = pkg.dependencies[name] ?? pkg.devDependencies[name];
+    return range ? [[name, range.replace(/^[\^~]/, '')]] : [];
+  }),
+);
 
 export default defineConfig({
   plugins: [react()],
   define: {
+    __APP_LIBS__: JSON.stringify(libs),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     // Shown on the Help page; CI can pass the commit as LK_BUILD.
     __APP_VERSION__: JSON.stringify(
       process.env.LK_BUILD ? `${pkg.version} (${process.env.LK_BUILD})` : pkg.version,
@@ -20,7 +44,7 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: {
-    // Exposed on the public IP (23.19.228.158) on a non-standard port; see docs/adr/0004.
+    // Exposed on the public IP (203.0.113.10) on a non-standard port; see docs/adr/0004.
     host: process.env.LK_WEB_HOST ?? '0.0.0.0',
     port: Number(process.env.LK_WEB_PORT ?? 47100),
     strictPort: true,

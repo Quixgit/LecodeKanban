@@ -101,7 +101,9 @@
     "linkedinHint": "A profile address or just your handle.",
     "telegram": "Telegram",
     "telegramHint": "@name or a t.me link.",
-    "website": "Website"
+    "website": "Website",
+    "whatsapp": "WhatsApp",
+    "whatsappHint": "A number with the country code."
   },
   "about": {
     "title": "Introduction",

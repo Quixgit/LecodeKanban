@@ -21,5 +21,6 @@ export {
   invitableRoles,
   canManageMembers,
 } from './model/permissions';
-export { useWorkspaceMutations } from './hooks/useWorkspaces';
+export { useWorkspaceMutations, useCreateWorkspace } from './hooks/useWorkspaces';
+export { pendingInvite } from './model/pendingInvite';
 export { TwoFactorGate } from './components/TwoFactorGate';

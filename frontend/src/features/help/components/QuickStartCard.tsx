@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/shared/lib/cn';
 import { transition } from '@/shared/motion';
 import { Card, CardHeader, CardTitle } from '@/shared/ui';
+import { useOnboardingStore } from '@/features/onboarding';
 import { useQuickStart } from '../hooks/useQuickStart';
 import { useQuickStartMarks } from '../model/quickStartStore';
 
@@ -36,10 +37,11 @@ function Ring({ done, total }: { done: number; total: number }) {
 
 /** The new-member checklist. Steps the platform can see tick themselves; the rest can be ticked by hand. */
 export function QuickStartCard() {
-  const { t } = useTranslation('help');
+  const { t } = useTranslation(['help', 'onboarding']);
   const reduce = useReducedMotion();
   const steps = useQuickStart();
   const toggle = useQuickStartMarks((s) => s.toggle);
+  const openWizard = useOnboardingStore((s) => s.open);
   const done = steps.filter((s) => s.done).length;
 
   return (
@@ -119,6 +121,13 @@ export function QuickStartCard() {
           </motion.li>
         ))}
       </ol>
+      <button
+        type="button"
+        onClick={openWizard}
+        className="mt-3 rounded-md px-2 py-1 text-sm text-primary-ink hover:bg-primary-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+      >
+        {t('onboarding:help.again')}
+      </button>
     </Card>
   );
 }

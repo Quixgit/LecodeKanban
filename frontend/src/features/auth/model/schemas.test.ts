@@ -10,13 +10,14 @@ const issueKey = (
 describe('registerSchema', () => {
   it('mirrors server password rules (length + 3 Unicode classes)', () => {
     const base = { name: 'Lisa', email: 'lisa@example.com' };
-    expect(issueKey(registerSchema.safeParse({ ...base, password: 'Short1!' }), 'password')).toBe(
+    const withConfirm = (password: string) => ({ ...base, password, confirm: password });
+    expect(issueKey(registerSchema.safeParse(withConfirm('Short1!')), 'password')).toBe(
       'validation.min_length',
     );
-    expect(
-      issueKey(registerSchema.safeParse({ ...base, password: 'alllowercaseonly' }), 'password'),
-    ).toBe('validation.password_weak');
-    expect(registerSchema.safeParse({ ...base, password: 'пароль-Довгий-123' }).success).toBe(true);
+    expect(issueKey(registerSchema.safeParse(withConfirm('alllowercaseonly')), 'password')).toBe(
+      'validation.password_weak',
+    );
+    expect(registerSchema.safeParse(withConfirm('пароль-Довгий-123')).success).toBe(true);
   });
 
   it('validates required name and email format', () => {
@@ -24,15 +25,34 @@ describe('registerSchema', () => {
       name: '  ',
       email: 'nope',
       password: 'Kanban-Board-2026',
+      confirm: 'Kanban-Board-2026',
     });
     expect(issueKey(r, 'name')).toBe('validation.required');
     expect(issueKey(r, 'email')).toBe('validation.email');
   });
 
   it('carries interpolation params in the message', () => {
-    const r = registerSchema.safeParse({ name: 'x', email: 'a@b.co', password: 'Ab1' });
+    const r = registerSchema.safeParse({
+      name: 'x',
+      email: 'a@b.co',
+      password: 'Ab1',
+      confirm: 'Ab1',
+    });
     const msg = r.error?.issues.find((i) => i.path[0] === 'password')?.message;
     expect(parseFieldMessage(msg)).toEqual({ key: 'validation.min_length', params: { min: 10 } });
+  });
+});
+
+describe('registerSchema confirmation', () => {
+  const ok = { name: 'Lisa', email: 'lisa@example.com', password: 'Kanban-Board-2026' };
+  it('asks for the password twice and wants them equal', () => {
+    expect(issueKey(registerSchema.safeParse({ ...ok, confirm: '' }), 'confirm')).toBe(
+      'validation.required',
+    );
+    expect(
+      issueKey(registerSchema.safeParse({ ...ok, confirm: 'Kanban-Board-2027' }), 'confirm'),
+    ).toBe('validation.passwords_mismatch');
+    expect(registerSchema.safeParse({ ...ok, confirm: ok.password }).success).toBe(true);
   });
 });
 

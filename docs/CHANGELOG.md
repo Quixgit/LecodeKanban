@@ -4,6 +4,55 @@
 
 ### Added
 
+- **`adduser -reset`** gives an existing account a new one-time password, lifts a sign-in lock and signs the person out of
+  other devices. For people who lost a password while email is not configured; it never creates an account.
+
+- **Welcome wizards.** A new account is walked through setup in an animated full-screen guide: name the workspace,
+  who you are (name and job title), a photo, contacts (phone, Telegram, WhatsApp, time zone and working hours) and
+  inviting teammates. Someone who joins by invitation gets a shorter one (about you, photo, contacts) that
+  introduces the team they joined. Each step saves as it goes, only the workspace name is required, "Skip setup"
+  closes it, and Help → Quick start can run it again. WhatsApp is a new profile field, shown on the member card.
+  Existing accounts are marked as already set up (migration 00036).
+- **Invitation links no longer ask a newcomer for a password they don't have.** The invitation page now knows whether
+  the invited address has an account: a new person is offered "Create your account" with the invited address filled
+  in and locked and only a name and a password of their own to choose; someone who already has an account gets
+  "Sign in" (address filled in) and "Forgot your password?". The reset form opens with the address already typed.
+- **An invited person is never asked to set up a workspace of their own.** The app remembers an invitation that was
+  opened but not accepted and, if the person lands inside before accepting (sign-in with a provider, a plain
+  registration), sends them back to it; after joining, the welcome guide waits for the fresh workspace list so it is
+  the short "join" guide, not the "create a workspace" one.
+
+### Changed
+
+- **Sign-in and registration pages redone.** The background is now an engineering grid that fades toward the edges,
+  slow pools of brand light, film grain and a few lines of light running down the grid (all gradients, so it is
+  sharp at any size and follows light/dark). The right side shows the product itself instead of a toy board: a
+  sprint header with who is online, throughput / cycle time / on-time numbers that count up and draw themselves,
+  a four-column board whose cards move through the workflow, a feed of what just happened, two collaborators'
+  cursors and two floating notices; it tilts a little with the pointer and stands still with reduced motion.
+  Registration asks for the **password twice** and says when they differ.
+
+- **Time tracking, redone as one system.** _On a task:_ a single panel in the order a person thinks — Start/Stop timer
+  (a live clock on the button), an estimate with a progress bar (teal, amber near the limit, red when over, "2h left /
+  1h over"), "Log time" in a small dialog (quick amounts 15m–8h, any day, a note) and the log grouped by day with
+  edit and delete. _Everywhere:_ the header timer now opens a menu with the running task, Stop, today's total and the
+  tasks you worked on lately, each one click from a new timer. _New "Time" page_ (menu → Time): a week grid with tasks
+  down the side and days across, daily totals with an 8-hour goal bar, week navigation, project filter, and for people
+  who manage time a person filter; every cell adds or fixes time. Behind it: `GET /workspaces/{id}/time` (a person's
+  entries in a period, up to 93 days; others' time needs the time-management permission), `PATCH /time-entries/{id}`
+  (edit a stopped entry), `PUT /cards/{id}/time-estimate`, migration 00033. Hidden when the Time module is switched off.
+
+### Added
+
+- **Support requests on Help & Center.** "Contact the team": a problem, an idea or a question, with a subject, details,
+  an optional screenshot (PNG/JPEG/WebP up to 2 MB, verified by its first bytes) and, by choice, the page address and
+  browser. The people with the new permission `support.manage` (owner and administrators by default) get an email and
+  an inbox on the Help page with New / In progress / Resolved, the screenshot and the author. Everyone sees their own
+  requests and their status; at most 20 unanswered requests per person. API: `POST/GET /workspaces/{id}/support`,
+  `PATCH /support/{id}`, `GET /support/{id}/screenshot`; migration 00035.
+- **"What's new" is now technical and complete**: Changes (each with its API/migration notes and a tag), Planned (the
+  roadmap with what is in progress) and Versions (web app and API release, build times, commit, Go, PostgreSQL and the
+  main libraries). `GET /meta`; the release is stamped with `-X main.version` (Docker build arg `VERSION`).
 - **Help & Center** (the empty page is now real): a search over guides, shortcuts and pages; a five-step quick start
   that ticks itself (project, task, invitation, two-factor sign-in) with one step ticked by hand (notifications);
   six guides in English and Ukrainian (tasks and board, chat, documents, integrations, roles and security, import and

@@ -21,6 +21,7 @@ export const profileSchema = z.object({
   pronouns: optional(30),
   linkedin: optional(200),
   telegram: optional(64),
+  whatsapp: optional(40),
   website: optional(200),
   workStart: z.string(),
   workEnd: z.string(),

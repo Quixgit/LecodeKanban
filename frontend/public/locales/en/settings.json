@@ -479,6 +479,10 @@
     "analytics_view": {
       "title": "See team performance",
       "description": "Open the Performance page: throughput, cycle time and workload."
+    },
+    "support_manage": {
+      "title": "Handle support requests",
+      "description": "Read the workspace's support requests, change their status and get an email about each new one."
     }
   },
   "email": {

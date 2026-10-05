@@ -99,6 +99,7 @@ const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
 const TrashPage = lazy(() => import('@/pages/TrashPage'));
 const PerformancePage = lazy(() => import('@/pages/PerformancePage'));
 const HelpPage = lazy(() => import('@/pages/HelpPage'));
+const TimePage = lazy(() => import('@/pages/TimePage'));
 const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'));
 const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmailPage'));
 const InvitePage = lazy(() => import('@/pages/InvitePage'));
@@ -144,6 +145,15 @@ export const routes: RouteObject[] = [
             element: (
               <FeatureGate feature="calendar">
                 <CalendarPage />
+              </FeatureGate>
+            ),
+          },
+          {
+            path: 'time',
+            handle: page('time'),
+            element: (
+              <FeatureGate feature="time">
+                <TimePage />
               </FeatureGate>
             ),
           },

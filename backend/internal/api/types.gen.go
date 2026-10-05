@@ -831,6 +831,69 @@ func (e RoleInputBase) Valid() bool {
 	}
 }
 
+// Defines values for SupportKind.
+const (
+	Idea     SupportKind = "idea"
+	Problem  SupportKind = "problem"
+	Question SupportKind = "question"
+)
+
+// Valid indicates whether the value is a known member of the SupportKind enum.
+func (e SupportKind) Valid() bool {
+	switch e {
+	case Idea:
+		return true
+	case Problem:
+		return true
+	case Question:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SupportScreenshotInputContentType.
+const (
+	Imagejpeg SupportScreenshotInputContentType = "image/jpeg"
+	Imagepng  SupportScreenshotInputContentType = "image/png"
+	Imagewebp SupportScreenshotInputContentType = "image/webp"
+)
+
+// Valid indicates whether the value is a known member of the SupportScreenshotInputContentType enum.
+func (e SupportScreenshotInputContentType) Valid() bool {
+	switch e {
+	case Imagejpeg:
+		return true
+	case Imagepng:
+		return true
+	case Imagewebp:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SupportStatus.
+const (
+	SupportStatusInProgress SupportStatus = "in_progress"
+	SupportStatusNew        SupportStatus = "new"
+	SupportStatusResolved   SupportStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the SupportStatus enum.
+func (e SupportStatus) Valid() bool {
+	switch e {
+	case SupportStatusInProgress:
+		return true
+	case SupportStatusNew:
+		return true
+	case SupportStatusResolved:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for TaskStatus.
 const (
 	TaskStatusDone       TaskStatus = "done"
@@ -1889,6 +1952,22 @@ type BoardColumn struct {
 	WipLimit *int               `json:"wipLimit"`
 }
 
+// BuildInfo defines model for BuildInfo.
+type BuildInfo struct {
+	// BuiltAt When the binary was built
+	BuiltAt string `json:"builtAt"`
+
+	// Commit Short commit id
+	Commit string `json:"commit"`
+
+	// Database The database server's version
+	Database  string `json:"database"`
+	GoVersion string `json:"goVersion"`
+
+	// Version Release of the API
+	Version string `json:"version"`
+}
+
 // BulkCardAction defines model for BulkCardAction.
 type BulkCardAction struct {
 	Action   BulkCardActionAction `json:"action"`
@@ -2678,6 +2757,7 @@ type InvitePreview struct {
 	Accepted      bool       `json:"accepted"`
 	Email         string     `json:"email"`
 	Expired       bool       `json:"expired"`
+	HasAccount    bool       `json:"hasAccount"`
 	InviterName   *string    `json:"inviterName"`
 	Role          InviteRole `json:"role"`
 	WorkspaceName string     `json:"workspaceName"`
@@ -2800,6 +2880,7 @@ type MemberProfile struct {
 	Telegram    string             `json:"telegram"`
 	Timezone    string             `json:"timezone"`
 	Website     string             `json:"website"`
+	Whatsapp    string             `json:"whatsapp"`
 	WorkEnd     string             `json:"workEnd"`
 	WorkStart   string             `json:"workStart"`
 }
@@ -3265,6 +3346,56 @@ type StatusCounts struct {
 	Todo       int `json:"todo"`
 }
 
+// SupportKind defines model for SupportKind.
+type SupportKind string
+
+// SupportRequest defines model for SupportRequest.
+type SupportRequest struct {
+	Author        *PersonRef         `json:"author"`
+	CreatedAt     time.Time          `json:"createdAt"`
+	HasScreenshot bool               `json:"hasScreenshot"`
+	Id            openapi_types.UUID `json:"id"`
+	Kind          SupportKind        `json:"kind"`
+	Message       string             `json:"message"`
+	PageUrl       string             `json:"pageUrl"`
+	ResolvedAt    *time.Time         `json:"resolvedAt"`
+	Status        SupportStatus      `json:"status"`
+	Subject       string             `json:"subject"`
+	UpdatedAt     time.Time          `json:"updatedAt"`
+	UserAgent     string             `json:"userAgent"`
+}
+
+// SupportRequestInput defines model for SupportRequestInput.
+type SupportRequestInput struct {
+	Kind    SupportKind `json:"kind"`
+	Message string      `json:"message"`
+
+	// PageUrl The page the person was on
+	PageUrl    *string                 `json:"pageUrl,omitempty"`
+	Screenshot *SupportScreenshotInput `json:"screenshot,omitempty"`
+	Subject    string                  `json:"subject"`
+	UserAgent  *string                 `json:"userAgent,omitempty"`
+}
+
+// SupportRequestPatch defines model for SupportRequestPatch.
+type SupportRequestPatch struct {
+	Status SupportStatus `json:"status"`
+}
+
+// SupportScreenshotInput defines model for SupportScreenshotInput.
+type SupportScreenshotInput struct {
+	ContentType SupportScreenshotInputContentType `json:"contentType"`
+
+	// Data Base64 of the image (up to 2 MB decoded)
+	Data string `json:"data"`
+}
+
+// SupportScreenshotInputContentType defines model for SupportScreenshotInput.ContentType.
+type SupportScreenshotInputContentType string
+
+// SupportStatus defines model for SupportStatus.
+type SupportStatus string
+
 // TaskStatus defines model for TaskStatus.
 type TaskStatus string
 
@@ -3317,6 +3448,23 @@ type TimeEntry struct {
 	User      *PersonRef `json:"user"`
 }
 
+// TimeEntryPatch defines model for TimeEntryPatch.
+type TimeEntryPatch struct {
+	Note      *string    `json:"note,omitempty"`
+	Seconds   *int       `json:"seconds,omitempty"`
+	StartedAt *time.Time `json:"startedAt,omitempty"`
+}
+
+// TimeEstimate defines model for TimeEstimate.
+type TimeEstimate struct {
+	Seconds *int `json:"seconds"`
+}
+
+// TimeEstimateInput defines model for TimeEstimateInput.
+type TimeEstimateInput struct {
+	Seconds *int `json:"seconds"`
+}
+
 // TimeLogInput defines model for TimeLogInput.
 type TimeLogInput struct {
 	Note    *string `json:"note,omitempty"`
@@ -3328,8 +3476,31 @@ type TimeLogInput struct {
 
 // TimeSummary defines model for TimeSummary.
 type TimeSummary struct {
-	Entries      []TimeEntry `json:"entries"`
-	TotalSeconds int         `json:"totalSeconds"`
+	Entries []TimeEntry `json:"entries"`
+
+	// EstimateSeconds The time the task is expected to take
+	EstimateSeconds *int `json:"estimateSeconds"`
+	TotalSeconds    int  `json:"totalSeconds"`
+}
+
+// Timesheet defines model for Timesheet.
+type Timesheet struct {
+	Entries      []TimesheetEntry `json:"entries"`
+	TotalSeconds int              `json:"totalSeconds"`
+}
+
+// TimesheetCard defines model for TimesheetCard.
+type TimesheetCard struct {
+	Id      openapi_types.UUID `json:"id"`
+	Key     string             `json:"key"`
+	Project ProjectRef         `json:"project"`
+	Title   string             `json:"title"`
+}
+
+// TimesheetEntry defines model for TimesheetEntry.
+type TimesheetEntry struct {
+	Card  TimesheetCard `json:"card"`
+	Entry TimeEntry     `json:"entry"`
 }
 
 // TokenRequest defines model for TokenRequest.
@@ -3421,6 +3592,9 @@ type UpdateProfileRequest struct {
 	// Timezone IANA time zone name or empty
 	Timezone *string `json:"timezone,omitempty"`
 	Website  *string `json:"website,omitempty"`
+
+	// Whatsapp A number in any common spelling or a wa.me link; empty clears
+	Whatsapp *string `json:"whatsapp,omitempty"`
 	WorkEnd  *string `json:"workEnd,omitempty"`
 
 	// WorkStart HH:MM; send with workEnd, both empty clears
@@ -3459,10 +3633,13 @@ type User struct {
 	JobTitle      string             `json:"jobTitle"`
 
 	// Linkedin Full LinkedIn address
-	Linkedin  string          `json:"linkedin"`
-	Locale    Locale          `json:"locale"`
-	Location  string          `json:"location"`
-	Name      string          `json:"name"`
+	Linkedin string `json:"linkedin"`
+	Locale   Locale `json:"locale"`
+	Location string `json:"location"`
+	Name     string `json:"name"`
+
+	// Onboarded The person has finished (or skipped) the welcome wizard
+	Onboarded bool            `json:"onboarded"`
 	Phone     string          `json:"phone"`
 	Pronouns  string          `json:"pronouns"`
 	Providers []UserProviders `json:"providers"`
@@ -3474,6 +3651,9 @@ type User struct {
 	// Timezone IANA time zone name
 	Timezone string `json:"timezone"`
 	Website  string `json:"website"`
+
+	// Whatsapp International number with a leading +, empty when not set
+	Whatsapp string `json:"whatsapp"`
 	WorkEnd  string `json:"workEnd"`
 
 	// WorkStart Working day start, HH:MM, empty when not set
@@ -4336,6 +4516,25 @@ type ListProjectsParamsSort string
 // ListProjectsParamsOrder defines parameters for ListProjects.
 type ListProjectsParamsOrder string
 
+// ListSupportRequestsParams defines parameters for ListSupportRequests.
+type ListSupportRequestsParams struct {
+	Status *SupportStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// Mine Only the caller's own requests
+	Mine *bool `form:"mine,omitempty" json:"mine,omitempty"`
+}
+
+// GetTimesheetParams defines parameters for GetTimesheet.
+type GetTimesheetParams struct {
+	// From Start of the period (inclusive)
+	From time.Time `form:"from" json:"from"`
+
+	// To End of the period (exclusive)
+	To        time.Time           `form:"to" json:"to"`
+	UserId    *openapi_types.UUID `form:"userId,omitempty" json:"userId,omitempty"`
+	ProjectId *CardProjectId      `form:"projectId,omitempty" json:"projectId,omitempty"`
+}
+
 // ListWikiTemplatesParams defines parameters for ListWikiTemplates.
 type ListWikiTemplatesParams struct {
 	Lang *ListWikiTemplatesParamsLang `form:"lang,omitempty" json:"lang,omitempty"`
@@ -4383,6 +4582,9 @@ type MoveCardJSONRequestBody = CardMove
 // LogTimeJSONRequestBody defines body for LogTime for application/json ContentType.
 type LogTimeJSONRequestBody = TimeLogInput
 
+// SetTimeEstimateJSONRequestBody defines body for SetTimeEstimate for application/json ContentType.
+type SetTimeEstimateJSONRequestBody = TimeEstimateInput
+
 // UpdateChatChannelJSONRequestBody defines body for UpdateChatChannel for application/json ContentType.
 type UpdateChatChannelJSONRequestBody = ChatChannelPatch
 
@@ -4428,11 +4630,17 @@ type CreateColumnJSONRequestBody = ColumnInput
 // UpdateRecurringTaskJSONRequestBody defines body for UpdateRecurringTask for application/json ContentType.
 type UpdateRecurringTaskJSONRequestBody = RecurringTaskInput
 
+// UpdateSupportRequestJSONRequestBody defines body for UpdateSupportRequest for application/json ContentType.
+type UpdateSupportRequestJSONRequestBody = SupportRequestPatch
+
 // UpdateTaskTemplateJSONRequestBody defines body for UpdateTaskTemplate for application/json ContentType.
 type UpdateTaskTemplateJSONRequestBody = TaskTemplateInput
 
 // UseTaskTemplateJSONRequestBody defines body for UseTaskTemplate for application/json ContentType.
 type UseTaskTemplateJSONRequestBody = UseTemplateRequest
+
+// UpdateTimeEntryJSONRequestBody defines body for UpdateTimeEntry for application/json ContentType.
+type UpdateTimeEntryJSONRequestBody = TimeEntryPatch
 
 // UpdateMeJSONRequestBody defines body for UpdateMe for application/json ContentType.
 type UpdateMeJSONRequestBody = UpdateProfileRequest
@@ -4568,6 +4776,9 @@ type SetRolePermissionsJSONRequestBody = PermissionsInput
 
 // UpdateWorkspaceSettingsJSONRequestBody defines body for UpdateWorkspaceSettings for application/json ContentType.
 type UpdateWorkspaceSettingsJSONRequestBody = WorkspaceSettingsPatch
+
+// CreateSupportRequestJSONRequestBody defines body for CreateSupportRequest for application/json ContentType.
+type CreateSupportRequestJSONRequestBody = SupportRequestInput
 
 // CreateTaskTemplateJSONRequestBody defines body for CreateTaskTemplate for application/json ContentType.
 type CreateTaskTemplateJSONRequestBody = TaskTemplateInput

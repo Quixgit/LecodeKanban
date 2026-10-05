@@ -24,6 +24,7 @@ SET name      = COALESCE(sqlc.narg(name), name),
     pronouns  = COALESCE(sqlc.narg(pronouns), pronouns),
     linkedin  = COALESCE(sqlc.narg(linkedin), linkedin),
     telegram  = COALESCE(sqlc.narg(telegram), telegram),
+    whatsapp  = COALESCE(sqlc.narg(whatsapp), whatsapp),
     website   = COALESCE(sqlc.narg(website), website),
     work_start = COALESCE(sqlc.narg(work_start), work_start),
     work_end   = COALESCE(sqlc.narg(work_end), work_end),
@@ -72,3 +73,6 @@ UPDATE users SET cover_url = @cover_url, cover_key = @cover_key, cover_type = @c
 
 -- name: ClearCover :exec
 UPDATE users SET cover_url = NULL, cover_key = NULL, cover_type = NULL WHERE id = $1;
+
+-- name: MarkOnboarded :one
+UPDATE users SET onboarded_at = COALESCE(onboarded_at, now()) WHERE id = $1 RETURNING *;

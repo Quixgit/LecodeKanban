@@ -28,6 +28,7 @@ export function LoginForm() {
   const { register, handleSubmit, formState } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
+    defaultValues: { email: next.startsWith('/invite/') ? (params.get('email') ?? '') : '' },
   });
 
   const oauthError = params.get('error');

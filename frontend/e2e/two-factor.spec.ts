@@ -22,6 +22,7 @@ test.describe('Two-step verification', () => {
     await page.getByLabel('Full name').fill('Mfa Tester');
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password', { exact: true }).fill(password);
+    await page.getByLabel('Confirm password').fill(password);
     await page.getByRole('button', { name: 'Create account' }).click();
     await page.waitForURL((u) => !u.pathname.startsWith('/register'));
 
@@ -103,6 +104,7 @@ test.describe('Workspace requires two-step verification', () => {
     await page.getByLabel('Full name').fill('Req Tester');
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password', { exact: true }).fill(password);
+    await page.getByLabel('Confirm password').fill(password);
     await page.getByRole('button', { name: 'Create account' }).click();
     await page.waitForURL((u) => !u.pathname.startsWith('/register'));
 

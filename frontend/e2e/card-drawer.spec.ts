@@ -27,13 +27,15 @@ test.describe('Task window', () => {
     const start = drawer.getByRole('button', { name: /Start timer|Start here/ });
     await start.click();
     await expect(drawer.getByRole('timer')).toBeVisible();
-    await drawer.getByRole('button', { name: 'Stop', exact: true }).click();
+    await drawer.getByRole('button', { name: /Stop timer/ }).click();
     await expect(drawer.getByRole('timer')).toHaveCount(0);
 
-    // Manual time lives behind "Log time".
+    // Manual time opens a small dialog.
     await drawer.getByRole('button', { name: 'Log time' }).first().click();
-    await expect(drawer.getByRole('textbox', { name: 'Time spent' })).toBeVisible();
-    await drawer.getByRole('button', { name: 'Log time' }).first().click();
+    const dialog = page.getByRole('dialog', { name: 'Log time' });
+    await expect(dialog.getByRole('textbox', { name: 'Time spent' })).toBeVisible();
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
+    await expect(dialog).toHaveCount(0);
 
     // Full screen: the panel grows to the viewport width and remembers the choice.
     const width = async () => (await drawer.boundingBox())!.width;

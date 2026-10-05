@@ -336,3 +336,34 @@ Facts about what was checked, with how. Update on every phase.
 - Browser (axe on the settled page): search "restoring" opens the right article and the address carries it; article switch and "All guides"; shortcut filter; quick-start hand step toggles; "Learn more in Help" from Roles opens its guide; Ukrainian search and phone width without horizontal scroll. Light screenshot checked by eye.
 - The guides describe features by their current names; they are text, so a renamed screen needs the article updated (no automated check).
 - Not covered: dark theme of this page by eye, "What's new" is curated by hand (not generated from CHANGELOG), the guides have no screenshots (icons and numbered steps instead), the request form and editable articles (phase 2).
+## Time tracking redesign
+
+- Go (database): estimate rounds to whole minutes, is bounded, clears, members only; timesheet lists a backdated entry and a running timer with their task and project, respects the period, refuses a colleague's time without the permission and a window over 93 days; editing changes duration/note and keeps the end consistent, refuses a running entry, another person's entry and a zero duration, allows a time manager.
+- Vitest: week arithmetic (Monday start, month ends), grid building (rows, columns, totals, outside-the-week entries), start-time rules (never ends in the future, lengthened entries move earlier), `h:mm` formatting.
+- Browser (axe): estimate → progress, log with a quick amount and a note, edit to 90 minutes, delete; timesheet add through task search, week navigation; header timer menu; phone width without horizontal scroll. Screenshots of the timesheet checked by eye in light and dark; the card panel in light.
+- Found by the browser test, fixed: lengthening an entry made it end in the future and be refused (the start now moves earlier).
+- Not covered: the Ukrainian layout by eye, dark theme of the card panel and the menu, the person filter in the browser (permission checked in Go), exporting the timesheet, billable hours, approvals, day/week goals per person (the 8-hour bar is a fixed reference).
+## Support requests and technical What's new
+
+- Go (database): a viewer may write; owner and admin are emailed (not the author); validation; a wrong image type and a non-image behind a PNG label are refused; visibility (managers see all, others their own only, a stranger is refused); status changes need the permission, resolving stamps the time and reopening clears it; the screenshot is served to its author and managers only; 20 open requests per person.
+- Vitest: screenshot checks and base64 encoding; locale parity for the new help strings (changes, plans, support, inbox).
+- Browser (axe): required-field messages, a request with a screenshot appears in "Your requests" and in the owner's inbox with its picture, resolve changes the chip; the What's new tabs show API notes, the roadmap and versions. The email is enqueued (checked in the job table); actual SMTP delivery is not tested here.
+- Not covered: replying inside the platform (answers go by email), notifying by chat, the Ukrainian layout of the new cards by eye, a request from someone who left the workspace, editing or deleting a sent request.
+## Sign-in and registration pages
+
+- Vitest: the registration schema wants the confirmation and equality (required / mismatch messages), the old password rules still hold.
+- Browser (axe, light and dark): login shows the form and the showcase with no violations; registration with two different passwords shows "Passwords don't match." and stays; phone width has no horizontal scroll. The two-factor e2e that creates accounts now fills the repeated password. Screenshots (light/dark, English/Ukrainian, desktop/phone) checked by eye.
+- A real finding from axe: the collaborator tags on the showcase had white text on a mid-tone fill below the contrast limit; they are now inverse-of-surface chips.
+- Not covered: the invitation-accept page (it has no password field), password reveal behaviour, a screen-reader pass of the decorative showcase (it is hidden from assistive technology).
+## Welcome wizards
+
+- Go (database): onboarding completes once and is idempotent, WhatsApp is normalised and a bad value refused, the profile returns `onboarded`.
+- Vitest: step lists for both modes, progress, optional steps, Telegram/WhatsApp/email validators, draft defaults.
+- Browser (axe): a new account sees the create wizard, names the workspace, fills about/contacts, finishes and does not see it again; skip closes it; an invited account gets the short wizard and joins its workspace. Screenshots checked by eye (light desktop, dark phone).
+- Not covered: every step in Ukrainian and in dark on desktop by eye, sending real invitation email (enqueued only), a screen-reader pass of the orbit art (hidden from assistive tech), photo upload inside the wizard beyond the existing avatar flow.
+- Invitation page: Go checks that the preview says an unknown address has no account; the browser test follows the link as a newcomer (no sign-in offered, address locked, account created, joined, short wizard). Not covered by a browser test: the existing-account branch (sign in with the address filled in, forgot-password link) and the Ukrainian text.
+- Invitee who registers without a return path: the browser test checks they land on the invitation (no wizard), join, and get the short guide with no workspace-name step. Not covered: sign-in through Google/GitHub (same code path, providers are not configured here).
+## adduser -reset
+
+- By hand against a real database: a locked account (nine failures) was reset, the lock and the counter cleared, and the browser signed in with the printed password. An address with no account is refused and creates nothing.
+- Not covered: an automated test (the command is a thin script over the users service, whose password and lock methods are tested elsewhere); signing out other devices was not observed, only written as an update of the refresh tokens.

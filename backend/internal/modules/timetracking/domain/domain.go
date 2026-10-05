@@ -41,7 +41,16 @@ const (
 	MaxNote          = 500
 )
 
+// Estimates are whole minutes between one minute and a thousand hours.
+const (
+	MinEstimateSeconds = 60
+	MaxEstimateSeconds = 3_600_000
+	// MaxSheetDays bounds one timesheet query.
+	MaxSheetDays = 93
+)
+
 var (
+	ErrRunning   = apperr.Define("time.running", http.StatusConflict)
 	ErrNotFound  = apperr.Define("time.not_found", http.StatusNotFound)
 	ErrForbidden = apperr.Define("time.forbidden", http.StatusForbidden)
 	ErrNotActive = apperr.Define("time.not_running", http.StatusConflict)

@@ -73,6 +73,19 @@ export function useRoleMutations(workspaceId: string) {
   };
 }
 
+/** Creates a workspace (the caller becomes its owner) and selects it. */
+export function useCreateWorkspace() {
+  const qc = useQueryClient();
+  const select = useCurrentWorkspaceStore((s) => s.setId);
+  return useMutation({
+    mutationFn: (name: string) => workspacesApi.create(name),
+    onSuccess: async (ws) => {
+      select(ws.id);
+      await qc.invalidateQueries({ queryKey: workspaceKeys.all });
+    },
+  });
+}
+
 export function useMembers(workspaceId: string | undefined) {
   return useQuery({
     queryKey: workspaceKeys.members(workspaceId ?? ''),

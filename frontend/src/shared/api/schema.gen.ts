@@ -231,6 +231,23 @@ export interface paths {
         patch: operations["updateMe"];
         trace?: never;
     };
+    "/users/me/onboarding/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the welcome wizard as finished or skipped */
+        post: operations["completeOnboarding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/me/avatar": {
         parameters: {
             query?: never;
@@ -1164,7 +1181,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/workspaces/{workspaceId}/templates": {
+    "/workspaces/{workspaceId}/support": {
         parameters: {
             query?: never;
             header?: never;
@@ -1173,83 +1190,66 @@ export interface paths {
             };
             cookie?: never;
         };
-        get: operations["listTaskTemplates"];
+        /** Support requests; people who manage support see everyone's, others their own */
+        get: operations["listSupportRequests"];
         put?: never;
-        post: operations["createTaskTemplate"];
+        /** Write to the people who run the workspace */
+        post: operations["createSupportRequest"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/templates/{templateId}": {
+    "/support/{requestId}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                templateId: string;
+                requestId: string;
             };
             cookie?: never;
         };
         get?: never;
-        put: operations["updateTaskTemplate"];
+        put?: never;
         post?: never;
-        delete: operations["deleteTaskTemplate"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/templates/{templateId}/use": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                templateId: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create a task (with its checklist and subtasks) from the template */
-        post: operations["useTaskTemplate"];
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Change a request's status (needs the support permission) */
+        patch: operations["updateSupportRequest"];
         trace?: never;
     };
-    "/workspaces/{workspaceId}/recurring": {
+    "/support/{requestId}/screenshot": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                workspaceId: components["parameters"]["WorkspaceId"];
+                requestId: string;
             };
             cookie?: never;
         };
-        get: operations["listRecurringTasks"];
+        get: operations["getSupportScreenshot"];
         put?: never;
-        post: operations["createRecurringTask"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/recurring/{recurringId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                recurringId: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["updateRecurringTask"];
         post?: never;
-        delete: operations["deleteRecurringTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which build is running and on what */
+        get: operations["getBuildInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1603,6 +1603,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cards/{cardId}/time-estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Set the time the task is expected to take, or clear it with null */
+        put: operations["setTimeEstimate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/time": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * One person's time entries in a period, with their tasks
+         * @description Everyone sees their own; another person's needs the time-management permission. At most 93 days.
+         */
+        get: operations["getTimesheet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/time-entries/{entryId}": {
         parameters: {
             query?: never;
@@ -1618,7 +1659,8 @@ export interface paths {
         delete: operations["deleteTimeEntry"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** @description Change the duration, note or start of a stopped entry (its author, or a time manager) */
+        patch: operations["updateTimeEntry"];
         trace?: never;
     };
     "/time-entries/{entryId}/stop": {
@@ -3034,10 +3076,182 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listTaskTemplates"];
+        put?: never;
+        post: operations["createTaskTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/templates/{templateId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateTaskTemplate"];
+        post?: never;
+        delete: operations["deleteTaskTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/templates/{templateId}/use": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a task (with its checklist and subtasks) from the template */
+        post: operations["useTaskTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/recurring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listRecurringTasks"];
+        put?: never;
+        post: operations["createRecurringTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recurring/{recurringId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurringId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateRecurringTask"];
+        post?: never;
+        delete: operations["deleteRecurringTask"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        TaskTemplateInput: {
+            /** @description How the template is listed (unique per workspace) */
+            name: string;
+            title: string;
+            description?: string;
+            priority?: components["schemas"]["Priority"];
+            labelIds?: string[];
+            assigneeIds?: string[];
+            checklist?: string[];
+            subtasks?: string[];
+            /** @description The due date is this many days after the task is made */
+            dueInDays?: number | null;
+        };
+        TaskTemplate: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            title: string;
+            description: string;
+            priority: components["schemas"]["Priority"];
+            labelIds: string[];
+            assigneeIds: string[];
+            checklist: string[];
+            subtasks: string[];
+            dueInDays: number | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        UseTemplateRequest: {
+            /** Format: uuid */
+            projectId: string;
+            /** Format: uuid */
+            columnId?: string | null;
+            /** @description Replaces the template's title */
+            title?: string | null;
+            /**
+             * Format: date
+             * @description Replaces the due date the template would give
+             */
+            dueDate?: string | null;
+        };
+        RecurringTaskInput: {
+            /** Format: uuid */
+            templateId: string;
+            /** Format: uuid */
+            projectId: string;
+            /** @enum {string} */
+            freq: "daily" | "weekly" | "monthly";
+            /** @description Weekly: 1 = Monday … 7 = Sunday */
+            weekdays?: number[];
+            /** @description Monthly; a 31st falls on the last day of shorter months */
+            monthDay?: number;
+            hour: number;
+            /** @description IANA zone */
+            timezone?: string;
+            /** @default true */
+            active: boolean;
+        };
+        RecurringTask: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            templateId: string;
+            /** Format: uuid */
+            projectId: string;
+            /** @enum {string} */
+            freq: "daily" | "weekly" | "monthly";
+            weekdays: number[];
+            monthDay: number | null;
+            hour: number;
+            timezone: string;
+            active: boolean;
+            /** Format: date-time */
+            nextRunAt: string;
+            /** Format: date-time */
+            lastRunAt: string | null;
+            /** Format: uuid */
+            lastCardId: string | null;
+            /** @description Error code of the last run that failed */
+            lastError: string | null;
+        };
         ErrorResponse: {
             error: {
                 /** @example auth.invalid_credentials */
@@ -3090,6 +3304,10 @@ export interface components {
             linkedin: string;
             /** @description Telegram user name without the @ */
             telegram: string;
+            /** @description International number with a leading +, empty when not set */
+            whatsapp: string;
+            /** @description The person has finished (or skipped) the welcome wizard */
+            onboarded: boolean;
             website: string;
             /** @description Working day start, HH:MM, empty when not set */
             workStart: string;
@@ -3189,6 +3407,8 @@ export interface components {
             linkedin?: string;
             /** @description @name, t.me/name or just the name; empty clears */
             telegram?: string;
+            /** @description A number in any common spelling or a wa.me link; empty clears */
+            whatsapp?: string;
             website?: string;
             /** @description HH:MM; send with workEnd, both empty clears */
             workStart?: string;
@@ -3398,6 +3618,7 @@ export interface components {
             bio: string;
             linkedin: string;
             telegram: string;
+            whatsapp: string;
             website: string;
             workStart: string;
             workEnd: string;
@@ -3439,6 +3660,7 @@ export interface components {
             role: components["schemas"]["InviteRole"];
             expired: boolean;
             accepted: boolean;
+            hasAccount: boolean;
         };
         /** @enum {string} */
         TaskStatus: "todo" | "in_progress" | "in_review" | "done";
@@ -3834,6 +4056,35 @@ export interface components {
         TimeSummary: {
             entries: components["schemas"]["TimeEntry"][];
             totalSeconds: number;
+            /** @description The time the task is expected to take */
+            estimateSeconds: number | null;
+        };
+        TimeEstimateInput: {
+            seconds: number | null;
+        };
+        TimeEstimate: {
+            seconds: number | null;
+        };
+        TimeEntryPatch: {
+            seconds?: number;
+            note?: string;
+            /** Format: date-time */
+            startedAt?: string;
+        };
+        TimesheetEntry: {
+            entry: components["schemas"]["TimeEntry"];
+            card: components["schemas"]["TimesheetCard"];
+        };
+        TimesheetCard: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            title: string;
+            project: components["schemas"]["ProjectRef"];
+        };
+        Timesheet: {
+            entries: components["schemas"]["TimesheetEntry"][];
+            totalSeconds: number;
         };
         TimeLogInput: {
             seconds: number;
@@ -4211,86 +4462,56 @@ export interface components {
             unassignedOpen: number;
             projects: components["schemas"]["PerformanceProject"][];
         };
-        TaskTemplateInput: {
-            /** @description How the template is listed (unique per workspace) */
-            name: string;
-            title: string;
-            description?: string;
-            priority?: components["schemas"]["Priority"];
-            labelIds?: string[];
-            assigneeIds?: string[];
-            checklist?: string[];
-            subtasks?: string[];
-            /** @description The due date is this many days after the task is made */
-            dueInDays?: number | null;
+        /** @enum {string} */
+        SupportKind: "problem" | "idea" | "question";
+        /** @enum {string} */
+        SupportStatus: "new" | "in_progress" | "resolved";
+        SupportScreenshotInput: {
+            /** @enum {string} */
+            contentType: "image/png" | "image/jpeg" | "image/webp";
+            /** @description Base64 of the image (up to 2 MB decoded) */
+            data: string;
         };
-        TaskTemplate: {
+        SupportRequestInput: {
+            kind: components["schemas"]["SupportKind"];
+            subject: string;
+            message: string;
+            /** @description The page the person was on */
+            pageUrl?: string;
+            userAgent?: string;
+            screenshot?: components["schemas"]["SupportScreenshotInput"];
+        };
+        SupportRequestPatch: {
+            status: components["schemas"]["SupportStatus"];
+        };
+        SupportRequest: {
             /** Format: uuid */
             id: string;
-            name: string;
-            title: string;
-            description: string;
-            priority: components["schemas"]["Priority"];
-            labelIds: string[];
-            assigneeIds: string[];
-            checklist: string[];
-            subtasks: string[];
-            dueInDays: number | null;
+            kind: components["schemas"]["SupportKind"];
+            subject: string;
+            message: string;
+            pageUrl: string;
+            userAgent: string;
+            hasScreenshot: boolean;
+            status: components["schemas"]["SupportStatus"];
+            author: components["schemas"]["PersonRef"] | null;
             /** Format: date-time */
             createdAt: string;
-        };
-        UseTemplateRequest: {
-            /** Format: uuid */
-            projectId: string;
-            /** Format: uuid */
-            columnId?: string | null;
-            /** @description Replaces the template's title */
-            title?: string | null;
-            /**
-             * Format: date
-             * @description Replaces the due date the template would give
-             */
-            dueDate?: string | null;
-        };
-        RecurringTaskInput: {
-            /** Format: uuid */
-            templateId: string;
-            /** Format: uuid */
-            projectId: string;
-            /** @enum {string} */
-            freq: "daily" | "weekly" | "monthly";
-            /** @description Weekly: 1 = Monday … 7 = Sunday */
-            weekdays?: number[];
-            /** @description Monthly; a 31st falls on the last day of shorter months */
-            monthDay?: number;
-            hour: number;
-            /** @description IANA zone */
-            timezone?: string;
-            /** @default true */
-            active: boolean;
-        };
-        RecurringTask: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            templateId: string;
-            /** Format: uuid */
-            projectId: string;
-            /** @enum {string} */
-            freq: "daily" | "weekly" | "monthly";
-            weekdays: number[];
-            monthDay: number | null;
-            hour: number;
-            timezone: string;
-            active: boolean;
             /** Format: date-time */
-            nextRunAt: string;
+            updatedAt: string;
             /** Format: date-time */
-            lastRunAt: string | null;
-            /** Format: uuid */
-            lastCardId: string | null;
-            /** @description Error code of the last run that failed */
-            lastError: string | null;
+            resolvedAt: string | null;
+        };
+        BuildInfo: {
+            /** @description Release of the API */
+            version: string;
+            /** @description Short commit id */
+            commit: string;
+            /** @description When the binary was built */
+            builtAt: string;
+            goVersion: string;
+            /** @description The database server's version */
+            database: string;
         };
         WikiTrashItem: {
             node: components["schemas"]["WikiNode"];
@@ -5184,6 +5405,26 @@ export interface operations {
                 };
             };
             422: components["responses"]["Error"];
+        };
+    };
+    completeOnboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The profile, now marked as onboarded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
         };
     };
     uploadAvatar: {
@@ -6982,9 +7223,13 @@ export interface operations {
             403: components["responses"]["Error"];
         };
     };
-    listTaskTemplates: {
+    listSupportRequests: {
         parameters: {
-            query?: never;
+            query?: {
+                status?: components["schemas"]["SupportStatus"];
+                /** @description Only the caller's own requests */
+                mine?: boolean;
+            };
             header?: never;
             path: {
                 workspaceId: components["parameters"]["WorkspaceId"];
@@ -6993,18 +7238,18 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Task templates, by name */
+            /** @description Newest first */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TaskTemplate"][];
+                    "application/json": components["schemas"]["SupportRequest"][];
                 };
             };
         };
     };
-    createTaskTemplate: {
+    createSupportRequest: {
         parameters: {
             query?: never;
             header?: never;
@@ -7015,35 +7260,35 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TaskTemplateInput"];
+                "application/json": components["schemas"]["SupportRequestInput"];
             };
         };
         responses: {
-            /** @description Created */
+            /** @description Created; the administrators are told by email */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TaskTemplate"];
+                    "application/json": components["schemas"]["SupportRequest"];
                 };
             };
-            409: components["responses"]["Error"];
             422: components["responses"]["Error"];
+            429: components["responses"]["Error"];
         };
     };
-    updateTaskTemplate: {
+    updateSupportRequest: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                templateId: string;
+                requestId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TaskTemplateInput"];
+                "application/json": components["schemas"]["SupportRequestPatch"];
             };
         };
         responses: {
@@ -7053,153 +7298,54 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TaskTemplate"];
+                    "application/json": components["schemas"]["SupportRequest"];
                 };
             };
-            409: components["responses"]["Error"];
-            422: components["responses"]["Error"];
+            403: components["responses"]["Error"];
         };
     };
-    deleteTaskTemplate: {
+    getSupportScreenshot: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                templateId: string;
+                requestId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Deleted */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    useTaskTemplate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                templateId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UseTemplateRequest"];
-            };
-        };
-        responses: {
-            /** @description The new task */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Card"];
-                };
-            };
-            422: components["responses"]["Error"];
-        };
-    };
-    listRecurringTasks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                workspaceId: components["parameters"]["WorkspaceId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Recurring tasks */
+            /** @description The image (PNG, JPEG or WebP) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecurringTask"][];
+                    "image/png": string;
+                    "image/jpeg": string;
+                    "image/webp": string;
                 };
             };
+            404: components["responses"]["Error"];
         };
     };
-    createRecurringTask: {
+    getBuildInfo: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                workspaceId: components["parameters"]["WorkspaceId"];
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RecurringTaskInput"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RecurringTask"];
-                };
-            };
-            422: components["responses"]["Error"];
-        };
-    };
-    updateRecurringTask: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                recurringId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RecurringTaskInput"];
-            };
-        };
-        responses: {
-            /** @description Updated */
+            /** @description Versions of the API and what it runs on */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecurringTask"];
+                    "application/json": components["schemas"]["BuildInfo"];
                 };
-            };
-            422: components["responses"]["Error"];
-        };
-    };
-    deleteRecurringTask: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                recurringId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -7914,6 +8060,64 @@ export interface operations {
             };
         };
     };
+    setTimeEstimate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeEstimateInput"];
+            };
+        };
+        responses: {
+            /** @description The estimate as stored (whole minutes) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeEstimate"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    getTimesheet: {
+        parameters: {
+            query: {
+                /** @description Start of the period (inclusive) */
+                from: string;
+                /** @description End of the period (exclusive) */
+                to: string;
+                userId?: string;
+                projectId?: components["parameters"]["CardProjectId"];
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Entries, oldest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
     deleteTimeEntry: {
         parameters: {
             query?: never;
@@ -7933,6 +8137,35 @@ export interface operations {
                 content?: never;
             };
             403: components["responses"]["Error"];
+        };
+    };
+    updateTimeEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entryId: components["parameters"]["TimeEntryId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeEntryPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeEntry"];
+                };
+            };
+            403: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
         };
     };
     stopTimer: {
@@ -10271,6 +10504,227 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ChatMessage"];
                 };
+            };
+        };
+    };
+    listTaskTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Task templates, by name */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTemplate"][];
+                };
+            };
+        };
+    };
+    createTaskTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTemplate"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    updateTaskTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTemplate"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteTaskTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    useTaskTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UseTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description The new task */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    listRecurringTasks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recurring tasks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"][];
+                };
+            };
+        };
+    };
+    createRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringTaskInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    updateRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurringId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringTaskInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurringId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

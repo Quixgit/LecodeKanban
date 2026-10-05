@@ -41,6 +41,7 @@ func NewHandler(svc *service.Service, providers ProviderLister, passwords Passwo
 func (h *Handler) Routes(r chi.Router) {
 	r.Get("/users/me", httpx.H(h.getMe))
 	r.Patch("/users/me", httpx.H(h.updateMe))
+	r.Post("/users/me/onboarding/complete", httpx.H(h.completeOnboarding))
 	r.Post("/users/me/password", httpx.H(h.changePassword))
 	r.Post("/users/me/avatar", httpx.H(h.uploadAvatar))
 	r.Delete("/users/me/avatar", httpx.H(h.removeAvatar))
@@ -60,7 +61,7 @@ func (h *Handler) Present(ctx context.Context, u domain.User) (api.User, error) 
 		Id: u.ID, Email: u.Email, Name: u.Name, Locale: api.Locale(u.Locale), AvatarUrl: u.AvatarURL,
 		EmailVerified: u.EmailVerified(), HasPassword: u.HasPassword, CreatedAt: u.CreatedAt,
 		JobTitle: u.JobTitle, Phone: u.Phone, Location: u.Location, Timezone: u.Timezone, Bio: u.Bio,
-		Pronouns: u.Pronouns, Linkedin: u.LinkedIn, Telegram: u.Telegram, Website: u.Website,
+		Pronouns: u.Pronouns, Linkedin: u.LinkedIn, Telegram: u.Telegram, Whatsapp: u.Whatsapp, Website: u.Website, Onboarded: u.Onboarded(),
 		WorkStart: u.WorkStart, WorkEnd: u.WorkEnd, Skills: skillsOrEmpty(u.Skills), CoverPreset: u.CoverPreset, CoverUrl: u.CoverURL,
 		Providers: make([]api.UserProviders, 0, len(provs)),
 	}
@@ -111,7 +112,7 @@ func (h *Handler) updateMe(w http.ResponseWriter, r *http.Request) error {
 	}
 	patch := domain.ProfilePatch{Name: in.Name, JobTitle: in.JobTitle, Phone: in.Phone, Location: in.Location,
 		Timezone: in.Timezone, Bio: in.Bio, Pronouns: in.Pronouns, LinkedIn: in.Linkedin, Telegram: in.Telegram,
-		Website: in.Website, WorkStart: in.WorkStart, WorkEnd: in.WorkEnd, Skills: in.Skills, CoverPreset: in.CoverPreset}
+		Whatsapp: in.Whatsapp, Website: in.Website, WorkStart: in.WorkStart, WorkEnd: in.WorkEnd, Skills: in.Skills, CoverPreset: in.CoverPreset}
 	if in.Locale != nil {
 		l := domain.Locale(*in.Locale)
 		patch.Locale = &l
@@ -249,5 +250,23 @@ func (h *Handler) cover(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; sandbox")
 	http.ServeContent(w, r, "", time.Time{}, f)
+	return nil
+}
+
+// completeOnboarding marks the welcome wizard as finished (or skipped) for the signed-in person.
+func (h *Handler) completeOnboarding(w http.ResponseWriter, r *http.Request) error {
+	p, err := principal(r)
+	if err != nil {
+		return err
+	}
+	u, err := h.svc.CompleteOnboarding(r.Context(), p.UserID)
+	if err != nil {
+		return err
+	}
+	out, err := h.Present(r.Context(), u)
+	if err != nil {
+		return err
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
 	return nil
 }

@@ -1,0 +1,132 @@
+{
+  "skip": "Skip setup",
+  "skipStep": "Skip this step",
+  "back": "Back",
+  "next": "Continue",
+  "finish": "Open my workspace",
+  "stepOf": "Step {{current}} of {{total}}",
+  "progress": "Setup progress",
+  "rail": {
+    "title": "Getting started",
+    "welcome": "Welcome",
+    "workspace": "Your workspace",
+    "about": "About you",
+    "photo": "Photo",
+    "contacts": "Contacts",
+    "team": "Your team",
+    "done": "All set"
+  },
+  "welcome": {
+    "createTitle": "Welcome, {{name}}!",
+    "createSubtitle": "Let's set up your space for work. It takes about a minute and you can change everything later.",
+    "joinTitle": "Welcome to {{workspace}}, {{name}}!",
+    "joinSubtitle": "Tell your colleagues a little about yourself so they know who they are working with.",
+    "points": {
+      "workspace": "Name your workspace",
+      "about": "Say who you are",
+      "photo": "Add a photo and ways to reach you",
+      "team": "Invite your team"
+    },
+    "pointsJoin": {
+      "about": "Say who you are",
+      "photo": "Add a photo",
+      "contacts": "Add ways to reach you"
+    },
+    "start": "Let's go"
+  },
+  "workspace": {
+    "title": "Name your workspace",
+    "subtitle": "This is where your projects, people and conversations live. Most teams use the company or team name.",
+    "label": "Workspace name",
+    "placeholder": "Acme Product Team",
+    "suggestions": "Ideas",
+    "suggestPersonal": "{{name}}'s workspace",
+    "suggestTeam": "My team",
+    "suggestCompany": "My company",
+    "preview": "How it looks in the menu",
+    "errorRequired": "Give your workspace a name.",
+    "created": "Workspace created",
+    "previewItems": {
+      "a": "Dashboard",
+      "b": "Projects",
+      "c": "Tasks"
+    }
+  },
+  "about": {
+    "title": "Tell us about you",
+    "subtitle": "Your name and role appear next to your tasks, comments and messages.",
+    "name": "Full name",
+    "namePlaceholder": "Maria Koval",
+    "job": "Job title",
+    "jobPlaceholder": "Product manager",
+    "jobIdeas": "Popular roles",
+    "errorName": "Please enter your name.",
+    "roles": [
+      "Founder",
+      "Product manager",
+      "Developer",
+      "Designer",
+      "Team lead",
+      "Marketing",
+      "Operations",
+      "Support"
+    ]
+  },
+  "photo": {
+    "title": "Add a photo",
+    "subtitle": "A face makes the team feel closer. A square picture works best; we will crop it for you.",
+    "choose": "Choose a photo",
+    "change": "Change photo",
+    "remove": "Remove",
+    "drop": "or drop a picture here",
+    "bad": {
+      "type": "Use a PNG, JPEG, WebP or GIF picture.",
+      "size": "That picture is too large."
+    },
+    "unreadable": "That picture could not be read.",
+    "great": "Looks great!",
+    "initials": "Until then, your initials are shown."
+  },
+  "contacts": {
+    "title": "How can people reach you?",
+    "subtitle": "All optional. Colleagues see these on your profile card.",
+    "phone": "Phone",
+    "phonePlaceholder": "+380 67 123 45 67",
+    "telegram": "Telegram",
+    "telegramPlaceholder": "@username",
+    "whatsapp": "WhatsApp",
+    "whatsappPlaceholder": "+380 67 123 45 67",
+    "sameAsPhone": "Use my phone number",
+    "timezone": "Time zone",
+    "timezoneHint": "Detected from this device.",
+    "workHours": "Working hours",
+    "to": "to",
+    "errors": {
+      "telegram": "A Telegram name has 5–32 letters, digits or underscores.",
+      "whatsapp": "Enter the number with the country code, 8–15 digits."
+    }
+  },
+  "team": {
+    "title": "Invite your team",
+    "subtitle": "Add the e-mail addresses of colleagues; each gets a link to join. You can skip this and do it later from Team.",
+    "label": "E-mail addresses",
+    "placeholder": "colleague@company.com — Enter to add",
+    "remove": "Remove {{email}}",
+    "invalid": "{{email}} does not look like an e-mail address.",
+    "sent": "{{count}} invitations sent",
+    "failed": "Could not invite {{email}}",
+    "hint": "They join as members; you can change roles later."
+  },
+  "done": {
+    "title": "You're all set!",
+    "subtitleCreate": "{{workspace}} is ready. Create your first project and invite people whenever you like.",
+    "subtitleJoin": "Everyone in {{workspace}} can now see who you are.",
+    "summary": "Your profile"
+  },
+  "errors": {
+    "save": "We could not save this step. Try again."
+  },
+  "help": {
+    "again": "Run the welcome guide again"
+  }
+}

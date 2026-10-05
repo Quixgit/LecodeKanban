@@ -17,6 +17,7 @@ tags:
   - name: auth
   - name: users
   - name: workspaces
+  - name: support
   - name: templates
   - name: projects
   - name: boards
@@ -210,6 +211,17 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/User" }
         "422": { $ref: "#/components/responses/Error" }
+  /users/me/onboarding/complete:
+    post:
+      tags: [users]
+      operationId: completeOnboarding
+      summary: Mark the welcome wizard as finished or skipped
+      responses:
+        "200":
+          description: The profile, now marked as onboarded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
   /users/me/avatar:
     post:
       tags: [users]
@@ -1215,122 +1227,80 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/PerformanceReport" }
         "403": { $ref: "#/components/responses/Error" }
-  /workspaces/{workspaceId}/templates:
+  /workspaces/{workspaceId}/support:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
-      tags: [templates]
-      operationId: listTaskTemplates
+      tags: [support]
+      operationId: listSupportRequests
+      summary: Support requests; people who manage support see everyone's, others their own
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/SupportStatus" } }
+        - { name: mine, in: query, schema: { type: boolean }, description: Only the caller's own requests }
       responses:
         "200":
-          description: Task templates, by name
+          description: Newest first
           content:
             application/json:
-              schema: { type: array, items: { $ref: "#/components/schemas/TaskTemplate" } }
+              schema: { type: array, items: { $ref: "#/components/schemas/SupportRequest" } }
     post:
-      tags: [templates]
-      operationId: createTaskTemplate
+      tags: [support]
+      operationId: createSupportRequest
+      summary: Write to the people who run the workspace
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/TaskTemplateInput" }
+            schema: { $ref: "#/components/schemas/SupportRequestInput" }
       responses:
         "201":
-          description: Created
+          description: Created; the administrators are told by email
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/TaskTemplate" }
-        "409": { $ref: "#/components/responses/Error" }
+              schema: { $ref: "#/components/schemas/SupportRequest" }
         "422": { $ref: "#/components/responses/Error" }
-  /templates/{templateId}:
-    parameters: [{ name: templateId, in: path, required: true, schema: { type: string, format: uuid } }]
-    put:
-      tags: [templates]
-      operationId: updateTaskTemplate
+        "429": { $ref: "#/components/responses/Error" }
+  /support/{requestId}:
+    parameters: [{ name: requestId, in: path, required: true, schema: { type: string, format: uuid } }]
+    patch:
+      tags: [support]
+      operationId: updateSupportRequest
+      summary: Change a request's status (needs the support permission)
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/TaskTemplateInput" }
+            schema: { $ref: "#/components/schemas/SupportRequestPatch" }
       responses:
         "200":
           description: Updated
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/TaskTemplate" }
-        "409": { $ref: "#/components/responses/Error" }
-        "422": { $ref: "#/components/responses/Error" }
-    delete:
-      tags: [templates]
-      operationId: deleteTaskTemplate
-      responses:
-        "204": { description: Deleted, with the schedules that used it }
-  /templates/{templateId}/use:
-    parameters: [{ name: templateId, in: path, required: true, schema: { type: string, format: uuid } }]
-    post:
-      tags: [templates]
-      operationId: useTaskTemplate
-      summary: Create a task (with its checklist and subtasks) from the template
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/UseTemplateRequest" }
-      responses:
-        "201":
-          description: The new task
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Card" }
-        "422": { $ref: "#/components/responses/Error" }
-  /workspaces/{workspaceId}/recurring:
-    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+              schema: { $ref: "#/components/schemas/SupportRequest" }
+        "403": { $ref: "#/components/responses/Error" }
+  /support/{requestId}/screenshot:
+    parameters: [{ name: requestId, in: path, required: true, schema: { type: string, format: uuid } }]
     get:
-      tags: [templates]
-      operationId: listRecurringTasks
+      tags: [support]
+      operationId: getSupportScreenshot
       responses:
         "200":
-          description: Recurring tasks
+          description: The image (PNG, JPEG or WebP)
           content:
-            application/json:
-              schema: { type: array, items: { $ref: "#/components/schemas/RecurringTask" } }
-    post:
-      tags: [templates]
-      operationId: createRecurringTask
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/RecurringTaskInput" }
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/RecurringTask" }
-        "422": { $ref: "#/components/responses/Error" }
-  /recurring/{recurringId}:
-    parameters: [{ name: recurringId, in: path, required: true, schema: { type: string, format: uuid } }]
-    put:
-      tags: [templates]
-      operationId: updateRecurringTask
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/RecurringTaskInput" }
+            image/png: { schema: { type: string, format: binary } }
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/webp: { schema: { type: string, format: binary } }
+        "404": { $ref: "#/components/responses/Error" }
+  /meta:
+    get:
+      tags: [workspaces]
+      operationId: getBuildInfo
+      summary: Which build is running and on what
       responses:
         "200":
-          description: Updated
+          description: Versions of the API and what it runs on
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/RecurringTask" }
-        "422": { $ref: "#/components/responses/Error" }
-    delete:
-      tags: [templates]
-      operationId: deleteRecurringTask
-      responses:
-        "204": { description: Deleted }
+              schema: { $ref: "#/components/schemas/BuildInfo" }
   /workspaces/{workspaceId}/cards/board:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -1711,8 +1681,64 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RunningTimer" }
+  /cards/{cardId}/time-estimate:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    put:
+      tags: [time]
+      operationId: setTimeEstimate
+      description: Set the time the task is expected to take, or clear it with null
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TimeEstimateInput" }
+      responses:
+        "200":
+          description: The estimate as stored (whole minutes)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TimeEstimate" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/time:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [time]
+      operationId: getTimesheet
+      summary: One person's time entries in a period, with their tasks
+      description: Everyone sees their own; another person's needs the time-management permission. At most 93 days.
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time }, description: Start of the period (inclusive) }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time }, description: End of the period (exclusive) }
+        - { name: userId, in: query, schema: { type: string, format: uuid } }
+        - $ref: "#/components/parameters/CardProjectId"
+      responses:
+        "200":
+          description: Entries, oldest first
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Timesheet" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
   /time-entries/{entryId}:
     parameters: [{ $ref: "#/components/parameters/TimeEntryId" }]
+    patch:
+      tags: [time]
+      operationId: updateTimeEntry
+      description: Change the duration, note or start of a stopped entry (its author, or a time manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TimeEntryPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TimeEntry" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
     delete:
       tags: [time]
       operationId: deleteTimeEntry
@@ -2967,6 +2993,123 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ChatMessage" }
+  /workspaces/{workspaceId}/templates:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [templates]
+      operationId: listTaskTemplates
+      responses:
+        "200":
+          description: Task templates, by name
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/TaskTemplate" } }
+    post:
+      tags: [templates]
+      operationId: createTaskTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TaskTemplateInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaskTemplate" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /templates/{templateId}:
+    parameters: [{ name: templateId, in: path, required: true, schema: { type: string, format: uuid } }]
+    put:
+      tags: [templates]
+      operationId: updateTaskTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TaskTemplateInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaskTemplate" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [templates]
+      operationId: deleteTaskTemplate
+      responses:
+        "204": { description: Deleted, with the schedules that used it }
+  /templates/{templateId}/use:
+    parameters: [{ name: templateId, in: path, required: true, schema: { type: string, format: uuid } }]
+    post:
+      tags: [templates]
+      operationId: useTaskTemplate
+      summary: Create a task (with its checklist and subtasks) from the template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UseTemplateRequest" }
+      responses:
+        "201":
+          description: The new task
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Card" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/recurring:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [templates]
+      operationId: listRecurringTasks
+      responses:
+        "200":
+          description: Recurring tasks
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/RecurringTask" } }
+    post:
+      tags: [templates]
+      operationId: createRecurringTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecurringTaskInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecurringTask" }
+        "422": { $ref: "#/components/responses/Error" }
+  /recurring/{recurringId}:
+    parameters: [{ name: recurringId, in: path, required: true, schema: { type: string, format: uuid } }]
+    put:
+      tags: [templates]
+      operationId: updateRecurringTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecurringTaskInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecurringTask" }
+        "422": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [templates]
+      operationId: deleteRecurringTask
+      responses:
+        "204": { description: Deleted }
+
 components:
   securitySchemes:
     cookieAuth: { type: apiKey, in: cookie, name: lk_at }
@@ -3048,6 +3191,71 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
   schemas:
+    TaskTemplateInput:
+      type: object
+      required: [name, title]
+      properties:
+        name: { type: string, description: How the template is listed (unique per workspace) }
+        title: { type: string }
+        description: { type: string }
+        priority: { $ref: "#/components/schemas/Priority" }
+        labelIds: { type: array, items: { type: string, format: uuid } }
+        assigneeIds: { type: array, items: { type: string, format: uuid } }
+        checklist: { type: array, items: { type: string } }
+        subtasks: { type: array, items: { type: string } }
+        dueInDays: { type: integer, nullable: true, description: The due date is this many days after the task is made }
+    TaskTemplate:
+      type: object
+      required: [id, name, title, description, priority, labelIds, assigneeIds, checklist, subtasks, dueInDays, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        title: { type: string }
+        description: { type: string }
+        priority: { $ref: "#/components/schemas/Priority" }
+        labelIds: { type: array, items: { type: string, format: uuid } }
+        assigneeIds: { type: array, items: { type: string, format: uuid } }
+        checklist: { type: array, items: { type: string } }
+        subtasks: { type: array, items: { type: string } }
+        dueInDays: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+    UseTemplateRequest:
+      type: object
+      required: [projectId]
+      properties:
+        projectId: { type: string, format: uuid }
+        columnId: { type: string, format: uuid, nullable: true }
+        title: { type: string, nullable: true, description: Replaces the template's title }
+        dueDate: { type: string, format: date, nullable: true, description: Replaces the due date the template would give }
+    RecurringTaskInput:
+      type: object
+      required: [templateId, projectId, freq, hour]
+      properties:
+        templateId: { type: string, format: uuid }
+        projectId: { type: string, format: uuid }
+        freq: { type: string, enum: [daily, weekly, monthly] }
+        weekdays: { type: array, items: { type: integer, minimum: 1, maximum: 7 }, description: "Weekly: 1 = Monday … 7 = Sunday" }
+        monthDay: { type: integer, minimum: 1, maximum: 31, description: Monthly; a 31st falls on the last day of shorter months }
+        hour: { type: integer, minimum: 0, maximum: 23 }
+        timezone: { type: string, description: IANA zone, default UTC }
+        active: { type: boolean, default: true }
+    RecurringTask:
+      type: object
+      required: [id, templateId, projectId, freq, weekdays, monthDay, hour, timezone, active, nextRunAt, lastRunAt, lastCardId, lastError]
+      properties:
+        id: { type: string, format: uuid }
+        templateId: { type: string, format: uuid }
+        projectId: { type: string, format: uuid }
+        freq: { type: string, enum: [daily, weekly, monthly] }
+        weekdays: { type: array, items: { type: integer } }
+        monthDay: { type: integer, nullable: true }
+        hour: { type: integer }
+        timezone: { type: string }
+        active: { type: boolean }
+        nextRunAt: { type: string, format: date-time }
+        lastRunAt: { type: string, format: date-time, nullable: true }
+        lastCardId: { type: string, format: uuid, nullable: true }
+        lastError: { type: string, nullable: true, description: Error code of the last run that failed }
     ErrorResponse:
       type: object
       required: [error]
@@ -3087,7 +3295,7 @@ components:
       enum: [en, uk]
     User:
       type: object
-      required: [id, email, name, locale, avatarUrl, emailVerified, hasPassword, providers, createdAt, jobTitle, phone, location, timezone, bio, pronouns, linkedin, telegram, website, workStart, workEnd, skills, coverPreset, coverUrl]
+      required: [id, email, name, locale, avatarUrl, emailVerified, hasPassword, providers, createdAt, jobTitle, phone, location, timezone, bio, pronouns, linkedin, telegram, whatsapp, onboarded, website, workStart, workEnd, skills, coverPreset, coverUrl]
       properties:
         id: { type: string, format: uuid }
         email: { type: string, description: Email address (validated server-side) }
@@ -3108,6 +3316,8 @@ components:
         pronouns: { type: string }
         linkedin: { type: string, description: Full LinkedIn address, empty when not set }
         telegram: { type: string, description: Telegram user name without the @, empty when not set }
+        whatsapp: { type: string, description: "International number with a leading +, empty when not set" }
+        onboarded: { type: boolean, description: The person has finished (or skipped) the welcome wizard }
         website: { type: string }
         workStart: { type: string, description: "Working day start, HH:MM, empty when not set" }
         workEnd: { type: string }
@@ -3217,6 +3427,7 @@ components:
         pronouns: { type: string, maxLength: 30 }
         linkedin: { type: string, description: A LinkedIn address or just the handle; empty clears }
         telegram: { type: string, description: "@name, t.me/name or just the name; empty clears" }
+        whatsapp: { type: string, description: "A number in any common spelling or a wa.me link; empty clears" }
         website: { type: string, maxLength: 200 }
         workStart: { type: string, description: "HH:MM; send with workEnd, both empty clears" }
         workEnd: { type: string }
@@ -3387,7 +3598,7 @@ components:
         jobTitle: { type: string, description: Empty when the person has not set one }
     MemberProfile:
       type: object
-      required: [id, name, email, avatarUrl, role, joinedAt, jobTitle, pronouns, phone, location, timezone, bio, linkedin, telegram, website, workStart, workEnd, skills, coverPreset, coverUrl]
+      required: [id, name, email, avatarUrl, role, joinedAt, jobTitle, pronouns, phone, location, timezone, bio, linkedin, telegram, whatsapp, website, workStart, workEnd, skills, coverPreset, coverUrl]
       properties:
         id: { type: string, format: uuid }
         name: { type: string }
@@ -3403,6 +3614,7 @@ components:
         bio: { type: string }
         linkedin: { type: string }
         telegram: { type: string }
+        whatsapp: { type: string }
         website: { type: string }
         workStart: { type: string }
         workEnd: { type: string }
@@ -3440,7 +3652,7 @@ components:
         role: { $ref: "#/components/schemas/InviteRole" }
     InvitePreview:
       type: object
-      required: [workspaceName, inviterName, email, role, expired, accepted]
+      required: [workspaceName, inviterName, email, role, expired, accepted, hasAccount]
       properties:
         workspaceName: { type: string }
         inviterName: { type: string, nullable: true }
@@ -3448,6 +3660,7 @@ components:
         role: { $ref: "#/components/schemas/InviteRole" }
         expired: { type: boolean }
         accepted: { type: boolean }
+        hasAccount: { type: boolean }
     TaskStatus:
       type: string
       enum: [todo, in_progress, in_review, done]
@@ -3831,9 +4044,46 @@ components:
         manual: { type: boolean, description: Entered by hand rather than timed }
     TimeSummary:
       type: object
-      required: [entries, totalSeconds]
+      required: [entries, totalSeconds, estimateSeconds]
       properties:
         entries: { type: array, items: { $ref: "#/components/schemas/TimeEntry" } }
+        totalSeconds: { type: integer }
+        estimateSeconds: { type: integer, nullable: true, description: The time the task is expected to take }
+    TimeEstimateInput:
+      type: object
+      required: [seconds]
+      properties:
+        seconds: { type: integer, nullable: true, minimum: 60, maximum: 3600000 }
+    TimeEstimate:
+      type: object
+      required: [seconds]
+      properties:
+        seconds: { type: integer, nullable: true }
+    TimeEntryPatch:
+      type: object
+      properties:
+        seconds: { type: integer, minimum: 60, maximum: 86400 }
+        note: { type: string, maxLength: 500 }
+        startedAt: { type: string, format: date-time }
+    TimesheetEntry:
+      type: object
+      required: [entry, card]
+      properties:
+        entry: { $ref: "#/components/schemas/TimeEntry" }
+        card: { $ref: "#/components/schemas/TimesheetCard" }
+    TimesheetCard:
+      type: object
+      required: [id, key, title, project]
+      properties:
+        id: { type: string, format: uuid }
+        key: { type: string }
+        title: { type: string }
+        project: { $ref: "#/components/schemas/ProjectRef" }
+    Timesheet:
+      type: object
+      required: [entries, totalSeconds]
+      properties:
+        entries: { type: array, items: { $ref: "#/components/schemas/TimesheetEntry" } }
         totalSeconds: { type: integer }
     TimeLogInput:
       type: object
@@ -4173,71 +4423,58 @@ components:
         people: { type: array, items: { $ref: "#/components/schemas/PerformancePerson" } }
         unassignedOpen: { type: integer }
         projects: { type: array, items: { $ref: "#/components/schemas/PerformanceProject" } }
-    TaskTemplateInput:
+    SupportKind:
+      type: string
+      enum: [problem, idea, question]
+    SupportStatus:
+      type: string
+      enum: [new, in_progress, resolved]
+    SupportScreenshotInput:
       type: object
-      required: [name, title]
+      required: [contentType, data]
       properties:
-        name: { type: string, description: How the template is listed (unique per workspace) }
-        title: { type: string }
-        description: { type: string }
-        priority: { $ref: "#/components/schemas/Priority" }
-        labelIds: { type: array, items: { type: string, format: uuid } }
-        assigneeIds: { type: array, items: { type: string, format: uuid } }
-        checklist: { type: array, items: { type: string } }
-        subtasks: { type: array, items: { type: string } }
-        dueInDays: { type: integer, nullable: true, description: The due date is this many days after the task is made }
-    TaskTemplate:
+        contentType: { type: string, enum: ["image/png", "image/jpeg", "image/webp"] }
+        data: { type: string, description: Base64 of the image (up to 2 MB decoded) }
+    SupportRequestInput:
       type: object
-      required: [id, name, title, description, priority, labelIds, assigneeIds, checklist, subtasks, dueInDays, createdAt]
+      required: [kind, subject, message]
+      properties:
+        kind: { $ref: "#/components/schemas/SupportKind" }
+        subject: { type: string, maxLength: 120 }
+        message: { type: string, maxLength: 5000 }
+        pageUrl: { type: string, maxLength: 500, description: The page the person was on }
+        userAgent: { type: string, maxLength: 300 }
+        screenshot: { $ref: "#/components/schemas/SupportScreenshotInput" }
+    SupportRequestPatch:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: "#/components/schemas/SupportStatus" }
+    SupportRequest:
+      type: object
+      required: [id, kind, subject, message, pageUrl, userAgent, hasScreenshot, status, author, createdAt, updatedAt, resolvedAt]
       properties:
         id: { type: string, format: uuid }
-        name: { type: string }
-        title: { type: string }
-        description: { type: string }
-        priority: { $ref: "#/components/schemas/Priority" }
-        labelIds: { type: array, items: { type: string, format: uuid } }
-        assigneeIds: { type: array, items: { type: string, format: uuid } }
-        checklist: { type: array, items: { type: string } }
-        subtasks: { type: array, items: { type: string } }
-        dueInDays: { type: integer, nullable: true }
+        kind: { $ref: "#/components/schemas/SupportKind" }
+        subject: { type: string }
+        message: { type: string }
+        pageUrl: { type: string }
+        userAgent: { type: string }
+        hasScreenshot: { type: boolean }
+        status: { $ref: "#/components/schemas/SupportStatus" }
+        author: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
         createdAt: { type: string, format: date-time }
-    UseTemplateRequest:
+        updatedAt: { type: string, format: date-time }
+        resolvedAt: { type: string, format: date-time, nullable: true }
+    BuildInfo:
       type: object
-      required: [projectId]
+      required: [version, commit, builtAt, goVersion, database]
       properties:
-        projectId: { type: string, format: uuid }
-        columnId: { type: string, format: uuid, nullable: true }
-        title: { type: string, nullable: true, description: Replaces the template's title }
-        dueDate: { type: string, format: date, nullable: true, description: Replaces the due date the template would give }
-    RecurringTaskInput:
-      type: object
-      required: [templateId, projectId, freq, hour]
-      properties:
-        templateId: { type: string, format: uuid }
-        projectId: { type: string, format: uuid }
-        freq: { type: string, enum: [daily, weekly, monthly] }
-        weekdays: { type: array, items: { type: integer, minimum: 1, maximum: 7 }, description: "Weekly: 1 = Monday … 7 = Sunday" }
-        monthDay: { type: integer, minimum: 1, maximum: 31, description: Monthly; a 31st falls on the last day of shorter months }
-        hour: { type: integer, minimum: 0, maximum: 23 }
-        timezone: { type: string, description: IANA zone, default UTC }
-        active: { type: boolean, default: true }
-    RecurringTask:
-      type: object
-      required: [id, templateId, projectId, freq, weekdays, monthDay, hour, timezone, active, nextRunAt, lastRunAt, lastCardId, lastError]
-      properties:
-        id: { type: string, format: uuid }
-        templateId: { type: string, format: uuid }
-        projectId: { type: string, format: uuid }
-        freq: { type: string, enum: [daily, weekly, monthly] }
-        weekdays: { type: array, items: { type: integer } }
-        monthDay: { type: integer, nullable: true }
-        hour: { type: integer }
-        timezone: { type: string }
-        active: { type: boolean }
-        nextRunAt: { type: string, format: date-time }
-        lastRunAt: { type: string, format: date-time, nullable: true }
-        lastCardId: { type: string, format: uuid, nullable: true }
-        lastError: { type: string, nullable: true, description: Error code of the last run that failed }
+        version: { type: string, description: Release of the API }
+        commit: { type: string, description: Short commit id, empty for a local build }
+        builtAt: { type: string, description: When the binary was built, empty when unknown }
+        goVersion: { type: string }
+        database: { type: string, description: The database server's version }
     WikiTrashItem:
       type: object
       required: [node, expiresAt]
