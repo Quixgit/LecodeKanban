@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/reliabilix/lecodekanban/backend/internal/api"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/notifications/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/notifications/service"
 	wsdomain "github.com/reliabilix/lecodekanban/backend/internal/modules/workspaces/domain"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
@@ -24,6 +25,8 @@ func NewHandler(svc *service.Service) *Handler { return &Handler{svc: svc} }
 func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Get("/workspaces/{workspaceId}/notifications", httpx.H(h.list))
 	r.Post("/workspaces/{workspaceId}/notifications/read", httpx.H(h.read))
+	r.Get("/users/me/notification-prefs", httpx.H(h.prefs))
+	r.Put("/users/me/notification-prefs", httpx.H(h.setPref))
 }
 
 func workspace(r *http.Request) (uuid.UUID, uuid.UUID, error) {
@@ -85,5 +88,32 @@ func (h *Handler) read(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+func (h *Handler) prefs(w http.ResponseWriter, r *http.Request) error {
+	p, _ := authtoken.FromContext(r.Context())
+	list, err := h.svc.Prefs(r.Context(), p.UserID)
+	if err != nil {
+		return err
+	}
+	out := api.NotificationPrefs{Items: make([]api.NotificationPref, len(list))}
+	for i, it := range list {
+		out.Items[i] = api.NotificationPref{Kind: api.NotificationPrefKind(it.Kind), Enabled: it.Enabled}
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
+	return nil
+}
+
+func (h *Handler) setPref(w http.ResponseWriter, r *http.Request) error {
+	var in api.NotificationPrefInput
+	if err := httpx.DecodeJSON(w, r, &in); err != nil {
+		return err
+	}
+	p, _ := authtoken.FromContext(r.Context())
+	if err := h.svc.SetPref(r.Context(), p.UserID, domain.Kind(in.Kind), in.Enabled); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
 	return nil
 }

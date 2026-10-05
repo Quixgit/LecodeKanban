@@ -594,6 +594,39 @@ func (e NotificationKind) Valid() bool {
 	}
 }
 
+// Defines values for NotificationPrefKind.
+const (
+	NotificationPrefKindAssigned      NotificationPrefKind = "assigned"
+	NotificationPrefKindDm            NotificationPrefKind = "dm"
+	NotificationPrefKindMeeting       NotificationPrefKind = "meeting"
+	NotificationPrefKindMention       NotificationPrefKind = "mention"
+	NotificationPrefKindTaskCommented NotificationPrefKind = "task_commented"
+	NotificationPrefKindTaskMoved     NotificationPrefKind = "task_moved"
+	NotificationPrefKindTaskUpdated   NotificationPrefKind = "task_updated"
+)
+
+// Valid indicates whether the value is a known member of the NotificationPrefKind enum.
+func (e NotificationPrefKind) Valid() bool {
+	switch e {
+	case NotificationPrefKindAssigned:
+		return true
+	case NotificationPrefKindDm:
+		return true
+	case NotificationPrefKindMeeting:
+		return true
+	case NotificationPrefKindMention:
+		return true
+	case NotificationPrefKindTaskCommented:
+		return true
+	case NotificationPrefKindTaskMoved:
+		return true
+	case NotificationPrefKindTaskUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PermissionInfoGroup.
 const (
 	PermissionInfoGroupAdmin    PermissionInfoGroup = "admin"
@@ -2608,6 +2641,26 @@ type NotificationPage struct {
 	Unread int `json:"unread"`
 }
 
+// NotificationPref defines model for NotificationPref.
+type NotificationPref struct {
+	Enabled bool                 `json:"enabled"`
+	Kind    NotificationPrefKind `json:"kind"`
+}
+
+// NotificationPrefKind defines model for NotificationPref.Kind.
+type NotificationPrefKind string
+
+// NotificationPrefInput defines model for NotificationPrefInput.
+type NotificationPrefInput struct {
+	Enabled bool   `json:"enabled"`
+	Kind    string `json:"kind"`
+}
+
+// NotificationPrefs defines model for NotificationPrefs.
+type NotificationPrefs struct {
+	Items []NotificationPref `json:"items"`
+}
+
 // NotificationsReadInput defines model for NotificationsReadInput.
 type NotificationsReadInput struct {
 	// All Mark every notification in the workspace
@@ -3889,6 +3942,9 @@ type UploadAvatarMultipartRequestBody UploadAvatarMultipartBody
 
 // UploadCoverMultipartRequestBody defines body for UploadCover for multipart/form-data ContentType.
 type UploadCoverMultipartRequestBody UploadCoverMultipartBody
+
+// SetNotificationPrefJSONRequestBody defines body for SetNotificationPref for application/json ContentType.
+type SetNotificationPrefJSONRequestBody = NotificationPrefInput
 
 // ChangePasswordJSONRequestBody defines body for ChangePassword for application/json ContentType.
 type ChangePasswordJSONRequestBody = ChangePasswordRequest

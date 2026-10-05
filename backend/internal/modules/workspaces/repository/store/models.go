@@ -374,6 +374,12 @@ type Notification struct {
 	Link        *string
 }
 
+type NotificationPref struct {
+	UserID  uuid.UUID
+	Kind    string
+	Enabled bool
+}
+
 type Project struct {
 	ID          uuid.UUID
 	WorkspaceID uuid.UUID
