@@ -62,6 +62,7 @@ func (h *Handler) PublicRoutes(r chi.Router) {
 	r.Get("/auth/providers", httpx.H(h.listProviders))
 	r.With(middleware.RateLimit("register", h.lim.Register)).Post("/auth/register", httpx.H(h.register))
 	r.With(middleware.RateLimit("login", h.lim.Login)).Post("/auth/login", httpx.H(h.login))
+	r.With(middleware.RateLimit("login", h.lim.Login)).Post("/auth/login/two-factor", httpx.H(h.loginTwoFactor))
 	r.Post("/auth/refresh", httpx.H(h.refresh))
 	r.Post("/auth/logout", httpx.H(h.logout))
 	r.Post("/auth/verify-email", httpx.H(h.verifyEmail))
@@ -75,6 +76,11 @@ func (h *Handler) PublicRoutes(r chi.Router) {
 func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Get("/auth/session", httpx.H(h.session))
 	r.Get("/users/me/sessions", httpx.H(h.devices))
+	r.Get("/users/me/two-factor", httpx.H(h.twoFactorStatus))
+	r.Post("/users/me/two-factor/setup", httpx.H(h.twoFactorSetup))
+	r.Post("/users/me/two-factor/enable", httpx.H(h.twoFactorEnable))
+	r.Post("/users/me/two-factor/disable", httpx.H(h.twoFactorDisable))
+	r.Post("/users/me/two-factor/recovery-codes", httpx.H(h.twoFactorRecovery))
 	r.Post("/users/me/sessions/revoke-others", httpx.H(h.signOutOthers))
 	r.Delete("/users/me/sessions/{sessionId}", httpx.H(h.signOutDevice))
 	r.With(middleware.RateLimit("email", h.lim.Email)).Post("/auth/verify-email/resend", httpx.H(h.resend))
@@ -329,5 +335,78 @@ func (h *Handler) signOutOthers(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	httpx.NoContent(w)
+	return nil
+}
+
+func (h *Handler) loginTwoFactor(w http.ResponseWriter, r *http.Request) error {
+	var in api.TwoFactorLoginRequest
+	if err := httpx.DecodeJSON(w, r, &in); err != nil {
+		return err
+	}
+	s, err := h.svc.LoginTwoFactor(r.Context(), in.Token, in.Code, client(r))
+	if err != nil {
+		return err
+	}
+	return h.writeSession(w, r, http.StatusOK, s, true)
+}
+
+func (h *Handler) twoFactorStatus(w http.ResponseWriter, r *http.Request) error {
+	p, _ := authtoken.FromContext(r.Context())
+	st, err := h.svc.TwoFactorStatus(r.Context(), p.UserID)
+	if err != nil {
+		return err
+	}
+	httpx.WriteJSON(w, http.StatusOK, api.TwoFactorStatus{Enabled: st.Enabled, RecoveryRemaining: st.RecoveryRemaining})
+	return nil
+}
+
+func (h *Handler) twoFactorSetup(w http.ResponseWriter, r *http.Request) error {
+	p, _ := authtoken.FromContext(r.Context())
+	su, err := h.svc.SetupTwoFactor(r.Context(), p.UserID)
+	if err != nil {
+		return err
+	}
+	httpx.WriteJSON(w, http.StatusOK, api.TwoFactorSetup{Secret: su.Secret, Uri: su.URI})
+	return nil
+}
+
+func (h *Handler) twoFactorEnable(w http.ResponseWriter, r *http.Request) error {
+	var in api.CodeRequest
+	if err := httpx.DecodeJSON(w, r, &in); err != nil {
+		return err
+	}
+	p, _ := authtoken.FromContext(r.Context())
+	codes, err := h.svc.EnableTwoFactor(r.Context(), p.UserID, in.Code)
+	if err != nil {
+		return err
+	}
+	httpx.WriteJSON(w, http.StatusOK, api.RecoveryCodes{Codes: codes})
+	return nil
+}
+
+func (h *Handler) twoFactorDisable(w http.ResponseWriter, r *http.Request) error {
+	var in api.TwoFactorDisableRequest
+	if err := httpx.DecodeJSON(w, r, &in); err != nil {
+		return err
+	}
+	p, _ := authtoken.FromContext(r.Context())
+	if err := h.svc.DisableTwoFactor(r.Context(), p.UserID, in.Password, in.Code); err != nil {
+		return err
+	}
+	httpx.NoContent(w)
+	return nil
+}
+
+func (h *Handler) twoFactorRecovery(w http.ResponseWriter, r *http.Request) error {
+	var in api.CodeRequest
+	if err := httpx.DecodeJSON(w, r, &in); err != nil {
+		return err
+	}
+	p, _ := authtoken.FromContext(r.Context())
+	codes, err := h.svc.RegenerateRecoveryCodes(r.Context(), p.UserID, in.Code)
+	if err != nil {
+		return err
+	}
+	httpx.WriteJSON(w, http.StatusOK, api.RecoveryCodes{Codes: codes})
 	return nil
 }

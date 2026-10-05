@@ -74,7 +74,11 @@ func setup(t *testing.T) env {
 	cfg := service.DefaultConfig("http://app.test", 24*time.Hour)
 	cfg.Argon = crypto.Argon2Params{Memory: 8 * 1024, Iterations: 1, Parallelism: 1, SaltLen: 16, KeyLen: 32}
 	mail := &outbox{}
-	svc := service.New(cfg, users, repository.New(tdb.Pool), tokens, bus, mail.queue)
+	sealer, err := crypto.NewSealer([]byte("0123456789abcdef0123456789abcdef"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	svc := service.New(cfg, users, repository.New(tdb.Pool), tokens, bus, mail.queue, sealer)
 	return env{svc: svc, users: users, mail: mail, bus: bus, tokens: tokens}
 }
 
