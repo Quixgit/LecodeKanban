@@ -16,6 +16,7 @@
 
 ### Added
 
+- **Team**: each person's job title shows under their name in the members table.
 - **Require two-step verification** (Settings → Access & invitations → Security): everyone must turn on 2FA before
   opening the workspace. The server refuses a member who has none (`workspaces.two_factor_required`); the workspace
   shows a page that says why and links to Profile → Security. Whoever switches it on must already have 2FA.

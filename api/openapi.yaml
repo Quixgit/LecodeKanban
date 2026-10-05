@@ -3174,12 +3174,13 @@ components:
         recent: { type: array, items: { $ref: "#/components/schemas/MailItem" } }
     MemberUser:
       type: object
-      required: [id, name, email, avatarUrl]
+      required: [id, name, email, avatarUrl, jobTitle]
       properties:
         id: { type: string, format: uuid }
         name: { type: string }
         email: { type: string }
         avatarUrl: { type: string, nullable: true }
+        jobTitle: { type: string, description: Empty when the person has not set one }
     MemberProfile:
       type: object
       required: [id, name, email, avatarUrl, role, joinedAt, jobTitle, pronouns, phone, location, timezone, bio, linkedin, telegram, website, workStart, workEnd, skills, coverPreset, coverUrl]
