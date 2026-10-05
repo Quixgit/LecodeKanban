@@ -31,6 +31,8 @@ export async function fetchSession(): Promise<User | null> {
 
 export const authApi = {
   login: (body: Credentials) => unwrap(api.POST('/auth/login', { body })).then((s) => s.user),
+  loginTwoFactor: (token: string, code: string) =>
+    unwrap(api.POST('/auth/login/two-factor', { body: { token, code } })).then((s) => s.user),
   register: (body: Registration) =>
     unwrap(api.POST('/auth/register', { body })).then((s) => s.user),
   logout: () => unwrap(api.POST('/auth/logout')),

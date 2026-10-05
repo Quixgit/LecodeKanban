@@ -2034,6 +2034,11 @@ type ChecklistSummary struct {
 	Total int `json:"total"`
 }
 
+// CodeRequest defines model for CodeRequest.
+type CodeRequest struct {
+	Code string `json:"code"`
+}
+
 // ColumnInput defines model for ColumnInput.
 type ColumnInput struct {
 	Name     string     `json:"name"`
@@ -2674,6 +2679,11 @@ type RealtimeMessage struct {
 	WorkspaceId openapi_types.UUID  `json:"workspaceId"`
 }
 
+// RecoveryCodes defines model for RecoveryCodes.
+type RecoveryCodes struct {
+	Codes []string `json:"codes"`
+}
+
 // RegisterRequest defines model for RegisterRequest.
 type RegisterRequest struct {
 	// Email Email address (validated server-side)
@@ -2828,6 +2838,38 @@ type Trend struct {
 	ChangePct *float32 `json:"changePct"`
 	Previous  int      `json:"previous"`
 	Value     int      `json:"value"`
+}
+
+// TwoFactorDisableRequest defines model for TwoFactorDisableRequest.
+type TwoFactorDisableRequest struct {
+	// Code A current code or a recovery code
+	Code string `json:"code"`
+
+	// Password The current password
+	Password *string `json:"password,omitempty"`
+}
+
+// TwoFactorLoginRequest defines model for TwoFactorLoginRequest.
+type TwoFactorLoginRequest struct {
+	Code string `json:"code"`
+
+	// Token The token from the auth.two_factor_required error
+	Token string `json:"token"`
+}
+
+// TwoFactorSetup defines model for TwoFactorSetup.
+type TwoFactorSetup struct {
+	// Secret Base32 secret for manual entry
+	Secret string `json:"secret"`
+
+	// Uri otpauth:// address for the QR code
+	Uri string `json:"uri"`
+}
+
+// TwoFactorStatus defines model for TwoFactorStatus.
+type TwoFactorStatus struct {
+	Enabled           bool `json:"enabled"`
+	RecoveryRemaining int  `json:"recoveryRemaining"`
 }
 
 // UpdateMemberRequest defines model for UpdateMemberRequest.
@@ -3646,6 +3688,9 @@ type ListWikiTemplatesParamsLang string
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
 
+// LoginTwoFactorJSONRequestBody defines body for LoginTwoFactor for application/json ContentType.
+type LoginTwoFactorJSONRequestBody = TwoFactorLoginRequest
+
 // ForgotPasswordJSONRequestBody defines body for ForgotPassword for application/json ContentType.
 type ForgotPasswordJSONRequestBody = EmailRequest
 
@@ -3732,6 +3777,15 @@ type UploadCoverMultipartRequestBody UploadCoverMultipartBody
 
 // ChangePasswordJSONRequestBody defines body for ChangePassword for application/json ContentType.
 type ChangePasswordJSONRequestBody = ChangePasswordRequest
+
+// DisableTwoFactorJSONRequestBody defines body for DisableTwoFactor for application/json ContentType.
+type DisableTwoFactorJSONRequestBody = TwoFactorDisableRequest
+
+// EnableTwoFactorJSONRequestBody defines body for EnableTwoFactor for application/json ContentType.
+type EnableTwoFactorJSONRequestBody = CodeRequest
+
+// RegenerateRecoveryCodesJSONRequestBody defines body for RegenerateRecoveryCodes for application/json ContentType.
+type RegenerateRecoveryCodesJSONRequestBody = CodeRequest
 
 // UpdateSavedViewJSONRequestBody defines body for UpdateSavedView for application/json ContentType.
 type UpdateSavedViewJSONRequestBody = SavedViewPatch

@@ -103,6 +103,11 @@ func (s *Service) Login(ctx context.Context, email, password string, c domain.Cl
 			_ = s.users.SetPasswordHash(ctx, cred.User.ID, h)
 		}
 	}
+	if on, err := s.requiresSecondFactor(ctx, cred.User.ID); err != nil {
+		return domain.Session{}, err
+	} else if on {
+		return domain.Session{}, s.secondFactorChallenge(cred.User.ID)
+	}
 	return s.newSession(ctx, cred.User.ID, c)
 }
 
