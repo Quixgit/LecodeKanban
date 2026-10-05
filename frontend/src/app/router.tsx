@@ -22,6 +22,9 @@ const ProfileLayout = lazy(() =>
 const ProfileRoute = lazy(() =>
   import('@/pages/profile/ProfileRoutes').then((m) => ({ default: m.ProfileRoute })),
 );
+const NotificationsRoute = lazy(() =>
+  import('@/pages/profile/ProfileRoutes').then((m) => ({ default: m.NotificationsRoute })),
+);
 const SecurityRoute = lazy(() =>
   import('@/pages/profile/ProfileRoutes').then((m) => ({ default: m.SecurityRoute })),
 );
@@ -204,6 +207,7 @@ export const routes: RouteObject[] = [
             children: [
               { index: true, element: <ProfileRoute /> },
               { path: 'security', element: <SecurityRoute /> },
+              { path: 'notifications', element: <NotificationsRoute /> },
             ],
           },
           {

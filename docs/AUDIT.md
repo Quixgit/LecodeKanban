@@ -271,3 +271,8 @@ Facts about what was checked, with how. Update on every phase.
 - Go: export needs the permission (members refused, owner allowed, grantable to members); formula cells neutralised.
 - Browser: the page offers the download (axe) and the file has the header row and data rows.
 - Not covered: export of other data (comments, time entries, docs) and a truncation notice in the UI.
+## Notification preferences
+
+- Go: all kinds on by default; unknown kind refused; a switched-off kind is not delivered while others are; switching on restores it.
+- Browser: toggle persists across reload (axe).
+- Not covered: per-channel/per-project overrides and email notifications (the product sends none of those kinds by email).

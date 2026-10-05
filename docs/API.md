@@ -54,6 +54,15 @@ Base URL: `/api/v1`
 | POST | `/users/me/two-factor/recovery-codes` | session | CodeRequest | 200, 422 Error | Replace the recovery codes (needs a valid code) |
 | POST | `/users/me/password` | session | ChangePasswordRequest | 204, 401 Error, 422 Error |  |
 
+## notifications
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/users/me/notification-prefs` | session |  | 200 | Which kinds of notification the caller wants (all on unless switched off) |
+| PUT | `/users/me/notification-prefs` | session | NotificationPrefInput | 204, 422 Error |  |
+| GET | `/workspaces/{workspaceId}/notifications` | session |  | 200 | The caller's notifications in the workspace, newest first, with the unread count |
+| POST | `/workspaces/{workspaceId}/notifications/read` | session | NotificationsReadInput | 204 | Mark the given notifications (or all of them) as read |
+
 ## workspaces
 
 | Method | Path | Auth | Request | Responses | Summary |
@@ -307,13 +316,6 @@ Base URL: `/api/v1`
 | POST | `/cards/{cardId}/github/issue` | session |  | 201, 409 Error | Open a GitHub issue for the card in its project's repository |
 | POST | `/integrations/github/webhook` | public |  | 204, 401 Error | Where GitHub delivers pull request and issue events (signed with the workspace secret) |
 
-## notifications
-
-| Method | Path | Auth | Request | Responses | Summary |
-| --- | --- | --- | --- | --- | --- |
-| GET | `/workspaces/{workspaceId}/notifications` | session |  | 200 | The caller's notifications in the workspace, newest first, with the unread count |
-| POST | `/workspaces/{workspaceId}/notifications/read` | session | NotificationsReadInput | 204 | Mark the given notifications (or all of them) as read |
-
 ## Schemas
 
 - **ErrorResponse** — `error`: object
@@ -462,6 +464,9 @@ Base URL: `/api/v1`
 - **Meeting** — `id`: string, `provider`: string, `title`: string, `startsAt`: string, `endsAt`: string, `location`: string, `url`: string, `attendees`: array
 - **MeetingList** — `items`: array
 - **ChatMeeting** — `kind`: string, `title`: string, `startsAt`: string, `endsAt`: string, `location?`: string, `link?`: string, `leadMinutes`: integer, `attendees`: integer
+- **NotificationPref** — `kind`: string, `enabled`: boolean
+- **NotificationPrefs** — `items`: array
+- **NotificationPrefInput** — `kind`: string, `enabled`: boolean
 - **Notification** — `id`: string, `kind`: string, `title`: string, `body`: string, `actor`: object \| null, `cardId`: string \| null, `projectId`: string \| null, `channelId`: string \| null, `messageId`: string \| null, `link`: string \| null, `createdAt`: string, `read`: boolean
 - **NotificationPage** — `items`: array, `unread`: integer, `next`: string \| null
 - **NotificationsReadInput** — `ids?`: array, `all?`: boolean

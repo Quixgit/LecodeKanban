@@ -31,6 +31,9 @@ export const profileApi = {
   removeAvatar: () => unwrap(api.DELETE('/users/me/avatar')),
   changePassword: (body: { currentPassword?: string; newPassword: string }) =>
     unwrap(api.POST('/users/me/password', { body })),
+  notificationPrefs: () => unwrap(api.GET('/users/me/notification-prefs')),
+  setNotificationPref: (body: { kind: string; enabled: boolean }) =>
+    unwrap(api.PUT('/users/me/notification-prefs', { body })),
   twoFactor: () => unwrap(api.GET('/users/me/two-factor')),
   setupTwoFactor: () => unwrap(api.POST('/users/me/two-factor/setup')),
   enableTwoFactor: (code: string) =>

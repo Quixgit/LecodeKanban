@@ -7,6 +7,9 @@
 - **Export tasks** (Settings → Data & export): download the workspace's tasks, or one project's, as a CSV that opens in
   Excel, Numbers and Google Sheets (UTF-8, cells that look like formulas are neutralised). New permission **Export data**
   (`data.export`): administrators have it by default; it can be given to any role.
+- **Notification preferences** (Profile → Notifications): choose which kinds reach your bell (put on a task, mentions,
+  direct messages, comments, tasks that move, edits, meeting reminders); everything is on until switched off. The chat
+  menu's "Edit default preferences" opens it. Needs migration `00031` (apply `00030` first if the 2FA change is pending).
 
 ### Added
 
