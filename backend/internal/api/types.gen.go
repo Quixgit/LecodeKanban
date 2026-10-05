@@ -3553,6 +3553,9 @@ type Workspace struct {
 	Permissions []string `json:"permissions"`
 	Role        Role     `json:"role"`
 	Slug        string   `json:"slug"`
+
+	// TwoFactorBlocked The workspace requires two-step verification and the caller has not turned it on
+	TwoFactorBlocked bool `json:"twoFactorBlocked"`
 }
 
 // WorkspaceFeatures defines model for WorkspaceFeatures.
@@ -3604,6 +3607,9 @@ type WorkspaceSettings struct {
 	RequireAssignee bool `json:"requireAssignee"`
 	RequireDueDate  bool `json:"requireDueDate"`
 
+	// RequireTwoFactor Members need two-step verification to enter the workspace
+	RequireTwoFactor bool `json:"requireTwoFactor"`
+
 	// TimeAllowManual Time may be logged by hand
 	TimeAllowManual bool `json:"timeAllowManual"`
 
@@ -3637,6 +3643,7 @@ type WorkspaceSettingsPatch struct {
 	InviteDays        *int                                   `json:"inviteDays,omitempty"`
 	RequireAssignee   *bool                                  `json:"requireAssignee,omitempty"`
 	RequireDueDate    *bool                                  `json:"requireDueDate,omitempty"`
+	RequireTwoFactor  *bool                                  `json:"requireTwoFactor,omitempty"`
 	TimeAllowManual   *bool                                  `json:"timeAllowManual,omitempty"`
 	WeekStart         *int                                   `json:"weekStart,omitempty"`
 }

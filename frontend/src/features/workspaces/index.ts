@@ -22,3 +22,4 @@ export {
   canManageMembers,
 } from './model/permissions';
 export { useWorkspaceMutations } from './hooks/useWorkspaces';
+export { TwoFactorGate } from './components/TwoFactorGate';

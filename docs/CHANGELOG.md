@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- **Require two-step verification** (Settings → Access & invitations → Security): everyone must turn on 2FA before
+  opening the workspace. The server refuses a member who has none (`workspaces.two_factor_required`); the workspace
+  shows a page that says why and links to Profile → Security. Whoever switches it on must already have 2FA.
+
 ### Changed
 
 - **Admin centre overview** is now a real landing page: the workspace's icon and name, KPIs (members, open invitations,

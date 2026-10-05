@@ -20,6 +20,8 @@ type Workspace struct {
 	// Permissions and CustomRole describe what the caller may do here.
 	Permissions []Permission
 	CustomRole  *RoleRef
+	// TwoFactorBlocked: the workspace requires two-step verification and the caller has not turned it on.
+	TwoFactorBlocked bool
 }
 
 // RoleRef names a custom role.

@@ -2,10 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { AuditEntry } from '../api/settingsApi';
 
 /** One audit entry as a sentence (the person who did it is shown next to it). */
-function sentence(
-  e: AuditEntry,
-  t: (k: string, o?: Record<string, unknown>) => string,
-): string {
+function sentence(e: AuditEntry, t: (k: string, o?: Record<string, unknown>) => string): string {
   const d = e.details as Record<string, unknown>;
   switch (e.action) {
     case 'settings.updated': {

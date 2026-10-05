@@ -282,6 +282,13 @@ Facts about what was checked, with how. Update on every phase.
 
 - Unit: set-up steps and progress (unknown steps are neither done nor open). Browser: settings suite.
 - Not covered: the checklist has no step for integrations (it would make settings depend on the integrations module).
+
+## Require two-step verification
+
+- Go: setting refused for an owner without 2FA; members without it blocked in `Authorize` and marked in the list;
+  turning it on opens the door; turning the requirement off lets everyone in.
+- Browser: owner enables 2FA, requires it, turns their own off and sees the gate with the way to the security page.
+- Cost: one small indexed query per authorised request (the flag in the settings row).
 ## Filter and sort by custom field
 
 - Go: filter by equality and by text search; sort ascending and descending with numbers as numbers and cards without a value last.

@@ -76,5 +76,10 @@
   },
   "roleUpdated": "{{name}} is now {{role}}",
   "removed": "{{name}} was removed",
-  "left": "You left {{workspace}}"
+  "left": "You left {{workspace}}",
+  "twoFactorGate": {
+    "title": "“{{name}}” asks for two-step verification",
+    "body": "An administrator requires everyone to turn on two-step verification before opening this workspace. It takes a minute with an authenticator app.",
+    "action": "Turn on two-step verification"
+  }
 }
