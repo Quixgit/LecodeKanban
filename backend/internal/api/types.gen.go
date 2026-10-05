@@ -2715,6 +2715,7 @@ type InvitePreview struct {
 	Accepted      bool       `json:"accepted"`
 	Email         string     `json:"email"`
 	Expired       bool       `json:"expired"`
+	HasAccount    bool       `json:"hasAccount"`
 	InviterName   *string    `json:"inviterName"`
 	Role          InviteRole `json:"role"`
 	WorkspaceName string     `json:"workspaceName"`
