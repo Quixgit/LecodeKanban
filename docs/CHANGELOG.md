@@ -4,6 +4,12 @@
 
 ### Added
 
+- **Export tasks** (Settings → Data & export): download the workspace's tasks, or one project's, as a CSV that opens in
+  Excel, Numbers and Google Sheets (UTF-8, cells that look like formulas are neutralised). New permission **Export data**
+  (`data.export`): administrators have it by default; it can be given to any role.
+
+### Added
+
 - **Chat appearance** (palette button in the chat header): eight ready-made themes (Aubergine, Ocean, Forest…) or your
   own sidebar and accent colours. The text colour, borders and the active row follow the colours and stay readable
   (AA); the choice is remembered per browser.

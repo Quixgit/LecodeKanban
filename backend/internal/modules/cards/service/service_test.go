@@ -354,3 +354,25 @@ func TestWorkspaceTaskPolicies(t *testing.T) {
 		t.Fatalf("explicit priority: %+v %v", c, err)
 	}
 }
+
+func TestExportNeedsThePermission(t *testing.T) {
+	f := setup(t)
+	if _, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Exported"}); err != nil {
+		t.Fatal(err)
+	}
+	// Members cannot download everything by default; the owner can.
+	_, _, err := f.Cards.Export(f.ctx, f.member, f.ws, domain.Filter{})
+	mustCode(t, err, wsdomain.ErrInsufficientRole)
+	views, truncated, err := f.Cards.Export(f.ctx, f.owner, f.ws, domain.Filter{})
+	if err != nil || truncated || len(views) == 0 {
+		t.Fatalf("owner export: %d %v %v", len(views), truncated, err)
+	}
+	// The permission can be given to members.
+	perms := append(wsdomain.RoleDefaults(wsdomain.RoleMember), wsdomain.PermExport)
+	if err := f.Workspaces.SetRolePermissions(f.ctx, f.owner, f.ws, wsdomain.RoleMember, perms); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := f.Cards.Export(f.ctx, f.member, f.ws, domain.Filter{}); err != nil {
+		t.Fatalf("member with the permission: %v", err)
+	}
+}

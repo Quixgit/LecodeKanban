@@ -1012,6 +1012,21 @@ paths:
       operationId: deleteSavedView
       responses:
         "204": { description: Deleted }
+  /workspaces/{workspaceId}/export/tasks.csv:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [cards]
+      operationId: exportTasks
+      summary: Download the tasks as a CSV spreadsheet (needs the export permission)
+      parameters:
+        - { name: projectId, in: query, required: false, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: A CSV file; X-Export-Truncated says whether the row cap was hit
+          content:
+            text/csv:
+              schema: { type: string }
+        "403": { $ref: "#/components/responses/Error" }
   /workspaces/{workspaceId}/cards/board:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:

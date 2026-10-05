@@ -293,4 +293,25 @@ test.describe('Settings admin centre', () => {
     // Revoke it again so the list stays tidy.
     await page.getByRole('button', { name: 'Revoke' }).first().click();
   });
+
+  test('data: download the tasks as a CSV', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page);
+    await page.goto('/settings/data');
+    const main = page.getByRole('main');
+    await expect(main.getByRole('link', { name: 'Download CSV' })).toBeVisible();
+    await axeClean(page);
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      main.getByRole('link', { name: 'Download CSV' }).click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/^tasks-\d{4}-\d{2}-\d{2}\.csv$/);
+    const text = await (
+      await import('node:fs/promises')
+    ).readFile((await download.path())!, 'utf8');
+    expect(text.replace(/^\uFEFF/, '').split('\n')[0]).toBe(
+      'Key,Title,Status,Priority,Progress %,Due date,Assignees,Labels,Project,Created,Updated,Completed',
+    );
+    expect(text.split('\n').length).toBeGreaterThan(2);
+  });
 });

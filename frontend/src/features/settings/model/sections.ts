@@ -1,5 +1,6 @@
 import {
   Blocks,
+  FileSpreadsheet,
   Flag,
   KeyRound,
   History,
@@ -26,7 +27,8 @@ export type SectionKey =
   | 'labels'
   | 'integrations'
   | 'audit'
-  | 'email';
+  | 'email'
+  | 'data';
 
 export interface Section {
   key: SectionKey;
@@ -48,6 +50,7 @@ export const SECTIONS: readonly Section[] = [
   { key: 'fields', to: '/settings/fields', icon: ListPlus, group: 'work' },
   { key: 'labels', to: '/settings/labels', icon: Tags, group: 'work' },
   { key: 'integrations', to: '/integrations', icon: Blocks, group: 'work', external: true },
+  { key: 'data', to: '/settings/data', icon: FileSpreadsheet, group: 'system' },
   { key: 'email', to: '/settings/email', icon: Mail, group: 'system' },
   { key: 'audit', to: '/settings/audit', icon: History, group: 'system' },
 ];
