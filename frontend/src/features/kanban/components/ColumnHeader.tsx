@@ -10,6 +10,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { columnLabel } from '@/shared/lib/columnName';
 import { cn } from '@/shared/lib/cn';
 import {
   Dropdown,
@@ -37,12 +38,11 @@ interface Props {
 }
 
 export function ColumnHeader({ column, count, collapsed, onToggle, onAdd, manage }: Props) {
-  const { t } = useTranslation('kanban');
+  const { t, i18n } = useTranslation('kanban');
+  const name = columnLabel(column.name, column.status, i18n.t(`common:status.${column.status}`));
   const over = column.wipLimit !== null && count > column.wipLimit;
   const countLabel = column.wipLimit !== null ? `${count} / ${column.wipLimit}` : String(count);
-  const toggleLabel = collapsed
-    ? t('column.expand', { name: column.name })
-    : t('column.collapse', { name: column.name });
+  const toggleLabel = collapsed ? t('column.expand', { name }) : t('column.collapse', { name });
   const toggle = (
     <Tooltip content={toggleLabel}>
       <IconButton
@@ -74,7 +74,7 @@ export function ColumnHeader({ column, count, collapsed, onToggle, onAdd, manage
           {countLabel}
         </span>
         <span className="text-sm font-medium text-text-secondary [writing-mode:vertical-rl]">
-          {column.name}
+          {name}
         </span>
       </div>
     );
@@ -82,7 +82,7 @@ export function ColumnHeader({ column, count, collapsed, onToggle, onAdd, manage
 
   return (
     <div className="group/head flex items-center gap-2 px-2">
-      <StatusTag status={column.status} label={column.name} className="h-8 min-w-0 text-base" />
+      <StatusTag status={column.status} label={name} className="h-8 min-w-0 text-base" />
       <span
         className={cn(
           'tabular flex h-8 min-w-8 items-center justify-center rounded-full border px-2.5 text-sm',
@@ -109,7 +109,7 @@ export function ColumnHeader({ column, count, collapsed, onToggle, onAdd, manage
         {manage && (
           <Dropdown>
             <DropdownTrigger asChild>
-              <IconButton variant="ghost" size="sm" label={t('column.menu', { name: column.name })}>
+              <IconButton variant="ghost" size="sm" label={t('column.menu', { name })}>
                 <MoreHorizontal />
               </IconButton>
             </DropdownTrigger>

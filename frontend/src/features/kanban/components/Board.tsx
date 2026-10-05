@@ -17,6 +17,7 @@ import { Plus } from 'lucide-react';
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Card } from '@/features/cards';
+import { columnLabel } from '@/shared/lib/columnName';
 import { cn } from '@/shared/lib/cn';
 import { dragLift, ease, transition } from '@/shared/motion';
 import { Button } from '@/shared/ui';
@@ -82,7 +83,7 @@ const dropAnimation: DropAnimation = {
 };
 
 export const Board = forwardRef<BoardHandle, BoardProps>(function Board(p, ref) {
-  const { t } = useTranslation('kanban');
+  const { t, i18n } = useTranslation('kanban');
   const dnd = useBoardDnd(p.containers, p.swimlane, p.onDrop);
   const byId = useMemo(() => Object.fromEntries(p.cards.map((c) => [c.id, c])), [p.cards]);
   const counts = useMemo(() => columnCounts(dnd.containers), [dnd.containers]);
@@ -108,10 +109,12 @@ export const Board = forwardRef<BoardHandle, BoardProps>(function Board(p, ref) 
     }),
   );
 
-  const columnName = (container: string | undefined) =>
-    container
-      ? (p.columns.find((c) => c.key === parseContainer(container).column)?.name ?? '')
-      : '';
+  const columnName = (container: string | undefined) => {
+    const col = container
+      ? p.columns.find((c) => c.key === parseContainer(container).column)
+      : undefined;
+    return col ? columnLabel(col.name, col.status, i18n.t(`common:status.${col.status}`)) : '';
+  };
   const title = (id: string | number) => byId[String(id)]?.title ?? '';
   const announcements: Announcements = {
     onDragStart: ({ active }) =>
