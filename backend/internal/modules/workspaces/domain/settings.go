@@ -36,6 +36,7 @@ type Settings struct {
 	ChatAllowFiles    bool     `json:"chatAllowFiles"`    // files may be shared in chat
 	ChatEditMinutes   int      `json:"chatEditMinutes"`   // how long a message can be edited (0: always)
 	TimeAllowManual   bool     `json:"timeAllowManual"`   // time may be logged by hand
+	RequireTwoFactor  bool     `json:"requireTwoFactor"`  // members need two-step verification to enter
 	DocsVisibility    string   `json:"docsVisibility"`    // private | shared | workspace: for new spaces
 	DocsMaxDepth      int      `json:"docsMaxDepth"`      // how deep pages nest in new spaces
 	AccentColor       string   `json:"accentColor"`       // #rrggbb, or empty for the platform's own
@@ -72,6 +73,7 @@ type SettingsPatch struct {
 	ChatAllowFiles    *bool
 	ChatEditMinutes   *int
 	TimeAllowManual   *bool
+	RequireTwoFactor  *bool
 	DocsVisibility    *string
 	DocsMaxDepth      *int
 	AccentColor       *string
@@ -150,6 +152,9 @@ func (s Settings) Apply(p SettingsPatch) (Settings, []string) {
 	}
 	if p.RequireDueDate != nil {
 		s.RequireDueDate = *p.RequireDueDate
+	}
+	if p.RequireTwoFactor != nil {
+		s.RequireTwoFactor = *p.RequireTwoFactor
 	}
 	if p.RequireAssignee != nil {
 		s.RequireAssignee = *p.RequireAssignee
@@ -239,6 +244,7 @@ func (s Settings) Changes(next Settings) []string {
 	add("chatAllowFiles", s.ChatAllowFiles != next.ChatAllowFiles)
 	add("chatEditMinutes", s.ChatEditMinutes != next.ChatEditMinutes)
 	add("timeAllowManual", s.TimeAllowManual != next.TimeAllowManual)
+	add("requireTwoFactor", s.RequireTwoFactor != next.RequireTwoFactor)
 	add("docsVisibility", s.DocsVisibility != next.DocsVisibility)
 	add("docsMaxDepth", s.DocsMaxDepth != next.DocsMaxDepth)
 	add("accentColor", s.AccentColor != next.AccentColor)
@@ -267,6 +273,8 @@ var (
 	// ErrRoleInUse: reserved for roles that cannot be removed.
 	ErrRoleLocked = apperr.Define("workspaces.role_locked", http.StatusForbidden)
 	// ErrTooManyRoles: the workspace reached its limit of custom roles.
-	ErrTooManyRoles     = apperr.Define("workspaces.too_many_roles", http.StatusUnprocessableEntity)
-	ErrDomainNotAllowed = apperr.Define("workspaces.domain_not_allowed", http.StatusUnprocessableEntity)
+	ErrTooManyRoles = apperr.Define("workspaces.too_many_roles", http.StatusUnprocessableEntity)
+	// ErrTwoFactorRequired: the workspace asks every member for two-step verification and this person has none.
+	ErrTwoFactorRequired = apperr.Define("workspaces.two_factor_required", http.StatusForbidden)
+	ErrDomainNotAllowed  = apperr.Define("workspaces.domain_not_allowed", http.StatusUnprocessableEntity)
 )

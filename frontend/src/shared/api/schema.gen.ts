@@ -3003,6 +3003,8 @@ export interface components {
             id: string;
             name: string;
             slug: string;
+            /** @description The workspace requires two-step verification and the caller has not turned it on */
+            twoFactorBlocked: boolean;
             role: components["schemas"]["Role"];
             /** @description What the caller may do here */
             permissions: string[];
@@ -3043,6 +3045,8 @@ export interface components {
             chatEditMinutes: number;
             /** @description Time may be logged by hand */
             timeAllowManual: boolean;
+            /** @description Members need two-step verification to enter the workspace */
+            requireTwoFactor: boolean;
             /**
              * @description Who can reach a new docs space by default
              * @enum {string}
@@ -3070,6 +3074,7 @@ export interface components {
             chatAllowFiles?: boolean;
             chatEditMinutes?: number;
             timeAllowManual?: boolean;
+            requireTwoFactor?: boolean;
             /** @enum {string} */
             docsVisibility?: "private" | "shared" | "workspace";
             docsMaxDepth?: number;

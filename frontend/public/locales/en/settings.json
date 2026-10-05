@@ -274,7 +274,13 @@
     },
     "peopleTitle": "People",
     "peopleDescription": "Invite, change roles or remove members.",
-    "openTeam": "Open the team page"
+    "openTeam": "Open the team page",
+    "securityTitle": "Security",
+    "securityDescription": "Protect the workspace beyond passwords.",
+    "twoFactor": {
+      "title": "Require two-step verification",
+      "description": "Everyone must turn on two-step verification before they can open this workspace. You need it on yourself first."
+    }
   },
   "rules": {
     "tasksTitle": "Tasks & calendar",
@@ -358,7 +364,8 @@
       "docsVisibility": "docs visibility",
       "docsMaxDepth": "docs depth",
       "accentColor": "accent colour",
-      "icon": "icon"
+      "icon": "icon",
+      "requireTwoFactor": "two-step requirement"
     },
     "settings": {
       "updated": "changed settings: {{what}}"

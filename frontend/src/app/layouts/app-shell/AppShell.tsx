@@ -14,7 +14,7 @@ import { useNotificationSounds } from '@/features/notification-sounds';
 import { useMeetingToasts } from '@/features/notifications';
 import { usePresenceHeartbeat } from '@/features/chat';
 import { useWorkspaceEvents } from '@/features/realtime';
-import { useCurrentWorkspace } from '@/features/workspaces';
+import { TwoFactorGate, useCurrentWorkspace } from '@/features/workspaces';
 import { pageTransition } from '@/shared/motion';
 import { Header } from './header/Header';
 import { PageSkeleton } from './PageSkeleton';
@@ -68,9 +68,13 @@ export function AppShell() {
             initial="hidden"
             animate="visible"
           >
-            <Suspense fallback={<PageSkeleton />}>
-              <Outlet />
-            </Suspense>
+            {workspace?.twoFactorBlocked && !location.pathname.startsWith('/profile') ? (
+              <TwoFactorGate name={workspace.name} />
+            ) : (
+              <Suspense fallback={<PageSkeleton />}>
+                <Outlet />
+              </Suspense>
+            )}
           </motion.div>
         </main>
       </div>

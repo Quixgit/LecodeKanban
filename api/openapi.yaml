@@ -2991,11 +2991,12 @@ components:
       enum: [admin, member, viewer]
     Workspace:
       type: object
-      required: [id, name, slug, role, memberCount, createdAt, permissions, customRole]
+      required: [id, name, slug, role, memberCount, createdAt, permissions, customRole, twoFactorBlocked]
       properties:
         id: { type: string, format: uuid }
         name: { type: string }
         slug: { type: string }
+        twoFactorBlocked: { type: boolean, description: The workspace requires two-step verification and the caller has not turned it on }
         role: { $ref: "#/components/schemas/Role" }
         permissions: { type: array, items: { type: string }, description: What the caller may do here }
         customRole: { allOf: [{ $ref: "#/components/schemas/RoleRef" }], nullable: true }
@@ -3017,7 +3018,7 @@ components:
         integrations: { type: boolean }
     WorkspaceSettings:
       type: object
-      required: [description, inviteDays, defaultInviteRole, allowedDomains, defaultPriority, requireDueDate, weekStart, requireAssignee, chatAllowDirect, chatAllowFiles, chatEditMinutes, timeAllowManual, docsVisibility, docsMaxDepth, accentColor, icon, features]
+      required: [description, inviteDays, defaultInviteRole, allowedDomains, defaultPriority, requireDueDate, weekStart, requireAssignee, chatAllowDirect, chatAllowFiles, chatEditMinutes, timeAllowManual, requireTwoFactor, docsVisibility, docsMaxDepth, accentColor, icon, features]
       properties:
         description: { type: string, maxLength: 300 }
         inviteDays: { type: integer, minimum: 1, maximum: 30, description: How long an invitation stays valid }
@@ -3031,6 +3032,7 @@ components:
         chatAllowFiles: { type: boolean, description: Files may be shared in chat }
         chatEditMinutes: { type: integer, minimum: 0, maximum: 43200, description: "How long a chat message can be edited; 0 means always" }
         timeAllowManual: { type: boolean, description: Time may be logged by hand }
+        requireTwoFactor: { type: boolean, description: Members need two-step verification to enter the workspace }
         docsVisibility: { type: string, enum: [private, shared, workspace], description: Who can reach a new docs space by default }
         docsMaxDepth: { type: integer, minimum: 2, maximum: 12, description: How deep pages nest in new spaces }
         accentColor: { type: string, description: "#rrggbb or empty for the platform colour" }
@@ -3051,6 +3053,7 @@ components:
         chatAllowFiles: { type: boolean }
         chatEditMinutes: { type: integer, minimum: 0, maximum: 43200 }
         timeAllowManual: { type: boolean }
+        requireTwoFactor: { type: boolean }
         docsVisibility: { type: string, enum: [private, shared, workspace] }
         docsMaxDepth: { type: integer, minimum: 2, maximum: 12 }
         accentColor: { type: string }
