@@ -270,6 +270,11 @@ Facts about what was checked, with how. Update on every phase.
 
 - Browser: in the rail layout the channel list is inside the rail and not in the page; the docs tree too; axe on the rail.
 - Not covered: the rail below the lg breakpoint (the mobile layout is unchanged).
+## Filter and sort by custom field
+
+- Go: filter by equality and by text search; sort ascending and descending with numbers as numbers and cards without a value last.
+- Browser: choose a field and a value in the board's filter and only the matching task stays.
+- Not covered: sorting the board by a field (the board keeps its manual order), several field filters at once.
 ## Notification preferences
 
 - Go: all kinds on by default; unknown kind refused; a switched-off kind is not delivered while others are; switching on restores it.

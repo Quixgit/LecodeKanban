@@ -10,6 +10,9 @@
 
 ### Added
 
+- **Filter and sort by a custom field**: in the task filter (board, list and calendar) pick a field and a value — a
+  choice, yes/no, a number or date, or a text search for text and link fields — and sort the list by any field
+  (cards without a value last; numbers sort as numbers). Needs migration `00032` (a published view of field values).
 - **Notification preferences** (Profile → Notifications): choose which kinds reach your bell (put on a task, mentions,
   direct messages, comments, tasks that move, edits, meeting reminders); everything is on until switched off. The chat
   menu's "Edit default preferences" opens it. Needs migration `00031` (apply `00030` first if the 2FA change is pending).

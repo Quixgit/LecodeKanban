@@ -9,11 +9,30 @@ export interface TaskFilters {
   priority?: Priority;
   labelId?: string;
   due?: CardQuery['due'];
+  /** Keep cards whose custom field matches (fieldMatch: a text search instead of equality). */
+  fieldId?: string;
+  fieldValue?: string;
+  fieldMatch?: 'eq' | 'contains';
+  /** Sort the list by a custom field (cards without a value last). */
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
   page: number;
   showAll: boolean;
 }
 
-const keys = ['q', 'projectId', 'assigneeId', 'priority', 'labelId', 'due'] as const;
+const keys = [
+  'q',
+  'projectId',
+  'assigneeId',
+  'priority',
+  'labelId',
+  'due',
+  'fieldId',
+  'fieldValue',
+  'fieldMatch',
+  'sortField',
+  'sortOrder',
+] as const;
 
 export function useTaskFilters() {
   const [params, setParams] = useSearchParams();
@@ -25,6 +44,11 @@ export function useTaskFilters() {
       priority: (params.get('priority') ?? undefined) as Priority | undefined,
       labelId: params.get('labelId') ?? undefined,
       due: (params.get('due') ?? undefined) as TaskFilters['due'],
+      fieldId: params.get('fieldId') ?? undefined,
+      fieldValue: params.get('fieldValue') ?? undefined,
+      fieldMatch: (params.get('fieldMatch') ?? undefined) as TaskFilters['fieldMatch'],
+      sortField: params.get('sortField') ?? undefined,
+      sortOrder: (params.get('sortOrder') ?? undefined) as TaskFilters['sortOrder'],
       page: Math.max(1, Number(params.get('page')) || 1),
       showAll: params.get('all') === '1',
     }),
@@ -50,7 +74,11 @@ export function useTaskFilters() {
     () => update(Object.fromEntries(keys.map((k) => [k, undefined]))),
     [update],
   );
-  const activeCount = keys.filter((k) => k !== 'q' && filters[k] !== undefined).length;
+  // A field filter is one filter (id + value + match); sorting is not a filter.
+  const activeCount =
+    (['projectId', 'assigneeId', 'priority', 'labelId', 'due'] as const).filter(
+      (k) => filters[k] !== undefined,
+    ).length + (filters.fieldId && filters.fieldValue ? 1 : 0);
   return { filters, update, clear, activeCount };
 }
 
@@ -63,5 +91,8 @@ export function baseQuery(f: TaskFilters) {
     priority: f.priority,
     labelId: f.labelId,
     due: f.due,
+    fieldId: f.fieldId && f.fieldValue ? f.fieldId : undefined,
+    fieldValue: f.fieldId && f.fieldValue ? f.fieldValue : undefined,
+    fieldMatch: f.fieldMatch,
   };
 }
