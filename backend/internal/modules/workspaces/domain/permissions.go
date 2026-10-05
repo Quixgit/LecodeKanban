@@ -30,7 +30,8 @@ const (
 	PermManageMembers Permission = "members.manage" // change roles, remove people
 	PermUpdate        Permission = "workspace.update"
 	PermAudit         Permission = "audit.view"
-	PermExport        Permission = "data.export" // download the workspace's tasks as a spreadsheet
+	PermExport        Permission = "data.export"    // download the workspace's tasks as a spreadsheet
+	PermAnalytics     Permission = "analytics.view" // the Performance page: how the team works
 	PermRoles         Permission = "roles.manage"
 	PermDelete        Permission = "workspace.delete"
 )
@@ -65,6 +66,7 @@ var Catalog = []PermInfo{
 	{PermUpdate, "admin", false},
 	{PermAudit, "admin", false},
 	{PermExport, "admin", false},
+	{PermAnalytics, "admin", false},
 	{PermRoles, "admin", false},
 	{PermDelete, "admin", true},
 }
@@ -87,7 +89,7 @@ func RoleDefaults(r Role) []Permission {
 		return all
 	case RoleAdmin:
 		return append(slices.Clone(member), PermModerate, PermProjectDelete, PermFieldsManage, PermChatModerate, PermTimeManage,
-			PermIntegrations, PermInvite, PermManageMembers, PermUpdate, PermAudit, PermExport)
+			PermIntegrations, PermInvite, PermManageMembers, PermUpdate, PermAudit, PermExport, PermAnalytics)
 	case RoleMember:
 		return member
 	case RoleViewer:

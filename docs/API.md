@@ -136,6 +136,7 @@ Base URL: `/api/v1`
 | POST | `/workspaces/{workspaceId}/import/tasks` | session |  | 200, 403 Error, 422 Error | Create tasks from a CSV file; dryRun only reports what would happen |
 | GET | `/workspaces/{workspaceId}/cards/trash` | session |  | 200, 403 Error | Deleted tasks, newest first (needs the permission to delete tasks) |
 | POST | `/cards/{cardId}/restore` | session |  | 200, 404 Error | Bring a deleted task back, with the subtasks deleted with it |
+| GET | `/workspaces/{workspaceId}/analytics/performance` | session |  | 200, 403 Error | How the team works over the last 7, 30 or 90 days (needs the analytics permission) |
 | GET | `/workspaces/{workspaceId}/cards/board` | session |  | 200 |  |
 | GET | `/workspaces/{workspaceId}/labels` | session |  | 200 |  |
 | POST | `/workspaces/{workspaceId}/labels` | session | LabelInput | 201, 409 Error |  |
@@ -443,6 +444,14 @@ Base URL: `/api/v1`
 - **WikiMoveInput** — `spaceId?`: string \| null, `parentId?`: string \| null, `beforeId?`: string \| null, `afterId?`: string \| null, `confirmWiden?`: boolean
 - **ImportRow** — `line`: integer, `title`: string, `error?`: string, `warnings`: array
 - **ImportResult** — `dryRun`: boolean, `created`: integer, `skipped`: integer, `rows`: array
+- **DurationStat** — `samples`: integer, `avgHours`: number \| null, `medianHours`: number \| null, `previousAvgHours`: number \| null
+- **PerformanceDay** — `date`: string, `todo`: integer, `inProgress`: integer, `inReview`: integer, `done`: integer, `createdTotal`: integer, `doneTotal`: integer
+- **PerformanceWeek** — `start`: string, `created`: integer, `done`: integer
+- **PerformanceBucket** — `upToDays`: integer \| null, `count`: integer
+- **PerformanceAged** — `id`: string, `key`: string, `title`: string, `project`: ProjectRef, `status`: TaskStatus, `ageHours`: number, `assignees`: array
+- **PerformancePerson** — `person`: PersonRef, `open`: integer, `done`: integer, `overdue`: integer
+- **PerformanceProject** — `project`: ProjectRef, `total`: integer, `done`: integer, `overdue`: integer, `doneInPeriod`: integer, `donePrevious`: integer
+- **PerformanceReport** — `days`: integer, `throughput`: Trend, `cycleTime`: DurationStat, `leadTime`: DurationStat, `lateDone`: integer, `doneWithDue`: integer, `previousLateDone`: integer, `previousDoneWithDue`: integer, `overdueNow`: integer, `wipInProgress`: integer, `wipInReview`: integer, `weekly`: array, `daily`: array, `histogram`: array, `aged`: array, `people`: array, `unassignedOpen`: integer, `projects`: array
 - **WikiTrashItem** — `node`: WikiNode, `expiresAt`: string
 - **WikiVisibilityInput** — `visibility`: object \| null, `workspaceRole?`: WikiWorkspaceRole
 - **WikiGrantInput** — `role`: WikiRole

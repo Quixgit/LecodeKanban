@@ -325,3 +325,8 @@ Facts about what was checked, with how. Update on every phase.
 - Unit: accent tokens pass AA (light and dark) for every offered accent and for extremes (yellow, white, black…).
 - Browser: `?` dialog (axe) and g-then-letter jumps; density persists across reload; the icon menu on a phone (axe); 2FA
   flow now runs in the dark theme (axe on the dialog).
+## Performance page
+
+- Go (no database): throughput this/previous period, cycle and lead time (average and median), a reopened task measures its last stretch of work, late share, overdue now, work in progress, aging list, cycle histogram buckets, cumulative flow (every task in exactly one status per day) and burn-up, weekly bars, per-person and per-project numbers, empty workspace. With the database: a member without the permission is refused, the owner's report lists the project and the new task.
+- Browser: Performance opens from the menu, shows all cards, period and burn-up switches, project filter and reset (axe on the settled page), phone width has no horizontal scroll; light and dark screenshots checked by eye.
+- Not covered: the Ukrainian layout by eye, workspaces beyond 50 000 tasks (the report is cut to the newest 50 000), time-zone-aware day boundaries (days are UTC, like the dashboard), the page hidden in the menu for a role without the permission (checked by the permission test, not in the browser).

@@ -30,6 +30,7 @@ func (h *Handler) PrivateRoutes(r chi.Router) {
 	r.Get("/workspaces/{workspaceId}/cards/summary", httpx.H(h.summary))
 	r.Post("/workspaces/{workspaceId}/cards/bulk", httpx.H(h.bulk))
 	r.Get("/workspaces/{workspaceId}/cards/stats", httpx.H(h.stats))
+	r.Get("/workspaces/{workspaceId}/analytics/performance", httpx.H(h.teamPerformance))
 	r.Get("/workspaces/{workspaceId}/cards/board", httpx.H(h.board))
 	r.Get("/workspaces/{workspaceId}/export/tasks.csv", httpx.H(h.exportCSV))
 	r.Post("/workspaces/{workspaceId}/import/tasks", httpx.H(h.importCSV))

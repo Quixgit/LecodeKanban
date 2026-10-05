@@ -1196,6 +1196,24 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Card" }
         "404": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/analytics/performance:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [cards]
+      operationId: teamPerformance
+      summary: How the team works over the last 7, 30 or 90 days (needs the analytics permission)
+      parameters:
+        - { name: days, in: query, schema: { type: integer, enum: [7, 30, 90], default: 30 } }
+        - $ref: "#/components/parameters/CardProjectId"
+        - $ref: "#/components/parameters/CardAssigneeId"
+        - $ref: "#/components/parameters/CardLabelId"
+      responses:
+        "200":
+          description: Flow metrics and charts
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PerformanceReport" }
+        "403": { $ref: "#/components/responses/Error" }
   /workspaces/{workspaceId}/cards/board:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -3954,6 +3972,90 @@ components:
         created: { type: integer }
         skipped: { type: integer }
         rows: { type: array, items: { $ref: "#/components/schemas/ImportRow" } }
+    DurationStat:
+      type: object
+      required: [samples, avgHours, medianHours, previousAvgHours]
+      description: How long finished tasks took, in hours; null when nothing finished in the period
+      properties:
+        samples: { type: integer }
+        avgHours: { type: number, format: double, nullable: true }
+        medianHours: { type: number, format: double, nullable: true }
+        previousAvgHours: { type: number, format: double, nullable: true }
+    PerformanceDay:
+      type: object
+      required: [date, todo, inProgress, inReview, done, createdTotal, doneTotal]
+      properties:
+        date: { type: string, format: date }
+        todo: { type: integer }
+        inProgress: { type: integer }
+        inReview: { type: integer }
+        done: { type: integer }
+        createdTotal: { type: integer, description: Created since the period began }
+        doneTotal: { type: integer, description: Closed since the period began }
+    PerformanceWeek:
+      type: object
+      required: [start, created, done]
+      properties:
+        start: { type: string, format: date }
+        created: { type: integer }
+        done: { type: integer }
+    PerformanceBucket:
+      type: object
+      required: [upToDays, count]
+      properties:
+        upToDays: { type: integer, nullable: true, description: Exclusive upper bound in days; null for the last bucket }
+        count: { type: integer }
+    PerformanceAged:
+      type: object
+      required: [id, key, title, project, status, ageHours, assignees]
+      properties:
+        id: { type: string, format: uuid }
+        key: { type: string }
+        title: { type: string }
+        project: { $ref: "#/components/schemas/ProjectRef" }
+        status: { $ref: "#/components/schemas/TaskStatus" }
+        ageHours: { type: number, format: double }
+        assignees: { type: array, items: { $ref: "#/components/schemas/PersonRef" } }
+    PerformancePerson:
+      type: object
+      required: [person, open, done, overdue]
+      properties:
+        person: { $ref: "#/components/schemas/PersonRef" }
+        open: { type: integer }
+        done: { type: integer, description: Closed in the period }
+        overdue: { type: integer }
+    PerformanceProject:
+      type: object
+      required: [project, total, done, overdue, doneInPeriod, donePrevious]
+      properties:
+        project: { $ref: "#/components/schemas/ProjectRef" }
+        total: { type: integer }
+        done: { type: integer }
+        overdue: { type: integer }
+        doneInPeriod: { type: integer }
+        donePrevious: { type: integer }
+    PerformanceReport:
+      type: object
+      required: [days, throughput, cycleTime, leadTime, lateDone, doneWithDue, previousLateDone, previousDoneWithDue, overdueNow, wipInProgress, wipInReview, weekly, daily, histogram, aged, people, unassignedOpen, projects]
+      properties:
+        days: { type: integer }
+        throughput: { $ref: "#/components/schemas/Trend" }
+        cycleTime: { $ref: "#/components/schemas/DurationStat" }
+        leadTime: { $ref: "#/components/schemas/DurationStat" }
+        lateDone: { type: integer, description: Closed after their due date, this period }
+        doneWithDue: { type: integer, description: Closed that had a due date, this period }
+        previousLateDone: { type: integer }
+        previousDoneWithDue: { type: integer }
+        overdueNow: { type: integer }
+        wipInProgress: { type: integer }
+        wipInReview: { type: integer }
+        weekly: { type: array, items: { $ref: "#/components/schemas/PerformanceWeek" } }
+        daily: { type: array, items: { $ref: "#/components/schemas/PerformanceDay" } }
+        histogram: { type: array, items: { $ref: "#/components/schemas/PerformanceBucket" } }
+        aged: { type: array, items: { $ref: "#/components/schemas/PerformanceAged" } }
+        people: { type: array, items: { $ref: "#/components/schemas/PerformancePerson" } }
+        unassignedOpen: { type: integer }
+        projects: { type: array, items: { $ref: "#/components/schemas/PerformanceProject" } }
     WikiTrashItem:
       type: object
       required: [node, expiresAt]
