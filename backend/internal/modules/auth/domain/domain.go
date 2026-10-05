@@ -52,4 +52,7 @@ var (
 	ErrOAuthFailed           = apperr.Define("auth.oauth_failed", http.StatusBadRequest)
 	ErrOAuthEmailUnverified  = apperr.Define("auth.oauth_email_unverified", http.StatusBadRequest)
 	ErrOAuthAccountConflict  = apperr.Define("auth.oauth_account_conflict", http.StatusConflict)
+	ErrTwoFactorRequired     = apperr.Define("auth.two_factor_required", http.StatusUnauthorized)
+	ErrTwoFactorCode         = apperr.Define("auth.two_factor_code_invalid", http.StatusUnprocessableEntity)
+	ErrTwoFactorState        = apperr.Define("auth.two_factor_state", http.StatusConflict)
 )

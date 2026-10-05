@@ -367,6 +367,12 @@ type Notification struct {
 	Link        *string
 }
 
+type NotificationPref struct {
+	UserID  uuid.UUID
+	Kind    string
+	Enabled bool
+}
+
 type Project struct {
 	ID          uuid.UUID
 	WorkspaceID uuid.UUID
@@ -491,6 +497,16 @@ type UserToken struct {
 	ExpiresAt time.Time
 	UsedAt    *time.Time
 	CreatedAt time.Time
+}
+
+type UserTwoFactor struct {
+	UserID         uuid.UUID
+	Secret         []byte
+	Enabled        bool
+	LastStep       int64
+	RecoveryHashes [][]byte
+	CreatedAt      time.Time
+	EnabledAt      *time.Time
 }
 
 type WikiAudit struct {

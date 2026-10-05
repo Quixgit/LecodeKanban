@@ -77,10 +77,15 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 
 	// users' HTTP layer needs auth (providers, password change) and auth needs users' presenter;
 	// the closure breaks the construction cycle without either package importing the other.
+	sealer, err := crypto.NewSealer(cfg.EncryptionKeyBytes())
+	if err != nil {
+		return nil, err
+	}
 	var usersHTTP *usershttp.Handler
 	authMod := auth.New(auth.Deps{
 		Config: cfg, Pool: pool, Bus: bus, Tokens: tokens, Users: usersMod.Service,
 		Present: func(ctx context.Context, id uuid.UUID) (api.User, error) { return usersHTTP.PresentByID(ctx, id) },
+		Sealer:  sealer,
 	})
 	usersHTTP = usersMod.NewHTTP(authMod.Service, authMod.Service)
 
@@ -121,10 +126,6 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	notificationsMod := notifications.New(notifications.Deps{Pool: pool, Workspaces: wsMod.Service, Users: usersMod.Service,
 		Cards: cardsMod.Service, Projects: projectsMod.Service, Hints: realtime.NewPublisher(pool, log)})
 	notifications.Register(bus, notificationsMod.Service, cardsMod.Service)
-	sealer, err := crypto.NewSealer(cfg.EncryptionKeyBytes())
-	if err != nil {
-		return nil, err
-	}
 	integrationsMod := integrations.New(integrations.Deps{Pool: pool, Workspaces: wsMod.Service,
 		Calendar: google.New(cfg.GoogleClientID, cfg.GoogleClientSecret, google.Endpoints{Auth: cfg.GoogleAuthURL,
 			Token: cfg.GoogleTokenURL, Userinfo: cfg.GoogleUserinfoURL, API: cfg.GoogleAPIURL}),

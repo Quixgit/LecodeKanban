@@ -594,6 +594,39 @@ func (e NotificationKind) Valid() bool {
 	}
 }
 
+// Defines values for NotificationPrefKind.
+const (
+	NotificationPrefKindAssigned      NotificationPrefKind = "assigned"
+	NotificationPrefKindDm            NotificationPrefKind = "dm"
+	NotificationPrefKindMeeting       NotificationPrefKind = "meeting"
+	NotificationPrefKindMention       NotificationPrefKind = "mention"
+	NotificationPrefKindTaskCommented NotificationPrefKind = "task_commented"
+	NotificationPrefKindTaskMoved     NotificationPrefKind = "task_moved"
+	NotificationPrefKindTaskUpdated   NotificationPrefKind = "task_updated"
+)
+
+// Valid indicates whether the value is a known member of the NotificationPrefKind enum.
+func (e NotificationPrefKind) Valid() bool {
+	switch e {
+	case NotificationPrefKindAssigned:
+		return true
+	case NotificationPrefKindDm:
+		return true
+	case NotificationPrefKindMeeting:
+		return true
+	case NotificationPrefKindMention:
+		return true
+	case NotificationPrefKindTaskCommented:
+		return true
+	case NotificationPrefKindTaskMoved:
+		return true
+	case NotificationPrefKindTaskUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PermissionInfoGroup.
 const (
 	PermissionInfoGroupAdmin    PermissionInfoGroup = "admin"
@@ -2034,6 +2067,11 @@ type ChecklistSummary struct {
 	Total int `json:"total"`
 }
 
+// CodeRequest defines model for CodeRequest.
+type CodeRequest struct {
+	Code string `json:"code"`
+}
+
 // ColumnInput defines model for ColumnInput.
 type ColumnInput struct {
 	Name     string     `json:"name"`
@@ -2531,6 +2569,26 @@ type NotificationPage struct {
 	Unread int `json:"unread"`
 }
 
+// NotificationPref defines model for NotificationPref.
+type NotificationPref struct {
+	Enabled bool                 `json:"enabled"`
+	Kind    NotificationPrefKind `json:"kind"`
+}
+
+// NotificationPrefKind defines model for NotificationPref.Kind.
+type NotificationPrefKind string
+
+// NotificationPrefInput defines model for NotificationPrefInput.
+type NotificationPrefInput struct {
+	Enabled bool   `json:"enabled"`
+	Kind    string `json:"kind"`
+}
+
+// NotificationPrefs defines model for NotificationPrefs.
+type NotificationPrefs struct {
+	Items []NotificationPref `json:"items"`
+}
+
 // NotificationsReadInput defines model for NotificationsReadInput.
 type NotificationsReadInput struct {
 	// All Mark every notification in the workspace
@@ -2672,6 +2730,11 @@ type RealtimeMessage struct {
 	// UserId Set on notification hints; only that person's clients refresh
 	UserId      *openapi_types.UUID `json:"userId,omitempty"`
 	WorkspaceId openapi_types.UUID  `json:"workspaceId"`
+}
+
+// RecoveryCodes defines model for RecoveryCodes.
+type RecoveryCodes struct {
+	Codes []string `json:"codes"`
 }
 
 // RegisterRequest defines model for RegisterRequest.
@@ -2828,6 +2891,38 @@ type Trend struct {
 	ChangePct *float32 `json:"changePct"`
 	Previous  int      `json:"previous"`
 	Value     int      `json:"value"`
+}
+
+// TwoFactorDisableRequest defines model for TwoFactorDisableRequest.
+type TwoFactorDisableRequest struct {
+	// Code A current code or a recovery code
+	Code string `json:"code"`
+
+	// Password The current password
+	Password *string `json:"password,omitempty"`
+}
+
+// TwoFactorLoginRequest defines model for TwoFactorLoginRequest.
+type TwoFactorLoginRequest struct {
+	Code string `json:"code"`
+
+	// Token The token from the auth.two_factor_required error
+	Token string `json:"token"`
+}
+
+// TwoFactorSetup defines model for TwoFactorSetup.
+type TwoFactorSetup struct {
+	// Secret Base32 secret for manual entry
+	Secret string `json:"secret"`
+
+	// Uri otpauth:// address for the QR code
+	Uri string `json:"uri"`
+}
+
+// TwoFactorStatus defines model for TwoFactorStatus.
+type TwoFactorStatus struct {
+	Enabled           bool `json:"enabled"`
+	RecoveryRemaining int  `json:"recoveryRemaining"`
 }
 
 // UpdateMemberRequest defines model for UpdateMemberRequest.
@@ -3641,6 +3736,9 @@ type ListWikiTemplatesParamsLang string
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
 
+// LoginTwoFactorJSONRequestBody defines body for LoginTwoFactor for application/json ContentType.
+type LoginTwoFactorJSONRequestBody = TwoFactorLoginRequest
+
 // ForgotPasswordJSONRequestBody defines body for ForgotPassword for application/json ContentType.
 type ForgotPasswordJSONRequestBody = EmailRequest
 
@@ -3725,8 +3823,20 @@ type UploadAvatarMultipartRequestBody UploadAvatarMultipartBody
 // UploadCoverMultipartRequestBody defines body for UploadCover for multipart/form-data ContentType.
 type UploadCoverMultipartRequestBody UploadCoverMultipartBody
 
+// SetNotificationPrefJSONRequestBody defines body for SetNotificationPref for application/json ContentType.
+type SetNotificationPrefJSONRequestBody = NotificationPrefInput
+
 // ChangePasswordJSONRequestBody defines body for ChangePassword for application/json ContentType.
 type ChangePasswordJSONRequestBody = ChangePasswordRequest
+
+// DisableTwoFactorJSONRequestBody defines body for DisableTwoFactor for application/json ContentType.
+type DisableTwoFactorJSONRequestBody = TwoFactorDisableRequest
+
+// EnableTwoFactorJSONRequestBody defines body for EnableTwoFactor for application/json ContentType.
+type EnableTwoFactorJSONRequestBody = CodeRequest
+
+// RegenerateRecoveryCodesJSONRequestBody defines body for RegenerateRecoveryCodes for application/json ContentType.
+type RegenerateRecoveryCodesJSONRequestBody = CodeRequest
 
 // UpdateSavedViewJSONRequestBody defines body for UpdateSavedView for application/json ContentType.
 type UpdateSavedViewJSONRequestBody = SavedViewPatch

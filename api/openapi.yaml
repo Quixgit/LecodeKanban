@@ -326,6 +326,114 @@ paths:
       responses:
         "204": { description: Signed out }
         "404": { $ref: "#/components/responses/Error" }
+  /auth/login/two-factor:
+    post:
+      tags: [auth]
+      operationId: loginTwoFactor
+      summary: Finish a sign-in with the code from the authenticator app (or a recovery code)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TwoFactorLoginRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/Session" }
+        "401": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "423": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /users/me/two-factor:
+    get:
+      tags: [users]
+      operationId: getTwoFactor
+      responses:
+        "200":
+          description: Whether two-factor authentication is on
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TwoFactorStatus" }
+  /users/me/two-factor/setup:
+    post:
+      tags: [users]
+      operationId: setupTwoFactor
+      summary: Generate a secret to scan; nothing changes until a code is confirmed
+      responses:
+        "200":
+          description: Secret and otpauth address
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TwoFactorSetup" }
+        "409": { $ref: "#/components/responses/Error" }
+  /users/me/two-factor/enable:
+    post:
+      tags: [users]
+      operationId: enableTwoFactor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CodeRequest" }
+      responses:
+        "200":
+          description: Turned on; the recovery codes are shown once
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecoveryCodes" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /users/me/two-factor/disable:
+    post:
+      tags: [users]
+      operationId: disableTwoFactor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TwoFactorDisableRequest" }
+      responses:
+        "204": { description: Turned off }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /users/me/two-factor/recovery-codes:
+    post:
+      tags: [users]
+      operationId: regenerateRecoveryCodes
+      summary: Replace the recovery codes (needs a valid code)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CodeRequest" }
+      responses:
+        "200":
+          description: The new codes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecoveryCodes" }
+        "422": { $ref: "#/components/responses/Error" }
+  /users/me/notification-prefs:
+    get:
+      tags: [notifications]
+      operationId: getNotificationPrefs
+      summary: Which kinds of notification the caller wants (all on unless switched off)
+      responses:
+        "200":
+          description: One entry per kind
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationPrefs" }
+    put:
+      tags: [notifications]
+      operationId: setNotificationPref
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NotificationPrefInput" }
+      responses:
+        "204": { description: Saved }
+        "422": { $ref: "#/components/responses/Error" }
   /users/me/password:
     post:
       tags: [users]
@@ -2824,6 +2932,40 @@ components:
       properties:
         token: { type: string }
         password: { type: string }
+    TwoFactorStatus:
+      type: object
+      required: [enabled, recoveryRemaining]
+      properties:
+        enabled: { type: boolean }
+        recoveryRemaining: { type: integer }
+    TwoFactorSetup:
+      type: object
+      required: [secret, uri]
+      properties:
+        secret: { type: string, description: Base32 secret for manual entry }
+        uri: { type: string, description: otpauth:// address for the QR code }
+    CodeRequest:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string }
+    RecoveryCodes:
+      type: object
+      required: [codes]
+      properties:
+        codes: { type: array, items: { type: string } }
+    TwoFactorDisableRequest:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string, description: A current code or a recovery code }
+        password: { type: string, description: The current password, when the account has one }
+    TwoFactorLoginRequest:
+      type: object
+      required: [token, code]
+      properties:
+        token: { type: string, description: The token from the auth.two_factor_required error }
+        code: { type: string }
     ChangePasswordRequest:
       type: object
       required: [newPassword]
@@ -3915,6 +4057,23 @@ components:
         link: { type: string }
         leadMinutes: { type: integer }
         attendees: { type: integer }
+    NotificationPref:
+      type: object
+      required: [kind, enabled]
+      properties:
+        kind: { type: string, enum: [assigned, task_moved, task_updated, task_commented, mention, dm, meeting] }
+        enabled: { type: boolean }
+    NotificationPrefs:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/NotificationPref" } }
+    NotificationPrefInput:
+      type: object
+      required: [kind, enabled]
+      properties:
+        kind: { type: string }
+        enabled: { type: boolean }
     Notification:
       type: object
       required: [id, kind, title, body, actor, cardId, projectId, channelId, messageId, link, createdAt, read]
