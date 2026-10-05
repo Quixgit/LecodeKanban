@@ -37,6 +37,8 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/notifications"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/projects"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/support"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/templates"
+	templatesvc "github.com/reliabilix/lecodekanban/backend/internal/modules/templates/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/timetracking"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users"
 	usershttp "github.com/reliabilix/lecodekanban/backend/internal/modules/users/transport/http"
@@ -64,6 +66,8 @@ type App struct {
 	Realtime *realtime.Hub
 	// Integrations runs the calendar loop (sync, meeting reminders).
 	Integrations *integrationsvc.Service
+	// Templates runs the recurring-task schedules.
+	Templates *templatesvc.Service
 }
 
 // build wires every module by hand: no globals, no reflection.
@@ -122,6 +126,8 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 		Mail: func(ctx context.Context, m mailer.Message, key string) error {
 			return mailer.Enqueue(ctx, pool, m, key)
 		}})
+	templatesMod := templates.New(templates.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service,
+		Projects: projectsMod.Service, Log: log})
 	attachmentsMod := attachments.New(attachments.Deps{Pool: pool, Bus: bus, Storage: storage,
 		MaxBytes: cfg.AttachmentMaxBytes(), Cards: cardsMod.Service, Workspaces: wsMod.Service, Users: usersMod.Service})
 	timeMod := timetracking.New(timetracking.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service,
@@ -204,6 +210,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			commentsMod.HTTP.PrivateRoutes(r)
 			customFieldsMod.HTTP.PrivateRoutes(r)
 			supportMod.HTTP.PrivateRoutes(r)
+			templatesMod.HTTP.PrivateRoutes(r)
 			r.Get("/meta", buildInfo(pool))
 			attachmentsMod.HTTP.PrivateRoutes(r)
 			timeMod.HTTP.PrivateRoutes(r)
@@ -237,7 +244,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			return apperr.New(apperr.NotFound, "route not found")
 		}))
 	})
-	return &App{Router: r, Metrics: m, Realtime: hub, Integrations: integrationsMod.Service}, nil
+	return &App{Router: r, Metrics: m, Realtime: hub, Integrations: integrationsMod.Service, Templates: templatesMod.Service}, nil
 }
 
 // githubWebhookPath is signature-verified (HMAC), not cookie-authenticated, so it skips the CSRF check.

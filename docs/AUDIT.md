@@ -386,6 +386,14 @@ Facts about what was checked, with how. Update on every phase.
 - By hand against a real database: a locked account (nine failures) was reset, the lock and the counter cleared, and the browser signed in with the printed password. An address with no account is refused and creates nothing.
 - Not covered: an automated test (the command is a thin script over the users service, whose password and lock methods are tested elsewhere); signing out other devices was not observed, only written as an update of the refresh tokens.
 
+## Task templates and recurring tasks
+
+- Go (database): names are unique per workspace ignoring case, validation (name, title, due offset, priority), a viewer reads but cannot write, a stranger sees nothing; creating a task from a template brings the title, priority, due date (offset from today, or the one chosen), checklist and subtasks, leaves out an assignee who is not in the workspace, and takes a new title; a schedule needs days when weekly, an hour 0-23 and a real time zone; nothing runs before its time, a due schedule makes the task once and moves on, a schedule whose author lost access switches itself off with a reason; deleting a template removes its schedules. Schedule arithmetic (daily, weekly, monthly, the 31st and leap years, a time zone in summer and in winter) is covered by the domain tests; the day the clocks change is not tested.
+- Vitest: draft-to-request rules, error order, weekday toggling, line parsing, due-offset parsing, schedule sentences.
+- Browser (axe, main area): create a template with a checklist, subtask and due offset; the cards show the counts; a project is required to create a task; the task opens with its checklist and subtask; a weekly schedule on Monday and Wednesday reads "Every Mon, Wed at 09:00" with a next run; pause shows Paused; delete the schedule and the template; Ukrainian and phone width without horizontal scroll. Screenshots (light, English) checked by eye.
+- Found on the way, not fixed here: the shell's logo text (`text-primary` on white) is below the contrast limit and a toast list reads as a list with a non-item (the toast is `role=status`); the browser test therefore checks the main area and runs after the toast has gone.
+- Not covered: labels and assignees in a template (kept as stored but not editable in this screen), dark theme and Ukrainian by eye, a time zone picker (free text, checked by the server), a Help guide for this page.
+
 ## What's new refresh
 
 - Vitest: English and Ukrainian locale parity with the four new entries. Browser (axe): the four Help tests pass on a freshly seeded database.

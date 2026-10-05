@@ -19,6 +19,7 @@ export const NAMESPACES = [
   'performance',
   'help',
   'onboarding',
+  'templates',
   'wiki',
   'wikiEditor',
   'chat',

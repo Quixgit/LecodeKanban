@@ -744,6 +744,48 @@ func (e ProjectStatus) Valid() bool {
 	}
 }
 
+// Defines values for RecurringTaskFreq.
+const (
+	RecurringTaskFreqDaily   RecurringTaskFreq = "daily"
+	RecurringTaskFreqMonthly RecurringTaskFreq = "monthly"
+	RecurringTaskFreqWeekly  RecurringTaskFreq = "weekly"
+)
+
+// Valid indicates whether the value is a known member of the RecurringTaskFreq enum.
+func (e RecurringTaskFreq) Valid() bool {
+	switch e {
+	case RecurringTaskFreqDaily:
+		return true
+	case RecurringTaskFreqMonthly:
+		return true
+	case RecurringTaskFreqWeekly:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RecurringTaskInputFreq.
+const (
+	RecurringTaskInputFreqDaily   RecurringTaskInputFreq = "daily"
+	RecurringTaskInputFreqMonthly RecurringTaskInputFreq = "monthly"
+	RecurringTaskInputFreqWeekly  RecurringTaskInputFreq = "weekly"
+)
+
+// Valid indicates whether the value is a known member of the RecurringTaskInputFreq enum.
+func (e RecurringTaskInputFreq) Valid() bool {
+	switch e {
+	case RecurringTaskInputFreqDaily:
+		return true
+	case RecurringTaskInputFreqMonthly:
+		return true
+	case RecurringTaskInputFreqWeekly:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Role.
 const (
 	RoleAdmin  Role = "admin"
@@ -3156,6 +3198,49 @@ type RecoveryCodes struct {
 	Codes []string `json:"codes"`
 }
 
+// RecurringTask defines model for RecurringTask.
+type RecurringTask struct {
+	Active     bool                `json:"active"`
+	Freq       RecurringTaskFreq   `json:"freq"`
+	Hour       int                 `json:"hour"`
+	Id         openapi_types.UUID  `json:"id"`
+	LastCardId *openapi_types.UUID `json:"lastCardId"`
+
+	// LastError Error code of the last run that failed
+	LastError  *string            `json:"lastError"`
+	LastRunAt  *time.Time         `json:"lastRunAt"`
+	MonthDay   *int               `json:"monthDay"`
+	NextRunAt  time.Time          `json:"nextRunAt"`
+	ProjectId  openapi_types.UUID `json:"projectId"`
+	TemplateId openapi_types.UUID `json:"templateId"`
+	Timezone   string             `json:"timezone"`
+	Weekdays   []int              `json:"weekdays"`
+}
+
+// RecurringTaskFreq defines model for RecurringTask.Freq.
+type RecurringTaskFreq string
+
+// RecurringTaskInput defines model for RecurringTaskInput.
+type RecurringTaskInput struct {
+	Active *bool                  `json:"active,omitempty"`
+	Freq   RecurringTaskInputFreq `json:"freq"`
+	Hour   int                    `json:"hour"`
+
+	// MonthDay Monthly; a 31st falls on the last day of shorter months
+	MonthDay   *int               `json:"monthDay,omitempty"`
+	ProjectId  openapi_types.UUID `json:"projectId"`
+	TemplateId openapi_types.UUID `json:"templateId"`
+
+	// Timezone IANA zone
+	Timezone *string `json:"timezone,omitempty"`
+
+	// Weekdays Weekly: 1 = Monday … 7 = Sunday
+	Weekdays *[]int `json:"weekdays,omitempty"`
+}
+
+// RecurringTaskInputFreq defines model for RecurringTaskInput.Freq.
+type RecurringTaskInputFreq string
+
 // RegisterRequest defines model for RegisterRequest.
 type RegisterRequest struct {
 	// Email Email address (validated server-side)
@@ -3313,6 +3398,38 @@ type SupportStatus string
 
 // TaskStatus defines model for TaskStatus.
 type TaskStatus string
+
+// TaskTemplate defines model for TaskTemplate.
+type TaskTemplate struct {
+	AssigneeIds []openapi_types.UUID `json:"assigneeIds"`
+	Checklist   []string             `json:"checklist"`
+	CreatedAt   time.Time            `json:"createdAt"`
+	Description string               `json:"description"`
+	DueInDays   *int                 `json:"dueInDays"`
+	Id          openapi_types.UUID   `json:"id"`
+	LabelIds    []openapi_types.UUID `json:"labelIds"`
+	Name        string               `json:"name"`
+	Priority    Priority             `json:"priority"`
+	Subtasks    []string             `json:"subtasks"`
+	Title       string               `json:"title"`
+}
+
+// TaskTemplateInput defines model for TaskTemplateInput.
+type TaskTemplateInput struct {
+	AssigneeIds *[]openapi_types.UUID `json:"assigneeIds,omitempty"`
+	Checklist   *[]string             `json:"checklist,omitempty"`
+	Description *string               `json:"description,omitempty"`
+
+	// DueInDays The due date is this many days after the task is made
+	DueInDays *int                  `json:"dueInDays,omitempty"`
+	LabelIds  *[]openapi_types.UUID `json:"labelIds,omitempty"`
+
+	// Name How the template is listed (unique per workspace)
+	Name     string    `json:"name"`
+	Priority *Priority `json:"priority,omitempty"`
+	Subtasks *[]string `json:"subtasks,omitempty"`
+	Title    string    `json:"title"`
+}
 
 // TimeEntry defines model for TimeEntry.
 type TimeEntry struct {
@@ -3482,6 +3599,18 @@ type UpdateProfileRequest struct {
 
 	// WorkStart HH:MM; send with workEnd, both empty clears
 	WorkStart *string `json:"workStart,omitempty"`
+}
+
+// UseTemplateRequest defines model for UseTemplateRequest.
+type UseTemplateRequest struct {
+	ColumnId *openapi_types.UUID `json:"columnId,omitempty"`
+
+	// DueDate Replaces the due date the template would give
+	DueDate   *openapi_types.Date `json:"dueDate,omitempty"`
+	ProjectId openapi_types.UUID  `json:"projectId"`
+
+	// Title Replaces the template's title
+	Title *string `json:"title,omitempty"`
 }
 
 // User defines model for User.
@@ -4498,8 +4627,17 @@ type UpdateProjectJSONRequestBody = ProjectPatch
 // CreateColumnJSONRequestBody defines body for CreateColumn for application/json ContentType.
 type CreateColumnJSONRequestBody = ColumnInput
 
+// UpdateRecurringTaskJSONRequestBody defines body for UpdateRecurringTask for application/json ContentType.
+type UpdateRecurringTaskJSONRequestBody = RecurringTaskInput
+
 // UpdateSupportRequestJSONRequestBody defines body for UpdateSupportRequest for application/json ContentType.
 type UpdateSupportRequestJSONRequestBody = SupportRequestPatch
+
+// UpdateTaskTemplateJSONRequestBody defines body for UpdateTaskTemplate for application/json ContentType.
+type UpdateTaskTemplateJSONRequestBody = TaskTemplateInput
+
+// UseTaskTemplateJSONRequestBody defines body for UseTaskTemplate for application/json ContentType.
+type UseTaskTemplateJSONRequestBody = UseTemplateRequest
 
 // UpdateTimeEntryJSONRequestBody defines body for UpdateTimeEntry for application/json ContentType.
 type UpdateTimeEntryJSONRequestBody = TimeEntryPatch
@@ -4624,6 +4762,9 @@ type MarkNotificationsReadJSONRequestBody = NotificationsReadInput
 // CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
 type CreateProjectJSONRequestBody = ProjectInput
 
+// CreateRecurringTaskJSONRequestBody defines body for CreateRecurringTask for application/json ContentType.
+type CreateRecurringTaskJSONRequestBody = RecurringTaskInput
+
 // CreateRoleJSONRequestBody defines body for CreateRole for application/json ContentType.
 type CreateRoleJSONRequestBody = RoleInput
 
@@ -4638,6 +4779,9 @@ type UpdateWorkspaceSettingsJSONRequestBody = WorkspaceSettingsPatch
 
 // CreateSupportRequestJSONRequestBody defines body for CreateSupportRequest for application/json ContentType.
 type CreateSupportRequestJSONRequestBody = SupportRequestInput
+
+// CreateTaskTemplateJSONRequestBody defines body for CreateTaskTemplate for application/json ContentType.
+type CreateTaskTemplateJSONRequestBody = TaskTemplateInput
 
 // CreateSavedViewJSONRequestBody defines body for CreateSavedView for application/json ContentType.
 type CreateSavedViewJSONRequestBody = SavedViewInput

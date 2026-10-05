@@ -105,6 +105,10 @@
     "time": {
       "title": "Час",
       "subtitle": "Табель, таймери й оцінки"
+    },
+    "templates": {
+      "title": "Шаблони",
+      "subtitle": "Шаблони завдань і повторювані завдання"
     }
   },
   "panel": {
@@ -113,7 +117,8 @@
     "yourProjects": "Проєкти",
     "allIntegrations": "Усі інтеграції",
     "modules": "Модулі",
-    "trash": "Кошик"
+    "trash": "Кошик",
+    "templates": "Шаблони"
   },
   "shortcuts": {
     "everywhere": "Усюди",

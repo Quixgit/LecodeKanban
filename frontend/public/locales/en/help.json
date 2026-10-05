@@ -305,6 +305,17 @@
     "changes": [
       {
         "date": "October 2026",
+        "tag": "feature",
+        "title": "Task templates and recurring tasks",
+        "text": "Save a task as a template with its checklist, subtasks and due offset, create tasks from it in one step, and let daily, weekly or monthly tasks create themselves on a schedule.",
+        "tech": [
+          "GET/POST /workspaces/{id}/templates · PUT/DELETE /templates/{id} · POST /templates/{id}/use",
+          "GET/POST /workspaces/{id}/recurring · PUT/DELETE /recurring/{id}",
+          "migration 00037 (task_templates, recurring_tasks); schedules are checked every minute"
+        ]
+      },
+      {
+        "date": "October 2026",
         "tag": "improvement",
         "title": "Resetting a lost password without email",
         "text": "Until email is set up, the person who runs the server can give an existing account a new one-time password and lift a sign-in lock with one command.",
@@ -457,11 +468,6 @@
       }
     ],
     "planned": [
-      {
-        "status": "in_progress",
-        "title": "Task templates and recurring tasks",
-        "text": "Start a task from a template with its checklist and subtasks, and let daily, weekly or monthly tasks create themselves."
-      },
       {
         "status": "planned",
         "title": "Global search",

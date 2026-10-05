@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Task templates and recurring tasks.** A new **Templates** page (Tasks menu, command palette): save a task as a
+  template with a title, description, priority, checklist, subtasks and a due offset; create a task from it in one
+  step (pick the project, change the title or the date); and set up schedules (daily, weekly on chosen days, or
+  monthly on a day; a 31st falls on the last day of shorter months) that create the task themselves at the chosen
+  hour in a time zone. A schedule can be paused, edited or deleted; one that can no longer run (the person who set
+  it up lost access, the project is gone) switches itself off and says why. Deleting a template removes its
+  schedules. Migration 00037.
 - **What's new is current again** (welcome guide, smoother invitations, password reset without email, Help center), and the
   README says to keep it current with every change. Demo accounts made by `make seed` are marked as set up, so the
   welcome guide does not cover the pages of a fresh demo or of the browser tests.

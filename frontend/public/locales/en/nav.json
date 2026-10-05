@@ -105,6 +105,10 @@
     "time": {
       "title": "Time",
       "subtitle": "Timesheet, timers and estimates"
+    },
+    "templates": {
+      "title": "Templates",
+      "subtitle": "Task templates and recurring tasks"
     }
   },
   "panel": {
@@ -113,7 +117,8 @@
     "yourProjects": "Projects",
     "allIntegrations": "All integrations",
     "modules": "Modules",
-    "trash": "Trash"
+    "trash": "Trash",
+    "templates": "Templates"
   },
   "shortcuts": {
     "everywhere": "Everywhere",

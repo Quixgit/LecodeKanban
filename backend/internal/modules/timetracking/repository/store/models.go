@@ -418,6 +418,25 @@ type ProjectDirectory struct {
 	ArchivedAt  *time.Time
 }
 
+type RecurringTask struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	TemplateID  uuid.UUID
+	ProjectID   uuid.UUID
+	Freq        string
+	Weekdays    []int16
+	MonthDay    *int16
+	Hour        int16
+	Timezone    string
+	Active      bool
+	NextRunAt   time.Time
+	LastRunAt   *time.Time
+	LastCardID  uuid.NullUUID
+	LastError   *string
+	CreatedBy   uuid.UUID
+	CreatedAt   time.Time
+}
+
 type RefreshToken struct {
 	ID         uuid.UUID
 	UserID     uuid.UUID
@@ -456,6 +475,23 @@ type SupportRequest struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	ResolvedAt     *time.Time
+}
+
+type TaskTemplate struct {
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
+	Name        string
+	Title       string
+	Description string
+	Priority    string
+	LabelIds    []uuid.UUID
+	AssigneeIds []uuid.UUID
+	Checklist   []string
+	Subtasks    []string
+	DueInDays   *int32
+	CreatedBy   uuid.NullUUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type TimeEntry struct {

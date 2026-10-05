@@ -334,8 +334,27 @@ Base URL: `/api/v1`
 | POST   | `/cards/{cardId}/github/issue`                     | session |                  | 201, 409 Error            | Open a GitHub issue for the card in its project's repository                           |
 | POST   | `/integrations/github/webhook`                     | public  |                  | 204, 401 Error            | Where GitHub delivers pull request and issue events (signed with the workspace secret) |
 
+## templates
+
+| Method | Path                                  | Auth    | Request            | Responses                 | Summary                                                           |
+| ------ | ------------------------------------- | ------- | ------------------ | ------------------------- | ----------------------------------------------------------------- |
+| GET    | `/workspaces/{workspaceId}/templates` | session |                    | 200                       |                                                                   |
+| POST   | `/workspaces/{workspaceId}/templates` | session | TaskTemplateInput  | 201, 409 Error, 422 Error |                                                                   |
+| PUT    | `/templates/{templateId}`             | session | TaskTemplateInput  | 200, 409 Error, 422 Error |                                                                   |
+| DELETE | `/templates/{templateId}`             | session |                    | 204                       |                                                                   |
+| POST   | `/templates/{templateId}/use`         | session | UseTemplateRequest | 201, 422 Error            | Create a task (with its checklist and subtasks) from the template |
+| GET    | `/workspaces/{workspaceId}/recurring` | session |                    | 200                       |                                                                   |
+| POST   | `/workspaces/{workspaceId}/recurring` | session | RecurringTaskInput | 201, 422 Error            |                                                                   |
+| PUT    | `/recurring/{recurringId}`            | session | RecurringTaskInput | 200, 422 Error            |                                                                   |
+| DELETE | `/recurring/{recurringId}`            | session |                    | 204                       |                                                                   |
+
 ## Schemas
 
+- **TaskTemplateInput** — `name`: string, `title`: string, `description?`: string, `priority?`: Priority, `labelIds?`: array, `assigneeIds?`: array, `checklist?`: array, `subtasks?`: array, `dueInDays?`: integer \| null
+- **TaskTemplate** — `id`: string, `name`: string, `title`: string, `description`: string, `priority`: Priority, `labelIds`: array, `assigneeIds`: array, `checklist`: array, `subtasks`: array, `dueInDays`: integer \| null, `createdAt`: string
+- **UseTemplateRequest** — `projectId`: string, `columnId?`: string \| null, `title?`: string \| null, `dueDate?`: string \| null
+- **RecurringTaskInput** — `templateId`: string, `projectId`: string, `freq`: string, `weekdays?`: array, `monthDay?`: integer, `hour`: integer, `timezone?`: string, `active?`: boolean
+- **RecurringTask** — `id`: string, `templateId`: string, `projectId`: string, `freq`: string, `weekdays`: array, `monthDay`: integer \| null, `hour`: integer, `timezone`: string, `active`: boolean, `nextRunAt`: string, `lastRunAt`: string \| null, `lastCardId`: string \| null, `lastError`: string \| null
 - **ErrorResponse** — `error`: object
 - **FieldError** — `field`: string, `code`: string, `params?`: object
 - **CsrfToken** — `token`: string
