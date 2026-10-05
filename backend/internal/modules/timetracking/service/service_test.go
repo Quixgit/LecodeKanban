@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -124,4 +125,97 @@ func TestManualTimeCanBeSwitchedOff(t *testing.T) {
 	if _, err := e.Time.Start(ctx, member, card.ID); err != nil {
 		t.Fatalf("a timer still works: %v", err)
 	}
+}
+
+func TestEstimateTimesheetAndEditing(t *testing.T) {
+	tdb.Reset(t)
+	e := testkit.New(t, tdb.Pool)
+	ctx := context.Background()
+	owner := e.User("Owner", "o@example.com")
+	member := e.User("Member", "m@example.com")
+	other := e.User("Other", "x@example.com")
+	viewer := e.User("Viewer", "v@example.com")
+	ws := e.Workspace(owner, map[uuid.UUID]wsdomain.Role{member: wsdomain.RoleMember, other: wsdomain.RoleMember,
+		viewer: wsdomain.RoleViewer}, tdb.Pool)
+	project := e.Project(owner, ws, "Core")
+	card := e.Card(member, ws, project, "Plan the launch")
+
+	// Estimate: whole minutes, bounded, cleared with nil, members only.
+	five := 5*3600 + 20
+	got, err := e.Time.SetEstimate(ctx, member, card.ID, &five)
+	if err != nil || got == nil || *got != 5*3600+60*0 {
+		t.Fatalf("estimate rounds to whole minutes: %v %v", got, err)
+	}
+	sum, _ := e.Time.List(ctx, member, card.ID)
+	if sum.EstimateSeconds == nil || *sum.EstimateSeconds != 5*3600 {
+		t.Fatalf("summary carries the estimate: %v", sum.EstimateSeconds)
+	}
+	tiny := 10
+	_, err = e.Time.SetEstimate(ctx, member, card.ID, &tiny)
+	mustCode(t, err, apperr.Validation)
+	_, err = e.Time.SetEstimate(ctx, viewer, card.ID, &five)
+	mustCode(t, err, wsdomain.ErrInsufficientRole)
+	if _, err := e.Time.SetEstimate(ctx, member, card.ID, nil); err != nil {
+		t.Fatal(err)
+	}
+	if sum, _ = e.Time.List(ctx, member, card.ID); sum.EstimateSeconds != nil {
+		t.Fatalf("estimate cleared: %v", sum.EstimateSeconds)
+	}
+
+	// Timesheet: a backdated entry shows in its period with its task; running timers too.
+	day := time.Now().UTC().Truncate(24 * time.Hour).Add(-48 * time.Hour).Add(9 * time.Hour)
+	if _, err := e.Time.Log(ctx, member, card.ID, service.LogInput{Seconds: 3600, Note: "kick-off", StartedAt: &day}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.Time.Start(ctx, member, card.ID); err != nil {
+		t.Fatal(err)
+	}
+	q := service.SheetQuery{From: day.Add(-24 * time.Hour), To: time.Now().Add(24 * time.Hour)}
+	sheet, err := e.Time.Timesheet(ctx, member, ws, q)
+	if err != nil || len(sheet.Entries) != 2 || sheet.Entries[0].CardTitle != "Plan the launch" || sheet.Entries[0].Project.Name != "Core" {
+		t.Fatalf("sheet: %+v %v", sheet, err)
+	}
+	if sheet.TotalSeconds < 3600 {
+		t.Fatalf("total counts the logged hour: %d", sheet.TotalSeconds)
+	}
+	// An earlier window does not include it; someone else's time needs the permission; a huge window is refused.
+	earlier := service.SheetQuery{From: day.Add(-72 * time.Hour), To: day.Add(-48 * time.Hour)}
+	if s, _ := e.Time.Timesheet(ctx, member, ws, earlier); len(s.Entries) != 0 {
+		t.Fatalf("outside the period: %+v", s.Entries)
+	}
+	q.UserID = &member
+	if _, err := e.Time.Timesheet(ctx, other, ws, service.SheetQuery{From: q.From, To: q.To, UserID: &member}); !apperr.IsCode(err, domain.ErrForbidden) {
+		t.Fatalf("a colleague must not read it: %v", err)
+	}
+	if s, err := e.Time.Timesheet(ctx, owner, ws, service.SheetQuery{From: q.From, To: q.To, UserID: &member}); err != nil || len(s.Entries) != 2 {
+		t.Fatalf("the owner manages time: %+v %v", s.Entries, err)
+	}
+	_, err = e.Time.Timesheet(ctx, member, ws, service.SheetQuery{From: day.AddDate(-1, 0, 0), To: day})
+	mustCode(t, err, apperr.Validation)
+
+	// Editing: the author changes a stopped entry; a running one must be stopped first; others are refused.
+	var logged, running service.SheetEntry
+	for _, en := range sheet.Entries {
+		if en.Running() {
+			running = en
+		} else {
+			logged = en
+		}
+	}
+	ninety := 5400
+	note := "  kick-off call  "
+	upd, err := e.Time.Update(ctx, member, logged.ID, service.UpdateInput{Seconds: &ninety, Note: &note})
+	if err != nil || upd.Seconds != 5400 || upd.Note != "kick-off call" || upd.EndedAt == nil || !upd.EndedAt.Equal(upd.StartedAt.Add(90*time.Minute)) {
+		t.Fatalf("update: %+v %v", upd, err)
+	}
+	_, err = e.Time.Update(ctx, member, running.ID, service.UpdateInput{Seconds: &ninety})
+	mustCode(t, err, domain.ErrRunning)
+	_, err = e.Time.Update(ctx, other, logged.ID, service.UpdateInput{Seconds: &ninety})
+	mustCode(t, err, domain.ErrForbidden)
+	if _, err := e.Time.Update(ctx, owner, logged.ID, service.UpdateInput{Seconds: &ninety}); err != nil {
+		t.Fatalf("a time manager may edit: %v", err)
+	}
+	zero := 0
+	_, err = e.Time.Update(ctx, member, logged.ID, service.UpdateInput{Seconds: &zero})
+	mustCode(t, err, apperr.Validation)
 }

@@ -8,6 +8,7 @@ const FEATURE_OF = {
   chat: 'chat',
   docs: 'docs',
   integrations: 'integrations',
+  time: 'time',
 } as const;
 
 /** The sidebar structure without the parts an administrator switched off for this workspace. */

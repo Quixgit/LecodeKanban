@@ -2,7 +2,7 @@ import { Info, Mail, Menu, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useChangeLanguage } from '@/features/auth';
-import { TimerIndicator } from '@/features/time-tracking';
+import { TimerMenu } from '@/features/time-tracking';
 import { env } from '@/shared/config/env';
 import { IconButton, Tooltip } from '@/shared/ui';
 import { useSidebarStore } from '../sidebarStore';
@@ -30,7 +30,7 @@ export function Header({ viewer }: { viewer: Viewer }) {
       <div className="min-w-0 flex-1">
         <PageTitle />
       </div>
-      <TimerIndicator />
+      <TimerMenu />
       <SearchTrigger />
       <div className="flex items-center gap-2">
         <Tooltip content={t('header.help')} side="bottom">

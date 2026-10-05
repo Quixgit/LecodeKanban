@@ -107,7 +107,7 @@ func New(t testing.TB, pool *pgxpool.Pool) *Env {
 	}
 	attachments := attachsvc.New(attachrepo.New(pool), disk, cards, ws, users, bus, AttachmentMaxBytes)
 	activity := activitysvc.New(activityrepo.New(pool), cards, users)
-	timeTracking := timesvc.New(timerepo.New(pool), cards, ws, users)
+	timeTracking := timesvc.New(timerepo.New(pool), cards, ws, users, projects)
 	hints := &Hints{}
 	chat := chatsvc.New(chatrepo.New(pool), ws, users, hints).WithScopes(projects, cards).WithFiles(disk, AttachmentMaxBytes).WithBus(bus)
 	notices := notifsvc.New(notifrepo.New(pool), ws, users, cards, projects, hints)

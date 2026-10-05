@@ -1,2 +1,3 @@
 export { TimeTracker } from './components/TimeTracker';
-export { TimerIndicator } from './components/TimerIndicator';
+export { TimerMenu } from './components/TimerMenu';
+export { TimesheetView } from './components/TimesheetView';

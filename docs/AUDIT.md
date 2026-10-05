@@ -336,3 +336,10 @@ Facts about what was checked, with how. Update on every phase.
 - Browser (axe on the settled page): search "restoring" opens the right article and the address carries it; article switch and "All guides"; shortcut filter; quick-start hand step toggles; "Learn more in Help" from Roles opens its guide; Ukrainian search and phone width without horizontal scroll. Light screenshot checked by eye.
 - The guides describe features by their current names; they are text, so a renamed screen needs the article updated (no automated check).
 - Not covered: dark theme of this page by eye, "What's new" is curated by hand (not generated from CHANGELOG), the guides have no screenshots (icons and numbered steps instead), the request form and editable articles (phase 2).
+## Time tracking redesign
+
+- Go (database): estimate rounds to whole minutes, is bounded, clears, members only; timesheet lists a backdated entry and a running timer with their task and project, respects the period, refuses a colleague's time without the permission and a window over 93 days; editing changes duration/note and keeps the end consistent, refuses a running entry, another person's entry and a zero duration, allows a time manager.
+- Vitest: week arithmetic (Monday start, month ends), grid building (rows, columns, totals, outside-the-week entries), start-time rules (never ends in the future, lengthened entries move earlier), `h:mm` formatting.
+- Browser (axe): estimate → progress, log with a quick amount and a note, edit to 90 minutes, delete; timesheet add through task search, week navigation; header timer menu; phone width without horizontal scroll. Screenshots of the timesheet checked by eye in light and dark; the card panel in light.
+- Found by the browser test, fixed: lengthening an entry made it end in the future and be refused (the start now moves earlier).
+- Not covered: the Ukrainian layout by eye, dark theme of the card panel and the menu, the person filter in the browser (permission checked in Go), exporting the timesheet, billable hours, approvals, day/week goals per person (the 8-hour bar is a fixed reference).

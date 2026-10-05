@@ -9,6 +9,7 @@ import {
   Package,
   Plug,
   Settings,
+  Timer,
   UsersRound,
   type LucideIcon,
 } from 'lucide-react';
@@ -40,6 +41,7 @@ export const navigation: NavSection[] = [
       { key: 'dashboard', to: '/', icon: House, end: true },
       { key: 'projects', to: '/projects', icon: Package },
       { key: 'calendar', to: '/calendar', icon: CalendarDays },
+      { key: 'time', to: '/time', icon: Timer },
       {
         key: 'tasks',
         to: '/tasks',

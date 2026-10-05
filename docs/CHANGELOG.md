@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Changed
+
+- **Time tracking, redone as one system.** _On a task:_ a single panel in the order a person thinks — Start/Stop timer
+  (a live clock on the button), an estimate with a progress bar (teal, amber near the limit, red when over, "2h left /
+  1h over"), "Log time" in a small dialog (quick amounts 15m–8h, any day, a note) and the log grouped by day with
+  edit and delete. _Everywhere:_ the header timer now opens a menu with the running task, Stop, today's total and the
+  tasks you worked on lately, each one click from a new timer. _New "Time" page_ (menu → Time): a week grid with tasks
+  down the side and days across, daily totals with an 8-hour goal bar, week navigation, project filter, and for people
+  who manage time a person filter; every cell adds or fixes time. Behind it: `GET /workspaces/{id}/time` (a person's
+  entries in a period, up to 93 days; others' time needs the time-management permission), `PATCH /time-entries/{id}`
+  (edit a stopped entry), `PUT /cards/{id}/time-estimate`, migration 00033. Hidden when the Time module is switched off.
+
 ### Added
 
 - **Help & Center** (the empty page is now real): a search over guides, shortcuts and pages; a five-step quick start
