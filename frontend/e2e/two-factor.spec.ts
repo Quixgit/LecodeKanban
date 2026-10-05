@@ -8,7 +8,14 @@ test.describe('Two-step verification', () => {
     const email = `mfa-${Date.now().toString(36)}@example.com`;
     const password = 'Kanban-Board-2026';
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.addInitScript(() => localStorage.setItem('lk-lang', 'en'));
+    // Dark theme: the QR code, the codes and the dialog must stay readable on it.
+    await page.addInitScript(() => {
+      localStorage.setItem('lk-lang', 'en');
+      localStorage.setItem(
+        'lk-theme',
+        JSON.stringify({ state: { preference: 'dark' }, version: 0 }),
+      );
+    });
 
     // A fresh account, so the shared demo user is never locked behind a code.
     await page.goto('/register');

@@ -6,7 +6,7 @@ import {
   Plus,
   TriangleAlert,
 } from 'lucide-react';
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -23,6 +23,7 @@ import { BoardFieldsProvider } from '@/features/custom-fields';
 import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { useHotkey } from '@/shared/hooks/useHotkey';
+import { useShortcutHelp, useShortcutSection } from '@/shared/lib/shortcutHelp';
 import {
   Button,
   Card as Panel,
@@ -57,7 +58,6 @@ import { planMove } from '../model/move';
 import { Board, type BoardHandle } from './Board';
 import { ColumnManager, type ColumnManagerHandle } from './ColumnManager';
 import { SavedViewsMenu, type ViewConfig } from './SavedViewsMenu';
-import { ShortcutsDialog } from './ShortcutsDialog';
 
 interface Props {
   currentUserId: string;
@@ -67,6 +67,15 @@ interface Props {
 }
 
 /** Kanban view of the Tasks page: all projects by status, or one project's own board. */
+const KANBAN_KEYS = {
+  newCard: ['N'],
+  search: ['/'],
+  navigate: ['↑', '↓', '←', '→'],
+  open: ['Enter'],
+  drag: ['Space'],
+  cancel: ['Esc'],
+} as const;
+
 export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
   const { t } = useTranslation(['kanban', 'tasks', 'common']);
   const errorText = useErrorText();
@@ -122,7 +131,6 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
   const create = useCardMutations(ws).create;
   const boardRef = useRef<BoardHandle>(null);
   const columnsRef = useRef<ColumnManagerHandle>(null);
-  const [shortcuts, setShortcuts] = useState(false);
 
   const openCard = useCallback(
     (id: string) =>
@@ -192,7 +200,14 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
     { enabled: canEdit },
   );
   useHotkey('/', () => document.getElementById(TASK_SEARCH_ID)?.focus());
-  useHotkey('?', () => setShortcuts(true), { shift: true });
+  const openHelp = useShortcutHelp((st) => st.setOpen);
+  useShortcutSection('kanban', {
+    title: t('shortcuts.title'),
+    items: (['newCard', 'search', 'navigate', 'open', 'drag', 'cancel'] as const).map((a) => ({
+      keys: KANBAN_KEYS[a],
+      label: t(`shortcuts.${a}`),
+    })),
+  });
 
   const current: ViewConfig = {
     swimlane: store.swimlane,
@@ -247,7 +262,7 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
         <IconButton
           label={t('shortcuts.title')}
           className="hidden xl:inline-flex"
-          onClick={() => setShortcuts(true)}
+          onClick={() => openHelp(true)}
         >
           <Keyboard />
         </IconButton>
@@ -272,7 +287,7 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
             ))}
           </DropdownRadioGroup>
           <DropdownSeparator />
-          <DropdownItem onSelect={() => setShortcuts(true)}>
+          <DropdownItem onSelect={() => openHelp(true)}>
             <Keyboard />
             {t('shortcuts.title')}
           </DropdownItem>
@@ -411,7 +426,6 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
           columns={columns}
         />
       )}
-      <ShortcutsDialog open={shortcuts} onOpenChange={setShortcuts} />
     </div>
   );
 }

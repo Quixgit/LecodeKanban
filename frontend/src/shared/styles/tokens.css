@@ -122,6 +122,14 @@
   color-scheme: light;
 }
 
+/* ---------- Compact density: tighter rows, controls and header (html[data-density='compact']) ---------- */
+:root[data-density='compact'] {
+  --header-h: 56px;
+  --row-h: 40px;
+  --control-h: 34px;
+  --control-h-sm: 28px;
+}
+
 /* ---------- Dark theme ---------- */
 :root[data-theme='dark'] {
   --c-primary: 86 196 188;

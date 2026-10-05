@@ -202,5 +202,21 @@
         "description": "A calendar meeting is about to start."
       }
     }
+  },
+  "interface": {
+    "title": "Interface",
+    "description": "How the platform fits on this browser.",
+    "density": {
+      "title": "Density",
+      "description": "Compact tightens rows, buttons and the header to show more on screen.",
+      "comfortable": "Comfortable",
+      "compact": "Compact"
+    },
+    "menu": {
+      "title": "Side menu",
+      "description": "A column of labelled links, or an icon strip with a menu for each section.",
+      "classic": "Classic",
+      "rail": "Icon menu"
+    }
   }
 }
