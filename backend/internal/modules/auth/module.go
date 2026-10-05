@@ -13,6 +13,7 @@ import (
 	transport "github.com/reliabilix/lecodekanban/backend/internal/modules/auth/transport/http"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/authtoken"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/config"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/crypto"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/eventbus"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/mailer"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/ratelimit"
@@ -25,6 +26,7 @@ type Deps struct {
 	Tokens  *authtoken.Manager
 	Users   service.Users
 	Present transport.UserPresenter
+	Sealer  *crypto.Sealer
 }
 
 type Module struct {
@@ -37,7 +39,7 @@ func New(d Deps) *Module {
 	mail := func(ctx context.Context, m mailer.Message, key string) error {
 		return mailer.Enqueue(ctx, d.Pool, m, key)
 	}
-	svc := service.New(service.DefaultConfig(cfg.PublicURL, cfg.RefreshTTL), d.Users, repository.New(d.Pool), d.Tokens, d.Bus, mail)
+	svc := service.New(service.DefaultConfig(cfg.PublicURL, cfg.RefreshTTL), d.Users, repository.New(d.Pool), d.Tokens, d.Bus, mail, d.Sealer)
 
 	providers := oauth.Registry{}
 	if cfg.GoogleClientID != "" {

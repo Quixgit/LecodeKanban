@@ -24,7 +24,10 @@
     "oauth_failed": "Sign-in with the provider failed. Please try again.",
     "oauth_email_unverified": "Your email isn't verified with that provider. Verify it there or use email and password.",
     "oauth_account_conflict": "An account with this email was just created. Please try signing in again.",
-    "session_not_found": "That session no longer exists."
+    "session_not_found": "That session no longer exists.",
+    "two_factor_required": "This account uses two-step verification. Sign in with your email and password, then enter the code.",
+    "two_factor_code_invalid": "That code is not valid. Check the app and try again.",
+    "two_factor_state": "Two-factor authentication is not in the right state for this. Reload the page."
   },
   "users": {
     "not_found": "User not found.",
