@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { ArrowLeft, Mail, MailCheck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { useFieldError } from '@/shared/hooks/useFieldError';
 import { Button, EmptyState, Field, FormAlert, Input } from '@/shared/ui';
@@ -16,8 +16,10 @@ export function ForgotPasswordForm() {
   const fe = useFieldError();
   const errorText = useErrorText();
   const forgot = useMutation({ mutationFn: (v: ForgotValues) => authApi.forgot(v.email) });
+  const [params] = useSearchParams();
   const { register, handleSubmit, formState, getValues } = useForm<ForgotValues>({
     resolver: zodResolver(forgotSchema),
+    defaultValues: { email: params.get('email') ?? '' },
   });
 
   const back = (
