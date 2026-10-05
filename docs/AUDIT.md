@@ -242,3 +242,8 @@ Facts about what was checked, with how. Update on every phase.
 
 - Unit: existing MetricCard/overlay tests; browser: settings, kanban, task window suites pass with the new fields and close button.
 - Not covered: visual regression of the mint outline (checked by eye).
+
+## Integration pages
+
+- Browser (with the stand-ins): Google Calendar and GitHub flows now run on the module pages (connect, settings,
+  pause, disconnect), axe on the page.
