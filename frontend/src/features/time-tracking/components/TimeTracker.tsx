@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Clock, ListChecks, Play, Plus, Square, Trash2 } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useWorkspaceSettings } from '@/features/settings';
+import { useCurrentWorkspace } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { useLanguage } from '@/shared/i18n';
 import { formatRelative } from '@/shared/lib/format';
@@ -28,6 +30,8 @@ export function TimeTracker({
   isAdmin: boolean;
 }) {
   const { t } = useTranslation('time');
+  const { workspace } = useCurrentWorkspace();
+  const manualAllowed = useWorkspaceSettings(workspace?.id).data?.timeAllowManual ?? true;
   const { language } = useLanguage();
   const errorText = useErrorText();
   const list = useTimeEntries(cardId);
@@ -123,7 +127,7 @@ export function TimeTracker({
         </div>
       </div>
       <div className="flex border-t border-primary-border/70 text-xs font-medium text-primary-ink">
-        {editable && (
+        {editable && manualAllowed && (
           <button
             type="button"
             aria-expanded={panel === 'log'}
@@ -157,7 +161,7 @@ export function TimeTracker({
         )}
       </div>
       <AnimatePresence initial={false}>
-        {panel === 'log' && editable && (
+        {panel === 'log' && editable && manualAllowed && (
           <motion.div
             key="log"
             variants={collapse}

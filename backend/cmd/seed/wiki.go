@@ -21,6 +21,7 @@ func (noTeams) Exists(context.Context, uuid.UUID, uuid.UUID) (bool, error)      
 
 type wikiAuth interface {
 	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
+	Policy(ctx context.Context, ws uuid.UUID) (wsdomain.Settings, error)
 }
 
 // Space icons are Lucide keys (frontend/src/features/wiki/model/icons.ts), never emoji.

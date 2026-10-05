@@ -18,6 +18,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/attachments/storage/local"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/auth"
 	authevents "github.com/reliabilix/lecodekanban/backend/internal/modules/auth/events"
+	authsvc "github.com/reliabilix/lecodekanban/backend/internal/modules/auth/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/boards"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/cards"
 	carddomain "github.com/reliabilix/lecodekanban/backend/internal/modules/cards/domain"
@@ -91,6 +92,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 
 	wsMod := workspaces.New(workspaces.Deps{Pool: pool, Bus: bus, Users: usersMod.Service, PublicURL: cfg.PublicURL,
 		Mail: mailInfo(cfg)})
+	wsMod.Service.SetTwoFactor(twoFactorGate{authMod.Service})
 	i18nMod := i18n.New()
 
 	boardsMod := boards.New(pool, wsMod.Service, bus)
@@ -312,4 +314,12 @@ func mailInfo(cfg *config.Config) wssvc.MailInfo {
 		return wssvc.MailInfo{Provider: "mailgun", Host: cfg.Mail.MailgunDomain, From: from}
 	}
 	return wssvc.MailInfo{Provider: "smtp", Host: cfg.SMTP.Host, From: cfg.SMTP.From}
+}
+
+// twoFactorGate lets the workspaces module ask the auth module whether someone has two-step verification on.
+type twoFactorGate struct{ auth *authsvc.Service }
+
+func (g twoFactorGate) Enabled(ctx context.Context, user uuid.UUID) (bool, error) {
+	st, err := g.auth.TwoFactorStatus(ctx, user)
+	return st.Enabled, err
 }
