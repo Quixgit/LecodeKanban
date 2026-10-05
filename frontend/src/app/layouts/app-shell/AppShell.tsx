@@ -21,6 +21,7 @@ import { PageSkeleton } from './PageSkeleton';
 import { MobileNav } from './sidebar/MobileNav';
 import { useWorkspaceAccent } from '@/features/settings';
 import { useShellLayout } from '@/shared/lib/shellLayout';
+import { GlobalShortcuts } from './GlobalShortcuts';
 import { Sidebar } from './sidebar/Sidebar';
 import { useShellCommands } from './useShellCommands';
 import { useViewer } from './useViewer';
@@ -59,7 +60,11 @@ export function AppShell() {
       <MobileNav />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header viewer={viewer} />
-        <main id="main" tabIndex={-1} className="flex-1 p-4 outline-none sm:p-6">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="flex-1 p-4 outline-none sm:p-6 [[data-density=compact]_&]:sm:p-4"
+        >
           <VerificationBanner />
           {/* Enter-only: an exit phase around lazy routes can stall and leave a blank, inert page. */}
           <motion.div
@@ -79,6 +84,7 @@ export function AppShell() {
         </main>
       </div>
       <CommandPalette commands={commands} />
+      <GlobalShortcuts />
     </div>
   );
 }

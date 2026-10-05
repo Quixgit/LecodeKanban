@@ -41,7 +41,7 @@ function Qr({ value, label }: { value: string; label: string }) {
       alt={label}
       width={192}
       height={192}
-      className="rounded-lg border border-border"
+      className="rounded-lg border border-border bg-white p-2"
     />
   ) : (
     <Skeleton className="size-48 rounded-lg" />

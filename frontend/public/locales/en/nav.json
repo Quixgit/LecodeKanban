@@ -31,7 +31,8 @@
     "close": "Close menu",
     "open": "Open menu",
     "classic": "Classic menu",
-    "rail": "Icon menu"
+    "rail": "Icon menu",
+    "pickSection": "Pick a section on the left."
   },
   "announcement": {
     "label": "Next meeting",
@@ -103,5 +104,23 @@
     "yourProjects": "Projects",
     "allIntegrations": "All integrations",
     "modules": "Modules"
+  },
+  "shortcuts": {
+    "everywhere": "Everywhere",
+    "palette": "Open the command palette",
+    "help": "Show this help",
+    "then": "then",
+    "description": "Shortcuts for this page and for every page.",
+    "go": {
+      "dashboard": "Go to Dashboard",
+      "projects": "Go to Projects",
+      "tasks": "Go to Tasks",
+      "calendar": "Go to Calendar",
+      "chat": "Go to Chat",
+      "docs": "Go to Docs",
+      "team": "Go to Team",
+      "settings": "Go to Settings"
+    },
+    "title": "Keyboard shortcuts"
   }
 }

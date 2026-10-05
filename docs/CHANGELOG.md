@@ -11,6 +11,14 @@
   e-mail or name, labels by name. Every row goes through the normal create path, so workspace rules (required due
   date, default priority) and permissions apply; the exported file imports as-is. Limits: 2000 rows, 2 MB.
   `POST /workspaces/{id}/import/tasks?projectId=&dryRun=`.
+- **Keyboard help on every page**: `?` opens a dialog with the shortcuts of the page you are on and the ones that work
+  everywhere (⌘/Ctrl+K, and `G` then a letter to jump: D dashboard, P projects, T tasks, L calendar, C chat, O docs,
+  M team, S settings). Pages register their own shortcuts; the board's own dialog was folded into it.
+- **Density** (Profile → Interface): comfortable or compact — rows, controls and the header shrink to show more. The side
+  menu style (classic or icon menu) is switchable there too.
+- **Icon menu on phones**: in the drawer, tap an icon and its menu opens next to the strip.
+- Accent colours are tested for AA contrast in both themes (buttons, links and tints), including extreme picks; the 2FA
+  QR code sits on white so it scans in the dark theme.
 
 ### Fixed
 

@@ -24,6 +24,7 @@ import { formatDate } from '@/shared/lib/format';
 import { applyServerFieldErrors } from '@/shared/lib/serverErrors';
 import { Button, Field, Input, Pill, SettingsCard, TagInput, Textarea, toast } from '@/shared/ui';
 import { profileApi } from '../api/profileApi';
+import { InterfaceCard } from './InterfaceCard';
 import { useProfileMutations } from '../hooks/useProfile';
 import { deviceTimezone, TIMEZONES } from '../model/timezone';
 import { profileSchema, type ProfileValues } from '../model/schemas';
@@ -107,6 +108,8 @@ export function ProfilePage() {
       <SettingsCard title={t('avatar.title')} description={t('avatar.description')}>
         <AvatarEditor user={user} />
       </SettingsCard>
+
+      <InterfaceCard />
 
       <form onSubmit={save} noValidate className="flex flex-col gap-6">
         <SettingsCard title={t('profile.title')} description={t('profile.description')}>

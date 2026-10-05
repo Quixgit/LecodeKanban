@@ -313,3 +313,9 @@ Facts about what was checked, with how. Update on every phase.
 - Go: parser (BOM, `;` separator, uk/en headers, status/priority/date aliases, blank lines, export formula guard undone, missing title column, empty file); service (dry run writes nothing, per-row warnings for unknown people/labels, rows without title skipped, status/assignee applied, viewer refused).
 - Browser: Data page checks a file, lists the skipped line, imports, the task shows on the board (axe on the preview).
 - Not covered: creating missing labels/people (they are reported and left empty), updating existing tasks by key, the 2000-row/2 MB limits end to end, docs and chat export (documents already export per page; chat export is a separate step).
+
+## Interface: shortcuts, density, phone menu
+
+- Unit: accent tokens pass AA (light and dark) for every offered accent and for extremes (yellow, white, black…).
+- Browser: `?` dialog (axe) and g-then-letter jumps; density persists across reload; the icon menu on a phone (axe); 2FA
+  flow now runs in the dark theme (axe on the dialog).

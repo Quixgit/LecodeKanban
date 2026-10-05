@@ -7,6 +7,8 @@ import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
 import { drawerLeft } from '@/shared/motion';
 import { Overlay } from '@/shared/ui/Modal';
 import { useSidebarStore } from '../sidebarStore';
+import { useShellLayout } from '@/shared/lib/shellLayout';
+import { MobileRail } from './MobileRail';
 import { SidebarContent } from './SidebarContent';
 
 /** Off-canvas navigation below the lg breakpoint; opens from the header's menu button. */
@@ -15,6 +17,7 @@ export function MobileNav() {
   const open = useSidebarStore((s) => s.mobileOpen);
   const setOpen = useSidebarStore((s) => s.setMobileOpen);
   const desktop = useMediaQuery('(min-width: 1024px)');
+  const rail = useShellLayout((s) => s.layout) === 'rail';
   const { pathname, search } = useLocation();
 
   // Going somewhere closes the drawer; so does growing past the breakpoint.
@@ -36,10 +39,14 @@ export function MobileNav() {
                 animate="visible"
                 exit="exit"
                 aria-label={t('sidebar.label')}
-                className="fixed inset-y-0 left-0 z-50 flex w-[17.5rem] max-w-[85vw] flex-col border-r border-border-subtle bg-surface shadow-lg"
+                className={`fixed inset-y-0 left-0 z-50 flex max-w-[92vw] flex-col border-r border-border-subtle bg-surface shadow-lg ${rail ? 'w-[21rem]' : 'w-[17.5rem]'}`}
               >
                 <Dialog.Title className="sr-only">{t('sidebar.label')}</Dialog.Title>
-                <SidebarContent collapsed={false} mobile onToggle={() => setOpen(false)} />
+                {rail ? (
+                  <MobileRail />
+                ) : (
+                  <SidebarContent collapsed={false} mobile onToggle={() => setOpen(false)} />
+                )}
               </motion.aside>
             </Dialog.Content>
           </Dialog.Portal>
