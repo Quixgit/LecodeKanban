@@ -1,8 +1,9 @@
-import { ChevronsLeft, X } from 'lucide-react';
+import { ChevronsLeft, LayoutPanelLeft, X } from 'lucide-react';
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
-import { IconButton } from '@/shared/ui';
+import { Button, IconButton, Tooltip } from '@/shared/ui';
+import { useSidebarStore } from '../sidebarStore';
 import { useNavigation } from '../useNavigation';
 import { AnnouncementCard } from './AnnouncementCard';
 import { BrandLogo } from './BrandLogo';
@@ -21,6 +22,7 @@ export function SidebarContent({ collapsed, onToggle, mobile }: Props) {
   const sections = useNavigation();
   const { t } = useTranslation('nav');
   const announcement = useAnnouncement();
+  const setLayout = useSidebarStore((s) => s.setLayout);
   const toggleLabel = mobile
     ? t('sidebar.close')
     : collapsed
@@ -87,6 +89,27 @@ export function SidebarContent({ collapsed, onToggle, mobile }: Props) {
           </Fragment>
         ))}
       </nav>
+
+      {!mobile && (
+        <div className={cn('px-4 pb-3', collapsed && 'flex justify-center')}>
+          {collapsed ? (
+            <Tooltip content={t('sidebar.rail')} side="right">
+              <IconButton
+                label={t('sidebar.rail')}
+                variant="ghost"
+                onClick={() => setLayout('rail')}
+              >
+                <LayoutPanelLeft />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Button variant="ghost" size="sm" block onClick={() => setLayout('rail')}>
+              <LayoutPanelLeft />
+              {t('sidebar.rail')}
+            </Button>
+          )}
+        </div>
+      )}
 
       {announcement && (
         <div className="px-4 pb-4">

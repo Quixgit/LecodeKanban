@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- **Icon-rail menu** (optional, "Icon menu" button at the bottom of the sidebar; "Classic menu" switches back; the
+  choice is remembered). A strip of icons, then — for Projects, Tasks, Integrations and Settings — a second column
+  with that section's menu (projects, task statuses with counts, modules, settings sections), then the content. In
+  this mode the admin centre does not repeat its own section list.
+
 ### Changed
 
 - **Integrations**: one look for every module. A card opens the module's own page (`/integrations/<module>`) with

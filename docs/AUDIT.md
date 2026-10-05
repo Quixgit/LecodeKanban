@@ -247,3 +247,9 @@ Facts about what was checked, with how. Update on every phase.
 
 - Browser (with the stand-ins): Google Calendar and GitHub flows now run on the module pages (connect, settings,
   pause, disconnect), axe on the page.
+
+## Icon-rail menu
+
+- Browser: switch on, section menu (settings, tasks with counts), a section without a menu closes the column, axe on the
+  rail, choice survives a reload, switch back.
+- Not covered: the rail below the lg breakpoint (the mobile drawer is unchanged).
