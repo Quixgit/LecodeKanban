@@ -1,7 +1,8 @@
+import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, signIn, test } from './fixtures';
 
-async function axeClean(page: import('@playwright/test').Page) {
+async function axeClean(page: Page) {
   await page.waitForTimeout(900); // cards rise in one after another
   const axe = await new AxeBuilder({ page })
     .include('main')
