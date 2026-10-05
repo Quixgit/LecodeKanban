@@ -14,7 +14,8 @@
     "help": "Help & Center",
     "team": "Team",
     "integrations": "Integrations",
-    "settings": "Settings"
+    "settings": "Settings",
+    "time": "Time"
   },
   "tasks": {
     "todo": "To Do",
@@ -100,6 +101,10 @@
     "trash": {
       "title": "Trash",
       "subtitle": "Deleted tasks you can bring back"
+    },
+    "time": {
+      "title": "Time",
+      "subtitle": "Timesheet, timers and estimates"
     }
   },
   "panel": {

@@ -107,6 +107,12 @@ type CardCounter struct {
 	Next      int32
 }
 
+type CardEstimate struct {
+	CardID    uuid.UUID
+	Seconds   int32
+	UpdatedAt time.Time
+}
+
 type CardFieldDirectory struct {
 	CardID      uuid.UUID
 	FieldID     uuid.UUID

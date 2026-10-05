@@ -41,3 +41,10 @@ export function clock(seconds: number): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
+
+/** "2:30" — hours and minutes for dense tables; "" for nothing. */
+export function compact(seconds: number): string {
+  if (seconds <= 0) return '';
+  const total = Math.max(1, Math.round(seconds / 60));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}

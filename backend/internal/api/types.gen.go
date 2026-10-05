@@ -3200,6 +3200,23 @@ type TimeEntry struct {
 	User      *PersonRef `json:"user"`
 }
 
+// TimeEntryPatch defines model for TimeEntryPatch.
+type TimeEntryPatch struct {
+	Note      *string    `json:"note,omitempty"`
+	Seconds   *int       `json:"seconds,omitempty"`
+	StartedAt *time.Time `json:"startedAt,omitempty"`
+}
+
+// TimeEstimate defines model for TimeEstimate.
+type TimeEstimate struct {
+	Seconds *int `json:"seconds"`
+}
+
+// TimeEstimateInput defines model for TimeEstimateInput.
+type TimeEstimateInput struct {
+	Seconds *int `json:"seconds"`
+}
+
 // TimeLogInput defines model for TimeLogInput.
 type TimeLogInput struct {
 	Note    *string `json:"note,omitempty"`
@@ -3211,8 +3228,31 @@ type TimeLogInput struct {
 
 // TimeSummary defines model for TimeSummary.
 type TimeSummary struct {
-	Entries      []TimeEntry `json:"entries"`
-	TotalSeconds int         `json:"totalSeconds"`
+	Entries []TimeEntry `json:"entries"`
+
+	// EstimateSeconds The time the task is expected to take
+	EstimateSeconds *int `json:"estimateSeconds"`
+	TotalSeconds    int  `json:"totalSeconds"`
+}
+
+// Timesheet defines model for Timesheet.
+type Timesheet struct {
+	Entries      []TimesheetEntry `json:"entries"`
+	TotalSeconds int              `json:"totalSeconds"`
+}
+
+// TimesheetCard defines model for TimesheetCard.
+type TimesheetCard struct {
+	Id      openapi_types.UUID `json:"id"`
+	Key     string             `json:"key"`
+	Project ProjectRef         `json:"project"`
+	Title   string             `json:"title"`
+}
+
+// TimesheetEntry defines model for TimesheetEntry.
+type TimesheetEntry struct {
+	Card  TimesheetCard `json:"card"`
+	Entry TimeEntry     `json:"entry"`
 }
 
 // TokenRequest defines model for TokenRequest.
@@ -4207,6 +4247,17 @@ type ListProjectsParamsSort string
 // ListProjectsParamsOrder defines parameters for ListProjects.
 type ListProjectsParamsOrder string
 
+// GetTimesheetParams defines parameters for GetTimesheet.
+type GetTimesheetParams struct {
+	// From Start of the period (inclusive)
+	From time.Time `form:"from" json:"from"`
+
+	// To End of the period (exclusive)
+	To        time.Time           `form:"to" json:"to"`
+	UserId    *openapi_types.UUID `form:"userId,omitempty" json:"userId,omitempty"`
+	ProjectId *CardProjectId      `form:"projectId,omitempty" json:"projectId,omitempty"`
+}
+
 // ListWikiTemplatesParams defines parameters for ListWikiTemplates.
 type ListWikiTemplatesParams struct {
 	Lang *ListWikiTemplatesParamsLang `form:"lang,omitempty" json:"lang,omitempty"`
@@ -4254,6 +4305,9 @@ type MoveCardJSONRequestBody = CardMove
 // LogTimeJSONRequestBody defines body for LogTime for application/json ContentType.
 type LogTimeJSONRequestBody = TimeLogInput
 
+// SetTimeEstimateJSONRequestBody defines body for SetTimeEstimate for application/json ContentType.
+type SetTimeEstimateJSONRequestBody = TimeEstimateInput
+
 // UpdateChatChannelJSONRequestBody defines body for UpdateChatChannel for application/json ContentType.
 type UpdateChatChannelJSONRequestBody = ChatChannelPatch
 
@@ -4295,6 +4349,9 @@ type UpdateProjectJSONRequestBody = ProjectPatch
 
 // CreateColumnJSONRequestBody defines body for CreateColumn for application/json ContentType.
 type CreateColumnJSONRequestBody = ColumnInput
+
+// UpdateTimeEntryJSONRequestBody defines body for UpdateTimeEntry for application/json ContentType.
+type UpdateTimeEntryJSONRequestBody = TimeEntryPatch
 
 // UpdateMeJSONRequestBody defines body for UpdateMe for application/json ContentType.
 type UpdateMeJSONRequestBody = UpdateProfileRequest

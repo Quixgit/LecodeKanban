@@ -186,6 +186,9 @@ Base URL: `/api/v1`
 | POST | `/cards/{cardId}/time` | session | TimeLogInput | 201, 422 Error |  |
 | POST | `/cards/{cardId}/timer` | session |  | 201 |  |
 | GET | `/timer` | session |  | 200 |  |
+| PUT | `/cards/{cardId}/time-estimate` | session | TimeEstimateInput | 200, 422 Error |  |
+| GET | `/workspaces/{workspaceId}/time` | session |  | 200, 403 Error, 422 Error | One person's time entries in a period, with their tasks |
+| PATCH | `/time-entries/{entryId}` | session | TimeEntryPatch | 200, 403 Error, 409 Error, 422 Error |  |
 | DELETE | `/time-entries/{entryId}` | session |  | 204, 403 Error |  |
 | POST | `/time-entries/{entryId}/stop` | session |  | 200, 409 Error |  |
 
@@ -413,7 +416,13 @@ Base URL: `/api/v1`
 - **CommentInput** — `body`: string
 - **Attachment** — `id`: string, `name`: string, `contentType`: string, `size`: integer, `previewable`: boolean, `uploadedBy`: object \| null, `createdAt`: string
 - **TimeEntry** — `id`: string, `cardId`: string, `user`: object \| null, `startedAt`: string, `endedAt`: string \| null, `seconds`: integer, `running`: boolean, `note`: string, `manual`: boolean
-- **TimeSummary** — `entries`: array, `totalSeconds`: integer
+- **TimeSummary** — `entries`: array, `totalSeconds`: integer, `estimateSeconds`: integer \| null
+- **TimeEstimateInput** — `seconds`: integer \| null
+- **TimeEstimate** — `seconds`: integer \| null
+- **TimeEntryPatch** — `seconds?`: integer, `note?`: string, `startedAt?`: string
+- **TimesheetEntry** — `entry`: TimeEntry, `card`: TimesheetCard
+- **TimesheetCard** — `id`: string, `key`: string, `title`: string, `project`: ProjectRef
+- **Timesheet** — `entries`: array, `totalSeconds`: integer
 - **TimeLogInput** — `seconds`: integer, `note?`: string, `startedAt?`: string
 - **RunningTimer** — `entry?`: TimeEntry
 - **ActivityEntry** — `id`: integer, `kind`: string, `data`: object, `actor`: object \| null, `at`: string

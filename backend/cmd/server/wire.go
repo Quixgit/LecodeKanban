@@ -119,7 +119,7 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	attachmentsMod := attachments.New(attachments.Deps{Pool: pool, Bus: bus, Storage: storage,
 		MaxBytes: cfg.AttachmentMaxBytes(), Cards: cardsMod.Service, Workspaces: wsMod.Service, Users: usersMod.Service})
 	timeMod := timetracking.New(timetracking.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service,
-		Users: usersMod.Service})
+		Users: usersMod.Service, Projects: projectsMod.Service})
 	wikiMod := wiki.New(wiki.Deps{Pool: pool, Workspaces: wsMod.Service, Teams: noTeams{}, Projects: projectsMod.Service,
 		Storage: storage, MaxUploadBytes: cfg.AttachmentMaxBytes()})
 	chatMod := chat.New(chat.Deps{Pool: pool, Workspaces: wsMod.Service, Users: usersMod.Service,

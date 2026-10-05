@@ -1594,8 +1594,64 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RunningTimer" }
+  /cards/{cardId}/time-estimate:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    put:
+      tags: [time]
+      operationId: setTimeEstimate
+      description: Set the time the task is expected to take, or clear it with null
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TimeEstimateInput" }
+      responses:
+        "200":
+          description: The estimate as stored (whole minutes)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TimeEstimate" }
+        "422": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/time:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [time]
+      operationId: getTimesheet
+      summary: One person's time entries in a period, with their tasks
+      description: Everyone sees their own; another person's needs the time-management permission. At most 93 days.
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time }, description: Start of the period (inclusive) }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time }, description: End of the period (exclusive) }
+        - { name: userId, in: query, schema: { type: string, format: uuid } }
+        - $ref: "#/components/parameters/CardProjectId"
+      responses:
+        "200":
+          description: Entries, oldest first
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Timesheet" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
   /time-entries/{entryId}:
     parameters: [{ $ref: "#/components/parameters/TimeEntryId" }]
+    patch:
+      tags: [time]
+      operationId: updateTimeEntry
+      description: Change the duration, note or start of a stopped entry (its author, or a time manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TimeEntryPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TimeEntry" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
     delete:
       tags: [time]
       operationId: deleteTimeEntry
@@ -3714,9 +3770,46 @@ components:
         manual: { type: boolean, description: Entered by hand rather than timed }
     TimeSummary:
       type: object
-      required: [entries, totalSeconds]
+      required: [entries, totalSeconds, estimateSeconds]
       properties:
         entries: { type: array, items: { $ref: "#/components/schemas/TimeEntry" } }
+        totalSeconds: { type: integer }
+        estimateSeconds: { type: integer, nullable: true, description: The time the task is expected to take }
+    TimeEstimateInput:
+      type: object
+      required: [seconds]
+      properties:
+        seconds: { type: integer, nullable: true, minimum: 60, maximum: 3600000 }
+    TimeEstimate:
+      type: object
+      required: [seconds]
+      properties:
+        seconds: { type: integer, nullable: true }
+    TimeEntryPatch:
+      type: object
+      properties:
+        seconds: { type: integer, minimum: 60, maximum: 86400 }
+        note: { type: string, maxLength: 500 }
+        startedAt: { type: string, format: date-time }
+    TimesheetEntry:
+      type: object
+      required: [entry, card]
+      properties:
+        entry: { $ref: "#/components/schemas/TimeEntry" }
+        card: { $ref: "#/components/schemas/TimesheetCard" }
+    TimesheetCard:
+      type: object
+      required: [id, key, title, project]
+      properties:
+        id: { type: string, format: uuid }
+        key: { type: string }
+        title: { type: string }
+        project: { $ref: "#/components/schemas/ProjectRef" }
+    Timesheet:
+      type: object
+      required: [entries, totalSeconds]
+      properties:
+        entries: { type: array, items: { $ref: "#/components/schemas/TimesheetEntry" } }
         totalSeconds: { type: integer }
     TimeLogInput:
       type: object

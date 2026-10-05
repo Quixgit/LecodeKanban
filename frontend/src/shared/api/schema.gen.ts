@@ -1512,6 +1512,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cards/{cardId}/time-estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Set the time the task is expected to take, or clear it with null */
+        put: operations["setTimeEstimate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/time": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * One person's time entries in a period, with their tasks
+         * @description Everyone sees their own; another person's needs the time-management permission. At most 93 days.
+         */
+        get: operations["getTimesheet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/time-entries/{entryId}": {
         parameters: {
             query?: never;
@@ -1527,7 +1568,8 @@ export interface paths {
         delete: operations["deleteTimeEntry"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** @description Change the duration, note or start of a stopped entry (its author, or a time manager) */
+        patch: operations["updateTimeEntry"];
         trace?: never;
     };
     "/time-entries/{entryId}/stop": {
@@ -3742,6 +3784,35 @@ export interface components {
         };
         TimeSummary: {
             entries: components["schemas"]["TimeEntry"][];
+            totalSeconds: number;
+            /** @description The time the task is expected to take */
+            estimateSeconds: number | null;
+        };
+        TimeEstimateInput: {
+            seconds: number | null;
+        };
+        TimeEstimate: {
+            seconds: number | null;
+        };
+        TimeEntryPatch: {
+            seconds?: number;
+            note?: string;
+            /** Format: date-time */
+            startedAt?: string;
+        };
+        TimesheetEntry: {
+            entry: components["schemas"]["TimeEntry"];
+            card: components["schemas"]["TimesheetCard"];
+        };
+        TimesheetCard: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            title: string;
+            project: components["schemas"]["ProjectRef"];
+        };
+        Timesheet: {
+            entries: components["schemas"]["TimesheetEntry"][];
             totalSeconds: number;
         };
         TimeLogInput: {
@@ -7521,6 +7592,64 @@ export interface operations {
             };
         };
     };
+    setTimeEstimate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cardId: components["parameters"]["CardId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeEstimateInput"];
+            };
+        };
+        responses: {
+            /** @description The estimate as stored (whole minutes) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeEstimate"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    getTimesheet: {
+        parameters: {
+            query: {
+                /** @description Start of the period (inclusive) */
+                from: string;
+                /** @description End of the period (exclusive) */
+                to: string;
+                userId?: string;
+                projectId?: components["parameters"]["CardProjectId"];
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Entries, oldest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
     deleteTimeEntry: {
         parameters: {
             query?: never;
@@ -7540,6 +7669,35 @@ export interface operations {
                 content?: never;
             };
             403: components["responses"]["Error"];
+        };
+    };
+    updateTimeEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entryId: components["parameters"]["TimeEntryId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeEntryPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeEntry"];
+                };
+            };
+            403: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
         };
     };
     stopTimer: {
