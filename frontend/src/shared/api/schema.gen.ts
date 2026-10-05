@@ -1164,6 +1164,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listTaskTemplates"];
+        put?: never;
+        post: operations["createTaskTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/templates/{templateId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateTaskTemplate"];
+        post?: never;
+        delete: operations["deleteTaskTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/templates/{templateId}/use": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a task (with its checklist and subtasks) from the template */
+        post: operations["useTaskTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspaceId}/recurring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get: operations["listRecurringTasks"];
+        put?: never;
+        post: operations["createRecurringTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recurring/{recurringId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurringId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateRecurringTask"];
+        post?: never;
+        delete: operations["deleteRecurringTask"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/cards/board": {
         parameters: {
             query?: never;
@@ -4120,6 +4211,87 @@ export interface components {
             unassignedOpen: number;
             projects: components["schemas"]["PerformanceProject"][];
         };
+        TaskTemplateInput: {
+            /** @description How the template is listed (unique per workspace) */
+            name: string;
+            title: string;
+            description?: string;
+            priority?: components["schemas"]["Priority"];
+            labelIds?: string[];
+            assigneeIds?: string[];
+            checklist?: string[];
+            subtasks?: string[];
+            /** @description The due date is this many days after the task is made */
+            dueInDays?: number | null;
+        };
+        TaskTemplate: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            title: string;
+            description: string;
+            priority: components["schemas"]["Priority"];
+            labelIds: string[];
+            assigneeIds: string[];
+            checklist: string[];
+            subtasks: string[];
+            dueInDays: number | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        UseTemplateRequest: {
+            /** Format: uuid */
+            projectId: string;
+            /** Format: uuid */
+            columnId?: string | null;
+            /** @description Replaces the template's title */
+            title?: string | null;
+            /**
+             * Format: date
+             * @description Replaces the due date the template would give
+             */
+            dueDate?: string | null;
+        };
+        RecurringTaskInput: {
+            /** Format: uuid */
+            templateId: string;
+            /** Format: uuid */
+            projectId: string;
+            /** @enum {string} */
+            freq: "daily" | "weekly" | "monthly";
+            /** @description Weekly: 1 = Monday … 7 = Sunday */
+            weekdays?: number[];
+            /** @description Monthly; a 31st falls on the last day of shorter months */
+            monthDay?: number;
+            hour: number;
+            /** @description IANA zone */
+            timezone?: string;
+            /** @default true */
+            active: boolean;
+        };
+        RecurringTask: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            templateId: string;
+            /** Format: uuid */
+            projectId: string;
+            /** @enum {string} */
+            freq: "daily" | "weekly" | "monthly";
+            weekdays: number[];
+            monthDay: number | null;
+            hour: number;
+            timezone: string;
+            active: boolean;
+            /** Format: date-time */
+            nextRunAt: string;
+            /** Format: date-time */
+            lastRunAt: string | null;
+            /** Format: uuid */
+            lastCardId: string | null;
+            /** @description Error code of the last run that failed */
+            lastError: string | null;
+        };
         WikiTrashItem: {
             node: components["schemas"]["WikiNode"];
             /** Format: date-time */
@@ -6808,6 +6980,227 @@ export interface operations {
                 };
             };
             403: components["responses"]["Error"];
+        };
+    };
+    listTaskTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Task templates, by name */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTemplate"][];
+                };
+            };
+        };
+    };
+    createTaskTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTemplate"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    updateTaskTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTemplate"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteTaskTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    useTaskTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UseTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description The new task */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    listRecurringTasks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recurring tasks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"][];
+                };
+            };
+        };
+    };
+    createRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringTaskInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    updateRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurringId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringTaskInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringTask"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    deleteRecurringTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurringId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     boardCards: {

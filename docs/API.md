@@ -147,6 +147,20 @@ Base URL: `/api/v1`
 | PATCH | `/checklist-items/{itemId}` | session | ChecklistItemPatch | 200 |  |
 | DELETE | `/checklist-items/{itemId}` | session |  | 204 |  |
 
+## templates
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/templates` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/templates` | session | TaskTemplateInput | 201, 409 Error, 422 Error |  |
+| PUT | `/templates/{templateId}` | session | TaskTemplateInput | 200, 409 Error, 422 Error |  |
+| DELETE | `/templates/{templateId}` | session |  | 204 |  |
+| POST | `/templates/{templateId}/use` | session | UseTemplateRequest | 201, 422 Error | Create a task (with its checklist and subtasks) from the template |
+| GET | `/workspaces/{workspaceId}/recurring` | session |  | 200 |  |
+| POST | `/workspaces/{workspaceId}/recurring` | session | RecurringTaskInput | 201, 422 Error |  |
+| PUT | `/recurring/{recurringId}` | session | RecurringTaskInput | 200, 422 Error |  |
+| DELETE | `/recurring/{recurringId}` | session |  | 204 |  |
+
 ## customFields
 
 | Method | Path | Auth | Request | Responses | Summary |
@@ -452,6 +466,11 @@ Base URL: `/api/v1`
 - **PerformancePerson** — `person`: PersonRef, `open`: integer, `done`: integer, `overdue`: integer
 - **PerformanceProject** — `project`: ProjectRef, `total`: integer, `done`: integer, `overdue`: integer, `doneInPeriod`: integer, `donePrevious`: integer
 - **PerformanceReport** — `days`: integer, `throughput`: Trend, `cycleTime`: DurationStat, `leadTime`: DurationStat, `lateDone`: integer, `doneWithDue`: integer, `previousLateDone`: integer, `previousDoneWithDue`: integer, `overdueNow`: integer, `wipInProgress`: integer, `wipInReview`: integer, `weekly`: array, `daily`: array, `histogram`: array, `aged`: array, `people`: array, `unassignedOpen`: integer, `projects`: array
+- **TaskTemplateInput** — `name`: string, `title`: string, `description?`: string, `priority?`: Priority, `labelIds?`: array, `assigneeIds?`: array, `checklist?`: array, `subtasks?`: array, `dueInDays?`: integer \| null
+- **TaskTemplate** — `id`: string, `name`: string, `title`: string, `description`: string, `priority`: Priority, `labelIds`: array, `assigneeIds`: array, `checklist`: array, `subtasks`: array, `dueInDays`: integer \| null, `createdAt`: string
+- **UseTemplateRequest** — `projectId`: string, `columnId?`: string \| null, `title?`: string \| null, `dueDate?`: string \| null
+- **RecurringTaskInput** — `templateId`: string, `projectId`: string, `freq`: string, `weekdays?`: array, `monthDay?`: integer, `hour`: integer, `timezone?`: string, `active?`: boolean
+- **RecurringTask** — `id`: string, `templateId`: string, `projectId`: string, `freq`: string, `weekdays`: array, `monthDay`: integer \| null, `hour`: integer, `timezone`: string, `active`: boolean, `nextRunAt`: string, `lastRunAt`: string \| null, `lastCardId`: string \| null, `lastError`: string \| null
 - **WikiTrashItem** — `node`: WikiNode, `expiresAt`: string
 - **WikiVisibilityInput** — `visibility`: object \| null, `workspaceRole?`: WikiWorkspaceRole
 - **WikiGrantInput** — `role`: WikiRole
