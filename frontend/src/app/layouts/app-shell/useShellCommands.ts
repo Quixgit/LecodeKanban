@@ -1,4 +1,4 @@
-import { Languages, LayoutTemplate, Moon, Sun, Trash2 } from 'lucide-react';
+import { FilePlus2, Languages, LayoutTemplate, Moon, Sun, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +40,14 @@ export function useShellCommands(): Command[] {
     const prefs = t('common:commandPalette.groups.preferences');
     return [
       ...nav,
+      {
+        id: 'nav-templates',
+        label: t('nav:panel.templates'),
+        group: goTo,
+        icon: FilePlus2,
+        keywords: ['recurring', 'repeat', 'шаблон', 'повторювані'],
+        run: () => navigate('/templates'),
+      },
       {
         id: 'nav-trash',
         label: t('nav:panel.trash'),

@@ -15,7 +15,7 @@ One-time server setup (administrator):
 
 1. Google Cloud console → your project → **APIs & Services → Library** → enable **Google Calendar API**.
 2. **OAuth consent screen** → add the scope `https://www.googleapis.com/auth/calendar.events.readonly`.
-   While the app is in *Testing* mode, add your colleagues under **Test users**. For wider use, Google
+   While the app is in _Testing_ mode, add your colleagues under **Test users**. For wider use, Google
    requires app verification for calendar scopes.
 3. **Credentials** → your OAuth client (the same one used for "Sign in with Google") → add this
    **Authorised redirect URI**:
@@ -41,8 +41,8 @@ follow each other.
 Setup (administrator):
 
 1. On GitHub create a personal access token: classic with scopes `repo` and `admin:repo_hook`, or
-   fine-grained with read & write for *Issues*, *Pull requests* and *Webhooks* and read for *Contents* and
-   *Metadata*, on the repositories you will link.
+   fine-grained with read & write for _Issues_, _Pull requests_ and _Webhooks_ and read for _Contents_ and
+   _Metadata_, on the repositories you will link.
 2. Integrations → GitHub → **Connect**, paste the token. It is checked against GitHub and stored
    encrypted (AES-GCM, with `LK_ENCRYPTION_KEY`).
 3. Link each project to its repository. A webhook is registered on the repository automatically; it
@@ -51,18 +51,18 @@ Setup (administrator):
 
 What happens:
 
-| On GitHub | In LecodeKanban |
-| --- | --- |
+| On GitHub                                                                                       | In LecodeKanban                                                              |
+| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | Pull request opened / ready for review that mentions `PLT-12` in its title, branch name or body | the task links the PR and moves to **In review** (never backwards from Done) |
-| Pull request merged | the task moves to **Done** |
-| Issue opened | a new task in the linked project (unless it was created from a task) |
-| Issue closed / reopened | the task moves to **Done** / back to **To Do** |
+| Pull request merged                                                                             | the task moves to **Done**                                                   |
+| Issue opened                                                                                    | a new task in the linked project (unless it was created from a task)         |
+| Issue closed / reopened                                                                         | the task moves to **Done** / back to **To Do**                               |
 
-| In LecodeKanban | On GitHub |
-| --- | --- |
-| Task moved to **Done** / out of Done | its linked issue is closed / reopened |
-| Task moved | a comment with a link on its open pull requests |
-| **Create GitHub issue** on a task | an issue in the project's repository, linked both ways |
+| In LecodeKanban                      | On GitHub                                              |
+| ------------------------------------ | ------------------------------------------------------ |
+| Task moved to **Done** / out of Done | its linked issue is closed / reopened                  |
+| Task moved                           | a comment with a link on its open pull requests        |
+| **Create GitHub issue** on a task    | an issue in the project's repository, linked both ways |
 
 Each rule is a switch in Settings. Changes made by the rules show up as made by the person who connected
 GitHub. The task window also suggests a branch name (`plt-12-short-title`) to copy.

@@ -1,0 +1,122 @@
+{
+  "tabs": {
+    "label": "Templates view",
+    "templates": "Templates",
+    "recurring": "Recurring"
+  },
+  "new": "New template",
+  "hint": "A template is the starting point of a task: its title, checklist, subtasks and due date. Create a task from it in one step, or let it repeat on a schedule.",
+  "empty": {
+    "title": "No templates yet",
+    "hint": "Save the shape of a task you create again and again — a release checklist, a weekly report, an onboarding."
+  },
+  "edit": "Edit {{name}}",
+  "delete": "Delete {{name}}",
+  "checklistCount_one": "{{count}} checklist item",
+  "checklistCount_other": "{{count}} checklist items",
+  "subtasksCount_one": "{{count}} subtask",
+  "subtasksCount_other": "{{count}} subtasks",
+  "dueIn_one": "Due in {{count}} day",
+  "dueIn_other": "Due in {{count}} days",
+  "deleteTitle": "Delete “{{name}}”?",
+  "deleteBody": "Schedules that use this template are deleted with it. Tasks already created stay.",
+  "deleteConfirm": "Delete",
+  "deleted": "Template deleted",
+  "dialog": {
+    "newTitle": "New template",
+    "editTitle": "Edit template",
+    "hint": "Fill in what every task made from it should start with.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "name": "Template name",
+    "nameHint": "How it appears in this list.",
+    "namePlaceholder": "Weekly report",
+    "title": "Task title",
+    "titleHint": "Can be changed when the task is created.",
+    "titlePlaceholder": "Weekly report for the team",
+    "description": "Description",
+    "checklist": "Checklist",
+    "subtasks": "Subtasks",
+    "linesHint": "One per line.",
+    "checklistPlaceholder": "Collect the numbers\nWrite the summary",
+    "subtasksPlaceholder": "Draft\nReview",
+    "priority": "Priority",
+    "dueIn": "Due after (days)",
+    "dueInHint": "Leave empty for no due date.",
+    "created": "Template saved",
+    "updated": "Template updated",
+    "errors": {
+      "name": "Give the template a name.",
+      "title": "Give the task a title.",
+      "due": "Use a whole number from 0 to 365."
+    }
+  },
+  "use": {
+    "button": "Create task",
+    "title": "Create a task from “{{name}}”",
+    "hint": "The checklist and subtasks come with it.",
+    "create": "Create task",
+    "project": "Project",
+    "projectPlaceholder": "Choose a project",
+    "taskTitle": "Title",
+    "due": "Due date",
+    "dueFromTemplate_one": "Left empty, it is due {{count}} day after today.",
+    "dueFromTemplate_other": "Left empty, it is due {{count}} days after today.",
+    "dueNone": "Left empty, the task has no due date.",
+    "created": "Task created",
+    "errors": {
+      "project": "Choose a project."
+    }
+  },
+  "recurring": {
+    "intro": "A recurring task creates itself from a template on a schedule, at the time you choose.",
+    "new": "New schedule",
+    "newTitle": "New schedule",
+    "editTitle": "Edit schedule",
+    "hint": "The task appears in the project at the chosen time.",
+    "template": "Template",
+    "templatePlaceholder": "Choose a template",
+    "project": "Project",
+    "repeat": "Repeat",
+    "freq": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "on": "On",
+    "dayOfMonth": "Day of the month",
+    "dayOfMonthHint": "A 31st falls on the last day of shorter months.",
+    "at": "At",
+    "timezone": "Time zone",
+    "timezoneHint": "For example Europe/Kyiv.",
+    "active": "Active",
+    "errors": {
+      "template": "Choose a template.",
+      "project": "Choose a project.",
+      "weekdays": "Choose at least one day."
+    },
+    "created": "Schedule saved",
+    "updated": "Schedule updated",
+    "deleted": "Schedule deleted",
+    "deleteTitle": "Delete this schedule?",
+    "deleteBody": "No new tasks will be created. Tasks already made stay.",
+    "edit": "Edit schedule",
+    "delete": "Delete schedule",
+    "toggle": "Run “{{name}}” on schedule",
+    "empty": {
+      "title": "No schedules yet",
+      "hint": "Pick a template, a project and when it should repeat.",
+      "needTemplate": "Create a template first, then repeat it on a schedule."
+    },
+    "unknownTemplate": "Template removed",
+    "describe": {
+      "daily": "Every day at {{time}}",
+      "weekly": "Every {{days}} at {{time}}",
+      "monthly": "On day {{day}} of every month at {{time}}"
+    },
+    "next": "Next: {{date}}",
+    "paused": "Paused",
+    "last": "last: {{date}}",
+    "failed": "The last run failed; the task was not created."
+  }
+}

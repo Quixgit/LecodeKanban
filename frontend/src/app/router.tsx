@@ -99,6 +99,7 @@ const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
 const TrashPage = lazy(() => import('@/pages/TrashPage'));
 const PerformancePage = lazy(() => import('@/pages/PerformancePage'));
 const HelpPage = lazy(() => import('@/pages/HelpPage'));
+const TemplatesPage = lazy(() => import('@/pages/TemplatesPage'));
 const TimePage = lazy(() => import('@/pages/TimePage'));
 const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'));
 const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmailPage'));
@@ -159,6 +160,7 @@ export const routes: RouteObject[] = [
           },
           { path: 'tasks', handle: page('tasks'), element: <TasksPage /> },
           { path: 'trash', handle: page('trash'), element: <TrashPage /> },
+          { path: 'templates', handle: page('templates'), element: <TemplatesPage /> },
           { path: 'tasks/:status', handle: page('tasks'), element: <TasksPage /> },
           {
             path: 'docs',

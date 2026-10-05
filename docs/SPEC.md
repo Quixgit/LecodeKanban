@@ -53,6 +53,7 @@ Added later by the owner: **subtasks** and a **time tracker** on cards (ADR 0013
 ## Integrations
 
 Each an isolated module behind a common `Integration` interface.
+
 - **GitHub**: OAuth (optionally a GitHub App); link repo to project; import issues → cards; create
   issue/branch from a card; PR/issue status ↔ column via HMAC-verified webhooks; PR checks on cards.
 - **Gmail**: Google OAuth with least-privilege scopes; card from email (button + label rule like
@@ -97,10 +98,11 @@ for shared/ui is optional.
 Easing `cubic-bezier(0.22, 1, 0.36, 1)`; micro 120–150 ms, UI 200–250 ms, large surfaces 300–350 ms;
 presets in `shared/motion`. Kanban: lift on drag (scale ≈1.02, deeper shadow, ≤2° rotation), animated
 placeholder gap, spring settle, layout animations, enter fade+slide, delete collapses. Sidebar width
-+ label fade, submenu height, shared-layout nav highlight. Drawer/modal slide + fade + backdrop blur,
-toasts spring. Page transitions subtle; staggered lists (30–40 ms); skeletons matching real layout;
-progress fills; KPI count-up; soft hover elevation; animated segmented control. Animate only
-`transform`/`opacity`.
+
+- label fade, submenu height, shared-layout nav highlight. Drawer/modal slide + fade + backdrop blur,
+  toasts spring. Page transitions subtle; staggered lists (30–40 ms); skeletons matching real layout;
+  progress fills; KPI count-up; soft hover elevation; animated segmented control. Animate only
+  `transform`/`opacity`.
 
 ## Deployment
 

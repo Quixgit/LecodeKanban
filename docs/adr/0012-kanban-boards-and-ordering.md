@@ -13,9 +13,9 @@ different columns were never compared.
 
 **Two board modes** in the Kanban view:
 
-- *Project board* — the project's own columns (custom columns, WIP limits, reordering). Moves
+- _Project board_ — the project's own columns (custom columns, WIP limits, reordering). Moves
   send `columnId`; neighbours must be in that column.
-- *All projects* — one lane per status. Moves send only `status`; neighbours may be cards of
+- _All projects_ — one lane per status. Moves send only `status`; neighbours may be cards of
   any project with that status, and the card lands in its project's first column of the status.
   Lane order is `position` across the workspace.
 

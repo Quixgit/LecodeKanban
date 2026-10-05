@@ -30,19 +30,20 @@ with the access control and security a company needs. Ukrainian and English.
 
 ## Features
 
-| | |
-|---|---|
-| **Boards & tasks** | Drag-and-drop Kanban with swimlanes, WIP limits, custom columns and saved views; list and calendar views; subtasks, checklists, custom fields, labels, attachments with previews, comments with @mentions, activity, a Trash with restore, CSV import and export. |
-| **Time** | A timer and an estimate on every task, a header timer menu with recent tasks, and a weekly timesheet. |
-| **Performance** | Throughput, cycle and lead time, overdue share, WIP, burn-up, cumulative flow and workload per person, with filters and CSV. |
-| **Docs & chat** | A page tree with a rich editor, Markdown/HTML export; channels, threads, pins, reactions, presence. |
-| **Integrations** | GitHub (links, rules), Google Calendar (meetings and reminders), email — built in. |
-| **Security & admin** | Roles and custom permissions, two-factor sign-in (TOTP + recovery codes), required 2FA, audit log, an admin centre for workspace rules, look and email. |
-| **Help & support** | Search, quick start, guides in English and Ukrainian, shortcuts, a support inbox and a technical *What's new*. |
-| **Experience** | Light and dark themes, compact or comfortable density, keyboard shortcuts (`?`), a command palette (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd>), realtime updates. |
+|                           |                                                                                                                                                                                                                                                                   |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Boards & tasks**        | Drag-and-drop Kanban with swimlanes, WIP limits, custom columns and saved views; list and calendar views; subtasks, checklists, custom fields, labels, attachments with previews, comments with @mentions, activity, a Trash with restore, CSV import and export. |
+| **Templates & recurring** | Task templates with a checklist and subtasks, created in one step or on a daily, weekly or monthly schedule.                                                                                                                                                      |
+| **Time**                  | A timer and an estimate on every task, a header timer menu with recent tasks, and a weekly timesheet.                                                                                                                                                             |
+| **Performance**           | Throughput, cycle and lead time, overdue share, WIP, burn-up, cumulative flow and workload per person, with filters and CSV.                                                                                                                                      |
+| **Docs & chat**           | A page tree with a rich editor, Markdown/HTML export; channels, threads, pins, reactions, presence.                                                                                                                                                               |
+| **Integrations**          | GitHub (links, rules), Google Calendar (meetings and reminders), email — built in.                                                                                                                                                                                |
+| **Security & admin**      | Roles and custom permissions, two-factor sign-in (TOTP + recovery codes), required 2FA, audit log, an admin centre for workspace rules, look and email.                                                                                                           |
+| **Help & support**        | Search, quick start, guides in English and Ukrainian, shortcuts, a support inbox and a technical _What's new_.                                                                                                                                                    |
+| **Experience**            | Light and dark themes, compact or comfortable density, keyboard shortcuts (`?`), a command palette (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd>), realtime updates.                                                                                                 |
 
-> Next up: task templates and recurring tasks, global search, digests and reminders, automations, public links,
-> webhooks and API tokens. The roadmap is also listed on the Help page → *What's new* → *Planned*.
+> Next up: global search, digests and reminders, automations, public links,
+> webhooks and API tokens. The roadmap is also listed on the Help page → _What's new_ → _Planned_.
 
 ## Requirements
 
@@ -59,13 +60,13 @@ make install              # Go modules + npm packages
 make dev                  # Postgres + Mailpit, migrations, API (hot reload) and web
 ```
 
-| What | Where |
-|---|---|
-| App | `http://localhost:47100` (`LK_PUBLIC_URL`) |
-| UI kit | `/ui-kit` (after signing in) |
-| Dev mailbox (Mailpit, basic auth `LK_MAILPIT_UI_AUTH`) | `http://localhost:47105` |
-| API health / readiness | `127.0.0.1:47101/healthz`, `/readyz` |
-| Prometheus metrics | `127.0.0.1:47106/metrics` |
+| What                                                   | Where                                      |
+| ------------------------------------------------------ | ------------------------------------------ |
+| App                                                    | `http://localhost:47100` (`LK_PUBLIC_URL`) |
+| UI kit                                                 | `/ui-kit` (after signing in)               |
+| Dev mailbox (Mailpit, basic auth `LK_MAILPIT_UI_AUTH`) | `http://localhost:47105`                   |
+| API health / readiness                                 | `127.0.0.1:47101/healthz`, `/readyz`       |
+| Prometheus metrics                                     | `127.0.0.1:47106/metrics`                  |
 
 Register at `/register`; the verification email arrives in Mailpit. Invite teammates from **Team**.
 Press <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> anywhere for the command palette and <kbd>?</kbd> for the shortcuts of the page you are on.
@@ -123,19 +124,19 @@ OAuth callbacks.
 
 ## Make targets
 
-| Target | What it does |
-|---|---|
-| `make dev` | Dependencies + migrations, then the API (air) and Vite in parallel |
-| `make deps-up` / `deps-down` | Start/stop Postgres and Mailpit (`docker-compose.dev.yml`) |
-| `make migrate-up` / `migrate-down` / `migrate-status` | goose migrations (embedded in the binary) |
-| `make migrate-create name=x` | New SQL migration |
-| `make gen` | sqlc, Go DTOs, the TS client and `docs/API.md` from `api/openapi.yaml` |
-| `make gen-check` | Fail if generated code is stale (CI) |
-| `make test` | Go tests (testcontainers PostgreSQL) + Vitest |
-| `make e2e` | Playwright end-to-end tests with axe accessibility checks |
-| `make lint` | `go vet`, golangci-lint, `tsc`, ESLint, Prettier |
-| `make check` | lint + test |
-| `make build` | Static Go binaries in `backend/bin` + the web bundle |
+| Target                                                | What it does                                                           |
+| ----------------------------------------------------- | ---------------------------------------------------------------------- |
+| `make dev`                                            | Dependencies + migrations, then the API (air) and Vite in parallel     |
+| `make deps-up` / `deps-down`                          | Start/stop Postgres and Mailpit (`docker-compose.dev.yml`)             |
+| `make migrate-up` / `migrate-down` / `migrate-status` | goose migrations (embedded in the binary)                              |
+| `make migrate-create name=x`                          | New SQL migration                                                      |
+| `make gen`                                            | sqlc, Go DTOs, the TS client and `docs/API.md` from `api/openapi.yaml` |
+| `make gen-check`                                      | Fail if generated code is stale (CI)                                   |
+| `make test`                                           | Go tests (testcontainers PostgreSQL) + Vitest                          |
+| `make e2e`                                            | Playwright end-to-end tests with axe accessibility checks              |
+| `make lint`                                           | `go vet`, golangci-lint, `tsc`, ESLint, Prettier                       |
+| `make check`                                          | lint + test                                                            |
+| `make build`                                          | Static Go binaries in `backend/bin` + the web bundle                   |
 
 ## Configuration
 

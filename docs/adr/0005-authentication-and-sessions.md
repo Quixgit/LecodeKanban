@@ -13,7 +13,7 @@
   keys are rejected.
 - **Refresh token:** 256-bit opaque value, stored only as SHA-256, httpOnly `lk_rt` cookie
   (`Path=/api/v1/auth`, `SameSite=Strict`), 30 days. **Rotated on every use**. Tokens of one login
-  form a *family*; presenting an already-rotated token revokes the family (theft detection), except
+  form a _family_; presenting an already-rotated token revokes the family (theft detection), except
   within a 15 s grace window, which covers two tabs refreshing simultaneously (the second gets an
   access token only; the browser already holds the new refresh cookie).
 - **CSRF:** double-submit cookie `lk_csrf` (readable by the SPA) echoed in `X-CSRF-Token` for every

@@ -156,7 +156,7 @@ Facts about what was checked, with how. Update on every phase.
 - Browser: right-click menu (axe), copy link to clipboard, star/unstar, details dialog, mentions-only, mute and
   hide into the Muted section and back, leave with confirmation.
 - Not covered: "Open in split view" from the Slack menu (there is no split view in this app; the menu offers
-  *Open in new tab* instead).
+  _Open in new tab_ instead).
 
 ## Profile page
 
@@ -193,10 +193,12 @@ Facts about what was checked, with how. Update on every phase.
 - Privacy: email and phone are visible to everyone in the workspace (as in most team tools); there is no per-field
   visibility switch yet.
 - Not covered: an @mention opens the card (wired, but not exercised in the browser).
+
 ## adduser command
 
 - Go: name from the email, `Name <email>` parsing, generated passwords satisfy the platform's own rules and differ every time. Checked by hand against a local database: the new account signs in with the printed password; running again leaves existing accounts alone.
 - Passwords are printed once and never stored or logged by the tool.
+
 ## Dashboard trends
 
 - Go: `trend` (no baseline gives null, +50%, -75%), stats follow the requested period. Unit: MetricCard shows the
@@ -222,6 +224,7 @@ Facts about what was checked, with how. Update on every phase.
 - Browser: the page (axe), the test-inbox warning, a test email appears in the list, the invitation link in the invite
   dialog.
 - The page cannot change the mail settings: credentials stay in `.env` by design.
+
 ## Dashboard trend chips, chat menu, header and split view
 
 - Go: temporary mute round-trips, shows its end, is refused for a past time or a level other than muted, lifts to
@@ -250,6 +253,7 @@ Facts about what was checked, with how. Update on every phase.
 
 - Go: workspace defaults apply to new spaces; an explicit choice wins; depth below 2 refused.
 - Browser: set and persist the default visibility.
+
 ## Two-step verification
 
 - Go: TOTP against RFC 6238 vectors; scoped tokens are not access tokens; full life cycle (setup, wrong/right code,
@@ -257,6 +261,7 @@ Facts about what was checked, with how. Update on every phase.
 - Unit: login form asks for the code. Browser: register, turn on (axe on the dialog), wrong code, sign in with a code,
   with a recovery code, turn off.
 - Not covered: admin policy to require 2FA; reset when both phone and recovery codes are lost.
+
 ## UI polish
 
 - Unit: existing MetricCard/overlay tests; browser: settings, kanban, task window suites pass with the new fields and close button.
@@ -283,10 +288,12 @@ Facts about what was checked, with how. Update on every phase.
 - Go: export needs the permission (members refused, owner allowed, grantable to members); formula cells neutralised.
 - Browser: the page offers the download (axe) and the file has the header row and data rows.
 - Not covered: export of other data (comments, time entries, docs) and a truncation notice in the UI.
+
 ## Rail: chat and docs lists
 
 - Browser: in the rail layout the channel list is inside the rail and not in the page; the docs tree too; axe on the rail.
 - Not covered: the rail below the lg breakpoint (the mobile layout is unchanged).
+
 ## Admin overview
 
 - Unit: set-up steps and progress (unknown steps are neither done nor open). Browser: settings suite.
@@ -298,16 +305,19 @@ Facts about what was checked, with how. Update on every phase.
   turning it on opens the door; turning the requirement off lets everyone in.
 - Browser: owner enables 2FA, requires it, turns their own off and sees the gate with the way to the security page.
 - Cost: one small indexed query per authorised request (the flag in the settings row).
+
 ## Filter and sort by custom field
 
 - Go: filter by equality and by text search; sort ascending and descending with numbers as numbers and cards without a value last.
 - Browser: choose a field and a value in the board's filter and only the matching task stays.
 - Not covered: sorting the board by a field (the board keeps its manual order), several field filters at once.
+
 ## Notification preferences
 
 - Go: all kinds on by default; unknown kind refused; a switched-off kind is not delivered while others are; switching on restores it.
 - Browser: toggle persists across reload (axe).
 - Not covered: per-channel/per-project overrides and email notifications (the product sends none of those kinds by email).
+
 ## CSV import
 
 - Go: parser (BOM, `;` separator, uk/en headers, status/priority/date aliases, blank lines, export formula guard undone, missing title column, empty file); service (dry run writes nothing, per-row warnings for unknown people/labels, rows without title skipped, status/assignee applied, viewer refused).
@@ -320,22 +330,26 @@ Facts about what was checked, with how. Update on every phase.
   restoring a parent brings the subtask; viewers are refused; a restored task is live again.
 - Browser: delete a task, find it in the trash (axe), restore it, see it in the task list.
 - Not covered: deleting forever (the trash is not emptied; attachment files would need cleaning with it).
+
 ## Interface: shortcuts, density, phone menu
 
 - Unit: accent tokens pass AA (light and dark) for every offered accent and for extremes (yellow, white, black…).
 - Browser: `?` dialog (axe) and g-then-letter jumps; density persists across reload; the icon menu on a phone (axe); 2FA
   flow now runs in the dark theme (axe on the dialog).
+
 ## Performance page
 
 - Go (no database): throughput this/previous period, cycle and lead time (average and median), a reopened task measures its last stretch of work, late share, overdue now, work in progress, aging list, cycle histogram buckets, cumulative flow (every task in exactly one status per day) and burn-up, weekly bars, per-person and per-project numbers, empty workspace. With the database: a member without the permission is refused, the owner's report lists the project and the new task.
 - Browser: Performance opens from the menu, shows all cards, period and burn-up switches, project filter and reset (axe on the settled page), phone width has no horizontal scroll; light and dark screenshots checked by eye.
 - Not covered: the Ukrainian layout by eye, workspaces beyond 50 000 tasks (the report is cut to the newest 50 000), time-zone-aware day boundaries (days are UTC, like the dashboard), the page hidden in the menu for a role without the permission (checked by the permission test, not in the browser).
+
 ## Help & Center
 
 - Vitest: search ranking and matching (every word, title above body, Ukrainian, empty query); locale parity covers the new help namespace (arrays must have the same length in en and uk).
 - Browser (axe on the settled page): search "restoring" opens the right article and the address carries it; article switch and "All guides"; shortcut filter; quick-start hand step toggles; "Learn more in Help" from Roles opens its guide; Ukrainian search and phone width without horizontal scroll. Light screenshot checked by eye.
 - The guides describe features by their current names; they are text, so a renamed screen needs the article updated (no automated check).
 - Not covered: dark theme of this page by eye, "What's new" is curated by hand (not generated from CHANGELOG), the guides have no screenshots (icons and numbered steps instead), the request form and editable articles (phase 2).
+
 ## Time tracking redesign
 
 - Go (database): estimate rounds to whole minutes, is bounded, clears, members only; timesheet lists a backdated entry and a running timer with their task and project, respects the period, refuses a colleague's time without the permission and a window over 93 days; editing changes duration/note and keeps the end consistent, refuses a running entry, another person's entry and a zero duration, allows a time manager.
@@ -343,18 +357,21 @@ Facts about what was checked, with how. Update on every phase.
 - Browser (axe): estimate → progress, log with a quick amount and a note, edit to 90 minutes, delete; timesheet add through task search, week navigation; header timer menu; phone width without horizontal scroll. Screenshots of the timesheet checked by eye in light and dark; the card panel in light.
 - Found by the browser test, fixed: lengthening an entry made it end in the future and be refused (the start now moves earlier).
 - Not covered: the Ukrainian layout by eye, dark theme of the card panel and the menu, the person filter in the browser (permission checked in Go), exporting the timesheet, billable hours, approvals, day/week goals per person (the 8-hour bar is a fixed reference).
+
 ## Support requests and technical What's new
 
 - Go (database): a viewer may write; owner and admin are emailed (not the author); validation; a wrong image type and a non-image behind a PNG label are refused; visibility (managers see all, others their own only, a stranger is refused); status changes need the permission, resolving stamps the time and reopening clears it; the screenshot is served to its author and managers only; 20 open requests per person.
 - Vitest: screenshot checks and base64 encoding; locale parity for the new help strings (changes, plans, support, inbox).
 - Browser (axe): required-field messages, a request with a screenshot appears in "Your requests" and in the owner's inbox with its picture, resolve changes the chip; the What's new tabs show API notes, the roadmap and versions. The email is enqueued (checked in the job table); actual SMTP delivery is not tested here.
 - Not covered: replying inside the platform (answers go by email), notifying by chat, the Ukrainian layout of the new cards by eye, a request from someone who left the workspace, editing or deleting a sent request.
+
 ## Sign-in and registration pages
 
 - Vitest: the registration schema wants the confirmation and equality (required / mismatch messages), the old password rules still hold.
 - Browser (axe, light and dark): login shows the form and the showcase with no violations; registration with two different passwords shows "Passwords don't match." and stays; phone width has no horizontal scroll. The two-factor e2e that creates accounts now fills the repeated password. Screenshots (light/dark, English/Ukrainian, desktop/phone) checked by eye.
 - A real finding from axe: the collaborator tags on the showcase had white text on a mid-tone fill below the contrast limit; they are now inverse-of-surface chips.
 - Not covered: the invitation-accept page (it has no password field), password reveal behaviour, a screen-reader pass of the decorative showcase (it is hidden from assistive technology).
+
 ## Welcome wizards
 
 - Go (database): onboarding completes once and is idempotent, WhatsApp is normalised and a bad value refused, the profile returns `onboarded`.
@@ -363,7 +380,16 @@ Facts about what was checked, with how. Update on every phase.
 - Not covered: every step in Ukrainian and in dark on desktop by eye, sending real invitation email (enqueued only), a screen-reader pass of the orbit art (hidden from assistive tech), photo upload inside the wizard beyond the existing avatar flow.
 - Invitation page: Go checks that the preview says an unknown address has no account; the browser test follows the link as a newcomer (no sign-in offered, address locked, account created, joined, short wizard). Not covered by a browser test: the existing-account branch (sign in with the address filled in, forgot-password link) and the Ukrainian text.
 - Invitee who registers without a return path: the browser test checks they land on the invitation (no wizard), join, and get the short guide with no workspace-name step. Not covered: sign-in through Google/GitHub (same code path, providers are not configured here).
+
 ## adduser -reset
 
 - By hand against a real database: a locked account (nine failures) was reset, the lock and the counter cleared, and the browser signed in with the printed password. An address with no account is refused and creates nothing.
 - Not covered: an automated test (the command is a thin script over the users service, whose password and lock methods are tested elsewhere); signing out other devices was not observed, only written as an update of the refresh tokens.
+
+## Task templates and recurring tasks
+
+- Go (database): names are unique per workspace ignoring case, validation (name, title, due offset, priority), a viewer reads but cannot write, a stranger sees nothing; creating a task from a template brings the title, priority, due date (offset from today, or the one chosen), checklist and subtasks, leaves out an assignee who is not in the workspace, and takes a new title; a schedule needs days when weekly, an hour 0-23 and a real time zone; nothing runs before its time, a due schedule makes the task once and moves on, a schedule whose author lost access switches itself off with a reason; deleting a template removes its schedules. Schedule arithmetic (daily, weekly, monthly, the 31st and leap years, a time zone in summer and in winter) is covered by the domain tests; the day the clocks change is not tested.
+- Vitest: draft-to-request rules, error order, weekday toggling, line parsing, due-offset parsing, schedule sentences.
+- Browser (axe, main area): create a template with a checklist, subtask and due offset; the cards show the counts; a project is required to create a task; the task opens with its checklist and subtask; a weekly schedule on Monday and Wednesday reads "Every Mon, Wed at 09:00" with a next run; pause shows Paused; delete the schedule and the template; Ukrainian and phone width without horizontal scroll. Screenshots (light, English) checked by eye.
+- Found on the way, not fixed here: the shell's logo text (`text-primary` on white) is below the contrast limit and a toast list reads as a list with a non-item (the toast is `role=status`); the browser test therefore checks the main area and runs after the toast has gone.
+- Not covered: labels and assignees in a template (kept as stored but not editable in this screen), dark theme and Ukrainian by eye, a time zone picker (free text, checked by the server), a Help guide for this page.

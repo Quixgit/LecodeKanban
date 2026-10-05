@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Task templates and recurring tasks.** A new **Templates** page (Tasks menu, command palette): save a task as a
+  template with a title, description, priority, checklist, subtasks and a due offset; create a task from it in one
+  step (pick the project, change the title or the date); and set up schedules (daily, weekly on chosen days, or
+  monthly on a day; a 31st falls on the last day of shorter months) that create the task themselves at the chosen
+  hour in a time zone. A schedule can be paused, edited or deleted; one that can no longer run (the person who set
+  it up lost access, the project is gone) switches itself off and says why. Deleting a template removes its
+  schedules. Migration 00037.
 - **`adduser -reset`** gives an existing account a new one-time password, lifts a sign-in lock and signs the person out of
   other devices. For people who lost a password while email is not configured; it never creates an account.
 
