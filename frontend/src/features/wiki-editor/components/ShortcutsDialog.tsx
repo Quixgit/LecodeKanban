@@ -1,52 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { modKeyLabel } from '@/shared/lib/platform';
+import {
+  EDITOR_SHORTCUTS as GROUPS,
+  MARKDOWN_SHORTCUTS as MARKDOWN,
+} from '@/shared/lib/shortcutCatalog';
 import { Kbd, Modal } from '@/shared/ui';
-
-const MOD = modKeyLabel;
-const ALT = 'Alt';
-const SHIFT = '⇧';
-
-/** keys per shortcut id; labels come from the wikiEditor translations. */
-const GROUPS: { id: string; items: { id: string; keys: string[] }[] }[] = [
-  {
-    id: 'text',
-    items: [
-      { id: 'bold', keys: [MOD, 'B'] },
-      { id: 'italic', keys: [MOD, 'I'] },
-      { id: 'underline', keys: [MOD, 'U'] },
-      { id: 'strike', keys: [MOD, SHIFT, 'S'] },
-      { id: 'code', keys: [MOD, 'E'] },
-      { id: 'highlight', keys: [MOD, SHIFT, 'H'] },
-      { id: 'link', keys: [MOD, 'K'] },
-      { id: 'paragraph', keys: [MOD, ALT, '0'] },
-      { id: 'heading', keys: [MOD, ALT, '1–4'] },
-    ],
-  },
-  {
-    id: 'blocks',
-    items: [
-      { id: 'slash', keys: ['/'] },
-      { id: 'bullet', keys: [MOD, SHIFT, '8'] },
-      { id: 'ordered', keys: [MOD, SHIFT, '7'] },
-      { id: 'task', keys: [MOD, SHIFT, '9'] },
-      { id: 'quote', keys: [MOD, SHIFT, 'B'] },
-      { id: 'codeBlock', keys: [MOD, ALT, 'C'] },
-      { id: 'indent', keys: ['Tab'] },
-      { id: 'outdent', keys: [SHIFT, 'Tab'] },
-    ],
-  },
-  {
-    id: 'editing',
-    items: [
-      { id: 'undo', keys: [MOD, 'Z'] },
-      { id: 'redo', keys: [MOD, SHIFT, 'Z'] },
-      { id: 'plain', keys: [MOD, SHIFT, 'V'] },
-      { id: 'hardBreak', keys: [SHIFT, 'Enter'] },
-    ],
-  },
-];
-
-const MARKDOWN = ['# ', '## ', '- ', '1. ', '[] ', '> ', '```', '---', '**x**', '`x`'];
 
 export function ShortcutsDialog({
   open,

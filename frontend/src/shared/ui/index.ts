@@ -43,3 +43,5 @@ export * from './TrendChip';
 export * from './SettingsCard';
 export * from './ProfileCover';
 export * from './coverPresets';
+export * from './Reveal';
+export * from './HelpLink';

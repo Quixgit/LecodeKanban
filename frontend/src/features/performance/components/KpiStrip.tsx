@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { CountUp, MetricCard } from '@/shared/ui';
+import { CountUp, MetricCard, Reveal } from '@/shared/ui';
 import type { PerformanceReport } from '../api/performanceApi';
 import { changePct, sharePct, splitHours } from '../model/format';
-import { Reveal } from './Reveal';
 
 /** The strip across the top: five numbers for the chosen period, each against the one before. */
 export function KpiStrip({ report }: { report: PerformanceReport }) {

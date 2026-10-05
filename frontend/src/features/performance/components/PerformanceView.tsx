@@ -5,7 +5,7 @@ import { useLabels } from '@/features/cards';
 import { useAllProjects } from '@/features/projects';
 import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
-import { Card, EmptyState, FilterSelect, SegmentedControl, Skeleton } from '@/shared/ui';
+import { Card, EmptyState, FilterSelect, Reveal, SegmentedControl, Skeleton } from '@/shared/ui';
 import { buttonVariants } from '@/shared/ui/buttonVariants';
 import type { PerformanceQuery } from '../api/performanceApi';
 import { usePerformance } from '../hooks/usePerformance';
@@ -13,7 +13,6 @@ import { CycleCard } from './CycleCard';
 import { FlowCard } from './FlowCard';
 import { KpiStrip } from './KpiStrip';
 import { ProjectsCard } from './ProjectsCard';
-import { Reveal } from './Reveal';
 import { ThroughputCard } from './ThroughputCard';
 import { WorkloadCard } from './WorkloadCard';
 

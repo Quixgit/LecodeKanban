@@ -112,11 +112,6 @@
   "a11y": {
     "skipToContent": "Skip to content"
   },
-  "comingSoon": {
-    "title": "{{section}} is on its way",
-    "description": "This section is being built right now. The design system and navigation are ready — explore them in the UI kit.",
-    "openUiKit": "Open UI kit"
-  },
   "notFound": {
     "title": "Page not found",
     "description": "The page you are looking for doesn't exist or has been moved.",

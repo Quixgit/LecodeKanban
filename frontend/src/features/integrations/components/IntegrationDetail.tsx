@@ -2,7 +2,7 @@ import { ArrowLeft, Plug } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { useErrorText } from '@/shared/hooks/useErrorText';
-import { Button, Card, EmptyState, Pill, Skeleton, Switch } from '@/shared/ui';
+import { Button, Card, EmptyState, HelpLink, Pill, Skeleton, Switch } from '@/shared/ui';
 import { useModules } from '../hooks/useModules';
 import { GithubSettings } from './GithubSettings';
 import { GoogleCalendarSettings } from './GoogleCalendarSettings';
@@ -75,6 +75,7 @@ export function IntegrationDetail() {
           <span className="text-sm font-medium text-text">{t('active.label')}</span>
         </label>
       </Card>
+      <HelpLink guide="integrations" article={m.github ? 'github' : 'calendar'} className="w-fit" />
       <Card className="p-6">
         {m.google && m.where === 'needsSetup' && <SetupGuide entry={m.google} />}
         {m.google && m.where !== 'needsSetup' && (

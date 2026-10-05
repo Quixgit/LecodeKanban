@@ -9,6 +9,7 @@ export { LabelsPage } from './components/LabelsPage';
 export { OverviewPage } from './components/OverviewPage';
 export { RulesPage } from './components/RulesPage';
 export { SettingsLayout } from './components/SettingsLayout';
+export { useMailStatus } from './hooks/useSettings';
 export { useFeatureEnabled, useWorkspaceSettings, type FeatureKey } from './hooks/useSettings';
 export { RolesPage } from './components/RolesPage';
 export { useWorkspaceAccent } from './hooks/useWorkspaceAccent';

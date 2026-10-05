@@ -23,6 +23,7 @@ import { BoardFieldsProvider } from '@/features/custom-fields';
 import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { useHotkey } from '@/shared/hooks/useHotkey';
+import { BOARD_KEYS as KANBAN_KEYS } from '@/shared/lib/shortcutCatalog';
 import { useShortcutHelp, useShortcutSection } from '@/shared/lib/shortcutHelp';
 import {
   Button,
@@ -67,14 +68,6 @@ interface Props {
 }
 
 /** Kanban view of the Tasks page: all projects by status, or one project's own board. */
-const KANBAN_KEYS = {
-  newCard: ['N'],
-  search: ['/'],
-  navigate: ['↑', '↓', '←', '→'],
-  open: ['Enter'],
-  drag: ['Space'],
-  cancel: ['Esc'],
-} as const;
 
 export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
   const { t } = useTranslation(['kanban', 'tasks', 'common']);
