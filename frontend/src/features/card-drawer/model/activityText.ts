@@ -1,5 +1,7 @@
 import type { TFunction } from 'i18next';
 import type { ActivityEntry } from '../api/drawerApi';
+import { columnLabel } from '@/shared/lib/columnName';
+import type { TaskStatus } from '@/shared/ui';
 
 export interface Lookups {
   people: Record<string, string>;
@@ -28,7 +30,11 @@ export function describeEntry(e: ActivityEntry, t: TFunction, l: Lookups): strin
       return [t('card:activity.deleted')];
     case 'card.moved':
       return [
-        t('card:activity.moved', { from: status(d.from), to: status(d.to), column: str(d.column) }),
+        t('card:activity.moved', {
+          from: status(d.from),
+          to: status(d.to),
+          column: columnLabel(str(d.column), str(d.to) as TaskStatus, status(d.to)),
+        }),
       ];
     case 'card.updated':
       return (Array.isArray(d.changes) ? (d.changes as Change[]) : []).flatMap((c) =>

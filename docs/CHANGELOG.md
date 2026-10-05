@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed
+
+- **Statuses in two languages**: a board's default columns are stored with the names of the language it was created in,
+  so an English reader saw Ukrainian names (and "До виконання · To Do" in the task window's status list). Default
+  columns now show the status name in the reader's own language everywhere (board headers, the task window, the
+  activity feed); a column the team renamed keeps its name.
+
 ### Added
 
 - **Chat appearance** (palette button in the chat header): eight ready-made themes (Aubergine, Ocean, Forest…) or your
