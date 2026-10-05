@@ -10,6 +10,10 @@
   introduces the team they joined. Each step saves as it goes, only the workspace name is required, "Skip setup"
   closes it, and Help → Quick start can run it again. WhatsApp is a new profile field, shown on the member card.
   Existing accounts are marked as already set up (migration 00036).
+- **Invitation links no longer ask a newcomer for a password they don't have.** The invitation page now knows whether
+  the invited address has an account: a new person is offered "Create your account" with the invited address filled
+  in and locked and only a name and a password of their own to choose; someone who already has an account gets
+  "Sign in" (address filled in) and "Forgot your password?".
 
 ### Changed
 

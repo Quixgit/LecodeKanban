@@ -134,9 +134,16 @@ test.describe('Welcome wizard', () => {
     const guest = await ctx.newPage();
     await guest.addInitScript(() => localStorage.setItem('lk-lang', 'en'));
     const path = new URL(link).pathname;
-    await guest.goto(`/register?next=${encodeURIComponent(path)}`);
+    // A newcomer is offered account creation (no password to ask anyone for), with the invited address locked in.
+    await guest.goto(path);
+    await expect(guest.getByText("You don't need a password from anyone")).toBeVisible();
+    await expect(guest.getByRole('link', { name: 'Sign in to accept' })).toHaveCount(0);
+    await guest.getByRole('link', { name: 'Create your account' }).click();
+    await expect(guest.getByRole('heading', { name: 'Create your account' })).toBeVisible();
+    await guest.waitForTimeout(600); // the page transition settles
     await guest.getByLabel('Full name').fill('Guest Person');
-    await guest.getByLabel('Email').fill(email);
+    await expect(guest.getByLabel('Email')).toHaveValue(email);
+    await expect(guest.getByLabel('Email')).toHaveJSProperty('readOnly', true);
     await guest.getByLabel('Password', { exact: true }).fill(PASSWORD);
     await guest.getByLabel('Confirm password').fill(PASSWORD);
     await guest.getByRole('button', { name: 'Create account' }).click();

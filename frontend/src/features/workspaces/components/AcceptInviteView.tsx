@@ -89,6 +89,7 @@ export function AcceptInviteView({ token, user, onSwitchAccount }: Props) {
     ? t('auth:invite.body', { inviter: p.inviterName, workspace: p.workspaceName, role })
     : t('auth:invite.bodyNoInviter', { workspace: p.workspaceName, role });
   const next = encodeURIComponent(`/invite/${token}`);
+  const email = encodeURIComponent(p.email);
   const mismatch = user && user.email.toLowerCase() !== p.email.toLowerCase();
 
   return (
@@ -105,14 +106,29 @@ export function AcceptInviteView({ token, user, onSwitchAccount }: Props) {
 
       <div className="mt-7 flex w-full max-w-xs flex-col gap-2.5">
         <FormAlert>{accept.error ? errorText(accept.error) : null}</FormAlert>
-        {!user && (
+        {!user && p.hasAccount && (
           <>
             <Button asChild size="lg" block>
-              <Link to={`/login?next=${next}`}>{t('auth:invite.signInToAccept')}</Link>
+              <Link to={`/login?next=${next}&email=${email}`}>
+                {t('auth:invite.signInToAccept')}
+              </Link>
             </Button>
-            <Button asChild size="lg" variant="secondary" block>
-              <Link to={`/register?next=${next}`}>{t('auth:invite.registerToAccept')}</Link>
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-primary-ink hover:underline"
+            >
+              {t('auth:invite.forgot')}
+            </Link>
+          </>
+        )}
+        {!user && !p.hasAccount && (
+          <>
+            <Button asChild size="lg" block>
+              <Link to={`/register?next=${next}&email=${email}`}>
+                {t('auth:invite.registerToAccept')}
+              </Link>
             </Button>
+            <p className="text-xs text-text-muted">{t('auth:invite.newHint')}</p>
           </>
         )}
         {user && mismatch && (

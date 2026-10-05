@@ -3469,7 +3469,7 @@ components:
         role: { $ref: "#/components/schemas/InviteRole" }
     InvitePreview:
       type: object
-      required: [workspaceName, inviterName, email, role, expired, accepted]
+      required: [workspaceName, inviterName, email, role, expired, accepted, hasAccount]
       properties:
         workspaceName: { type: string }
         inviterName: { type: string, nullable: true }
@@ -3477,6 +3477,7 @@ components:
         role: { $ref: "#/components/schemas/InviteRole" }
         expired: { type: boolean }
         accepted: { type: boolean }
+        hasAccount: { type: boolean }
     TaskStatus:
       type: string
       enum: [todo, in_progress, in_review, done]

@@ -146,6 +146,9 @@ func TestInviteAcceptAndRoles(t *testing.T) {
 	if err != nil || p.WorkspaceName != "Team" || p.InviterName == nil || *p.InviterName != "Owner" || p.Expired || p.Accepted {
 		t.Fatalf("preview: %+v %v", p, err)
 	}
+	if p.HasAccount {
+		t.Fatalf("a stranger to the platform must be sent to register, not sign in: %+v", p)
+	}
 	_, err = e.svc.Preview(ctx, "nope")
 	mustCode(t, err, domain.ErrInviteNotFound)
 
