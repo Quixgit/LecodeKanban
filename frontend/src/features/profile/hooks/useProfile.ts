@@ -49,6 +49,39 @@ export function useDeviceMutations() {
   };
 }
 
+export const notifyPrefsKey = ['notification-prefs'] as const;
+
+export function useNotificationPrefs() {
+  return useQuery({
+    queryKey: notifyPrefsKey,
+    queryFn: profileApi.notificationPrefs,
+    staleTime: 30_000,
+  });
+}
+
+/** Switches one kind on or off; the switch moves at once and goes back if the server says no. */
+export function useSetNotificationPref() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: profileApi.setNotificationPref,
+    onMutate: async (v) => {
+      await qc.cancelQueries({ queryKey: notifyPrefsKey });
+      const before = qc.getQueryData<{ items: { kind: string; enabled: boolean }[] }>(
+        notifyPrefsKey,
+      );
+      if (before)
+        qc.setQueryData(notifyPrefsKey, {
+          items: before.items.map((i) => (i.kind === v.kind ? { ...i, enabled: v.enabled } : i)),
+        });
+      return { before };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.before) qc.setQueryData(notifyPrefsKey, ctx.before);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: notifyPrefsKey }),
+  });
+}
+
 export const twoFactorKey = ['two-factor'] as const;
 
 export function useTwoFactor() {

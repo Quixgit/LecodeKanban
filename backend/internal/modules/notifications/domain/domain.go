@@ -2,9 +2,12 @@
 package domain
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/apperr"
 )
 
 type Kind string
@@ -18,6 +21,18 @@ const (
 	DM            Kind = "dm"             // a direct message
 	Meeting       Kind = "meeting"        // a calendar meeting is about to start
 )
+
+// Kinds lists every kind, in the order the preferences screen shows them.
+var Kinds = []Kind{Assigned, Mention, DM, TaskCommented, TaskMoved, TaskUpdated, Meeting}
+
+func (k Kind) Valid() bool {
+	for _, c := range Kinds {
+		if c == k {
+			return true
+		}
+	}
+	return false
+}
 
 // Notification is one row of a person's bell. Title is the subject (a task key and title, or a
 // channel name) and Body the detail (a message excerpt, the target column); clients phrase the rest.
@@ -40,3 +55,6 @@ type Notification struct {
 }
 
 func (n Notification) Read() bool { return n.ReadAt != nil }
+
+// ErrUnknownKind: a preference was asked for a kind that does not exist.
+var ErrUnknownKind = apperr.Define("notifications.unknown_kind", http.StatusUnprocessableEntity)

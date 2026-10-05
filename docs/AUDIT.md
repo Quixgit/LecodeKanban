@@ -289,3 +289,8 @@ Facts about what was checked, with how. Update on every phase.
   turning it on opens the door; turning the requirement off lets everyone in.
 - Browser: owner enables 2FA, requires it, turns their own off and sees the gate with the way to the security page.
 - Cost: one small indexed query per authorised request (the flag in the settings row).
+## Notification preferences
+
+- Go: all kinds on by default; unknown kind refused; a switched-off kind is not delivered while others are; switching on restores it.
+- Browser: toggle persists across reload (axe).
+- Not covered: per-channel/per-project overrides and email notifications (the product sends none of those kinds by email).
