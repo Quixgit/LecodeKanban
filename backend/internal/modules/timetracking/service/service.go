@@ -23,6 +23,7 @@ type Cards interface {
 
 type Workspaces interface {
 	Authorize(ctx context.Context, ws, user uuid.UUID, perm wsdomain.Permission) (wsdomain.Access, error)
+	Policy(ctx context.Context, ws uuid.UUID) (wsdomain.Settings, error)
 }
 
 type Users interface {
@@ -161,6 +162,13 @@ func (s *Service) Log(ctx context.Context, user, card uuid.UUID, in LogInput) (V
 	ref, err := s.cards.Ref(ctx, user, card, wsdomain.PermEditContent)
 	if err != nil {
 		return View{}, err
+	}
+	policy, err := s.ws.Policy(ctx, ref.WorkspaceID)
+	if err != nil {
+		return View{}, err
+	}
+	if !policy.TimeAllowManual {
+		return View{}, apperr.New(wsdomain.ErrPolicy, "logging time by hand is switched off in this workspace")
 	}
 	in.Note = strings.TrimSpace(in.Note)
 	var v validation.V

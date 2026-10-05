@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -168,6 +169,13 @@ func (s *Service) Edit(ctx context.Context, user, id uuid.UUID, body string) (Me
 	}
 	if m.Event != nil {
 		return MessageView{}, apperr.New(domain.ErrForbidden, "task updates cannot be edited")
+	}
+	policy, err := s.ws.Policy(ctx, ch.WorkspaceID)
+	if err != nil {
+		return MessageView{}, err
+	}
+	if w := policy.ChatEditMinutes; w > 0 && s.now().Sub(m.CreatedAt) > time.Duration(w)*time.Minute {
+		return MessageView{}, apperr.New(wsdomain.ErrPolicy, "this message can no longer be edited").WithMeta("editMinutes", w)
 	}
 	files, err := s.repo.FilesByMessages(ctx, []uuid.UUID{id})
 	if err != nil {

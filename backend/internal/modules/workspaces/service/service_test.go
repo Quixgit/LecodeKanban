@@ -535,3 +535,29 @@ func TestMailStatusAndTestMail(t *testing.T) {
 		t.Fatalf("invite link: %q %v", inv.Link, err)
 	}
 }
+
+func TestSettingsLookAndRules(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	owner := e.user(t, "Owner", "o@example.com", "en")
+	ws, _ := e.svc.Create(ctx, owner, "Studio")
+	bad := "red"
+	_, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{AccentColor: &bad})
+	mustCode(t, err, apperr.Validation)
+	icon := "castle"
+	_, err = e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{Icon: &icon})
+	mustCode(t, err, apperr.Validation)
+	long := 99999
+	_, err = e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{ChatEditMinutes: &long})
+	mustCode(t, err, apperr.Validation)
+
+	colour, rocket, no := " #3F8AE0 ", "rocket", false
+	got, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{AccentColor: &colour, Icon: &rocket, ChatAllowDirect: &no})
+	if err != nil || got.AccentColor != "#3f8ae0" || got.Icon != "rocket" || got.ChatAllowDirect {
+		t.Fatalf("settings %+v %v", got, err)
+	}
+	// What was never stored keeps its default.
+	if !got.ChatAllowFiles || !got.TimeAllowManual || got.RequireAssignee {
+		t.Fatalf("defaults %+v", got)
+	}
+}

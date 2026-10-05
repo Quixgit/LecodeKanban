@@ -3052,7 +3052,7 @@ components:
         integrations: { type: boolean }
     WorkspaceSettings:
       type: object
-      required: [description, inviteDays, defaultInviteRole, allowedDomains, defaultPriority, requireDueDate, weekStart, features]
+      required: [description, inviteDays, defaultInviteRole, allowedDomains, defaultPriority, requireDueDate, weekStart, requireAssignee, chatAllowDirect, chatAllowFiles, chatEditMinutes, timeAllowManual, accentColor, icon, features]
       properties:
         description: { type: string, maxLength: 300 }
         inviteDays: { type: integer, minimum: 1, maximum: 30, description: How long an invitation stays valid }
@@ -3061,6 +3061,13 @@ components:
         defaultPriority: { type: string, enum: [low, medium, high] }
         requireDueDate: { type: boolean }
         weekStart: { type: integer, minimum: 0, maximum: 1, description: 0 Sunday, 1 Monday }
+        requireAssignee: { type: boolean, description: New tasks need an assignee }
+        chatAllowDirect: { type: boolean, description: People may open direct messages }
+        chatAllowFiles: { type: boolean, description: Files may be shared in chat }
+        chatEditMinutes: { type: integer, minimum: 0, maximum: 43200, description: "How long a chat message can be edited; 0 means always" }
+        timeAllowManual: { type: boolean, description: Time may be logged by hand }
+        accentColor: { type: string, description: "#rrggbb or empty for the platform colour" }
+        icon: { type: string, enum: [building, rocket, briefcase, layers, globe, flask, shield, sparkles, leaf, flame] }
         features: { $ref: "#/components/schemas/WorkspaceFeatures" }
     WorkspaceSettingsPatch:
       type: object
@@ -3072,6 +3079,13 @@ components:
         defaultPriority: { type: string, enum: [low, medium, high] }
         requireDueDate: { type: boolean }
         weekStart: { type: integer, minimum: 0, maximum: 1 }
+        requireAssignee: { type: boolean }
+        chatAllowDirect: { type: boolean }
+        chatAllowFiles: { type: boolean }
+        chatEditMinutes: { type: integer, minimum: 0, maximum: 43200 }
+        timeAllowManual: { type: boolean }
+        accentColor: { type: string }
+        icon: { type: string, enum: [building, rocket, briefcase, layers, globe, flask, shield, sparkles, leaf, flame] }
         features: { $ref: "#/components/schemas/WorkspaceFeatures" }
     AuditEntry:
       type: object

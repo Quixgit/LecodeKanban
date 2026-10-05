@@ -238,6 +238,13 @@ Facts about what was checked, with how. Update on every phase.
 - Unit: `can()`, invitable roles. Browser: Settings → Roles (axe, toggle + reset, create + delete a custom role).
 - Not covered: a module-level permission test in the browser for every action (covered by Go authz tests).
 
+## Workspace look and more rules
+
+- Go: look values validated (colour, icon, edit window), defaults for what was never stored; require-assignee,
+  direct messages (own notes still allowed), files, edit window, manual time are refused by the owning module.
+- Browser: pick icon and accent (style injected, survives reload, axe), switch direct messages off (button gone) and
+  back, restore the look.
+- Not covered: "require two-step verification" for everyone (needs the 2FA PR and a gate on authorisation).
 ## Two-step verification
 
 - Go: TOTP against RFC 6238 vectors; scoped tokens are not access tokens; full life cycle (setup, wrong/right code,

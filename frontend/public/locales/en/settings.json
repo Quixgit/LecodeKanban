@@ -247,6 +247,33 @@
       "description": "Used by the calendar.",
       "monday": "Monday",
       "sunday": "Sunday"
+    },
+    "assignee": {
+      "title": "Require an assignee",
+      "description": "New tasks cannot be created without someone assigned."
+    },
+    "chatTitle": "Chat",
+    "chatDescription": "What people may do in chat.",
+    "direct": {
+      "title": "Direct messages",
+      "description": "Let people open private conversations with each other. Personal notes always work."
+    },
+    "files": {
+      "title": "Sharing files",
+      "description": "Allow files to be attached to chat messages."
+    },
+    "editWindow": {
+      "title": "Editing messages",
+      "description": "How long after sending a person can still edit a message.",
+      "always": "Any time",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes"
+    },
+    "timeTitle": "Time tracking",
+    "timeDescription": "How time is recorded on tasks.",
+    "manualTime": {
+      "title": "Logging time by hand",
+      "description": "Allow adding time after the fact. Timers keep working either way."
     }
   },
   "audit": {
@@ -398,5 +425,27 @@
     "setupTitle": "Connect a mail provider",
     "setupDescription": "Set these in the server's .env file (secrets stay out of the browser).",
     "setupAfter": "Then run: docker compose up -d api worker. Use “Send me a test email” to check."
+  },
+  "look": {
+    "title": "Look",
+    "description": "An icon and a colour for this workspace. Everyone in it sees them.",
+    "preview": "How the workspace looks to your team",
+    "icon": "Icon",
+    "accent": "Accent colour",
+    "defaultAccent": "Platform colour",
+    "custom": "Your own",
+    "reset": "Back to the platform colour",
+    "icons": {
+      "building": "Building",
+      "rocket": "Rocket",
+      "briefcase": "Briefcase",
+      "layers": "Layers",
+      "globe": "Globe",
+      "flask": "Flask",
+      "shield": "Shield",
+      "sparkles": "Sparkles",
+      "leaf": "Leaf",
+      "flame": "Flame"
+    }
   }
 }

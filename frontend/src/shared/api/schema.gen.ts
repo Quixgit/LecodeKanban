@@ -3050,6 +3050,20 @@ export interface components {
             requireDueDate: boolean;
             /** @description 0 Sunday */
             weekStart: number;
+            /** @description New tasks need an assignee */
+            requireAssignee: boolean;
+            /** @description People may open direct messages */
+            chatAllowDirect: boolean;
+            /** @description Files may be shared in chat */
+            chatAllowFiles: boolean;
+            /** @description How long a chat message can be edited; 0 means always */
+            chatEditMinutes: number;
+            /** @description Time may be logged by hand */
+            timeAllowManual: boolean;
+            /** @description #rrggbb or empty for the platform colour */
+            accentColor: string;
+            /** @enum {string} */
+            icon: "building" | "rocket" | "briefcase" | "layers" | "globe" | "flask" | "shield" | "sparkles" | "leaf" | "flame";
             features: components["schemas"]["WorkspaceFeatures"];
         };
         WorkspaceSettingsPatch: {
@@ -3061,6 +3075,14 @@ export interface components {
             defaultPriority?: "low" | "medium" | "high";
             requireDueDate?: boolean;
             weekStart?: number;
+            requireAssignee?: boolean;
+            chatAllowDirect?: boolean;
+            chatAllowFiles?: boolean;
+            chatEditMinutes?: number;
+            timeAllowManual?: boolean;
+            accentColor?: string;
+            /** @enum {string} */
+            icon?: "building" | "rocket" | "briefcase" | "layers" | "globe" | "flask" | "shield" | "sparkles" | "leaf" | "flame";
             features?: components["schemas"]["WorkspaceFeatures"];
         };
         AuditEntry: {
