@@ -9,14 +9,14 @@ import (
 )
 
 func TestNameAndParse(t *testing.T) {
-	if got := nameFromEmail("a.sarkisian@reliabilix.com"); got != "A Sarkisian" {
+	if got := nameFromEmail("a.petrenko@example.com"); got != "A Petrenko" {
 		t.Fatalf("name = %q", got)
 	}
 	if got := nameFromEmail("o.shcherbyna@x.io"); got != "O Shcherbyna" {
 		t.Fatalf("name = %q", got)
 	}
-	email, name, err := parse("Anna Sarkisian <A.Sarkisian@Reliabilix.com>")
-	if err != nil || email != "a.sarkisian@reliabilix.com" || name != "Anna Sarkisian" {
+	email, name, err := parse("Anna Petrenko <A.Petrenko@Example.com>")
+	if err != nil || email != "a.petrenko@example.com" || name != "Anna Petrenko" {
 		t.Fatalf("parse: %q %q %v", email, name, err)
 	}
 	if _, _, err := parse("not an address"); err == nil {

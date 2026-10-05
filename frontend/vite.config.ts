@@ -44,7 +44,7 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: {
-    // Exposed on the public IP (23.19.228.158) on a non-standard port; see docs/adr/0004.
+    // Exposed on the public IP (203.0.113.10) on a non-standard port; see docs/adr/0004.
     host: process.env.LK_WEB_HOST ?? '0.0.0.0',
     port: Number(process.env.LK_WEB_PORT ?? 47100),
     strictPort: true,

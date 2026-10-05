@@ -42,7 +42,7 @@ import (
 
 const (
 	emailDomain   = "demo.lecodekanban.test"
-	workspaceName = "Reliabilix Studio"
+	workspaceName = "Acme Studio"
 )
 
 func main() {
