@@ -14,6 +14,7 @@ const ws: Workspace = {
   createdAt: '2026-01-01T00:00:00Z',
   permissions: ['workspace.view', 'members.invite', 'members.manage'],
   customRole: null,
+  twoFactorBlocked: false,
 };
 
 afterEach(() => vi.unstubAllGlobals());

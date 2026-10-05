@@ -238,6 +238,18 @@ Facts about what was checked, with how. Update on every phase.
 - Unit: `can()`, invitable roles. Browser: Settings → Roles (axe, toggle + reset, create + delete a custom role).
 - Not covered: a module-level permission test in the browser for every action (covered by Go authz tests).
 
+## Workspace look and more rules
+
+- Go: look values validated (colour, icon, edit window), defaults for what was never stored; require-assignee,
+  direct messages (own notes still allowed), files, edit window, manual time are refused by the owning module.
+- Browser: pick icon and accent (style injected, survives reload, axe), switch direct messages off (button gone) and
+  back, restore the look.
+- Not covered: "require two-step verification" for everyone (needs the 2FA PR and a gate on authorisation).
+
+## Docs defaults
+
+- Go: workspace defaults apply to new spaces; an explicit choice wins; depth below 2 refused.
+- Browser: set and persist the default visibility.
 ## Two-step verification
 
 - Go: TOTP against RFC 6238 vectors; scoped tokens are not access tokens; full life cycle (setup, wrong/right code,
@@ -266,6 +278,17 @@ Facts about what was checked, with how. Update on every phase.
 - Unit: theme maths (default untouched, light text on dark / dark on light, AA for accents and muted text on every preset).
 - Browser: pick a theme (axe on the themed sidebar and chat), reload keeps it, own colour, reset.
 
+## Admin overview
+
+- Unit: set-up steps and progress (unknown steps are neither done nor open). Browser: settings suite.
+- Not covered: the checklist has no step for integrations (it would make settings depend on the integrations module).
+
+## Require two-step verification
+
+- Go: setting refused for an owner without 2FA; members without it blocked in `Authorize` and marked in the list;
+  turning it on opens the door; turning the requirement off lets everyone in.
+- Browser: owner enables 2FA, requires it, turns their own off and sees the gate with the way to the security page.
+- Cost: one small indexed query per authorised request (the flag in the settings row).
 ## Filter and sort by custom field
 
 - Go: filter by equality and by text search; sort ascending and descending with numbers as numbers and cards without a value last.

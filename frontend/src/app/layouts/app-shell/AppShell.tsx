@@ -14,11 +14,12 @@ import { useNotificationSounds } from '@/features/notification-sounds';
 import { useMeetingToasts } from '@/features/notifications';
 import { usePresenceHeartbeat } from '@/features/chat';
 import { useWorkspaceEvents } from '@/features/realtime';
-import { useCurrentWorkspace } from '@/features/workspaces';
+import { TwoFactorGate, useCurrentWorkspace } from '@/features/workspaces';
 import { pageTransition } from '@/shared/motion';
 import { Header } from './header/Header';
 import { PageSkeleton } from './PageSkeleton';
 import { MobileNav } from './sidebar/MobileNav';
+import { useWorkspaceAccent } from '@/features/settings';
 import { useSidebarStore } from './sidebarStore';
 import { Sidebar } from './sidebar/Sidebar';
 import { useShellCommands } from './useShellCommands';
@@ -38,6 +39,7 @@ export function AppShell() {
   const { user } = useSession();
   const { workspace } = useCurrentWorkspace();
   useSessionExpiryListener();
+  useWorkspaceAccent(workspace?.id); // the workspace's accent colour
   useWorkspaceEvents(workspace?.id); // live updates from teammates, for every page
   useNotificationSounds(user?.id, workspace?.id); // a soft signal for new messages and tasks
   useMeetingToasts(user?.id, workspace?.id); // a pop-up shortly before a calendar meeting
@@ -66,9 +68,13 @@ export function AppShell() {
             initial="hidden"
             animate="visible"
           >
-            <Suspense fallback={<PageSkeleton />}>
-              <Outlet />
-            </Suspense>
+            {workspace?.twoFactorBlocked && !location.pathname.startsWith('/profile') ? (
+              <TwoFactorGate name={workspace.name} />
+            ) : (
+              <Suspense fallback={<PageSkeleton />}>
+                <Outlet />
+              </Suspense>
+            )}
           </motion.div>
         </main>
       </div>

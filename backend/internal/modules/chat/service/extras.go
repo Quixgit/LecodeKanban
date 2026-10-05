@@ -55,6 +55,13 @@ func (s *Service) UploadFile(ctx context.Context, user, channel uuid.UUID, name 
 	if !member && ch.Kind == domain.Public {
 		return domain.File{}, apperr.New(domain.ErrNotMember, "join the channel first")
 	}
+	policy, err := s.ws.Policy(ctx, ch.WorkspaceID)
+	if err != nil {
+		return domain.File{}, err
+	}
+	if !policy.ChatAllowFiles {
+		return domain.File{}, apperr.New(wsdomain.ErrPolicy, "file sharing is switched off in this workspace")
+	}
 	br := bufio.NewReaderSize(body, 512)
 	head, _ := br.Peek(512)
 	ctype := http.DetectContentType(head)

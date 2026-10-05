@@ -59,14 +59,24 @@ func (s *Service) CreateSpace(ctx context.Context, user, ws uuid.UUID, in SpaceI
 	if _, err := s.ws.Authorize(ctx, ws, user, wsdomain.PermEditContent); err != nil {
 		return SpaceView{}, err
 	}
+	policy, err := s.ws.Policy(ctx, ws)
+	if err != nil {
+		return SpaceView{}, err
+	}
 	if in.Visibility == "" {
-		in.Visibility = domain.Private
+		in.Visibility = domain.Visibility(policy.DocsVisibility)
+		if !in.Visibility.Valid() {
+			in.Visibility = domain.Private
+		}
 	}
 	if in.WorkspaceRole == "" {
 		in.WorkspaceRole = domain.RoleViewer
 	}
 	if in.MaxDepth == 0 {
-		in.MaxDepth = domain.DefaultMaxDepth
+		in.MaxDepth = policy.DocsMaxDepth
+		if in.MaxDepth < 2 {
+			in.MaxDepth = domain.DefaultMaxDepth
+		}
 	}
 	name, err := validateSpace(in.Name, in.Icon, in.Color, in.Description, in.MaxDepth)
 	var v validation.V

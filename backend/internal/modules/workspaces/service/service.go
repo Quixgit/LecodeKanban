@@ -40,6 +40,34 @@ type Service struct {
 	mailInfo  MailInfo
 	publicURL string
 	now       func() time.Time
+	twoFactor TwoFactor
+}
+
+// TwoFactor tells whether a person has two-step verification on (the auth module answers).
+type TwoFactor interface {
+	Enabled(ctx context.Context, user uuid.UUID) (bool, error)
+}
+
+// SetTwoFactor wires the second-factor check (set once at start-up; without it nothing is required).
+func (s *Service) SetTwoFactor(t TwoFactor) { s.twoFactor = t }
+
+// mustHaveTwoFactor refuses a member who has no second factor when the workspace requires one.
+func (s *Service) mustHaveTwoFactor(ctx context.Context, r *repository.Repo, ws, user uuid.UUID) error {
+	if s.twoFactor == nil {
+		return nil
+	}
+	required, err := r.RequiresTwoFactor(ctx, ws)
+	if err != nil || !required {
+		return err
+	}
+	on, err := s.twoFactor.Enabled(ctx, user)
+	if err != nil {
+		return err
+	}
+	if !on {
+		return apperr.New(domain.ErrTwoFactorRequired, "this workspace requires two-step verification")
+	}
+	return nil
 }
 
 func New(repo *repository.Repo, users Users, bus *eventbus.Bus, mail MailQueue, publicURL string) *Service {
@@ -78,6 +106,9 @@ func (s *Service) authorize(ctx context.Context, r *repository.Repo, ws, user uu
 	}
 	if acc.Role == "" {
 		return domain.Access{}, apperr.New(domain.ErrNotFound, "workspace not found")
+	}
+	if err := s.mustHaveTwoFactor(ctx, r, ws, user); err != nil {
+		return acc, err
 	}
 	if !acc.Can(perm) {
 		return acc, apperr.New(domain.ErrInsufficientRole, "insufficient role")
@@ -161,13 +192,25 @@ func (s *Service) EnsurePersonal(ctx context.Context, user uuid.UUID) error {
 // List returns the caller's workspaces, provisioning a personal one on first use.
 func (s *Service) List(ctx context.Context, user uuid.UUID) ([]domain.Workspace, error) {
 	list, err := s.repo.ListForUser(ctx, user)
-	if err != nil || len(list) > 0 {
-		return list, err
+	if err == nil && len(list) == 0 {
+		if err := s.EnsurePersonal(ctx, user); err != nil {
+			return nil, err
+		}
+		list, err = s.repo.ListForUser(ctx, user)
 	}
-	if err := s.EnsurePersonal(ctx, user); err != nil {
+	if err != nil {
 		return nil, err
 	}
-	return s.repo.ListForUser(ctx, user)
+	// The list stays readable so the screen can say why a workspace is closed and how to open it.
+	for i := range list {
+		err := s.mustHaveTwoFactor(ctx, s.repo, list[i].ID, user)
+		if apperr.IsCode(err, domain.ErrTwoFactorRequired) {
+			list[i].TwoFactorBlocked = true
+		} else if err != nil {
+			return nil, err
+		}
+	}
+	return list, nil
 }
 
 func (s *Service) Get(ctx context.Context, user, ws uuid.UUID) (domain.Workspace, error) {

@@ -948,3 +948,50 @@ func TestWorkspacePolicies(t *testing.T) {
 }
 
 func ptrOf[T any](v T) *T { return &v }
+
+func TestChatRules(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	c := w.e.Chat
+	ch, err := c.CreateChannel(ctx, w.owner, w.ws, chatInput("rules", false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = c.Join(ctx, w.anna, ch.ID)
+	no, zero := false, 0
+	if _, err := w.e.Workspaces.UpdateSettings(ctx, w.owner, w.ws, wsdomain.SettingsPatch{ChatAllowDirect: &no, ChatAllowFiles: &no}); err != nil {
+		t.Fatal(err)
+	}
+	// Direct messages with others are refused; one's own notes are not.
+	_, err = c.OpenDM(ctx, w.anna, w.ws, []uuid.UUID{w.ben})
+	mustCode(t, err, wsdomain.ErrPolicy)
+	if _, err := c.OpenDM(ctx, w.anna, w.ws, nil); err != nil {
+		t.Fatalf("own notes: %v", err)
+	}
+	_, err = c.UploadFile(ctx, w.anna, ch.ID, "a.txt", strings.NewReader("x"))
+	mustCode(t, err, wsdomain.ErrPolicy)
+
+	// Messages can be edited for a while only.
+	yes, five := true, 5
+	if _, err := w.e.Workspaces.UpdateSettings(ctx, w.owner, w.ws, wsdomain.SettingsPatch{ChatAllowDirect: &yes, ChatAllowFiles: &yes, ChatEditMinutes: &five}); err != nil {
+		t.Fatal(err)
+	}
+	m, err := c.Post(ctx, w.anna, ch.ID, nil, "first draft", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Edit(ctx, w.anna, m.ID, "second draft"); err != nil {
+		t.Fatalf("edit inside the window: %v", err)
+	}
+	if _, err := tdb.Pool.Exec(ctx, `UPDATE chat_messages SET created_at = now() - interval '10 minutes' WHERE id = $1`, m.ID); err != nil {
+		t.Fatal(err)
+	}
+	_, err = c.Edit(ctx, w.anna, m.ID, "too late")
+	mustCode(t, err, wsdomain.ErrPolicy)
+	if _, err := w.e.Workspaces.UpdateSettings(ctx, w.owner, w.ws, wsdomain.SettingsPatch{ChatEditMinutes: &zero}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Edit(ctx, w.anna, m.ID, "any time"); err != nil {
+		t.Fatalf("no limit: %v", err)
+	}
+}

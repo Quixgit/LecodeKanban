@@ -1,4 +1,15 @@
-import { CalendarClock, CalendarDays, Flag } from 'lucide-react';
+import {
+  CalendarClock,
+  CalendarDays,
+  Eye,
+  Layers,
+  Clock,
+  FileUp,
+  Flag,
+  MessageSquare,
+  PencilLine,
+  UserCheck,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Select, SettingsCard, Switch } from '@/shared/ui';
 import type { WorkspaceSettings } from '../api/settingsApi';
@@ -61,6 +72,18 @@ function RulesBody({
           />
         </SettingRow>
         <SettingRow
+          icon={<UserCheck />}
+          title={t('rules.assignee.title')}
+          description={t('rules.assignee.description')}
+        >
+          <Switch
+            checked={settings.requireAssignee}
+            disabled={!canEdit}
+            aria-label={t('rules.assignee.title')}
+            onCheckedChange={(on) => save({ requireAssignee: on })}
+          />
+        </SettingRow>
+        <SettingRow
           icon={<CalendarDays />}
           title={t('rules.weekStart.title')}
           description={t('rules.weekStart.description')}
@@ -74,6 +97,98 @@ function RulesBody({
               { value: '1', label: t('rules.weekStart.monday') },
               { value: '0', label: t('rules.weekStart.sunday') },
             ]}
+          />
+        </SettingRow>
+      </SettingsCard>
+      <SettingsCard title={t('rules.chatTitle')} description={t('rules.chatDescription')}>
+        <SettingRow
+          icon={<MessageSquare />}
+          title={t('rules.direct.title')}
+          description={t('rules.direct.description')}
+        >
+          <Switch
+            checked={settings.chatAllowDirect}
+            disabled={!canEdit}
+            aria-label={t('rules.direct.title')}
+            onCheckedChange={(on) => save({ chatAllowDirect: on })}
+          />
+        </SettingRow>
+        <SettingRow
+          icon={<FileUp />}
+          title={t('rules.files.title')}
+          description={t('rules.files.description')}
+        >
+          <Switch
+            checked={settings.chatAllowFiles}
+            disabled={!canEdit}
+            aria-label={t('rules.files.title')}
+            onCheckedChange={(on) => save({ chatAllowFiles: on })}
+          />
+        </SettingRow>
+        <SettingRow
+          icon={<PencilLine />}
+          title={t('rules.editWindow.title')}
+          description={t('rules.editWindow.description')}
+        >
+          <Select
+            label={t('rules.editWindow.title')}
+            disabled={!canEdit}
+            value={String(settings.chatEditMinutes)}
+            onValueChange={(v) => save({ chatEditMinutes: Number(v) })}
+            options={[0, 5, 15, 60, 1440].map((n) => ({
+              value: String(n),
+              label: t(n === 0 ? 'rules.editWindow.always' : 'rules.editWindow.minutes', {
+                count: n,
+              }),
+            }))}
+          />
+        </SettingRow>
+      </SettingsCard>
+      <SettingsCard title={t('rules.timeTitle')} description={t('rules.timeDescription')}>
+        <SettingRow
+          icon={<Clock />}
+          title={t('rules.manualTime.title')}
+          description={t('rules.manualTime.description')}
+        >
+          <Switch
+            checked={settings.timeAllowManual}
+            disabled={!canEdit}
+            aria-label={t('rules.manualTime.title')}
+            onCheckedChange={(on) => save({ timeAllowManual: on })}
+          />
+        </SettingRow>
+      </SettingsCard>
+      <SettingsCard title={t('rules.docsTitle')} description={t('rules.docsDescription')}>
+        <SettingRow
+          icon={<Eye />}
+          title={t('rules.docsVisibility.title')}
+          description={t('rules.docsVisibility.description')}
+        >
+          <Select
+            label={t('rules.docsVisibility.title')}
+            disabled={!canEdit}
+            value={settings.docsVisibility}
+            onValueChange={(v) => save({ docsVisibility: v as 'private' | 'shared' | 'workspace' })}
+            options={(['private', 'shared', 'workspace'] as const).map((v) => ({
+              value: v,
+              label: t(`rules.docsVisibility.${v}`),
+            }))}
+          />
+        </SettingRow>
+        <SettingRow
+          icon={<Layers />}
+          title={t('rules.docsDepth.title')}
+          description={t('rules.docsDepth.description')}
+        >
+          <Select
+            label={t('rules.docsDepth.title')}
+            disabled={!canEdit}
+            value={String(settings.docsMaxDepth)}
+            onValueChange={(v) => save({ docsMaxDepth: Number(v) })}
+            options={[3, 4, 6, 8, 12].map((n) => ({
+              value: String(n),
+              label: t('rules.docsDepth.levels', { count: n }),
+            }))}
           />
         </SettingRow>
       </SettingsCard>

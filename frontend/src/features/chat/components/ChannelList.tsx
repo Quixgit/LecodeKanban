@@ -41,7 +41,8 @@ interface Props {
   canCreate: boolean;
   onCreate: () => void;
   onBrowse: () => void;
-  onNewMessage: () => void;
+  /** Absent when the workspace has switched direct messages off. */
+  onNewMessage?: () => void;
   onSearch: () => void;
   /** Opens a channel in the second pane (also on opt/alt + click). */
   onSplit?: (channelId: string) => void;
@@ -89,16 +90,18 @@ export function ChannelList({
           <Search className="size-4 shrink-0" aria-hidden />
           <span className="min-w-0 flex-1 truncate">{t('sidebar.filter')}</span>
         </button>
-        <Tooltip content={t('sidebar.newMessage')}>
-          <IconButton
-            label={t('sidebar.newMessage')}
-            size="sm"
-            variant="outline"
-            onClick={onNewMessage}
-          >
-            <SquarePen />
-          </IconButton>
-        </Tooltip>
+        {onNewMessage && (
+          <Tooltip content={t('sidebar.newMessage')}>
+            <IconButton
+              label={t('sidebar.newMessage')}
+              size="sm"
+              variant="outline"
+              onClick={onNewMessage}
+            >
+              <SquarePen />
+            </IconButton>
+          </Tooltip>
+        )}
         <SoundToggle />
       </div>
 

@@ -1140,6 +1140,69 @@ func (e WorkspaceSettingsDefaultPriority) Valid() bool {
 	}
 }
 
+// Defines values for WorkspaceSettingsDocsVisibility.
+const (
+	WorkspaceSettingsDocsVisibilityPrivate   WorkspaceSettingsDocsVisibility = "private"
+	WorkspaceSettingsDocsVisibilityShared    WorkspaceSettingsDocsVisibility = "shared"
+	WorkspaceSettingsDocsVisibilityWorkspace WorkspaceSettingsDocsVisibility = "workspace"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsDocsVisibility enum.
+func (e WorkspaceSettingsDocsVisibility) Valid() bool {
+	switch e {
+	case WorkspaceSettingsDocsVisibilityPrivate:
+		return true
+	case WorkspaceSettingsDocsVisibilityShared:
+		return true
+	case WorkspaceSettingsDocsVisibilityWorkspace:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WorkspaceSettingsIcon.
+const (
+	WorkspaceSettingsIconBriefcase WorkspaceSettingsIcon = "briefcase"
+	WorkspaceSettingsIconBuilding  WorkspaceSettingsIcon = "building"
+	WorkspaceSettingsIconFlame     WorkspaceSettingsIcon = "flame"
+	WorkspaceSettingsIconFlask     WorkspaceSettingsIcon = "flask"
+	WorkspaceSettingsIconGlobe     WorkspaceSettingsIcon = "globe"
+	WorkspaceSettingsIconLayers    WorkspaceSettingsIcon = "layers"
+	WorkspaceSettingsIconLeaf      WorkspaceSettingsIcon = "leaf"
+	WorkspaceSettingsIconRocket    WorkspaceSettingsIcon = "rocket"
+	WorkspaceSettingsIconShield    WorkspaceSettingsIcon = "shield"
+	WorkspaceSettingsIconSparkles  WorkspaceSettingsIcon = "sparkles"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsIcon enum.
+func (e WorkspaceSettingsIcon) Valid() bool {
+	switch e {
+	case WorkspaceSettingsIconBriefcase:
+		return true
+	case WorkspaceSettingsIconBuilding:
+		return true
+	case WorkspaceSettingsIconFlame:
+		return true
+	case WorkspaceSettingsIconFlask:
+		return true
+	case WorkspaceSettingsIconGlobe:
+		return true
+	case WorkspaceSettingsIconLayers:
+		return true
+	case WorkspaceSettingsIconLeaf:
+		return true
+	case WorkspaceSettingsIconRocket:
+		return true
+	case WorkspaceSettingsIconShield:
+		return true
+	case WorkspaceSettingsIconSparkles:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for WorkspaceSettingsPatchDefaultPriority.
 const (
 	WorkspaceSettingsPatchDefaultPriorityHigh   WorkspaceSettingsPatchDefaultPriority = "high"
@@ -1155,6 +1218,69 @@ func (e WorkspaceSettingsPatchDefaultPriority) Valid() bool {
 	case WorkspaceSettingsPatchDefaultPriorityLow:
 		return true
 	case WorkspaceSettingsPatchDefaultPriorityMedium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WorkspaceSettingsPatchDocsVisibility.
+const (
+	WorkspaceSettingsPatchDocsVisibilityPrivate   WorkspaceSettingsPatchDocsVisibility = "private"
+	WorkspaceSettingsPatchDocsVisibilityShared    WorkspaceSettingsPatchDocsVisibility = "shared"
+	WorkspaceSettingsPatchDocsVisibilityWorkspace WorkspaceSettingsPatchDocsVisibility = "workspace"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsPatchDocsVisibility enum.
+func (e WorkspaceSettingsPatchDocsVisibility) Valid() bool {
+	switch e {
+	case WorkspaceSettingsPatchDocsVisibilityPrivate:
+		return true
+	case WorkspaceSettingsPatchDocsVisibilityShared:
+		return true
+	case WorkspaceSettingsPatchDocsVisibilityWorkspace:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WorkspaceSettingsPatchIcon.
+const (
+	WorkspaceSettingsPatchIconBriefcase WorkspaceSettingsPatchIcon = "briefcase"
+	WorkspaceSettingsPatchIconBuilding  WorkspaceSettingsPatchIcon = "building"
+	WorkspaceSettingsPatchIconFlame     WorkspaceSettingsPatchIcon = "flame"
+	WorkspaceSettingsPatchIconFlask     WorkspaceSettingsPatchIcon = "flask"
+	WorkspaceSettingsPatchIconGlobe     WorkspaceSettingsPatchIcon = "globe"
+	WorkspaceSettingsPatchIconLayers    WorkspaceSettingsPatchIcon = "layers"
+	WorkspaceSettingsPatchIconLeaf      WorkspaceSettingsPatchIcon = "leaf"
+	WorkspaceSettingsPatchIconRocket    WorkspaceSettingsPatchIcon = "rocket"
+	WorkspaceSettingsPatchIconShield    WorkspaceSettingsPatchIcon = "shield"
+	WorkspaceSettingsPatchIconSparkles  WorkspaceSettingsPatchIcon = "sparkles"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsPatchIcon enum.
+func (e WorkspaceSettingsPatchIcon) Valid() bool {
+	switch e {
+	case WorkspaceSettingsPatchIconBriefcase:
+		return true
+	case WorkspaceSettingsPatchIconBuilding:
+		return true
+	case WorkspaceSettingsPatchIconFlame:
+		return true
+	case WorkspaceSettingsPatchIconFlask:
+		return true
+	case WorkspaceSettingsPatchIconGlobe:
+		return true
+	case WorkspaceSettingsPatchIconLayers:
+		return true
+	case WorkspaceSettingsPatchIconLeaf:
+		return true
+	case WorkspaceSettingsPatchIconRocket:
+		return true
+	case WorkspaceSettingsPatchIconShield:
+		return true
+	case WorkspaceSettingsPatchIconSparkles:
 		return true
 	default:
 		return false
@@ -3430,6 +3556,9 @@ type Workspace struct {
 	Permissions []string `json:"permissions"`
 	Role        Role     `json:"role"`
 	Slug        string   `json:"slug"`
+
+	// TwoFactorBlocked The workspace requires two-step verification and the caller has not turned it on
+	TwoFactorBlocked bool `json:"twoFactorBlocked"`
 }
 
 // WorkspaceFeatures defines model for WorkspaceFeatures.
@@ -3448,16 +3577,44 @@ type WorkspaceInput struct {
 
 // WorkspaceSettings defines model for WorkspaceSettings.
 type WorkspaceSettings struct {
+	// AccentColor #rrggbb or empty for the platform colour
+	AccentColor string `json:"accentColor"`
+
 	// AllowedDomains Only addresses of these domains may be invited; empty allows any
-	AllowedDomains    []string                         `json:"allowedDomains"`
+	AllowedDomains []string `json:"allowedDomains"`
+
+	// ChatAllowDirect People may open direct messages
+	ChatAllowDirect bool `json:"chatAllowDirect"`
+
+	// ChatAllowFiles Files may be shared in chat
+	ChatAllowFiles bool `json:"chatAllowFiles"`
+
+	// ChatEditMinutes How long a chat message can be edited; 0 means always
+	ChatEditMinutes   int                              `json:"chatEditMinutes"`
 	DefaultInviteRole InviteRole                       `json:"defaultInviteRole"`
 	DefaultPriority   WorkspaceSettingsDefaultPriority `json:"defaultPriority"`
 	Description       string                           `json:"description"`
-	Features          WorkspaceFeatures                `json:"features"`
+
+	// DocsMaxDepth How deep pages nest in new spaces
+	DocsMaxDepth int `json:"docsMaxDepth"`
+
+	// DocsVisibility Who can reach a new docs space by default
+	DocsVisibility WorkspaceSettingsDocsVisibility `json:"docsVisibility"`
+	Features       WorkspaceFeatures               `json:"features"`
+	Icon           WorkspaceSettingsIcon           `json:"icon"`
 
 	// InviteDays How long an invitation stays valid
-	InviteDays     int  `json:"inviteDays"`
-	RequireDueDate bool `json:"requireDueDate"`
+	InviteDays int `json:"inviteDays"`
+
+	// RequireAssignee New tasks need an assignee
+	RequireAssignee bool `json:"requireAssignee"`
+	RequireDueDate  bool `json:"requireDueDate"`
+
+	// RequireTwoFactor Members need two-step verification to enter the workspace
+	RequireTwoFactor bool `json:"requireTwoFactor"`
+
+	// TimeAllowManual Time may be logged by hand
+	TimeAllowManual bool `json:"timeAllowManual"`
 
 	// WeekStart 0 Sunday
 	WeekStart int `json:"weekStart"`
@@ -3466,20 +3623,42 @@ type WorkspaceSettings struct {
 // WorkspaceSettingsDefaultPriority defines model for WorkspaceSettings.DefaultPriority.
 type WorkspaceSettingsDefaultPriority string
 
+// WorkspaceSettingsDocsVisibility Who can reach a new docs space by default
+type WorkspaceSettingsDocsVisibility string
+
+// WorkspaceSettingsIcon defines model for WorkspaceSettings.Icon.
+type WorkspaceSettingsIcon string
+
 // WorkspaceSettingsPatch defines model for WorkspaceSettingsPatch.
 type WorkspaceSettingsPatch struct {
+	AccentColor       *string                                `json:"accentColor,omitempty"`
 	AllowedDomains    *[]string                              `json:"allowedDomains,omitempty"`
+	ChatAllowDirect   *bool                                  `json:"chatAllowDirect,omitempty"`
+	ChatAllowFiles    *bool                                  `json:"chatAllowFiles,omitempty"`
+	ChatEditMinutes   *int                                   `json:"chatEditMinutes,omitempty"`
 	DefaultInviteRole *InviteRole                            `json:"defaultInviteRole,omitempty"`
 	DefaultPriority   *WorkspaceSettingsPatchDefaultPriority `json:"defaultPriority,omitempty"`
 	Description       *string                                `json:"description,omitempty"`
+	DocsMaxDepth      *int                                   `json:"docsMaxDepth,omitempty"`
+	DocsVisibility    *WorkspaceSettingsPatchDocsVisibility  `json:"docsVisibility,omitempty"`
 	Features          *WorkspaceFeatures                     `json:"features,omitempty"`
+	Icon              *WorkspaceSettingsPatchIcon            `json:"icon,omitempty"`
 	InviteDays        *int                                   `json:"inviteDays,omitempty"`
+	RequireAssignee   *bool                                  `json:"requireAssignee,omitempty"`
 	RequireDueDate    *bool                                  `json:"requireDueDate,omitempty"`
+	RequireTwoFactor  *bool                                  `json:"requireTwoFactor,omitempty"`
+	TimeAllowManual   *bool                                  `json:"timeAllowManual,omitempty"`
 	WeekStart         *int                                   `json:"weekStart,omitempty"`
 }
 
 // WorkspaceSettingsPatchDefaultPriority defines model for WorkspaceSettingsPatch.DefaultPriority.
 type WorkspaceSettingsPatchDefaultPriority string
+
+// WorkspaceSettingsPatchDocsVisibility defines model for WorkspaceSettingsPatch.DocsVisibility.
+type WorkspaceSettingsPatchDocsVisibility string
+
+// WorkspaceSettingsPatchIcon defines model for WorkspaceSettingsPatch.Icon.
+type WorkspaceSettingsPatchIcon string
 
 // AttachmentId defines model for AttachmentId.
 type AttachmentId = openapi_types.UUID
