@@ -366,5 +366,56 @@ func TestRequireAssignee(t *testing.T) {
 	if _, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Someone",
 		AssigneeIDs: []uuid.UUID{f.member}}); err != nil {
 		t.Fatalf("with an assignee: %v", err)
+func TestFilterAndSortByCustomField(t *testing.T) {
+	f := setup(t)
+	mk := func(title string) uuid.UUID {
+		c, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: title})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return c.ID
+	}
+	a, b, c, none := mk("Alpha"), mk("Bravo"), mk("Charlie"), mk("Delta")
+	var field uuid.UUID
+	if err := tdb.Pool.QueryRow(f.ctx,
+		`INSERT INTO custom_fields (workspace_id, name, kind) VALUES ($1, 'Budget', 'number') RETURNING id`, f.ws).Scan(&field); err != nil {
+		t.Fatal(err)
+	}
+	for card, v := range map[uuid.UUID]string{a: "300", b: "100", c: "200"} {
+		if _, err := tdb.Pool.Exec(f.ctx,
+			`INSERT INTO card_field_values (card_id, field_id, workspace_id, value) VALUES ($1, $2, $3, $4::jsonb)`, card, field, f.ws, v); err != nil {
+			t.Fatal(err)
+		}
+	}
+	titles := func(views []service.View) []string {
+		out := make([]string, len(views))
+		for i, v := range views {
+			out[i] = v.Title
+		}
+		return out
+	}
+
+	// Filter: only the cards whose field equals the value.
+	got, total, err := f.Cards.List(f.ctx, f.member, f.ws, domain.Filter{FieldID: &field, FieldValue: "200"}, pagination.Params{Page: 1, Size: 50})
+	if err != nil || total != 1 || got[0].Title != "Charlie" {
+		t.Fatalf("filter: %v %d %v", titles(got), total, err)
+	}
+	// Sort: numbers as numbers (not "100" < "200" < "300" by accident), cards without a value last.
+	got, _, err = f.Cards.List(f.ctx, f.member, f.ws, domain.Filter{SortField: &field}, pagination.Params{Page: 1, Size: 50})
+	want := []string{"Bravo", "Charlie", "Alpha", "Delta"}
+	if err != nil || len(got) != 4 || got[0].Title != want[0] || got[1].Title != want[1] || got[2].Title != want[2] || got[3].ID != none {
+		t.Fatalf("sort asc: %v %v", titles(got), err)
+	}
+	got, _, _ = f.Cards.List(f.ctx, f.member, f.ws, domain.Filter{SortField: &field, Desc: true}, pagination.Params{Page: 1, Size: 50})
+	if got[0].Title != "Alpha" || got[3].ID != none {
+		t.Fatalf("sort desc: %v", titles(got))
+	}
+	// Text fields can be searched.
+	if _, err := tdb.Pool.Exec(f.ctx, `UPDATE card_field_values SET value = '"Release Candidate"'::jsonb WHERE card_id = $1`, a); err != nil {
+		t.Fatal(err)
+	}
+	got, _, err = f.Cards.List(f.ctx, f.member, f.ws, domain.Filter{FieldID: &field, FieldValue: "candid", FieldContains: true}, pagination.Params{Page: 1, Size: 50})
+	if err != nil || len(got) != 1 || got[0].Title != "Alpha" {
+		t.Fatalf("contains: %v %v", titles(got), err)
 	}
 }
