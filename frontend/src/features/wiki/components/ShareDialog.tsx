@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import { Link2, UserPlus, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -69,7 +70,7 @@ export function ShareDialog({ open, onOpenChange, workspaceId, target, title }: 
   const copyLink = async () => {
     const path = target.nodeId ? `/docs/p/${target.nodeId}` : `/docs/s/${target.spaceId}`;
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}${path}`);
+      if (!(await copyText(`${window.location.origin}${path}`))) throw new Error('copy failed');
       toast.success(t('share.linkCopied'));
     } catch {
       toast.error(t('share.linkCopyFailed'));

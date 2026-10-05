@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import { ArrowRight, Check, Copy, ExternalLink, Link2, Unlink, Unplug } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -210,7 +211,8 @@ function WebhookRow({ url }: { url: string }) {
           size="sm"
           variant="secondary"
           onClick={() => {
-            void navigator.clipboard.writeText(url).then(() => {
+            void copyText(url).then((ok) => {
+              if (!ok) return toast.error(t('setup.copyFailed'));
               setDone(true);
               window.setTimeout(() => setDone(false), 1800);
             });

@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import type { Editor } from '@tiptap/core';
 import { DragHandle } from '@tiptap/extension-drag-handle-react';
 import { EditorContent, useEditor, type JSONContent } from '@tiptap/react';
@@ -257,7 +258,7 @@ function EditorSurface({
   const markdown = () => editor?.getMarkdown() ?? '';
   const copyMarkdown = async () => {
     try {
-      await navigator.clipboard.writeText(markdown());
+      if (!(await copyText(markdown()))) throw new Error('copy failed');
       toast.success(t('markdown.copied'));
     } catch {
       toast.error(t('markdown.copyFailed'));

@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import {
   DndContext,
   DragOverlay,
@@ -235,7 +236,8 @@ export function TreePanel({ workspaceId, spaces, spaceId, selectedId, onNavigate
       ),
     onCopyLink: async (node) => {
       try {
-        await navigator.clipboard.writeText(`${window.location.origin}/docs/p/${node.id}`);
+        if (!(await copyText(`${window.location.origin}/docs/p/${node.id}`)))
+          throw new Error('copy failed');
         toast.success(t('share.linkCopied'));
       } catch {
         toast.error(t('share.linkCopyFailed'));

@@ -1,7 +1,8 @@
+import { copyText } from '@/shared/lib/clipboard';
 import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/shared/ui';
+import { Button, toast } from '@/shared/ui';
 import type { IntegrationEntry } from '../api/integrationsApi';
 import { PROVIDERS } from '../model/providers';
 
@@ -10,11 +11,11 @@ function Copyable({ value, label }: { value: string; label: string }) {
   const [done, setDone] = useState(false);
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(value);
+      if (!(await copyText(value))) throw new Error('copy failed');
       setDone(true);
       window.setTimeout(() => setDone(false), 1800);
     } catch {
-      // Clipboard blocked: the value is selectable anyway.
+      toast.error(t('setup.copyFailed'));
     }
   };
   return (

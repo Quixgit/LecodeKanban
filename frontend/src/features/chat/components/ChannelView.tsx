@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import { motion } from 'framer-motion';
 import { ClipboardList, Hash, Info, Lock, Star, UserRound, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -188,7 +189,9 @@ export function ChannelView({ channelId: channelProp, embedded = false, onCloseP
       ),
     copyLink: (message) => {
       const url = `${window.location.origin}/chat/${channel.id}?m=${message.id}`;
-      void navigator.clipboard?.writeText(url).then(() => toast.success(t('message.linkCopied')));
+      void copyText(url).then((ok) =>
+        ok ? toast.success(t('message.linkCopied')) : toast.error(t('message.linkCopyFailed')),
+      );
     },
   };
   const actions: MessageActions = { ...base, openThread };

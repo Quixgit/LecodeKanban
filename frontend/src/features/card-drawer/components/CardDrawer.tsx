@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import {
   CheckSquare,
   FileText,
@@ -104,7 +105,7 @@ export function CardDrawer({ currentUserId }: { currentUserId: string }) {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      if (!(await copyText(window.location.href))) throw new Error('copy failed');
       toast.success(t('linkCopied'));
     } catch {
       toast.error(t('linkFailed'));

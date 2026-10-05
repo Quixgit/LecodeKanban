@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import { motion } from 'framer-motion';
 import {
   Copy,
@@ -112,7 +113,8 @@ export function PageView() {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/docs/p/${n.id}`);
+      if (!(await copyText(`${window.location.origin}/docs/p/${n.id}`)))
+        throw new Error('copy failed');
       toast.success(t('share.linkCopied'));
     } catch {
       toast.error(t('share.linkCopyFailed'));

@@ -69,7 +69,8 @@
     "savedBadge": "Збережено",
     "pinnedToast": "Повідомлення закріплено",
     "unpinnedToast": "Повідомлення відкріплено",
-    "openProfile": "Відкрити профіль: {{name}}"
+    "openProfile": "Відкрити профіль: {{name}}",
+    "linkCopyFailed": "Не вдалося скопіювати посилання"
   },
   "list": {
     "label": "Повідомлення",

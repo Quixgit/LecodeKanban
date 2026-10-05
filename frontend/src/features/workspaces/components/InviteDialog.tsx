@@ -1,3 +1,4 @@
+import { copyText } from '@/shared/lib/clipboard';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Copy, Mail } from 'lucide-react';
 import { useState } from 'react';
@@ -115,10 +116,9 @@ export function InviteDialog({
             <Button
               variant="secondary"
               onClick={() =>
-                navigator.clipboard
-                  .writeText(sent.link)
-                  .then(() => toast.success(t('invite.copied')))
-                  .catch(() => toast.error(t('invite.copyFailed')))
+                void copyText(sent.link).then((ok) =>
+                  ok ? toast.success(t('invite.copied')) : toast.error(t('invite.copyFailed')),
+                )
               }
             >
               <Copy />
