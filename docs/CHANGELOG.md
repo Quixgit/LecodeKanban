@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+- **Icon-rail menu**: Chat and Docs now keep their lists (channels, the page tree) in the rail's second column instead
+  of inside the page, so the layout is icons → list → content everywhere. The layout choice moved to a shared store
+  (`lk-shell-layout`); anyone who switched to the rail earlier picks it again once.
+
 ### Added
 
 - **Chat appearance** (palette button in the chat header): eight ready-made themes (Aubergine, Ocean, Forest…) or your

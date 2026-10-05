@@ -258,3 +258,8 @@ Facts about what was checked, with how. Update on every phase.
 
 - Unit: theme maths (default untouched, light text on dark / dark on light, AA for accents and muted text on every preset).
 - Browser: pick a theme (axe on the themed sidebar and chat), reload keeps it, own colour, reset.
+
+## Rail: chat and docs lists
+
+- Browser: in the rail layout the channel list is inside the rail and not in the page; the docs tree too; axe on the rail.
+- Not covered: the rail below the lg breakpoint (the mobile layout is unchanged).
