@@ -6,6 +6,7 @@ export { RolePill } from './components/RolePill';
 export {
   useWorkspaces,
   useCurrentWorkspace,
+  useInvites,
   useMembers as useWorkspaceMembers,
   useRoleMutations,
   useRoles,

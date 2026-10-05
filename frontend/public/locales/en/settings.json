@@ -64,7 +64,52 @@
     "modulesOn": "{{on}} of {{total}} modules on",
     "count": "{{count}} defined",
     "people": "{{count}} people",
-    "roles": "{{count}} roles"
+    "roles": "{{count}} roles",
+    "kpi": {
+      "members": "Members",
+      "invites": "Open invitations",
+      "projects": "Projects",
+      "tasks": "Open tasks"
+    },
+    "setup": {
+      "title": "Get the workspace ready",
+      "steps": {
+        "describe": {
+          "title": "Describe the workspace",
+          "hint": "A line for your team on what it is for."
+        },
+        "look": {
+          "title": "Give it a look",
+          "hint": "Pick an icon and an accent colour."
+        },
+        "invite": {
+          "title": "Invite your team",
+          "hint": "A workspace is better with people in it."
+        },
+        "email": {
+          "title": "Make email work",
+          "hint": "Invitations and reminders need real delivery."
+        },
+        "roles": {
+          "title": "Tune roles",
+          "hint": "Decide exactly what each role may do."
+        },
+        "fields": {
+          "title": "Add custom fields",
+          "hint": "Budget, risk, a link: whatever tasks need."
+        },
+        "labels": {
+          "title": "Create labels",
+          "hint": "Names and colours people tag tasks with."
+        }
+      }
+    },
+    "activity": {
+      "title": "Recent changes",
+      "all": "See all",
+      "empty": "Nothing has been changed yet."
+    },
+    "allSettings": "All settings"
   },
   "general": {
     "nameTitle": "Workspace",
@@ -304,7 +349,16 @@
       "defaultPriority": "default priority",
       "requireDueDate": "due date requirement",
       "weekStart": "week start",
-      "features": "modules"
+      "features": "modules",
+      "requireAssignee": "assignee requirement",
+      "chatAllowDirect": "direct messages",
+      "chatAllowFiles": "file sharing",
+      "chatEditMinutes": "message edit window",
+      "timeAllowManual": "manual time",
+      "docsVisibility": "docs visibility",
+      "docsMaxDepth": "docs depth",
+      "accentColor": "accent colour",
+      "icon": "icon"
     },
     "settings": {
       "updated": "changed settings: {{what}}"

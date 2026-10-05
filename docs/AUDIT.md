@@ -270,3 +270,8 @@ Facts about what was checked, with how. Update on every phase.
 
 - Unit: theme maths (default untouched, light text on dark / dark on light, AA for accents and muted text on every preset).
 - Browser: pick a theme (axe on the themed sidebar and chat), reload keeps it, own colour, reset.
+
+## Admin overview
+
+- Unit: set-up steps and progress (unknown steps are neither done nor open). Browser: settings suite.
+- Not covered: the checklist has no step for integrations (it would make settings depend on the integrations module).
