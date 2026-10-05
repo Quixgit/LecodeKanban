@@ -399,3 +399,7 @@ Facts about what was checked, with how. Update on every phase.
 - Vitest: English and Ukrainian locale parity with the four new entries. Browser (axe): the four Help tests pass on a freshly seeded database.
 - Found by the browser tests: a re-seeded database left the demo people "not set up", so the welcome guide covered the Help page; `seed` now marks them set up.
 - Not covered: the new entries by eye in Ukrainian; What's new is still written by hand (no generation from the changelog), kept current by the README rule.
+
+## Email setup instructions
+
+- Found on a real deployment: with `LK_SMTP_HOST=smtp-relay.gmail.com` in `.env` the API log still showed `smtp_host: mailpit`, because `docker-compose.yml` reads `LK_PROD_SMTP_*`. The page, README and `.env.example` now say so. Not covered: the compose file itself is unchanged; a UI test for the snippet text.

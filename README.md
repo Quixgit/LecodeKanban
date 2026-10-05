@@ -153,7 +153,8 @@ Create OAuth apps and set `LK_GOOGLE_CLIENT_*` / `LK_GITHUB_CLIENT_*`. The callb
 <summary><b>Email (invitations, reminders, support requests)</b></summary>
 
 A fresh deployment sends mail to Mailpit, a test inbox, so nothing reaches real inboxes. Connect a provider in `.env`
-(see **Settings → Email** in the admin centre, or `.env.example`): `LK_SMTP_HOST/PORT/TLS/USERNAME/PASSWORD/FROM`, or
+(see **Settings → Email** in the admin centre, or `.env.example`): `LK_PROD_SMTP_HOST/PORT/TLS` (what the containers read; `LK_SMTP_HOST/PORT/TLS` are only the host-side
+Mailpit used by `make seed` and `make dev`) and `LK_SMTP_USERNAME/PASSWORD/FROM`, or
 `LK_MAIL_PROVIDER=mailgun` with `LK_MAILGUN_*`. Then `docker compose up -d api worker` — the worker sends the queued
 mail, so it must be running. **Settings → Email** shows the queue and the last emails, and can send a test message.
 

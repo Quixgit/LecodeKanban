@@ -139,9 +139,10 @@ export function EmailPage() {
           </SettingsCard>
 
           <SettingsCard title={t('email.setupTitle')} description={t('email.setupDescription')}>
-            <pre className="overflow-x-auto rounded-lg bg-surface-muted p-3 text-xs leading-relaxed text-text">{`LK_SMTP_HOST=smtp.your-provider.com
-LK_SMTP_PORT=587
-LK_SMTP_TLS=starttls
+            <pre className="overflow-x-auto rounded-lg bg-surface-muted p-3 text-xs leading-relaxed text-text">{`# the containers read the LK_PROD_* host settings
+LK_PROD_SMTP_HOST=smtp.your-provider.com
+LK_PROD_SMTP_PORT=587
+LK_PROD_SMTP_TLS=starttls
 LK_SMTP_USERNAME=…
 LK_SMTP_PASSWORD=…
 LK_SMTP_FROM="LecodeKanban <no-reply@your-domain.com>"
