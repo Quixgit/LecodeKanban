@@ -2,6 +2,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
+import { fieldSurface } from './fieldStyles';
 
 export interface SelectOption {
   value: string;
@@ -36,9 +37,10 @@ export function Select({
       <SelectPrimitive.Trigger
         aria-label={label}
         className={cn(
-          'inline-flex h-control items-center gap-2 rounded-lg border border-border bg-surface px-3.5 text-base text-text-secondary shadow-xs',
-          'transition-[border-color,box-shadow] duration-micro ease-out hover:border-border-strong',
-          'data-[state=open]:border-primary data-[placeholder]:text-text-secondary data-[state=open]:shadow-focus',
+          'inline-flex h-control items-center gap-2 rounded-lg border-border px-3.5 text-base text-text-secondary shadow-xs focus-visible:shadow-none',
+          fieldSurface,
+          'hover:border-primary/30 hover:ring-2 hover:ring-primary/10 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/15',
+          'data-[state=open]:border-primary/50 data-[placeholder]:text-text-secondary data-[state=open]:ring-2 data-[state=open]:ring-primary/15',
           className,
         )}
       >

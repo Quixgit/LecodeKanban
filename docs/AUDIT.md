@@ -237,3 +237,8 @@ Facts about what was checked, with how. Update on every phase.
   attachments, comments, cards, labels, boards, custom fields, GitHub, audit.
 - Unit: `can()`, invitable roles. Browser: Settings → Roles (axe, toggle + reset, create + delete a custom role).
 - Not covered: a module-level permission test in the browser for every action (covered by Go authz tests).
+
+## UI polish
+
+- Unit: existing MetricCard/overlay tests; browser: settings, kanban, task window suites pass with the new fields and close button.
+- Not covered: visual regression of the mint outline (checked by eye).

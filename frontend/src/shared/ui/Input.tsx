@@ -1,5 +1,6 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '../lib/cn';
+import { fieldGlow, fieldGlowInvalid, fieldSurface } from './fieldStyles';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   leadingIcon?: ReactNode;
@@ -13,11 +14,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, wrapperClassName, leadingIcon, trailing, invalid, ...props }, ref) => (
     <div
       className={cn(
-        'group flex h-control items-center gap-2 rounded-lg border bg-surface px-3 transition-[border-color,box-shadow] duration-micro ease-out',
-        'focus-within:border-primary focus-within:shadow-focus',
-        invalid
-          ? 'border-danger focus-within:border-danger'
-          : 'border-border hover:border-border-strong',
+        'group flex h-control items-center gap-2 rounded-lg px-3',
+        fieldSurface,
+        invalid ? fieldGlowInvalid : cn('border-border', fieldGlow),
         props.disabled && 'bg-surface-sunken',
         wrapperClassName,
       )}
