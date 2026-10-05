@@ -4,6 +4,12 @@
 
 ### Added
 
+- **Notification preferences** (Profile → Notifications): choose which kinds reach your bell (put on a task, mentions,
+  direct messages, comments, tasks that move, edits, meeting reminders); everything is on until switched off. The chat
+  menu's "Edit default preferences" opens it. Needs migration `00031` (apply `00030` first if the 2FA change is pending).
+
+### Added
+
 - **Two-step verification (2FA)**: Profile → Security → turn on with any authenticator app (QR code or key), get
   8 one-time recovery codes, sign in with password + code, turn off with password + code, make new recovery codes.
   Accounts with it on cannot sign in with Google/GitHub (use email and password). Needs migration `00030`
