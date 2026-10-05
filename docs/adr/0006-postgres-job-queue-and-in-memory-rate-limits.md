@@ -11,7 +11,7 @@ Phase 2 needs background email delivery with retries; later phases add sync jobs
 ## Decision
 
 - **Jobs** live in the `jobs` table and are claimed with `UPDATE … WHERE id IN (SELECT … FOR UPDATE
-  SKIP LOCKED)`. Features: idempotency keys (unique partial index), exponential backoff with jitter
+SKIP LOCKED)`. Features: idempotency keys (unique partial index), exponential backoff with jitter
   (2ⁿ s, ±20 %, ≤1 h), max attempts, `Permanent` errors, stale-lease recovery, `LISTEN/NOTIFY`
   wake-ups, hourly cleanup of finished jobs. Jobs can be enqueued **inside the same transaction** as
   the business write (outbox semantics).

@@ -13,12 +13,12 @@ not only behind a reverse proxy. The host already runs other services on common 
 
 LecodeKanban reserves the **47100–47109** range:
 
-| Port | Service | Bind |
-| --- | --- | --- |
-| 47100 | Web (Vite dev server now; nginx serving the SPA in production) | `0.0.0.0` |
-| 47101 | Go API (REST + WebSocket) | internal compose network in prod (nginx proxies `/api`, ADR 0009), `127.0.0.1` in dev (Vite proxies `/api`) |
-| 47102 | PostgreSQL | `127.0.0.1` only |
-| 47103 | Redis | `127.0.0.1` only |
+| Port  | Service                                                        | Bind                                                                                                        |
+| ----- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 47100 | Web (Vite dev server now; nginx serving the SPA in production) | `0.0.0.0`                                                                                                   |
+| 47101 | Go API (REST + WebSocket)                                      | internal compose network in prod (nginx proxies `/api`, ADR 0009), `127.0.0.1` in dev (Vite proxies `/api`) |
+| 47102 | PostgreSQL                                                     | `127.0.0.1` only                                                                                            |
+| 47103 | Redis                                                          | `127.0.0.1` only                                                                                            |
 
 All values are env-driven (`LK_WEB_PORT`, `LK_API_PORT`, …; see `.env.example`); Vite uses
 `strictPort` so a clash fails loudly instead of silently picking another port.

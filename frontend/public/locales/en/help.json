@@ -306,6 +306,44 @@
       {
         "date": "October 2026",
         "tag": "improvement",
+        "title": "Resetting a lost password without email",
+        "text": "Until email is set up, the person who runs the server can give an existing account a new one-time password and lift a sign-in lock with one command.",
+        "tech": [
+          "adduser -reset <email>… (prints a one-time password, clears failed_login_count and locked_until, revokes refresh tokens)"
+        ]
+      },
+      {
+        "date": "October 2026",
+        "tag": "improvement",
+        "title": "Smoother invitations",
+        "text": "A new person follows the link, sees their address already filled in and only chooses a password; someone who already has an account is told so and can reset the password. An invitee is never offered a workspace of their own.",
+        "tech": [
+          "GET /invites/{token} → InvitePreview.hasAccount",
+          "the app remembers an opened, unaccepted invitation and returns to it"
+        ]
+      },
+      {
+        "date": "October 2026",
+        "tag": "feature",
+        "title": "Welcome guide",
+        "text": "An animated setup for new accounts (name the workspace, who you are, photo, contacts, invite the team) and a shorter one for people who join by invitation. Each step saves as you go; Help → Quick start runs it again. WhatsApp is a new profile field.",
+        "tech": [
+          "POST /users/me/onboarding/complete",
+          "users.whatsapp, users.onboarded_at · migration 00036 (existing accounts count as set up)"
+        ]
+      },
+      {
+        "date": "October 2026",
+        "tag": "feature",
+        "title": "Help center",
+        "text": "Search across guides, a quick start, shortcuts, a status card and contact with the team, in English and Ukrainian.",
+        "tech": [
+          "no API changes (support requests: see below)"
+        ]
+      },
+      {
+        "date": "October 2026",
+        "tag": "improvement",
         "title": "Time tracking redesigned",
         "text": "One flow: timer and estimate on the task, a header menu with recent tasks, and a weekly timesheet on the Time page.",
         "tech": [

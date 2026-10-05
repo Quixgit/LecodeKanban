@@ -8,13 +8,13 @@
 The reference screenshots render coloured text directly in the fill colour on pastel backgrounds,
 e.g. amber `#e6b04b` on `#fcf7ea` and white on teal `#4cb5ae`. Measured contrast:
 
-| Pair | Ratio |
-| --- | --- |
-| teal `#4cb5ae` on `#e9f4f2` | 2.19 |
-| amber `#e6b04b` on `#fcf7ea` | 1.84 |
-| purple `#9474c2` on `#eee8f7` | 3.16 |
-| red `#d0544e` on `#f7e7e6` | 3.46 |
-| white on teal `#4cb5ae` (button) | 2.46 |
+| Pair                             | Ratio |
+| -------------------------------- | ----- |
+| teal `#4cb5ae` on `#e9f4f2`      | 2.19  |
+| amber `#e6b04b` on `#fcf7ea`     | 1.84  |
+| purple `#9474c2` on `#eee8f7`    | 3.16  |
+| red `#d0544e` on `#f7e7e6`       | 3.46  |
+| white on teal `#4cb5ae` (button) | 2.46  |
 
 The brief requires both pixel fidelity and WCAG AA (4.5:1 for normal text). They conflict here.
 

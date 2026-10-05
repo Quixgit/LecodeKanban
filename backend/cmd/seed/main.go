@@ -111,6 +111,10 @@ func run(reset bool) error {
 			return fmt.Errorf("user %s: %w", p.Email, err)
 		}
 		ids[p.Email] = u.ID
+		// Demo people are already set up: the welcome guide would cover every page the browser tests open.
+		if _, err := pool.Exec(ctx, `UPDATE users SET onboarded_at = now() WHERE id = $1`, u.ID); err != nil {
+			return err
+		}
 	}
 	owner := ids[people[0].Email]
 	w, err := ws.Create(ctx, owner, workspaceName)

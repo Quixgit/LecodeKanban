@@ -6,7 +6,7 @@
 ## Decision
 
 - Every module has the same shape: `domain/` (entities, error codes), `repository/` (sqlc `store/`
-  + mapping), `service/` (use cases, authorisation), `transport/http/`, `events/`, `module.go`.
+  - mapping), `service/` (use cases, authorisation), `transport/http/`, `events/`, `module.go`.
 - **Ports are defined by the consumer.** `auth` declares the `Users` interface it needs and
   `users/service.Service` happens to satisfy it; `users` never imports `auth`. Where two modules need
   each other (users' HTTP presenter ↔ auth's provider list), `cmd/server/wire.go` breaks the cycle with
