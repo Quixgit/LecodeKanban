@@ -17,6 +17,7 @@ tags:
   - name: auth
   - name: users
   - name: workspaces
+  - name: support
   - name: projects
   - name: boards
   - name: cards
@@ -1214,6 +1215,80 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/PerformanceReport" }
         "403": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/support:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    get:
+      tags: [support]
+      operationId: listSupportRequests
+      summary: Support requests; people who manage support see everyone's, others their own
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/SupportStatus" } }
+        - { name: mine, in: query, schema: { type: boolean }, description: Only the caller's own requests }
+      responses:
+        "200":
+          description: Newest first
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/SupportRequest" } }
+    post:
+      tags: [support]
+      operationId: createSupportRequest
+      summary: Write to the people who run the workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportRequestInput" }
+      responses:
+        "201":
+          description: Created; the administrators are told by email
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportRequest" }
+        "422": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /support/{requestId}:
+    parameters: [{ name: requestId, in: path, required: true, schema: { type: string, format: uuid } }]
+    patch:
+      tags: [support]
+      operationId: updateSupportRequest
+      summary: Change a request's status (needs the support permission)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportRequestPatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportRequest" }
+        "403": { $ref: "#/components/responses/Error" }
+  /support/{requestId}/screenshot:
+    parameters: [{ name: requestId, in: path, required: true, schema: { type: string, format: uuid } }]
+    get:
+      tags: [support]
+      operationId: getSupportScreenshot
+      responses:
+        "200":
+          description: The image (PNG, JPEG or WebP)
+          content:
+            image/png: { schema: { type: string, format: binary } }
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/webp: { schema: { type: string, format: binary } }
+        "404": { $ref: "#/components/responses/Error" }
+  /meta:
+    get:
+      tags: [workspaces]
+      operationId: getBuildInfo
+      summary: Which build is running and on what
+      responses:
+        "200":
+          description: Versions of the API and what it runs on
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BuildInfo" }
   /workspaces/{workspaceId}/cards/board:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -4149,6 +4224,58 @@ components:
         people: { type: array, items: { $ref: "#/components/schemas/PerformancePerson" } }
         unassignedOpen: { type: integer }
         projects: { type: array, items: { $ref: "#/components/schemas/PerformanceProject" } }
+    SupportKind:
+      type: string
+      enum: [problem, idea, question]
+    SupportStatus:
+      type: string
+      enum: [new, in_progress, resolved]
+    SupportScreenshotInput:
+      type: object
+      required: [contentType, data]
+      properties:
+        contentType: { type: string, enum: ["image/png", "image/jpeg", "image/webp"] }
+        data: { type: string, description: Base64 of the image (up to 2 MB decoded) }
+    SupportRequestInput:
+      type: object
+      required: [kind, subject, message]
+      properties:
+        kind: { $ref: "#/components/schemas/SupportKind" }
+        subject: { type: string, maxLength: 120 }
+        message: { type: string, maxLength: 5000 }
+        pageUrl: { type: string, maxLength: 500, description: The page the person was on }
+        userAgent: { type: string, maxLength: 300 }
+        screenshot: { $ref: "#/components/schemas/SupportScreenshotInput" }
+    SupportRequestPatch:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: "#/components/schemas/SupportStatus" }
+    SupportRequest:
+      type: object
+      required: [id, kind, subject, message, pageUrl, userAgent, hasScreenshot, status, author, createdAt, updatedAt, resolvedAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: "#/components/schemas/SupportKind" }
+        subject: { type: string }
+        message: { type: string }
+        pageUrl: { type: string }
+        userAgent: { type: string }
+        hasScreenshot: { type: boolean }
+        status: { $ref: "#/components/schemas/SupportStatus" }
+        author: { allOf: [{ $ref: "#/components/schemas/PersonRef" }], nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        resolvedAt: { type: string, format: date-time, nullable: true }
+    BuildInfo:
+      type: object
+      required: [version, commit, builtAt, goVersion, database]
+      properties:
+        version: { type: string, description: Release of the API }
+        commit: { type: string, description: Short commit id, empty for a local build }
+        builtAt: { type: string, description: When the binary was built, empty when unknown }
+        goVersion: { type: string }
+        database: { type: string, description: The database server's version }
     WikiTrashItem:
       type: object
       required: [node, expiresAt]

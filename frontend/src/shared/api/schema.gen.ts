@@ -1164,6 +1164,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/support": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** Support requests; people who manage support see everyone's, others their own */
+        get: operations["listSupportRequests"];
+        put?: never;
+        /** Write to the people who run the workspace */
+        post: operations["createSupportRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/support/{requestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change a request's status (needs the support permission) */
+        patch: operations["updateSupportRequest"];
+        trace?: never;
+    };
+    "/support/{requestId}/screenshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        get: operations["getSupportScreenshot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which build is running and on what */
+        get: operations["getBuildInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/cards/board": {
         parameters: {
             query?: never;
@@ -4191,6 +4265,57 @@ export interface components {
             unassignedOpen: number;
             projects: components["schemas"]["PerformanceProject"][];
         };
+        /** @enum {string} */
+        SupportKind: "problem" | "idea" | "question";
+        /** @enum {string} */
+        SupportStatus: "new" | "in_progress" | "resolved";
+        SupportScreenshotInput: {
+            /** @enum {string} */
+            contentType: "image/png" | "image/jpeg" | "image/webp";
+            /** @description Base64 of the image (up to 2 MB decoded) */
+            data: string;
+        };
+        SupportRequestInput: {
+            kind: components["schemas"]["SupportKind"];
+            subject: string;
+            message: string;
+            /** @description The page the person was on */
+            pageUrl?: string;
+            userAgent?: string;
+            screenshot?: components["schemas"]["SupportScreenshotInput"];
+        };
+        SupportRequestPatch: {
+            status: components["schemas"]["SupportStatus"];
+        };
+        SupportRequest: {
+            /** Format: uuid */
+            id: string;
+            kind: components["schemas"]["SupportKind"];
+            subject: string;
+            message: string;
+            pageUrl: string;
+            userAgent: string;
+            hasScreenshot: boolean;
+            status: components["schemas"]["SupportStatus"];
+            author: components["schemas"]["PersonRef"] | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            resolvedAt: string | null;
+        };
+        BuildInfo: {
+            /** @description Release of the API */
+            version: string;
+            /** @description Short commit id */
+            commit: string;
+            /** @description When the binary was built */
+            builtAt: string;
+            goVersion: string;
+            /** @description The database server's version */
+            database: string;
+        };
         WikiTrashItem: {
             node: components["schemas"]["WikiNode"];
             /** Format: date-time */
@@ -6879,6 +7004,132 @@ export interface operations {
                 };
             };
             403: components["responses"]["Error"];
+        };
+    };
+    listSupportRequests: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["SupportStatus"];
+                /** @description Only the caller's own requests */
+                mine?: boolean;
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportRequest"][];
+                };
+            };
+        };
+    };
+    createSupportRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupportRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created; the administrators are told by email */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportRequest"];
+                };
+            };
+            422: components["responses"]["Error"];
+            429: components["responses"]["Error"];
+        };
+    };
+    updateSupportRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupportRequestPatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportRequest"];
+                };
+            };
+            403: components["responses"]["Error"];
+        };
+    };
+    getSupportScreenshot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The image (PNG, JPEG or WebP) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                    "image/jpeg": string;
+                    "image/webp": string;
+                };
+            };
+            404: components["responses"]["Error"];
+        };
+    };
+    getBuildInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versions of the API and what it runs on */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuildInfo"];
+                };
+            };
         };
     };
     boardCards: {

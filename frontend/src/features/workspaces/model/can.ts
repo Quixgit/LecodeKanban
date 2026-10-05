@@ -23,6 +23,7 @@ export type PermissionKey =
   | 'audit.view'
   | 'data.export'
   | 'analytics.view'
+  | 'support.manage'
   | 'roles.manage'
   | 'workspace.delete';
 

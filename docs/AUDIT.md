@@ -343,6 +343,12 @@ Facts about what was checked, with how. Update on every phase.
 - Browser (axe): estimate → progress, log with a quick amount and a note, edit to 90 minutes, delete; timesheet add through task search, week navigation; header timer menu; phone width without horizontal scroll. Screenshots of the timesheet checked by eye in light and dark; the card panel in light.
 - Found by the browser test, fixed: lengthening an entry made it end in the future and be refused (the start now moves earlier).
 - Not covered: the Ukrainian layout by eye, dark theme of the card panel and the menu, the person filter in the browser (permission checked in Go), exporting the timesheet, billable hours, approvals, day/week goals per person (the 8-hour bar is a fixed reference).
+## Support requests and technical What's new
+
+- Go (database): a viewer may write; owner and admin are emailed (not the author); validation; a wrong image type and a non-image behind a PNG label are refused; visibility (managers see all, others their own only, a stranger is refused); status changes need the permission, resolving stamps the time and reopening clears it; the screenshot is served to its author and managers only; 20 open requests per person.
+- Vitest: screenshot checks and base64 encoding; locale parity for the new help strings (changes, plans, support, inbox).
+- Browser (axe): required-field messages, a request with a screenshot appears in "Your requests" and in the owner's inbox with its picture, resolve changes the chip; the What's new tabs show API notes, the roadmap and versions. The email is enqueued (checked in the job table); actual SMTP delivery is not tested here.
+- Not covered: replying inside the platform (answers go by email), notifying by chat, the Ukrainian layout of the new cards by eye, a request from someone who left the workspace, editing or deleting a sent request.
 ## Sign-in and registration pages
 
 - Vitest: the registration schema wants the confirmation and equality (required / mismatch messages), the old password rules still hold.

@@ -93,6 +93,7 @@ Base URL: `/api/v1`
 | DELETE | `/workspaces/{workspaceId}/invites/{inviteId}` | session |  | 204, 404 Error |  |
 | GET | `/invites/{token}` | public |  | 200, 404 Error |  |
 | POST | `/invites/{token}/accept` | session |  | 200, 403 Error, 410 Error |  |
+| GET | `/meta` | session |  | 200 | Which build is running and on what |
 
 ## projects
 
@@ -146,6 +147,15 @@ Base URL: `/api/v1`
 | POST | `/cards/{cardId}/checklist` | session | ChecklistItemInput | 201 |  |
 | PATCH | `/checklist-items/{itemId}` | session | ChecklistItemPatch | 200 |  |
 | DELETE | `/checklist-items/{itemId}` | session |  | 204 |  |
+
+## support
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/workspaces/{workspaceId}/support` | session |  | 200 | Support requests; people who manage support see everyone's, others their own |
+| POST | `/workspaces/{workspaceId}/support` | session | SupportRequestInput | 201, 422 Error, 429 Error | Write to the people who run the workspace |
+| PATCH | `/support/{requestId}` | session | SupportRequestPatch | 200, 403 Error | Change a request's status (needs the support permission) |
+| GET | `/support/{requestId}/screenshot` | session |  | 200, 404 Error |  |
 
 ## customFields
 
@@ -461,6 +471,13 @@ Base URL: `/api/v1`
 - **PerformancePerson** — `person`: PersonRef, `open`: integer, `done`: integer, `overdue`: integer
 - **PerformanceProject** — `project`: ProjectRef, `total`: integer, `done`: integer, `overdue`: integer, `doneInPeriod`: integer, `donePrevious`: integer
 - **PerformanceReport** — `days`: integer, `throughput`: Trend, `cycleTime`: DurationStat, `leadTime`: DurationStat, `lateDone`: integer, `doneWithDue`: integer, `previousLateDone`: integer, `previousDoneWithDue`: integer, `overdueNow`: integer, `wipInProgress`: integer, `wipInReview`: integer, `weekly`: array, `daily`: array, `histogram`: array, `aged`: array, `people`: array, `unassignedOpen`: integer, `projects`: array
+- **SupportKind**: `problem` | `idea` | `question`
+- **SupportStatus**: `new` | `in_progress` | `resolved`
+- **SupportScreenshotInput** — `contentType`: string, `data`: string
+- **SupportRequestInput** — `kind`: SupportKind, `subject`: string, `message`: string, `pageUrl?`: string, `userAgent?`: string, `screenshot?`: SupportScreenshotInput
+- **SupportRequestPatch** — `status`: SupportStatus
+- **SupportRequest** — `id`: string, `kind`: SupportKind, `subject`: string, `message`: string, `pageUrl`: string, `userAgent`: string, `hasScreenshot`: boolean, `status`: SupportStatus, `author`: object \| null, `createdAt`: string, `updatedAt`: string, `resolvedAt`: string \| null
+- **BuildInfo** — `version`: string, `commit`: string, `builtAt`: string, `goVersion`: string, `database`: string
 - **WikiTrashItem** — `node`: WikiNode, `expiresAt`: string
 - **WikiVisibilityInput** — `visibility`: object \| null, `workspaceRole?`: WikiWorkspaceRole
 - **WikiGrantInput** — `role`: WikiRole

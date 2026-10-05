@@ -54,6 +54,14 @@ export function useHelpIndex(): HelpEntry[] {
         }),
       );
     }
+    entries.push({
+      id: 'help-support',
+      kind: 'page',
+      title: t('help:support.title'),
+      hint: t('help:support.subtitle'),
+      body: 'support help contact report problem idea question screenshot підтримка допомога звернення проблема',
+      to: '/help#support',
+    });
     for (const p of PAGES) {
       if (p.needs && !analytics) continue;
       entries.push({

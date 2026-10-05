@@ -164,5 +164,10 @@
   },
   "notifications": {
     "unknown_kind": "That kind of notification does not exist."
+  },
+  "support": {
+    "not_found": "This request no longer exists.",
+    "too_many_open": "You have {{max}} unanswered requests. Wait for a reply or close one first.",
+    "bad_screenshot": "The screenshot must be a PNG, JPEG or WebP image up to 2 MB."
   }
 }

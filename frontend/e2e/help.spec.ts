@@ -48,7 +48,64 @@ test.describe('Help & Center', () => {
 
     await expect(main.getByRole('heading', { name: "What's new" })).toBeVisible();
     await expect(main.getByText(/Version \d/)).toBeVisible();
+    // The technical side: changes carry API notes, plans are listed, versions say what runs.
+    await expect(main.getByText(/GET \/workspaces\/\{id\}\/time/)).toBeVisible();
+    await main.getByRole('radio', { name: 'Planned' }).click();
+    await expect(main.getByText('Task templates and recurring tasks')).toBeVisible();
+    await main.getByRole('radio', { name: 'Versions' }).click();
+    await expect(main.getByText('PostgreSQL', { exact: false }).first()).toBeVisible();
+    await expect(main.getByText('react', { exact: true })).toBeVisible();
     await axeClean(page);
+  });
+
+  test('contact the team: send a request with a screenshot, then handle it in the inbox', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await signIn(page);
+    await page.goto('/help#support');
+    const main = page.getByRole('main');
+    const subject = `E2E request ${Date.now().toString(36)}`;
+    const support = main.locator('#support');
+    await expect(support.getByRole('heading', { name: 'Contact the team' })).toBeVisible();
+
+    // Required fields are checked before anything is sent.
+    await support.getByRole('button', { name: 'Send' }).click();
+    await expect(support.getByText('This field is required.').first()).toBeVisible();
+
+    await support.getByRole('radio', { name: 'Idea' }).click();
+    await support.getByLabel('Subject').fill(subject);
+    await support.getByLabel('Details').fill('A longer description of the idea.');
+    // A 1×1 PNG.
+    const png = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    );
+    await support
+      .getByLabel('Attach a screenshot')
+      .setInputFiles({ name: 'shot.png', mimeType: 'image/png', buffer: png });
+    await expect(support.getByText('shot.png')).toBeVisible();
+    await support.getByRole('button', { name: 'Send' }).click();
+    await expect(page.getByText('Sent. The team has been told.')).toBeVisible();
+    await expect(support.getByText(subject)).toBeVisible();
+
+    // The owner handles support: open the request in the inbox and resolve it.
+    const inbox = main.locator('#support-inbox');
+    await expect(inbox.getByRole('heading', { name: 'Support inbox' })).toBeVisible();
+    await inbox.getByRole('button', { name: new RegExp(subject) }).click();
+    await expect(inbox.getByText('A longer description of the idea.')).toBeVisible();
+    await expect(inbox.getByRole('img', { name: new RegExp(subject) })).toBeVisible();
+    await inbox.getByRole('button', { name: 'Mark as resolved' }).click();
+    await expect(
+      inbox.getByRole('button', { name: new RegExp(subject) }).getByText('Resolved'),
+    ).toBeVisible();
+
+    await page.waitForTimeout(900);
+    const axe = await new AxeBuilder({ page })
+      .include('main')
+      .withTags(['wcag2a', 'wcag2aa'])
+      .analyze();
+    expect(axe.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
   });
 
   test('"Learn more" on Roles opens its guide', async ({ page }) => {

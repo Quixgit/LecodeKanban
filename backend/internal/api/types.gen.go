@@ -789,6 +789,69 @@ func (e RoleInputBase) Valid() bool {
 	}
 }
 
+// Defines values for SupportKind.
+const (
+	Idea     SupportKind = "idea"
+	Problem  SupportKind = "problem"
+	Question SupportKind = "question"
+)
+
+// Valid indicates whether the value is a known member of the SupportKind enum.
+func (e SupportKind) Valid() bool {
+	switch e {
+	case Idea:
+		return true
+	case Problem:
+		return true
+	case Question:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SupportScreenshotInputContentType.
+const (
+	Imagejpeg SupportScreenshotInputContentType = "image/jpeg"
+	Imagepng  SupportScreenshotInputContentType = "image/png"
+	Imagewebp SupportScreenshotInputContentType = "image/webp"
+)
+
+// Valid indicates whether the value is a known member of the SupportScreenshotInputContentType enum.
+func (e SupportScreenshotInputContentType) Valid() bool {
+	switch e {
+	case Imagejpeg:
+		return true
+	case Imagepng:
+		return true
+	case Imagewebp:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SupportStatus.
+const (
+	SupportStatusInProgress SupportStatus = "in_progress"
+	SupportStatusNew        SupportStatus = "new"
+	SupportStatusResolved   SupportStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the SupportStatus enum.
+func (e SupportStatus) Valid() bool {
+	switch e {
+	case SupportStatusInProgress:
+		return true
+	case SupportStatusNew:
+		return true
+	case SupportStatusResolved:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for TaskStatus.
 const (
 	TaskStatusDone       TaskStatus = "done"
@@ -1845,6 +1908,22 @@ type BoardColumn struct {
 	Position string             `json:"position"`
 	Status   TaskStatus         `json:"status"`
 	WipLimit *int               `json:"wipLimit"`
+}
+
+// BuildInfo defines model for BuildInfo.
+type BuildInfo struct {
+	// BuiltAt When the binary was built
+	BuiltAt string `json:"builtAt"`
+
+	// Commit Short commit id
+	Commit string `json:"commit"`
+
+	// Database The database server's version
+	Database  string `json:"database"`
+	GoVersion string `json:"goVersion"`
+
+	// Version Release of the API
+	Version string `json:"version"`
 }
 
 // BulkCardAction defines model for BulkCardAction.
@@ -3180,6 +3259,56 @@ type StatusCounts struct {
 	Todo       int `json:"todo"`
 }
 
+// SupportKind defines model for SupportKind.
+type SupportKind string
+
+// SupportRequest defines model for SupportRequest.
+type SupportRequest struct {
+	Author        *PersonRef         `json:"author"`
+	CreatedAt     time.Time          `json:"createdAt"`
+	HasScreenshot bool               `json:"hasScreenshot"`
+	Id            openapi_types.UUID `json:"id"`
+	Kind          SupportKind        `json:"kind"`
+	Message       string             `json:"message"`
+	PageUrl       string             `json:"pageUrl"`
+	ResolvedAt    *time.Time         `json:"resolvedAt"`
+	Status        SupportStatus      `json:"status"`
+	Subject       string             `json:"subject"`
+	UpdatedAt     time.Time          `json:"updatedAt"`
+	UserAgent     string             `json:"userAgent"`
+}
+
+// SupportRequestInput defines model for SupportRequestInput.
+type SupportRequestInput struct {
+	Kind    SupportKind `json:"kind"`
+	Message string      `json:"message"`
+
+	// PageUrl The page the person was on
+	PageUrl    *string                 `json:"pageUrl,omitempty"`
+	Screenshot *SupportScreenshotInput `json:"screenshot,omitempty"`
+	Subject    string                  `json:"subject"`
+	UserAgent  *string                 `json:"userAgent,omitempty"`
+}
+
+// SupportRequestPatch defines model for SupportRequestPatch.
+type SupportRequestPatch struct {
+	Status SupportStatus `json:"status"`
+}
+
+// SupportScreenshotInput defines model for SupportScreenshotInput.
+type SupportScreenshotInput struct {
+	ContentType SupportScreenshotInputContentType `json:"contentType"`
+
+	// Data Base64 of the image (up to 2 MB decoded)
+	Data string `json:"data"`
+}
+
+// SupportScreenshotInputContentType defines model for SupportScreenshotInput.ContentType.
+type SupportScreenshotInputContentType string
+
+// SupportStatus defines model for SupportStatus.
+type SupportStatus string
+
 // TaskStatus defines model for TaskStatus.
 type TaskStatus string
 
@@ -4247,6 +4376,14 @@ type ListProjectsParamsSort string
 // ListProjectsParamsOrder defines parameters for ListProjects.
 type ListProjectsParamsOrder string
 
+// ListSupportRequestsParams defines parameters for ListSupportRequests.
+type ListSupportRequestsParams struct {
+	Status *SupportStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// Mine Only the caller's own requests
+	Mine *bool `form:"mine,omitempty" json:"mine,omitempty"`
+}
+
 // GetTimesheetParams defines parameters for GetTimesheet.
 type GetTimesheetParams struct {
 	// From Start of the period (inclusive)
@@ -4349,6 +4486,9 @@ type UpdateProjectJSONRequestBody = ProjectPatch
 
 // CreateColumnJSONRequestBody defines body for CreateColumn for application/json ContentType.
 type CreateColumnJSONRequestBody = ColumnInput
+
+// UpdateSupportRequestJSONRequestBody defines body for UpdateSupportRequest for application/json ContentType.
+type UpdateSupportRequestJSONRequestBody = SupportRequestPatch
 
 // UpdateTimeEntryJSONRequestBody defines body for UpdateTimeEntry for application/json ContentType.
 type UpdateTimeEntryJSONRequestBody = TimeEntryPatch
@@ -4484,6 +4624,9 @@ type SetRolePermissionsJSONRequestBody = PermissionsInput
 
 // UpdateWorkspaceSettingsJSONRequestBody defines body for UpdateWorkspaceSettings for application/json ContentType.
 type UpdateWorkspaceSettingsJSONRequestBody = WorkspaceSettingsPatch
+
+// CreateSupportRequestJSONRequestBody defines body for CreateSupportRequest for application/json ContentType.
+type CreateSupportRequestJSONRequestBody = SupportRequestInput
 
 // CreateSavedViewJSONRequestBody defines body for CreateSavedView for application/json ContentType.
 type CreateSavedViewJSONRequestBody = SavedViewInput
