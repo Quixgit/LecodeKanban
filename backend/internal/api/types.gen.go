@@ -1107,6 +1107,27 @@ func (e WorkspaceSettingsDefaultPriority) Valid() bool {
 	}
 }
 
+// Defines values for WorkspaceSettingsDocsVisibility.
+const (
+	WorkspaceSettingsDocsVisibilityPrivate   WorkspaceSettingsDocsVisibility = "private"
+	WorkspaceSettingsDocsVisibilityShared    WorkspaceSettingsDocsVisibility = "shared"
+	WorkspaceSettingsDocsVisibilityWorkspace WorkspaceSettingsDocsVisibility = "workspace"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsDocsVisibility enum.
+func (e WorkspaceSettingsDocsVisibility) Valid() bool {
+	switch e {
+	case WorkspaceSettingsDocsVisibilityPrivate:
+		return true
+	case WorkspaceSettingsDocsVisibilityShared:
+		return true
+	case WorkspaceSettingsDocsVisibilityWorkspace:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for WorkspaceSettingsIcon.
 const (
 	WorkspaceSettingsIconBriefcase WorkspaceSettingsIcon = "briefcase"
@@ -1164,6 +1185,27 @@ func (e WorkspaceSettingsPatchDefaultPriority) Valid() bool {
 	case WorkspaceSettingsPatchDefaultPriorityLow:
 		return true
 	case WorkspaceSettingsPatchDefaultPriorityMedium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WorkspaceSettingsPatchDocsVisibility.
+const (
+	WorkspaceSettingsPatchDocsVisibilityPrivate   WorkspaceSettingsPatchDocsVisibility = "private"
+	WorkspaceSettingsPatchDocsVisibilityShared    WorkspaceSettingsPatchDocsVisibility = "shared"
+	WorkspaceSettingsPatchDocsVisibilityWorkspace WorkspaceSettingsPatchDocsVisibility = "workspace"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsPatchDocsVisibility enum.
+func (e WorkspaceSettingsPatchDocsVisibility) Valid() bool {
+	switch e {
+	case WorkspaceSettingsPatchDocsVisibilityPrivate:
+		return true
+	case WorkspaceSettingsPatchDocsVisibilityShared:
+		return true
+	case WorkspaceSettingsPatchDocsVisibilityWorkspace:
 		return true
 	default:
 		return false
@@ -3379,8 +3421,14 @@ type WorkspaceSettings struct {
 	DefaultInviteRole InviteRole                       `json:"defaultInviteRole"`
 	DefaultPriority   WorkspaceSettingsDefaultPriority `json:"defaultPriority"`
 	Description       string                           `json:"description"`
-	Features          WorkspaceFeatures                `json:"features"`
-	Icon              WorkspaceSettingsIcon            `json:"icon"`
+
+	// DocsMaxDepth How deep pages nest in new spaces
+	DocsMaxDepth int `json:"docsMaxDepth"`
+
+	// DocsVisibility Who can reach a new docs space by default
+	DocsVisibility WorkspaceSettingsDocsVisibility `json:"docsVisibility"`
+	Features       WorkspaceFeatures               `json:"features"`
+	Icon           WorkspaceSettingsIcon           `json:"icon"`
 
 	// InviteDays How long an invitation stays valid
 	InviteDays int `json:"inviteDays"`
@@ -3399,6 +3447,9 @@ type WorkspaceSettings struct {
 // WorkspaceSettingsDefaultPriority defines model for WorkspaceSettings.DefaultPriority.
 type WorkspaceSettingsDefaultPriority string
 
+// WorkspaceSettingsDocsVisibility Who can reach a new docs space by default
+type WorkspaceSettingsDocsVisibility string
+
 // WorkspaceSettingsIcon defines model for WorkspaceSettings.Icon.
 type WorkspaceSettingsIcon string
 
@@ -3412,6 +3463,8 @@ type WorkspaceSettingsPatch struct {
 	DefaultInviteRole *InviteRole                            `json:"defaultInviteRole,omitempty"`
 	DefaultPriority   *WorkspaceSettingsPatchDefaultPriority `json:"defaultPriority,omitempty"`
 	Description       *string                                `json:"description,omitempty"`
+	DocsMaxDepth      *int                                   `json:"docsMaxDepth,omitempty"`
+	DocsVisibility    *WorkspaceSettingsPatchDocsVisibility  `json:"docsVisibility,omitempty"`
 	Features          *WorkspaceFeatures                     `json:"features,omitempty"`
 	Icon              *WorkspaceSettingsPatchIcon            `json:"icon,omitempty"`
 	InviteDays        *int                                   `json:"inviteDays,omitempty"`
@@ -3423,6 +3476,9 @@ type WorkspaceSettingsPatch struct {
 
 // WorkspaceSettingsPatchDefaultPriority defines model for WorkspaceSettingsPatch.DefaultPriority.
 type WorkspaceSettingsPatchDefaultPriority string
+
+// WorkspaceSettingsPatchDocsVisibility defines model for WorkspaceSettingsPatch.DocsVisibility.
+type WorkspaceSettingsPatchDocsVisibility string
 
 // WorkspaceSettingsPatchIcon defines model for WorkspaceSettingsPatch.Icon.
 type WorkspaceSettingsPatchIcon string

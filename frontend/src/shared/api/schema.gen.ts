@@ -2917,6 +2917,13 @@ export interface components {
             chatEditMinutes: number;
             /** @description Time may be logged by hand */
             timeAllowManual: boolean;
+            /**
+             * @description Who can reach a new docs space by default
+             * @enum {string}
+             */
+            docsVisibility: "private" | "shared" | "workspace";
+            /** @description How deep pages nest in new spaces */
+            docsMaxDepth: number;
             /** @description #rrggbb or empty for the platform colour */
             accentColor: string;
             /** @enum {string} */
@@ -2937,6 +2944,9 @@ export interface components {
             chatAllowFiles?: boolean;
             chatEditMinutes?: number;
             timeAllowManual?: boolean;
+            /** @enum {string} */
+            docsVisibility?: "private" | "shared" | "workspace";
+            docsMaxDepth?: number;
             accentColor?: string;
             /** @enum {string} */
             icon?: "building" | "rocket" | "briefcase" | "layers" | "globe" | "flask" | "shield" | "sparkles" | "leaf" | "flame";

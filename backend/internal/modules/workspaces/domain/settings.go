@@ -36,6 +36,8 @@ type Settings struct {
 	ChatAllowFiles    bool     `json:"chatAllowFiles"`    // files may be shared in chat
 	ChatEditMinutes   int      `json:"chatEditMinutes"`   // how long a message can be edited (0: always)
 	TimeAllowManual   bool     `json:"timeAllowManual"`   // time may be logged by hand
+	DocsVisibility    string   `json:"docsVisibility"`    // private | shared | workspace: for new spaces
+	DocsMaxDepth      int      `json:"docsMaxDepth"`      // how deep pages nest in new spaces
 	AccentColor       string   `json:"accentColor"`       // #rrggbb, or empty for the platform's own
 	Icon              string   `json:"icon"`              // one of Icons
 	Features          Features `json:"features"`
@@ -51,6 +53,7 @@ func Defaults() Settings {
 		InviteDays: 7, DefaultInviteRole: RoleMember, AllowedDomains: []string{},
 		DefaultPriority: "medium", WeekStart: 1,
 		ChatAllowDirect: true, ChatAllowFiles: true, TimeAllowManual: true, Icon: "building",
+		DocsVisibility: "private", DocsMaxDepth: 12,
 		Features: Features{Chat: true, Docs: true, Time: true, Calendar: true, Integrations: true},
 	}
 }
@@ -69,6 +72,8 @@ type SettingsPatch struct {
 	ChatAllowFiles    *bool
 	ChatEditMinutes   *int
 	TimeAllowManual   *bool
+	DocsVisibility    *string
+	DocsMaxDepth      *int
 	AccentColor       *string
 	Icon              *string
 	Features          *Features
@@ -165,6 +170,14 @@ func (s Settings) Apply(p SettingsPatch) (Settings, []string) {
 			s.ChatEditMinutes = *p.ChatEditMinutes
 		}
 	}
+	oneOf("docsVisibility", p.DocsVisibility, &s.DocsVisibility, "private", "shared", "workspace")
+	if p.DocsMaxDepth != nil {
+		if *p.DocsMaxDepth < 2 || *p.DocsMaxDepth > 12 {
+			bad = append(bad, "docsMaxDepth")
+		} else {
+			s.DocsMaxDepth = *p.DocsMaxDepth
+		}
+	}
 	if p.AccentColor != nil {
 		c := strings.ToLower(strings.TrimSpace(*p.AccentColor))
 		if c != "" && !colourRE.MatchString(c) {
@@ -226,6 +239,8 @@ func (s Settings) Changes(next Settings) []string {
 	add("chatAllowFiles", s.ChatAllowFiles != next.ChatAllowFiles)
 	add("chatEditMinutes", s.ChatEditMinutes != next.ChatEditMinutes)
 	add("timeAllowManual", s.TimeAllowManual != next.TimeAllowManual)
+	add("docsVisibility", s.DocsVisibility != next.DocsVisibility)
+	add("docsMaxDepth", s.DocsMaxDepth != next.DocsMaxDepth)
 	add("accentColor", s.AccentColor != next.AccentColor)
 	add("icon", s.Icon != next.Icon)
 	add("features", s.Features != next.Features)

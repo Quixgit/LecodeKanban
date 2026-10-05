@@ -1,6 +1,8 @@
 import {
   CalendarClock,
   CalendarDays,
+  Eye,
+  Layers,
   Clock,
   FileUp,
   Flag,
@@ -153,6 +155,40 @@ function RulesBody({
             disabled={!canEdit}
             aria-label={t('rules.manualTime.title')}
             onCheckedChange={(on) => save({ timeAllowManual: on })}
+          />
+        </SettingRow>
+      </SettingsCard>
+      <SettingsCard title={t('rules.docsTitle')} description={t('rules.docsDescription')}>
+        <SettingRow
+          icon={<Eye />}
+          title={t('rules.docsVisibility.title')}
+          description={t('rules.docsVisibility.description')}
+        >
+          <Select
+            label={t('rules.docsVisibility.title')}
+            disabled={!canEdit}
+            value={settings.docsVisibility}
+            onValueChange={(v) => save({ docsVisibility: v as 'private' | 'shared' | 'workspace' })}
+            options={(['private', 'shared', 'workspace'] as const).map((v) => ({
+              value: v,
+              label: t(`rules.docsVisibility.${v}`),
+            }))}
+          />
+        </SettingRow>
+        <SettingRow
+          icon={<Layers />}
+          title={t('rules.docsDepth.title')}
+          description={t('rules.docsDepth.description')}
+        >
+          <Select
+            label={t('rules.docsDepth.title')}
+            disabled={!canEdit}
+            value={String(settings.docsMaxDepth)}
+            onValueChange={(v) => save({ docsMaxDepth: Number(v) })}
+            options={[3, 4, 6, 8, 12].map((n) => ({
+              value: String(n),
+              label: t('rules.docsDepth.levels', { count: n }),
+            }))}
           />
         </SettingRow>
       </SettingsCard>
