@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- **Import tasks from CSV** (Settings → Data & export): pick a project and a file, check it first (nothing is
+  written; every skipped row and every empty-because-unknown field is listed by line), then import. Columns are
+  matched by name in English, Ukrainian and Russian (Title, Description, Status, Priority, Due date, Assignees,
+  Labels); comma or semicolon separators, UTF-8 with or without a BOM, several date formats. People are matched by
+  e-mail or name, labels by name. Every row goes through the normal create path, so workspace rules (required due
+  date, default priority) and permissions apply; the exported file imports as-is. Limits: 2000 rows, 2 MB.
+  `POST /workspaces/{id}/import/tasks?projectId=&dryRun=`.
+
 ### Fixed
 
 - **Statuses in two languages**: a board's default columns are stored with the names of the language it was created in,

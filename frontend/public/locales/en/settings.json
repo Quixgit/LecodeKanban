@@ -59,7 +59,7 @@
     },
     "data": {
       "title": "Data & export",
-      "description": "Download your tasks as a spreadsheet."
+      "description": "Download your tasks as a spreadsheet or bring them in from one."
     }
   },
   "overview": {
@@ -543,5 +543,31 @@
     "download": "Download CSV",
     "hint": "Opens in Excel, Numbers and Google Sheets. Very large workspaces are cut at the first rows.",
     "noAccess": "You do not have permission to export data."
+  },
+  "import": {
+    "title": "Import tasks",
+    "description": "Create tasks from a CSV file. Columns: Title (required), Description, Status, Priority, Due date, Assignees, Labels — the file you export works as-is.",
+    "project": {
+      "title": "Import into",
+      "description": "The project that receives the tasks."
+    },
+    "file": "CSV file",
+    "choose": "Choose a CSV file",
+    "check": "Check the file",
+    "hint": "Up to 2000 rows or 2 MB. Nothing is created until you confirm.",
+    "summary": "{{created}} tasks can be created, {{skipped}} will be skipped.",
+    "line": "Line {{line}}",
+    "run": "Import {{count}} tasks",
+    "done": "{{count}} tasks imported",
+    "codes": {
+      "title_required": "no title",
+      "bad_date": "date not understood, left empty",
+      "bad_status": "status not understood, using the default",
+      "bad_priority": "priority not understood, using the default",
+      "unknown_assignee": "person not in this workspace",
+      "unknown_label": "label does not exist",
+      "rejected": "the workspace rules refuse this task",
+      "too_many_labels": "only the first 10 labels are kept"
+    }
   }
 }

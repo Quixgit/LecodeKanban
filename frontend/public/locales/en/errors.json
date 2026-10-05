@@ -87,7 +87,10 @@
     "label_not_found": "This label no longer exists.",
     "label_exists": "A label with this name already exists.",
     "checklist_item_not_found": "This checklist item no longer exists.",
-    "checklist_full": "A checklist can have at most {{max}} items."
+    "checklist_full": "A checklist can have at most {{max}} items.",
+    "import_empty": "The file is empty.",
+    "import_too_big": "The file is too large (up to {{max}} rows or 2 MB).",
+    "import_no_title_column": "The file needs a Title column."
   },
   "projects": {
     "not_found": "Project not found or archived.",

@@ -1088,6 +1088,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/import/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create tasks from a CSV file; dryRun only reports what would happen */
+        post: operations["importTasks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/cards/board": {
         parameters: {
             query?: never;
@@ -3941,6 +3960,20 @@ export interface components {
             afterId?: string | null;
             confirmWiden?: boolean;
         };
+        ImportRow: {
+            line: number;
+            title: string;
+            /** @description Why the row was skipped (a code); absent when it is imported */
+            error?: string;
+            /** @description Fields left empty (codes) */
+            warnings: string[];
+        };
+        ImportResult: {
+            dryRun: boolean;
+            created: number;
+            skipped: number;
+            rows: components["schemas"]["ImportRow"][];
+        };
         WikiTrashItem: {
             node: components["schemas"]["WikiNode"];
             /** Format: date-time */
@@ -6519,6 +6552,40 @@ export interface operations {
                 };
             };
             403: components["responses"]["Error"];
+        };
+    };
+    importTasks: {
+        parameters: {
+            query: {
+                projectId: string;
+                dryRun?: boolean;
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Per-row outcome */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResult"];
+                };
+            };
+            403: components["responses"]["Error"];
+            422: components["responses"]["Error"];
         };
     };
     boardCards: {

@@ -1142,6 +1142,32 @@ paths:
             text/csv:
               schema: { type: string }
         "403": { $ref: "#/components/responses/Error" }
+  /workspaces/{workspaceId}/import/tasks:
+    parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
+    post:
+      tags: [cards]
+      operationId: importTasks
+      summary: Create tasks from a CSV file; dryRun only reports what would happen
+      parameters:
+        - { name: projectId, in: query, required: true, schema: { type: string, format: uuid } }
+        - { name: dryRun, in: query, required: false, schema: { type: boolean } }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "200":
+          description: Per-row outcome
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportResult" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
   /workspaces/{workspaceId}/cards/board:
     parameters: [{ $ref: "#/components/parameters/WorkspaceId" }]
     get:
@@ -3873,6 +3899,22 @@ components:
         beforeId: { type: string, format: uuid, nullable: true }
         afterId: { type: string, format: uuid, nullable: true }
         confirmWiden: { type: boolean }
+    ImportRow:
+      type: object
+      required: [line, title, warnings]
+      properties:
+        line: { type: integer }
+        title: { type: string }
+        error: { type: string, description: "Why the row was skipped (a code); absent when it is imported" }
+        warnings: { type: array, items: { type: string }, description: "Fields left empty (codes)" }
+    ImportResult:
+      type: object
+      required: [dryRun, created, skipped, rows]
+      properties:
+        dryRun: { type: boolean }
+        created: { type: integer }
+        skipped: { type: integer }
+        rows: { type: array, items: { $ref: "#/components/schemas/ImportRow" } }
     WikiTrashItem:
       type: object
       required: [node, expiresAt]
