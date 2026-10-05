@@ -204,6 +204,7 @@ are checked for parity between English and Ukrainian, and design values must com
 1. Branch from `main`, one pull request per feature.
 2. Run `make check` (and `make e2e` for UI changes) before pushing.
 3. Update `docs/CHANGELOG.md` and `docs/AUDIT.md`; add both English and Ukrainian strings.
+4. Keep Help → _What's new_ current: add the change (and move or add the roadmap item) in `frontend/public/locales/{en,uk}/help.json` under `whatsNew`.
 
 ## License
 

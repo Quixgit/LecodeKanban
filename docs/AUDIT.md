@@ -393,3 +393,9 @@ Facts about what was checked, with how. Update on every phase.
 - Browser (axe, main area): create a template with a checklist, subtask and due offset; the cards show the counts; a project is required to create a task; the task opens with its checklist and subtask; a weekly schedule on Monday and Wednesday reads "Every Mon, Wed at 09:00" with a next run; pause shows Paused; delete the schedule and the template; Ukrainian and phone width without horizontal scroll. Screenshots (light, English) checked by eye.
 - Found on the way, not fixed here: the shell's logo text (`text-primary` on white) is below the contrast limit and a toast list reads as a list with a non-item (the toast is `role=status`); the browser test therefore checks the main area and runs after the toast has gone.
 - Not covered: labels and assignees in a template (kept as stored but not editable in this screen), dark theme and Ukrainian by eye, a time zone picker (free text, checked by the server), a Help guide for this page.
+
+## What's new refresh
+
+- Vitest: English and Ukrainian locale parity with the four new entries. Browser (axe): the four Help tests pass on a freshly seeded database.
+- Found by the browser tests: a re-seeded database left the demo people "not set up", so the welcome guide covered the Help page; `seed` now marks them set up.
+- Not covered: the new entries by eye in Ukrainian; What's new is still written by hand (no generation from the changelog), kept current by the README rule.
