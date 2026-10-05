@@ -113,6 +113,11 @@ func (s *Service) Preview(ctx context.Context, rawToken string) (domain.InvitePr
 		WorkspaceName: name, Email: inv.Email, Role: inv.Role,
 		Expired: !inv.ExpiresAt.After(s.now()), Accepted: inv.AcceptedAt != nil,
 	}
+	if _, err := s.users.CredentialsByEmail(ctx, inv.Email); err == nil {
+		p.HasAccount = true
+	} else if !apperr.IsCode(err, usersdomain.ErrNotFound) {
+		return domain.InvitePreview{}, err
+	}
 	if inv.InvitedBy != nil {
 		if u, err := s.users.Get(ctx, *inv.InvitedBy); err == nil {
 			p.InviterName = &u.Name

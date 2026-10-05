@@ -269,6 +269,7 @@ func (h *Handler) previewInvite(w http.ResponseWriter, r *http.Request) error {
 	httpx.WriteJSON(w, http.StatusOK, api.InvitePreview{
 		WorkspaceName: p.WorkspaceName, InviterName: p.InviterName, Email: p.Email,
 		Role: api.InviteRole(p.Role), Expired: p.Expired, Accepted: p.Accepted,
+		HasAccount: p.HasAccount,
 	})
 	return nil
 }

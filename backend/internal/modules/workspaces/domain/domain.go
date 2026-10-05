@@ -61,6 +61,8 @@ type InvitePreview struct {
 	Role          Role
 	Expired       bool
 	Accepted      bool
+	// HasAccount: the invited address already has an account (sign in) rather than needing one (register).
+	HasAccount bool
 }
 
 var (

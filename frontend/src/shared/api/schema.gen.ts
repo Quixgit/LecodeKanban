@@ -3488,6 +3488,7 @@ export interface components {
             role: components["schemas"]["InviteRole"];
             expired: boolean;
             accepted: boolean;
+            hasAccount: boolean;
         };
         /** @enum {string} */
         TaskStatus: "todo" | "in_progress" | "in_review" | "done";

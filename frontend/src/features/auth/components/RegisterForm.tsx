@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, UserRound } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { isApiError } from '@/shared/api';
 import { useLanguage } from '@/shared/i18n';
 import { useErrorText } from '@/shared/hooks/useErrorText';
@@ -26,9 +26,13 @@ export function RegisterForm() {
   const next = useNextPath();
   const { language } = useLanguage();
   const signUp = useRegister();
+  // An invitation link carries the address it was sent to: it is filled in and locked, so the new account is the invited one.
+  const [params] = useSearchParams();
+  const invited = next.startsWith('/invite/') ? (params.get('email') ?? '') : '';
   const { register, handleSubmit, formState, setError, watch } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     mode: 'onTouched',
+    defaultValues: { email: invited },
   });
 
   const onSubmit = handleSubmit(({ name, email, password }) =>
@@ -45,9 +49,16 @@ export function RegisterForm() {
 
   return (
     <>
-      <AuthHeading title={t('register.title')} subtitle={t('register.subtitle')} />
-      <OAuthButtons next={next} />
-      <OrDivider />
+      <AuthHeading
+        title={t('register.title')}
+        subtitle={invited ? t('register.invitedSubtitle') : t('register.subtitle')}
+      />
+      {!invited && (
+        <>
+          <OAuthButtons next={next} />
+          <OrDivider />
+        </>
+      )}
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         <FormAlert>{signUp.error && !fieldErrorsShown ? errorText(signUp.error) : null}</FormAlert>
         <Field label={t('fields.name')} error={fe(formState.errors.name?.message)}>
@@ -65,6 +76,7 @@ export function RegisterForm() {
             autoComplete="email"
             leadingIcon={<Mail />}
             placeholder={t('fields.emailPlaceholder')}
+            readOnly={invited !== ''}
             {...register('email')}
           />
         </Field>

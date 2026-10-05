@@ -380,7 +380,7 @@ Base URL: `/api/v1`
 - **UpdateMemberRequest** — `role`: Role
 - **Invite** — `id`: string, `email`: string, `role`: InviteRole, `expiresAt`: string, `createdAt`: string, `link?`: string
 - **CreateInviteRequest** — `email`: string, `role`: InviteRole
-- **InvitePreview** — `workspaceName`: string, `inviterName`: string \| null, `email`: string, `role`: InviteRole, `expired`: boolean, `accepted`: boolean
+- **InvitePreview** — `workspaceName`: string, `inviterName`: string \| null, `email`: string, `role`: InviteRole, `expired`: boolean, `accepted`: boolean, `hasAccount`: boolean
 - **TaskStatus**: `todo` | `in_progress` | `in_review` | `done`
 - **Priority**: `high` | `medium` | `low`
 - **ProjectStatus**: `pending` | `in_progress` | `completed`
