@@ -20,6 +20,7 @@ import { Header } from './header/Header';
 import { PageSkeleton } from './PageSkeleton';
 import { MobileNav } from './sidebar/MobileNav';
 import { useWorkspaceAccent } from '@/features/settings';
+import { useSidebarStore } from './sidebarStore';
 import { Sidebar } from './sidebar/Sidebar';
 import { useShellCommands } from './useShellCommands';
 import { useViewer } from './useViewer';
@@ -28,9 +29,11 @@ export function AppShell() {
   const { t } = useTranslation();
   const location = useLocation();
   // Docs keeps one mounted shell (tree panel, scroll, rename state) across its pages; each page
-  // animates itself.
+  // animates itself. Settings keeps its section list still while only the content changes.
   const transitionKey =
-    ['/docs', '/chat'].find((p) => location.pathname.startsWith(p)) ?? location.pathname;
+    ['/docs', '/chat', '/settings'].find((p) => location.pathname.startsWith(p)) ??
+    location.pathname;
+  const layout = useSidebarStore((s) => s.layout);
   const commands = useShellCommands();
   const viewer = useViewer();
   const { user } = useSession();
@@ -44,7 +47,7 @@ export function AppShell() {
   useApplyProfileLanguage(user);
 
   return (
-    <div className="flex min-h-dvh bg-bg">
+    <div className="group/shell flex min-h-dvh bg-bg" data-layout={layout}>
       <a
         href="#main"
         className="sr-only z-50 rounded-md bg-surface px-3 py-2 shadow-md focus:not-sr-only focus:fixed focus:left-3 focus:top-3"

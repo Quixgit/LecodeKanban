@@ -245,3 +245,23 @@ Facts about what was checked, with how. Update on every phase.
 - Browser: pick icon and accent (style injected, survives reload, axe), switch direct messages off (button gone) and
   back, restore the look.
 - Not covered: "require two-step verification" for everyone (needs the 2FA PR and a gate on authorisation).
+## UI polish
+
+- Unit: existing MetricCard/overlay tests; browser: settings, kanban, task window suites pass with the new fields and close button.
+- Not covered: visual regression of the mint outline (checked by eye).
+
+## Integration pages
+
+- Browser (with the stand-ins): Google Calendar and GitHub flows now run on the module pages (connect, settings,
+  pause, disconnect), axe on the page.
+
+## Icon-rail menu
+
+- Browser: switch on, section menu (settings, tasks with counts), a section without a menu closes the column, axe on the
+  rail, choice survives a reload, switch back.
+- Not covered: the rail below the lg breakpoint (the mobile drawer is unchanged).
+
+## Chat appearance
+
+- Unit: theme maths (default untouched, light text on dark / dark on light, AA for accents and muted text on every preset).
+- Browser: pick a theme (axe on the themed sidebar and chat), reload keeps it, own colour, reset.

@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export type SidebarLayout = 'classic' | 'rail';
+
 interface SidebarState {
+  /** classic: one column of labelled links. rail: icon strip, then a menu for the chosen section. */
+  layout: SidebarLayout;
+  setLayout: (v: SidebarLayout) => void;
   collapsed: boolean;
   /** Keys of expanded nav groups (e.g. "tasks"). */
   expanded: string[];
@@ -17,6 +22,8 @@ interface SidebarState {
 export const useSidebarStore = create<SidebarState>()(
   persist(
     (set) => ({
+      layout: 'classic',
+      setLayout: (layout) => set({ layout }),
       collapsed: false,
       expanded: ['tasks'],
       mobileOpen: false,
@@ -34,7 +41,7 @@ export const useSidebarStore = create<SidebarState>()(
     }),
     {
       name: 'lk-sidebar',
-      partialize: (s) => ({ collapsed: s.collapsed, expanded: s.expanded }),
+      partialize: (s) => ({ layout: s.layout, collapsed: s.collapsed, expanded: s.expanded }),
     },
   ),
 );

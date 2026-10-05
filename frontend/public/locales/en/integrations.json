@@ -70,7 +70,8 @@
   "tile": {
     "settings": "Settings",
     "connect": "Connect",
-    "setup": "How to set up"
+    "setup": "How to set up",
+    "open": "Open"
   },
   "setup": {
     "intro": "This is done once by a server administrator.",
@@ -157,5 +158,7 @@
     },
     "showToken": "Show the token",
     "hideToken": "Hide the token"
-  }
+  },
+  "back": "All integrations",
+  "notFound": "This integration does not exist"
 }

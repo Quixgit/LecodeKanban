@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { transition } from '@/shared/motion';
 import { useSidebarStore } from '../sidebarStore';
+import { RailSidebar } from './RailSidebar';
 import { SidebarContent } from './SidebarContent';
 
 const EXPANDED_W = 248;
@@ -12,6 +13,9 @@ export function Sidebar() {
   const { t } = useTranslation('nav');
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggleCollapsed = useSidebarStore((s) => s.toggleCollapsed);
+  const layout = useSidebarStore((s) => s.layout);
+
+  if (layout === 'rail') return <RailSidebar />;
 
   return (
     <motion.aside

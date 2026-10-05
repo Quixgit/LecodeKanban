@@ -5,13 +5,14 @@ import { describe, expect, it } from 'vitest';
 /**
  * Feature code must style through design tokens: no raw hex / rgb() colours, no arbitrary radii,
  * shadows or pixel font sizes. Brand artwork (the app shell logo, auth panel) lives in `app/`.
- * Third-party brand marks that must keep their colours are listed here, and so is the palette an administrator
- * picks the workspace accent from (colours the user chooses are data, not design values).
+ * Third-party brand marks that must keep their colours are listed here, and so are the palettes users pick from
+ * (the workspace accent, the chat theme): colours the user chooses are data, not design values.
  */
 const ALLOWED = new Set([
   'features/auth/components/OAuthButtons.tsx',
   'features/ui-showcase',
   'features/settings/model/workspaceLook.ts',
+  'features/chat/model/theme.ts',
 ]);
 const SRC = join(process.cwd(), 'src');
 const RAW = /#[0-9a-fA-F]{3,8}\b|\brgba?\(\s*\d|\brounded-\[|\bshadow-\[|\btext-\[\d+px\]/;

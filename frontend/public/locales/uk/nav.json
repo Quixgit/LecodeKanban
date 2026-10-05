@@ -29,7 +29,9 @@
     "collapseGroup": "Згорнути «{{name}}»",
     "expandGroup": "Розгорнути «{{name}}»",
     "close": "Закрити меню",
-    "open": "Відкрити меню"
+    "open": "Відкрити меню",
+    "classic": "Класичне меню",
+    "rail": "Меню з іконок"
   },
   "announcement": {
     "label": "Найближча зустріч",
@@ -94,5 +96,12 @@
       "title": "Чат",
       "subtitle": "Спілкування з командою"
     }
+  },
+  "panel": {
+    "allTasks": "Усі завдання",
+    "allProjects": "Усі проєкти",
+    "yourProjects": "Проєкти",
+    "allIntegrations": "Усі інтеграції",
+    "modules": "Модулі"
   }
 }

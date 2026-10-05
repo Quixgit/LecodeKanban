@@ -13,3 +13,4 @@ export { useFeatureEnabled, useWorkspaceSettings, type FeatureKey } from './hook
 export { RolesPage } from './components/RolesPage';
 export { useWorkspaceAccent } from './hooks/useWorkspaceAccent';
 export { WorkspaceGlyph } from './components/WorkspaceGlyph';
+export { GROUPS, SECTIONS } from './model/sections';

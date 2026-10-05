@@ -18,7 +18,6 @@ import {
 } from '@/features/cards';
 import { ProjectChatButton } from '@/features/chat';
 import { useAllProjects } from '@/features/projects';
-import { LiveIndicator } from '@/features/realtime';
 import { TASK_SEARCH_ID, TasksToolbar, baseQuery, useTaskFilters } from '@/features/tasks-list';
 import { BoardFieldsProvider } from '@/features/custom-fields';
 import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
@@ -209,7 +208,6 @@ export function KanbanView({ currentUserId, viewSwitch, onCreate }: Props) {
 
   const controls = (
     <>
-      <LiveIndicator className="hidden lg:inline-flex" />
       {mode.kind === 'project' && (
         <ProjectChatButton
           projectId={mode.projectId}

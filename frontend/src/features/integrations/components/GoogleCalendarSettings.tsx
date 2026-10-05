@@ -119,18 +119,6 @@ export function GoogleCalendarSettings({
         </Button>
       </div>
 
-      <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border-subtle px-4 py-3">
-        <span>
-          <span className="block text-sm font-medium text-text">{t('active.label')}</span>
-          <span className="block text-xs text-text-muted">{t('active.hint')}</span>
-        </span>
-        <Switch
-          checked={entry.enabled}
-          onCheckedChange={(enabled) => patch({ enabled })}
-          aria-label={t('active.label')}
-        />
-      </label>
-
       <section aria-label={t('reminder.title')} className="divide-y divide-border-subtle">
         <h3 className="pb-2 text-sm font-semibold text-text">{t('reminder.title')}</h3>
         <Row title={t('reminder.lead')} hint={t('reminder.leadHint')}>
