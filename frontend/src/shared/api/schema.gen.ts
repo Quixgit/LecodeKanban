@@ -1145,6 +1145,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspaceId}/analytics/performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        /** How the team works over the last 7, 30 or 90 days (needs the analytics permission) */
+        get: operations["teamPerformance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspaceId}/cards/board": {
         parameters: {
             query?: never;
@@ -4020,6 +4039,87 @@ export interface components {
             skipped: number;
             rows: components["schemas"]["ImportRow"][];
         };
+        /** @description How long finished tasks took, in hours; null when nothing finished in the period */
+        DurationStat: {
+            samples: number;
+            /** Format: double */
+            avgHours: number | null;
+            /** Format: double */
+            medianHours: number | null;
+            /** Format: double */
+            previousAvgHours: number | null;
+        };
+        PerformanceDay: {
+            /** Format: date */
+            date: string;
+            todo: number;
+            inProgress: number;
+            inReview: number;
+            done: number;
+            /** @description Created since the period began */
+            createdTotal: number;
+            /** @description Closed since the period began */
+            doneTotal: number;
+        };
+        PerformanceWeek: {
+            /** Format: date */
+            start: string;
+            created: number;
+            done: number;
+        };
+        PerformanceBucket: {
+            /** @description Exclusive upper bound in days; null for the last bucket */
+            upToDays: number | null;
+            count: number;
+        };
+        PerformanceAged: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            title: string;
+            project: components["schemas"]["ProjectRef"];
+            status: components["schemas"]["TaskStatus"];
+            /** Format: double */
+            ageHours: number;
+            assignees: components["schemas"]["PersonRef"][];
+        };
+        PerformancePerson: {
+            person: components["schemas"]["PersonRef"];
+            open: number;
+            /** @description Closed in the period */
+            done: number;
+            overdue: number;
+        };
+        PerformanceProject: {
+            project: components["schemas"]["ProjectRef"];
+            total: number;
+            done: number;
+            overdue: number;
+            doneInPeriod: number;
+            donePrevious: number;
+        };
+        PerformanceReport: {
+            days: number;
+            throughput: components["schemas"]["Trend"];
+            cycleTime: components["schemas"]["DurationStat"];
+            leadTime: components["schemas"]["DurationStat"];
+            /** @description Closed after their due date */
+            lateDone: number;
+            /** @description Closed that had a due date */
+            doneWithDue: number;
+            previousLateDone: number;
+            previousDoneWithDue: number;
+            overdueNow: number;
+            wipInProgress: number;
+            wipInReview: number;
+            weekly: components["schemas"]["PerformanceWeek"][];
+            daily: components["schemas"]["PerformanceDay"][];
+            histogram: components["schemas"]["PerformanceBucket"][];
+            aged: components["schemas"]["PerformanceAged"][];
+            people: components["schemas"]["PerformancePerson"][];
+            unassignedOpen: number;
+            projects: components["schemas"]["PerformanceProject"][];
+        };
         WikiTrashItem: {
             node: components["schemas"]["WikiNode"];
             /** Format: date-time */
@@ -6680,6 +6780,34 @@ export interface operations {
                 };
             };
             404: components["responses"]["Error"];
+        };
+    };
+    teamPerformance: {
+        parameters: {
+            query?: {
+                days?: 7 | 30 | 90;
+                projectId?: components["parameters"]["CardProjectId"];
+                assigneeId?: components["parameters"]["CardAssigneeId"];
+                labelId?: components["parameters"]["CardLabelId"];
+            };
+            header?: never;
+            path: {
+                workspaceId: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Flow metrics and charts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PerformanceReport"];
+                };
+            };
+            403: components["responses"]["Error"];
         };
     };
     boardCards: {

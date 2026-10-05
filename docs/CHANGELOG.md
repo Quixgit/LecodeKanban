@@ -4,6 +4,15 @@
 
 ### Added
 
+- **Performance page** (team efficiency, for the person who runs the team): for 7 / 30 / 90 days, each number against
+  the previous period — throughput (tasks closed), cycle time (In progress → Done, with the median so a few slow
+  tasks do not skew it), lead time (created → Done), share of tasks closed after their due date plus how many are
+  overdue now, and work in progress. Charts: tasks created/closed per week and as a burn-up, cumulative flow by
+  status (a widening band is a bottleneck), a cycle-time histogram with the longest-running tasks, open vs closed
+  tasks per person (a balance, not a ranking) and progress/overdue/speed per project. Filters: project, person,
+  label; "Download CSV" reuses the export. New permission `analytics.view` (administrators and the owner have it;
+  any role can be given it); the menu entry is hidden for everyone else. One query
+  (`GET /workspaces/{id}/analytics/performance`) over the existing tasks and status history — no new tables.
 - **Import tasks from CSV** (Settings → Data & export): pick a project and a file, check it first (nothing is
   written; every skipped row and every empty-because-unknown field is listed by line), then import. Columns are
   matched by name in English, Ukrainian and Russian (Title, Description, Status, Priority, Due date, Assignees,
@@ -30,6 +39,7 @@
   so an English reader saw Ukrainian names (and "До виконання · To Do" in the task window's status list). Default
   columns now show the status name in the reader's own language everywhere (board headers, the task window, the
   activity feed); a column the team renamed keeps its name.
+
 ### Changed
 
 - **Icon-rail menu**: Chat and Docs now keep their lists (channels, the page tree) in the rail's second column instead
@@ -131,8 +141,8 @@
 
 ### Changed
 
-- **Profile is its own page** (`/profile`, opened from the account menu at the top right), with tabs *Profile* and
-  *Security*. It no longer repeats language, theme and notification sounds (they are in the header). New fields:
+- **Profile is its own page** (`/profile`, opened from the account menu at the top right), with tabs _Profile_ and
+  _Security_. It no longer repeats language, theme and notification sounds (they are in the header). New fields:
   job title, phone, location, time zone (with a "use this device's time zone" button) and an about text. The old
   `/settings/profile`, `/settings/security` and `/settings/preferences` addresses redirect.
 
@@ -148,10 +158,10 @@
 - **Dashboard trends are back**: the green up / red down arrows with a percentage return. When the previous period had
   nothing to compare with, the arrow shows how many more (or fewer) tasks there are (`+5`), and a flat dash when nothing
   changed, instead of a meaningless `+0.00%`.
-- **Chat channel menu** now follows Slack: *Channel details ›* (View channel details, Search in channel), *Copy ›*,
-  *Star channel*, the three notification choices right in the menu with a tick, *More options ›* (Temporarily mute for
-  1 hour, 4 hours, until tomorrow or next week; mark as read; open in a new tab; advanced settings), *Open in split view*
-  (also opt/alt + click) and *Leave channel*. Temporary mutes lift by themselves. API: `PUT …/notify` takes `until`.
+- **Chat channel menu** now follows Slack: _Channel details ›_ (View channel details, Search in channel), _Copy ›_,
+  _Star channel_, the three notification choices right in the menu with a tick, _More options ›_ (Temporarily mute for
+  1 hour, 4 hours, until tomorrow or next week; mark as read; open in a new tab; advanced settings), _Open in split view_
+  (also opt/alt + click) and _Leave channel_. Temporary mutes lift by themselves. API: `PUT …/notify` takes `until`.
 - **Chat header**: the member avatars and the second "info" icon (both opened the same window) are replaced by one
   button. The window it opens now has tabs: About (name, topic, task feed, links to pins and files, leave / archive),
   Members (searchable, add people) and Notifications (the three levels, temporary mute).
@@ -161,7 +171,7 @@
 - **Email page in the admin centre** (Settings → Email): shows how the server sends mail (SMTP or Mailgun), warns plainly
   when mail only goes to a test inbox such as Mailpit (the default of a fresh deployment, which is why invitations never
   reached real inboxes), the queue (waiting / failed), the latest emails to the workspace's people with their errors, and
-  a *Send me a test email* button. It lists the `.env` lines to connect a real provider.
+  a _Send me a test email_ button. It lists the `.env` lines to connect a real provider.
 - **Invitation link**: after inviting, the dialog shows the link with a copy button, so an invitation can be handed over
   by hand when an email does not arrive.
 - **Split view in chat**: a second conversation next to the open one, with its own threads and tabs.
@@ -177,7 +187,7 @@
     date, and the calendar week start (Monday or Sunday).
   - **General**: now also a workspace description.
   - **Audit log**: who changed settings, roles, invitations or the workspace name, and when.
-  Rules are enforced by the server, not only hidden in the interface (ADR 0023).
+    Rules are enforced by the server, not only hidden in the interface (ADR 0023).
 
 - **Profile background**: pick one of eight ready-made backgrounds or upload your own picture (cropped to a wide strip
   in the browser); it shows in the profile header and on your teammate card.
@@ -186,24 +196,24 @@
   becomes the bare name) and wrong ones are refused. A save bar appears when something changed.
 - **Teammate card**: click a name or avatar in a chat message, an @mention, the channel's member list or the Team
   page to see who someone is: background, role, position, local time and whether they are in working hours, how to
-  reach them (email, phone, Telegram, LinkedIn, website), skills, about, and a *Send message* button. Visible to people
+  reach them (email, phone, Telegram, LinkedIn, website), skills, about, and a _Send message_ button. Visible to people
   in the same workspace. API: `GET /workspaces/{id}/members/{userId}`.
 
 - **`adduser` command** (`make adduser`, `/app/adduser` in the image): creates verified accounts with a random one-time
   password and adds them to a workspace; see README → Creating accounts.
 - **Settings is now the admin centre** (sidebar → Settings): an overview of every area with live counts, and a
-  section list with an animated highlight. Sections: *General* (workspace name, address, delete with typed
-  confirmation for the owner), *Custom fields*, *Labels* (create, recolour, rename, delete); *Members & roles* and
-  *Integrations* open their own pages. People who are not administrators can look but not change.
+  section list with an animated highlight. Sections: _General_ (workspace name, address, delete with typed
+  confirmation for the owner), _Custom fields_, _Labels_ (create, recolour, rename, delete); _Members & roles_ and
+  _Integrations_ open their own pages. People who are not administrators can look but not change.
 - **Custom fields for cards** (ADR 0022): administrators define text, number, date, choice (with coloured options),
   checkbox and link fields, reorder them and choose which show as chips on the board. They appear in the task
   window under "Custom fields" for anyone who can edit the task, and persist per task.
 
-- **Channel context menu** in Chat: right-click a channel (or conversation) in the sidebar for *Channel details*,
-  *Copy* (name, link, ID), *Star channel*, *Notify you about…*, *More options* (mark as read, open in a new tab)
-  and *Leave channel*.
+- **Channel context menu** in Chat: right-click a channel (or conversation) in the sidebar for _Channel details_,
+  _Copy_ (name, link, ID), _Star channel_, _Notify you about…_, _More options_ (mark as read, open in a new tab)
+  and _Leave channel_.
   - Notification levels per channel: **All new posts**, **Just mentions** (badge and sound only for @you and
-    @channel) and **Mute and hide** (no alerts; the channel moves to a collapsed *Muted* section). The same choice
+    @channel) and **Mute and hide** (no alerts; the channel moves to a collapsed _Muted_ section). The same choice
     is in the channel details dialog. API: `PUT /chat/channels/{id}/notify` replaces `…/mute`.
 
 - **Settings pages** (`/settings`, ADR 0021): the Profile page that used to be empty is now a settings area with
@@ -215,7 +225,7 @@
     **Where you are signed in**: every device with browser, system, address and last activity, sign one out or
     all the others.
   - **Preferences**: language, light / dark / device theme, and notification sounds.
-  The header and everyone else's lists show the new photo straight away.
+    The header and everyone else's lists show the new photo straight away.
 
 - **GitHub integration** (ADR 0020, `docs/INTEGRATIONS.md`): connect GitHub once per workspace with an
   access token, link projects to repositories (the webhook is registered for you), and the two sides follow
@@ -239,8 +249,8 @@
   - reminds you shortly before it starts (5, 10, 15, 30 or 60 minutes): a pop-up, a sound and an entry in
     the notification bell that opens the video call,
   - optionally posts the reminder in a chat channel as a meeting card with a Join link.
-  The server needs the Google client ID and secret it already uses for sign-in, the Calendar API enabled and
-  `<LK_PUBLIC_URL>/api/v1/integrations/google_calendar/callback` registered as a redirect URI.
+    The server needs the Google client ID and secret it already uses for sign-in, the Calendar API enabled and
+    `<LK_PUBLIC_URL>/api/v1/integrations/google_calendar/callback` registered as a redirect URI.
 
 ### Changed
 

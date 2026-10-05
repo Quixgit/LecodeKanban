@@ -475,6 +475,10 @@
     "data_export": {
       "title": "Export data",
       "description": "Download the workspace’s tasks as a spreadsheet."
+    },
+    "analytics_view": {
+      "title": "See team performance",
+      "description": "Open the Performance page: throughput, cycle time and workload."
     }
   },
   "email": {

@@ -98,6 +98,7 @@ const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
 const TrashPage = lazy(() => import('@/pages/TrashPage'));
+const PerformancePage = lazy(() => import('@/pages/PerformancePage'));
 const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'));
 const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmailPage'));
 const InvitePage = lazy(() => import('@/pages/InvitePage'));
@@ -186,7 +187,7 @@ export const routes: RouteObject[] = [
               { path: ':channelId', element: <ChatChannelRoute /> },
             ],
           },
-          upcoming('performance', 'performance'),
+          { path: 'performance', handle: page('performance'), element: <PerformancePage /> },
           upcoming('help', 'help'),
           { path: 'team', handle: page('team'), element: <TeamPage /> },
           {

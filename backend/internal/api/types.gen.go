@@ -1437,6 +1437,27 @@ func (e ExportWikiSpaceParamsFormat) Valid() bool {
 	}
 }
 
+// Defines values for TeamPerformanceParamsDays.
+const (
+	N30 TeamPerformanceParamsDays = 30
+	N7  TeamPerformanceParamsDays = 7
+	N90 TeamPerformanceParamsDays = 90
+)
+
+// Valid indicates whether the value is a known member of the TeamPerformanceParamsDays enum.
+func (e TeamPerformanceParamsDays) Valid() bool {
+	switch e {
+	case N30:
+		return true
+	case N7:
+		return true
+	case N90:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListCardsParamsFieldMatch.
 const (
 	ListCardsParamsFieldMatchContains ListCardsParamsFieldMatch = "contains"
@@ -2388,6 +2409,14 @@ type DeviceList struct {
 	Items []Device `json:"items"`
 }
 
+// DurationStat How long finished tasks took, in hours; null when nothing finished in the period
+type DurationStat struct {
+	AvgHours         *float64 `json:"avgHours"`
+	MedianHours      *float64 `json:"medianHours"`
+	PreviousAvgHours *float64 `json:"previousAvgHours"`
+	Samples          int      `json:"samples"`
+}
+
 // EmailRequest defines model for EmailRequest.
 type EmailRequest struct {
 	Email string `json:"email"`
@@ -2816,6 +2845,95 @@ type NotificationsReadInput struct {
 
 	// Ids Notifications to mark; omit with all
 	Ids *[]openapi_types.UUID `json:"ids,omitempty"`
+}
+
+// PerformanceAged defines model for PerformanceAged.
+type PerformanceAged struct {
+	AgeHours  float64            `json:"ageHours"`
+	Assignees []PersonRef        `json:"assignees"`
+	Id        openapi_types.UUID `json:"id"`
+	Key       string             `json:"key"`
+	Project   ProjectRef         `json:"project"`
+	Status    TaskStatus         `json:"status"`
+	Title     string             `json:"title"`
+}
+
+// PerformanceBucket defines model for PerformanceBucket.
+type PerformanceBucket struct {
+	Count int `json:"count"`
+
+	// UpToDays Exclusive upper bound in days; null for the last bucket
+	UpToDays *int `json:"upToDays"`
+}
+
+// PerformanceDay defines model for PerformanceDay.
+type PerformanceDay struct {
+	// CreatedTotal Created since the period began
+	CreatedTotal int                `json:"createdTotal"`
+	Date         openapi_types.Date `json:"date"`
+	Done         int                `json:"done"`
+
+	// DoneTotal Closed since the period began
+	DoneTotal  int `json:"doneTotal"`
+	InProgress int `json:"inProgress"`
+	InReview   int `json:"inReview"`
+	Todo       int `json:"todo"`
+}
+
+// PerformancePerson defines model for PerformancePerson.
+type PerformancePerson struct {
+	// Done Closed in the period
+	Done    int       `json:"done"`
+	Open    int       `json:"open"`
+	Overdue int       `json:"overdue"`
+	Person  PersonRef `json:"person"`
+}
+
+// PerformanceProject defines model for PerformanceProject.
+type PerformanceProject struct {
+	Done         int        `json:"done"`
+	DoneInPeriod int        `json:"doneInPeriod"`
+	DonePrevious int        `json:"donePrevious"`
+	Overdue      int        `json:"overdue"`
+	Project      ProjectRef `json:"project"`
+	Total        int        `json:"total"`
+}
+
+// PerformanceReport defines model for PerformanceReport.
+type PerformanceReport struct {
+	Aged []PerformanceAged `json:"aged"`
+
+	// CycleTime How long finished tasks took, in hours; null when nothing finished in the period
+	CycleTime DurationStat     `json:"cycleTime"`
+	Daily     []PerformanceDay `json:"daily"`
+	Days      int              `json:"days"`
+
+	// DoneWithDue Closed that had a due date
+	DoneWithDue int                 `json:"doneWithDue"`
+	Histogram   []PerformanceBucket `json:"histogram"`
+
+	// LateDone Closed after their due date
+	LateDone int `json:"lateDone"`
+
+	// LeadTime How long finished tasks took, in hours; null when nothing finished in the period
+	LeadTime            DurationStat         `json:"leadTime"`
+	OverdueNow          int                  `json:"overdueNow"`
+	People              []PerformancePerson  `json:"people"`
+	PreviousDoneWithDue int                  `json:"previousDoneWithDue"`
+	PreviousLateDone    int                  `json:"previousLateDone"`
+	Projects            []PerformanceProject `json:"projects"`
+	Throughput          Trend                `json:"throughput"`
+	UnassignedOpen      int                  `json:"unassignedOpen"`
+	Weekly              []PerformanceWeek    `json:"weekly"`
+	WipInProgress       int                  `json:"wipInProgress"`
+	WipInReview         int                  `json:"wipInReview"`
+}
+
+// PerformanceWeek defines model for PerformanceWeek.
+type PerformanceWeek struct {
+	Created int                `json:"created"`
+	Done    int                `json:"done"`
+	Start   openapi_types.Date `json:"start"`
 }
 
 // PermissionInfo defines model for PermissionInfo.
@@ -3876,6 +3994,17 @@ type ExportWikiSpaceParams struct {
 
 // ExportWikiSpaceParamsFormat defines parameters for ExportWikiSpace.
 type ExportWikiSpaceParamsFormat string
+
+// TeamPerformanceParams defines parameters for TeamPerformance.
+type TeamPerformanceParams struct {
+	Days       *TeamPerformanceParamsDays `form:"days,omitempty" json:"days,omitempty"`
+	ProjectId  *CardProjectId             `form:"projectId,omitempty" json:"projectId,omitempty"`
+	AssigneeId *CardAssigneeId            `form:"assigneeId,omitempty" json:"assigneeId,omitempty"`
+	LabelId    *CardLabelId               `form:"labelId,omitempty" json:"labelId,omitempty"`
+}
+
+// TeamPerformanceParamsDays defines parameters for TeamPerformance.
+type TeamPerformanceParamsDays int
 
 // ListCardsParams defines parameters for ListCards.
 type ListCardsParams struct {
