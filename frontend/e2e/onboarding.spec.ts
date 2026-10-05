@@ -172,4 +172,44 @@ test.describe('Welcome wizard', () => {
       .click()
       .catch(() => undefined);
   });
+
+  test('an invitee who lands in the app before accepting is sent back to the invitation', async ({
+    page,
+    browser,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page);
+    await page.goto('/team');
+    await page
+      .getByRole('button', { name: /Invite/ })
+      .first()
+      .click();
+    const dialog = page.getByRole('dialog');
+    const email = `back-${stamp()}@example.com`;
+    await dialog.getByLabel('Email address').fill(email);
+    await dialog.getByRole('button', { name: 'Send invitation' }).click();
+    const link = await dialog.getByLabel('Invitation link').inputValue();
+    await dialog.getByRole('button', { name: 'Done' }).click();
+
+    const ctx = await browser.newContext({ baseURL: BASE, viewport: { width: 1280, height: 900 } });
+    const guest = await ctx.newPage();
+    await guest.addInitScript(() => localStorage.setItem('lk-lang', 'en'));
+    await guest.goto(new URL(link).pathname);
+    await expect(guest.getByText("You don't need a password from anyone")).toBeVisible();
+    // They register the plain way (no return path), so they land in the app, not on the invitation.
+    await guest.goto('/register');
+    await guest.getByLabel('Full name').fill('Back Guest');
+    await guest.getByLabel('Email').fill(email);
+    await guest.getByLabel('Password', { exact: true }).fill(PASSWORD);
+    await guest.getByLabel('Confirm password').fill(PASSWORD);
+    await guest.getByRole('button', { name: 'Create account' }).click();
+    await expect(guest).toHaveURL(/\/invite\//);
+    await expect(guest.getByRole('dialog')).toHaveCount(0);
+    await guest.getByRole('button', { name: 'Join workspace' }).click();
+    await expect(
+      guest.getByRole('dialog').getByRole('heading', { name: /Welcome to .+, Back!/ }),
+    ).toBeVisible();
+    await expect(guest.getByRole('heading', { name: 'Name your workspace' })).toHaveCount(0);
+    await ctx.close();
+  });
 });
