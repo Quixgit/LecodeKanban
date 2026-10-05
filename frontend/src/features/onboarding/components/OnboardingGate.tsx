@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { useSession } from '@/features/auth';
-import { useWorkspaces } from '@/features/workspaces';
+import { Navigate } from 'react-router-dom';
+import { pendingInvite, useWorkspaces } from '@/features/workspaces';
 import { useOnboardingStore } from '../store';
 import { OnboardingWizard } from './OnboardingWizard';
 
@@ -22,6 +23,9 @@ export function OnboardingGate({ logo }: { logo: ReactNode }) {
 
   if (!user || isPending || !workspaces) return null;
   if (user.onboarded && !forced) return null;
+  // Someone who opened an invitation and has not accepted it yet should finish that, not set up a workspace of their own.
+  const invite = pendingInvite.get();
+  if (invite && !forced) return <Navigate to={`/invite/${invite}`} replace />;
   const joined = workspaces.find((w) => w.role !== 'owner') ?? null;
   const owned = workspaces.find((w) => w.role === 'owner') ?? null;
   return (

@@ -14,6 +14,10 @@
   the invited address has an account: a new person is offered "Create your account" with the invited address filled
   in and locked and only a name and a password of their own to choose; someone who already has an account gets
   "Sign in" (address filled in) and "Forgot your password?".
+- **An invited person is never asked to set up a workspace of their own.** The app remembers an invitation that was
+  opened but not accepted and, if the person lands inside before accepting (sign-in with a provider, a plain
+  registration), sends them back to it; after joining, the welcome guide waits for the fresh workspace list so it is
+  the short "join" guide, not the "create a workspace" one.
 
 ### Changed
 
