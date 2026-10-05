@@ -3,20 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useHotkey } from '@/shared/hooks/useHotkey';
 import { modKeyLabel } from '@/shared/lib/platform';
+import { GO_SHORTCUTS as GO } from '@/shared/lib/shortcutCatalog';
 import { useShortcutHelp, useShortcutSection } from '@/shared/lib/shortcutHelp';
 import { Kbd, Modal } from '@/shared/ui';
-
-/** "g" then a letter jumps to a page. */
-const GO: { key: string; to: string; label: string }[] = [
-  { key: 'd', to: '/', label: 'dashboard' },
-  { key: 'p', to: '/projects', label: 'projects' },
-  { key: 't', to: '/tasks', label: 'tasks' },
-  { key: 'l', to: '/calendar', label: 'calendar' },
-  { key: 'c', to: '/chat', label: 'chat' },
-  { key: 'o', to: '/docs', label: 'docs' },
-  { key: 'm', to: '/team', label: 'team' },
-  { key: 's', to: '/settings', label: 'settings' },
-];
 
 const WINDOW_MS = 1200;
 

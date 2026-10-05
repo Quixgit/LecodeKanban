@@ -330,3 +330,9 @@ Facts about what was checked, with how. Update on every phase.
 - Go (no database): throughput this/previous period, cycle and lead time (average and median), a reopened task measures its last stretch of work, late share, overdue now, work in progress, aging list, cycle histogram buckets, cumulative flow (every task in exactly one status per day) and burn-up, weekly bars, per-person and per-project numbers, empty workspace. With the database: a member without the permission is refused, the owner's report lists the project and the new task.
 - Browser: Performance opens from the menu, shows all cards, period and burn-up switches, project filter and reset (axe on the settled page), phone width has no horizontal scroll; light and dark screenshots checked by eye.
 - Not covered: the Ukrainian layout by eye, workspaces beyond 50 000 tasks (the report is cut to the newest 50 000), time-zone-aware day boundaries (days are UTC, like the dashboard), the page hidden in the menu for a role without the permission (checked by the permission test, not in the browser).
+## Help & Center
+
+- Vitest: search ranking and matching (every word, title above body, Ukrainian, empty query); locale parity covers the new help namespace (arrays must have the same length in en and uk).
+- Browser (axe on the settled page): search "restoring" opens the right article and the address carries it; article switch and "All guides"; shortcut filter; quick-start hand step toggles; "Learn more in Help" from Roles opens its guide; Ukrainian search and phone width without horizontal scroll. Light screenshot checked by eye.
+- The guides describe features by their current names; they are text, so a renamed screen needs the article updated (no automated check).
+- Not covered: dark theme of this page by eye, "What's new" is curated by hand (not generated from CHANGELOG), the guides have no screenshots (icons and numbered steps instead), the request form and editable articles (phase 2).

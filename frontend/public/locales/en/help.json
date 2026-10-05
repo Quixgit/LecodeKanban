@@ -1,0 +1,348 @@
+{
+  "hero": {
+    "title": "How can we help?",
+    "subtitle": "Search the guides, shortcuts and pages of the platform.",
+    "placeholder": "Search help, shortcuts and pages…",
+    "clear": "Clear search"
+  },
+  "results": {
+    "count_one": "{{count}} result",
+    "count_other": "{{count}} results",
+    "none": "Nothing found for “{{q}}”. Try another word, or ask the team below.",
+    "groups": {
+      "guide": "Guides",
+      "shortcut": "Shortcuts",
+      "page": "Pages"
+    }
+  },
+  "quickStart": {
+    "title": "Quick start",
+    "subtitle": "Five steps to feel at home",
+    "progress": "{{done}} of {{total}} done",
+    "allDone": "All set — you know your way around.",
+    "go": "Open",
+    "markDone": "Mark as done",
+    "unmark": "Mark as not done",
+    "steps": {
+      "project": {
+        "title": "Create a project",
+        "description": "A project holds a board of tasks for one piece of work."
+      },
+      "task": {
+        "title": "Add a task",
+        "description": "Write the first task and drag it across the board."
+      },
+      "invite": {
+        "title": "Invite a colleague",
+        "description": "Work is easier together: send an invitation."
+      },
+      "twofa": {
+        "title": "Turn on two-factor sign-in",
+        "description": "Protect your account with an authenticator app."
+      },
+      "notifications": {
+        "title": "Choose your notifications",
+        "description": "Keep only the ones you need."
+      }
+    },
+    "done": "Done",
+    "todo": "Not done yet"
+  },
+  "guides": {
+    "title": "Guides",
+    "subtitle": "Short how-tos for every part of the platform",
+    "articles_one": "{{count}} article",
+    "articles_other": "{{count}} articles",
+    "back": "All guides",
+    "contents": "In this guide",
+    "open": "Open guide",
+    "learnMore": "Learn more in Help",
+    "items": {
+      "tasks": {
+        "title": "Tasks and the board",
+        "summary": "Plan, move and find work.",
+        "articles": {
+          "board": {
+            "title": "Work on the board",
+            "summary": "Columns, drag and drop, new tasks.",
+            "keywords": "kanban column status drag move create wip limit swimlane",
+            "steps": [
+              "Open Tasks. Each column is a status: To Do, In Progress, In Review, Completed.",
+              "Press N, or use “New task”, to add a task to the focused column.",
+              "Drag a card to another column to change its status — or pick it up with Space and move it with the arrow keys.",
+              "Open a project's own board from Projects to see only its tasks.",
+              "A column with a WIP limit warns you when it holds more tasks than the limit."
+            ]
+          },
+          "details": {
+            "title": "Everything inside a task",
+            "summary": "People, dates, checklists, comments, files.",
+            "keywords": "assignee label due date priority checklist subtask comment attachment custom field time",
+            "steps": [
+              "Click a card to open it. Set the priority, due date, assignees and labels at the top.",
+              "Break the work down with a checklist or with subtasks; progress follows the ticked items.",
+              "Discuss in comments and attach files; mention a colleague with @ to notify them.",
+              "Custom fields, time tracking and linked GitHub items appear in the same window when they are switched on."
+            ]
+          },
+          "find": {
+            "title": "Find tasks fast",
+            "summary": "Search, filters and saved views.",
+            "keywords": "search filter saved view sort custom field list calendar",
+            "steps": [
+              "Press / on the board or type in the search box to find a task by title or key (for example LK-12).",
+              "Filter by project, person, priority, label, due date or a custom field.",
+              "Save a filter combination as a view and open it again with one click.",
+              "Switch between board, list and calendar with the view switch above the tasks."
+            ]
+          },
+          "trash": {
+            "title": "Deleted tasks and restoring",
+            "summary": "Nothing is lost at once.",
+            "keywords": "trash delete restore archive undo",
+            "steps": [
+              "A deleted task goes to the Trash, not into thin air.",
+              "Open Tasks → Trash, find the task and press Restore; it returns to its project.",
+              "Subtasks that were deleted with their parent come back with it. If the parent is still in the Trash, restore the parent first.",
+              "Deleting and restoring need the “Delete tasks” permission."
+            ]
+          }
+        }
+      },
+      "chat": {
+        "title": "Chat",
+        "summary": "Talk without leaving the work.",
+        "articles": {
+          "channels": {
+            "title": "Channels and direct messages",
+            "summary": "Public, private and one-to-one.",
+            "keywords": "channel direct message dm private public create member",
+            "steps": [
+              "Open Chat. The list in the left column holds your channels and direct messages.",
+              "Create a channel with the plus button; make it private to invite only chosen people.",
+              "Start a direct message by choosing a colleague from the people list.",
+              "Your status (online, away, do not disturb) is shown next to your name for everyone."
+            ]
+          },
+          "threads": {
+            "title": "Threads, mentions and saved messages",
+            "summary": "Keep long discussions tidy.",
+            "keywords": "thread reply mention pin saved reaction emoji notification",
+            "steps": [
+              "Reply in a thread to keep a long discussion out of the main stream.",
+              "Mention a person with @ so they get a notification; @channel notifies everyone and needs a permission.",
+              "Pin an important message to the top of the channel, or save it for yourself.",
+              "React with an emoji instead of writing “ok”."
+            ]
+          }
+        }
+      },
+      "docs": {
+        "title": "Documents",
+        "summary": "Write things down together.",
+        "articles": {
+          "write": {
+            "title": "Write in the editor",
+            "summary": "Slash menu, Markdown and shortcuts.",
+            "keywords": "editor slash markdown heading list table code format bold",
+            "steps": [
+              "Open Docs and create a page in a space; the page tree is in the left column.",
+              "Type / to insert a heading, list, table, code block or quote.",
+              "Markdown works as you type: “# ” makes a heading, “- ” a list, “[] ” a to-do.",
+              "Press ? for the full list of shortcuts. Changes are saved automatically."
+            ]
+          },
+          "organise": {
+            "title": "Organise and share",
+            "summary": "Spaces, the page tree and the Trash.",
+            "keywords": "space tree move trash restore export markdown html",
+            "steps": [
+              "Group pages into spaces and drag them in the tree to reorder or nest them.",
+              "Deleted pages go to Docs → Trash and can be restored.",
+              "Export a page as Markdown or HTML from its menu to use it elsewhere."
+            ]
+          }
+        }
+      },
+      "integrations": {
+        "title": "Integrations",
+        "summary": "Connect the tools you already use.",
+        "articles": {
+          "calendar": {
+            "title": "Google Calendar and meeting reminders",
+            "summary": "See your next meeting and join in one click.",
+            "keywords": "google calendar meeting reminder join connect",
+            "steps": [
+              "Open Integrations and connect Google Calendar with your Google account.",
+              "Your upcoming meetings appear in Calendar and in the sidebar with a Join button.",
+              "Choose how long before a meeting the reminder appears; disconnect at any time and the stored meetings are removed."
+            ]
+          },
+          "github": {
+            "title": "GitHub",
+            "summary": "Link pull requests and issues to tasks.",
+            "keywords": "github pull request issue branch link rule",
+            "steps": [
+              "An administrator connects GitHub in Integrations.",
+              "Mention a task key (for example LK-12) in a pull request or commit to link it to the task.",
+              "Rules can move a task on its own, for example to In Review when a pull request is opened."
+            ]
+          }
+        }
+      },
+      "roles": {
+        "title": "Roles and security",
+        "summary": "Who can do what, and how to stay safe.",
+        "articles": {
+          "permissions": {
+            "title": "Roles and permissions",
+            "summary": "Built-in and custom roles.",
+            "keywords": "role permission owner admin member viewer custom access",
+            "steps": [
+              "Every person has a role: Owner, Administrator, Member or Viewer.",
+              "Open Settings → Roles & permissions to see exactly what each role may do.",
+              "Create a custom role with a hand-picked set of permissions and give it to people in Settings → Members.",
+              "Permissions such as exporting data or seeing team performance can be given to any role."
+            ]
+          },
+          "security": {
+            "title": "Two-factor sign-in and sessions",
+            "summary": "Protect your account.",
+            "keywords": "2fa two-factor authenticator totp recovery code password session device security",
+            "steps": [
+              "Open your profile → Security and choose “Turn on two-factor sign-in”.",
+              "Scan the QR code with an authenticator app and enter the six-digit code.",
+              "Save the recovery codes somewhere safe: each one works once if you lose the phone.",
+              "An administrator can require two-factor sign-in for everyone in Settings → Access."
+            ]
+          },
+          "notifications": {
+            "title": "Choose your notifications",
+            "summary": "Only what matters to you.",
+            "keywords": "notification mention reminder email sound mute",
+            "steps": [
+              "Open your profile → Notifications.",
+              "Switch off the kinds you do not need, for example meeting reminders; everything else stays on.",
+              "Sounds and chat mute settings are in the same profile area and in each channel's menu."
+            ]
+          }
+        }
+      },
+      "export": {
+        "title": "Import and export",
+        "summary": "Take your data with you, or bring it in.",
+        "articles": {
+          "tasks": {
+            "title": "Tasks as a spreadsheet (CSV)",
+            "summary": "Download tasks, or import them.",
+            "keywords": "csv export import excel spreadsheet download upload",
+            "steps": [
+              "Open Settings → Data & export and choose a project, or all projects, to download a CSV that opens in Excel, Numbers and Google Sheets.",
+              "To import, pick the project, choose a CSV file and press “Check the file”: nothing is created yet, and problem lines are listed.",
+              "Press Import to create the tasks. Columns: Title (required), Description, Status, Priority, Due date, Assignees, Labels.",
+              "The file you export can be imported again as it is."
+            ]
+          },
+          "docs": {
+            "title": "Documents and the team report",
+            "summary": "Markdown, HTML and the Performance CSV.",
+            "keywords": "export markdown html performance report",
+            "steps": [
+              "Export any document page as Markdown or HTML from its menu.",
+              "The Performance page has its own “Download CSV” that follows the filters you picked.",
+              "Exporting needs the “Export data” permission, which administrators have by default."
+            ]
+          }
+        }
+      }
+    }
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "subtitle": "Press ? on any page to see its own list",
+    "filter": "Filter shortcuts",
+    "none": "No shortcut matches.",
+    "then": "then",
+    "global": "Everywhere",
+    "board": "Task board",
+    "editor": "Document editor",
+    "markdown": "Markdown while typing",
+    "groups": {
+      "text": "Text",
+      "blocks": "Blocks",
+      "editing": "Editing"
+    }
+  },
+  "whatsNew": {
+    "title": "What's new",
+    "subtitle": "Recent changes in plain words",
+    "items": [
+      {
+        "date": "October 2026",
+        "title": "Performance page",
+        "text": "How the team works: throughput, cycle and lead time, overdue share, work in progress, burn-up and flow charts, workload per person."
+      },
+      {
+        "date": "October 2026",
+        "title": "Import tasks from CSV",
+        "text": "Check a spreadsheet first, then create the tasks. The file you export imports back as it is."
+      },
+      {
+        "date": "October 2026",
+        "title": "Trash for tasks",
+        "text": "Deleted tasks wait in the Trash and can be restored with their subtasks."
+      },
+      {
+        "date": "October 2026",
+        "title": "Shortcuts help and density",
+        "text": "Press ? on any page to see its shortcuts. Choose a compact or comfortable interface density in your profile."
+      },
+      {
+        "date": "September 2026",
+        "title": "Two-factor sign-in",
+        "text": "Protect your account with an authenticator app; administrators can require it for everyone."
+      },
+      {
+        "date": "September 2026",
+        "title": "Notification preferences",
+        "text": "Switch off the kinds of notifications you do not need."
+      },
+      {
+        "date": "September 2026",
+        "title": "Custom field filters",
+        "text": "Filter and sort tasks by the value of a custom field."
+      },
+      {
+        "date": "September 2026",
+        "title": "Export tasks as CSV",
+        "text": "Download tasks for one project or all of them as a spreadsheet."
+      },
+      {
+        "date": "September 2026",
+        "title": "A calmer menu",
+        "text": "Chat channels and the page tree now live in the menu's second column, like everywhere else."
+      },
+      {
+        "date": "September 2026",
+        "title": "Workspace look and rules",
+        "text": "Choose an accent colour and set the rules of the workspace: required due date, default priority and more."
+      }
+    ]
+  },
+  "status": {
+    "title": "Platform status",
+    "version": "Version {{version}}",
+    "mail": "Email",
+    "mailOk": "Working",
+    "mailCapturing": "Collected in a test inbox only",
+    "mailFailed": "{{count}} emails failed in the last 7 days",
+    "mailWaiting": "{{count}} waiting",
+    "contact": "Contact",
+    "contactHint": "The person responsible for this workspace",
+    "ask": "Write an email"
+  },
+  "support": {
+    "title": "Still stuck?",
+    "description": "Ask the person responsible for the workspace — they will see your message in chat."
+  }
+}

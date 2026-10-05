@@ -31,7 +31,10 @@ test.describe('Performance', () => {
     await expect(main.getByRole('button', { name: 'Reset filters' })).toHaveCount(0);
 
     await page.waitForTimeout(900); // cards rise in one after another
-    const axe = await new AxeBuilder({ page }).include('main').withTags(['wcag2a', 'wcag2aa']).analyze();
+    const axe = await new AxeBuilder({ page })
+      .include('main')
+      .withTags(['wcag2a', 'wcag2aa'])
+      .analyze();
     expect(axe.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
   });
 
@@ -41,7 +44,9 @@ test.describe('Performance', () => {
     await page.goto('/performance');
     const main = page.getByRole('main');
     await expect(main.getByRole('heading', { name: 'Cumulative flow' })).toBeVisible();
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    );
     expect(overflow).toBe(false);
   });
 });

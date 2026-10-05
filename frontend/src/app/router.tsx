@@ -8,7 +8,6 @@ import { FeatureGate } from '@/features/settings';
 import { AuthLayout } from './layouts/auth/AuthLayout';
 import { RouteError } from './layouts/RouteError';
 
-const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const ShowcasePage = lazy(() => import('@/pages/ShowcasePage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const TeamPage = lazy(() => import('@/pages/TeamPage'));
@@ -99,6 +98,7 @@ const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
 const TrashPage = lazy(() => import('@/pages/TrashPage'));
 const PerformancePage = lazy(() => import('@/pages/PerformancePage'));
+const HelpPage = lazy(() => import('@/pages/HelpPage'));
 const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'));
 const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmailPage'));
 const InvitePage = lazy(() => import('@/pages/InvitePage'));
@@ -106,13 +106,6 @@ const InvitePage = lazy(() => import('@/pages/InvitePage'));
 const page = (key: string): RouteHandle => ({
   titleKey: `pages.${key}.title`,
   subtitleKey: `pages.${key}.subtitle`,
-});
-
-/** Sections whose feature modules ship in later phases render a shared placeholder. */
-const upcoming = (path: string, key: string, index = false): RouteObject => ({
-  ...(index ? { index: true } : { path }),
-  handle: page(key),
-  element: <ComingSoonPage section={key} />,
 });
 
 const guest = (el: ReactNode) => <GuestOnly fallback={<BootSplash />}>{el}</GuestOnly>;
@@ -188,7 +181,7 @@ export const routes: RouteObject[] = [
             ],
           },
           { path: 'performance', handle: page('performance'), element: <PerformancePage /> },
-          upcoming('help', 'help'),
+          { path: 'help', handle: page('help'), element: <HelpPage /> },
           { path: 'team', handle: page('team'), element: <TeamPage /> },
           {
             path: 'integrations',

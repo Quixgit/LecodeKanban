@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import type { ReactNode } from 'react';
-import { transition } from '@/shared/motion';
+import { transition } from '../motion';
 
 /** Cards rise into place one after another, like the rest of the platform's pages. */
 export function Reveal({

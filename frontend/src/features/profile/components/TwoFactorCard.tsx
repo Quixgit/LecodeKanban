@@ -8,6 +8,7 @@ import {
   Button,
   Field,
   FormAlert,
+  HelpLink,
   Input,
   Modal,
   PasswordInput,
@@ -275,6 +276,7 @@ export function TwoFactorCard() {
   return (
     <>
       <SettingsCard title={t('twoFactor.title')} description={t('twoFactor.description')}>
+        <HelpLink guide="roles" article="security" className="mb-3" />
         {status.isPending ? (
           <Skeleton className="h-16" />
         ) : (

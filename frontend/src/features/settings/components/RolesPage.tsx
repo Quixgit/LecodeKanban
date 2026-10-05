@@ -17,6 +17,7 @@ import {
   ConfirmDialog,
   Field,
   FormAlert,
+  HelpLink,
   Input,
   Modal,
   Pill,
@@ -67,6 +68,7 @@ export function RolesPage() {
           )
         }
       />
+      <HelpLink guide="roles" article="permissions" className="-mt-2 mb-4" />
       {!workspace || roles.isPending || !role ? (
         <Skeleton className="h-96" />
       ) : (

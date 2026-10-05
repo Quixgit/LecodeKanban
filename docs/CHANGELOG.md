@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Help & Center** (the empty page is now real): a search over guides, shortcuts and pages; a five-step quick start
+  that ticks itself (project, task, invitation, two-factor sign-in) with one step ticked by hand (notifications);
+  six guides in English and Ukrainian (tasks and board, chat, documents, integrations, roles and security, import and
+  export) that open in place and are linkable (`/help?guide=…&article=…`); the complete shortcut table with a filter
+  (one catalogue now feeds the `?` dialog, the board and the editor); "What's new" in plain words; platform status
+  (version, email health for administrators, who to ask). Complex settings (roles, two-factor, integrations) link to
+  their guide with "Learn more in Help". The request form and administrator-edited articles are a later step.
 - **Performance page** (team efficiency, for the person who runs the team): for 7 / 30 / 90 days, each number against
   the previous period — throughput (tasks closed), cycle time (In progress → Done, with the median so a few slow
   tasks do not skew it), lead time (created → Done), share of tasks closed after their due date plus how many are
