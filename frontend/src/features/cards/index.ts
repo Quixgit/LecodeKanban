@@ -7,6 +7,8 @@ export {
   useCardCounts,
   useCardStats,
   useCardMutations,
+  useRestoreCard,
+  useTrash,
   cardKeys,
   patchCached,
 } from './hooks/useCards';

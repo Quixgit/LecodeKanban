@@ -1,4 +1,4 @@
-import { Languages, LayoutTemplate, Moon, Sun } from 'lucide-react';
+import { Languages, LayoutTemplate, Moon, Sun, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +40,14 @@ export function useShellCommands(): Command[] {
     const prefs = t('common:commandPalette.groups.preferences');
     return [
       ...nav,
+      {
+        id: 'nav-trash',
+        label: t('nav:panel.trash'),
+        group: goTo,
+        icon: Trash2,
+        keywords: ['deleted', 'restore', 'кошик', 'видалені'],
+        run: () => navigate('/trash'),
+      },
       {
         id: 'nav-ui-kit',
         label: t('common:userMenu.uiKit'),

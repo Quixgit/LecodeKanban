@@ -96,6 +96,10 @@
     "chat": {
       "title": "Чат",
       "subtitle": "Спілкування з командою"
+    },
+    "trash": {
+      "title": "Кошик",
+      "subtitle": "Видалені завдання, які можна повернути"
     }
   },
   "panel": {
@@ -103,7 +107,8 @@
     "allProjects": "Усі проєкти",
     "yourProjects": "Проєкти",
     "allIntegrations": "Усі інтеграції",
-    "modules": "Модулі"
+    "modules": "Модулі",
+    "trash": "Кошик"
   },
   "shortcuts": {
     "everywhere": "Усюди",

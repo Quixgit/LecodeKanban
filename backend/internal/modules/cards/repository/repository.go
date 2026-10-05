@@ -40,7 +40,7 @@ func toDomain(c store.Card) domain.Card {
 		Number: int(c.Number), Title: c.Title, Description: c.Description, Status: domain.Status(c.Status),
 		Priority: domain.Priority(c.Priority), Progress: int(c.Progress), DueDate: c.DueDate, Position: c.Position,
 		Version: int(c.Version), CreatedBy: uuidPtr(c.CreatedBy), CompletedAt: c.CompletedAt,
-		CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt,
+		CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt, ArchivedAt: c.ArchivedAt,
 		ChecklistTotal: int(c.ChecklistTotal), ChecklistDone: int(c.ChecklistDone),
 		CommentCount: int(c.CommentCount), AttachmentCount: int(c.AttachmentCount),
 		ParentID: uuidPtr(c.ParentID), SubtaskTotal: int(c.SubtaskTotal), SubtaskDone: int(c.SubtaskDone),

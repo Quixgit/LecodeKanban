@@ -26,6 +26,7 @@ const (
 	CardUpdated       = "card.updated"
 	CardMoved         = "card.moved"
 	CardDeleted       = "card.deleted"
+	CardRestored      = "card.restored"
 	ChecklistPrefix   = "checklist."
 	CommentCreated    = "comment.created"
 	CommentDeleted    = "comment.deleted"

@@ -62,3 +62,10 @@ type LabelsChanged struct {
 }
 
 func (LabelsChanged) EventName() string { return "cards.labels_changed" }
+
+// CardRestored: a deleted task came back from the trash.
+type CardRestored struct {
+	Card
+}
+
+func (CardRestored) EventName() string { return "cards.restored" }

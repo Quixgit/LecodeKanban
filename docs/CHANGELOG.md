@@ -4,6 +4,10 @@
 
 ### Added
 
+- **Trash** (`/trash`; a button in the task toolbar, the Tasks menu of the icon rail and the command palette): deleted
+  tasks wait there, newest first, and can be restored. A task comes back with the subtasks that were deleted with it; a
+  subtask whose parent is still in the trash asks you to restore the parent first; a task whose project is gone cannot
+  come back. Whoever may delete tasks may look and restore; the activity feed records "restored the task".
 - **Keyboard help on every page**: `?` opens a dialog with the shortcuts of the page you are on and the ones that work
   everywhere (⌘/Ctrl+K, and `G` then a letter to jump: D dashboard, P projects, T tasks, L calendar, C chat, O docs,
   M team, S settings). Pages register their own shortcuts; the board's own dialog was folded into it.

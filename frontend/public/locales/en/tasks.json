@@ -110,5 +110,20 @@
     "list": "List",
     "kanban": "Kanban",
     "calendar": "Calendar"
+  },
+  "trash": {
+    "title": "Trash",
+    "hint": "Deleted tasks stay here, so a mistake is never final. Restoring brings back the subtasks that were deleted with a task.",
+    "back": "Back to tasks",
+    "empty": "The trash is empty",
+    "emptyHint": "Tasks you delete will wait here.",
+    "deleted": "Deleted {{when}}",
+    "subtasks_one": "{{count}} subtask comes back with it",
+    "subtasks_other": "{{count}} subtasks come back with it",
+    "subtaskOf": "Subtask of {{key}}",
+    "restore": "Restore",
+    "restored": "“{{title}}” is back",
+    "noAccess": "You do not have permission to see deleted tasks.",
+    "open": "Trash"
   }
 }

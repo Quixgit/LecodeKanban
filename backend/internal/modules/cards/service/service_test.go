@@ -444,3 +444,67 @@ func TestExportNeedsThePermission(t *testing.T) {
 		t.Fatalf("member with the permission: %v", err)
 	}
 }
+
+func TestTrashAndRestore(t *testing.T) {
+	f := setup(t)
+	mk := func(title string, parent *uuid.UUID) service.View {
+		c, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: title, ParentID: parent})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	parent := mk("Parent", nil)
+	child := mk("Child", &parent.ID)
+	lone := mk("Lone", nil)
+	if err := f.Cards.Delete(f.ctx, f.member, parent.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.Cards.Delete(f.ctx, f.member, lone.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	// The trash lists the parent and the lone task, newest first; the child goes with its parent.
+	got, err := f.Cards.Trash(f.ctx, f.member, f.ws, nil)
+	if err != nil || len(got) != 2 || got[0].Title != "Lone" || got[1].Title != "Parent" {
+		t.Fatalf("trash: %v %v", got, err)
+	}
+	// A subtask cannot come back while its parent is in the trash.
+	_, err = f.Cards.Restore(f.ctx, f.member, child.ID)
+	mustCode(t, err, domain.ErrCannotRestore)
+
+	// Restoring the parent brings the subtask back too, and the task is a live card again.
+	back, err := f.Cards.Restore(f.ctx, f.member, parent.ID)
+	if err != nil || back.Title != "Parent" || back.ArchivedAt != nil {
+		t.Fatalf("restore: %+v %v", back, err)
+	}
+	if _, err := f.Cards.Get(f.ctx, f.member, child.ID); err != nil {
+		t.Fatalf("the subtask came back with its parent: %v", err)
+	}
+	got, _ = f.Cards.Trash(f.ctx, f.member, f.ws, nil)
+	if len(got) != 1 || got[0].Title != "Lone" {
+		t.Fatalf("trash after restore: %v", got)
+	}
+	// Not in the trash any more: nothing to restore.
+	_, err = f.Cards.Restore(f.ctx, f.member, parent.ID)
+	mustCode(t, err, domain.ErrNotFound)
+}
+
+func TestTrashNeedsThePermission(t *testing.T) {
+	f := setup(t)
+	c, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Gone"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := f.Cards.Delete(f.ctx, f.member, c.ID); err != nil {
+		t.Fatal(err)
+	}
+	// Viewers cannot delete, so they cannot look into the trash or restore either.
+	_, err = f.Cards.Trash(f.ctx, f.viewer, f.ws, nil)
+	mustCode(t, err, wsdomain.ErrInsufficientRole)
+	_, err = f.Cards.Restore(f.ctx, f.viewer, c.ID)
+	mustCode(t, err, domain.ErrNotFound)
+	if _, err := f.Cards.Restore(f.ctx, f.owner, c.ID); err != nil {
+		t.Fatalf("owner restore: %v", err)
+	}
+}
