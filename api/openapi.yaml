@@ -412,6 +412,28 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/RecoveryCodes" }
         "422": { $ref: "#/components/responses/Error" }
+  /users/me/notification-prefs:
+    get:
+      tags: [notifications]
+      operationId: getNotificationPrefs
+      summary: Which kinds of notification the caller wants (all on unless switched off)
+      responses:
+        "200":
+          description: One entry per kind
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationPrefs" }
+    put:
+      tags: [notifications]
+      operationId: setNotificationPref
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NotificationPrefInput" }
+      responses:
+        "204": { description: Saved }
+        "422": { $ref: "#/components/responses/Error" }
   /users/me/password:
     post:
       tags: [users]
@@ -4036,6 +4058,23 @@ components:
         link: { type: string }
         leadMinutes: { type: integer }
         attendees: { type: integer }
+    NotificationPref:
+      type: object
+      required: [kind, enabled]
+      properties:
+        kind: { type: string, enum: [assigned, task_moved, task_updated, task_commented, mention, dm, meeting] }
+        enabled: { type: boolean }
+    NotificationPrefs:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/NotificationPref" } }
+    NotificationPrefInput:
+      type: object
+      required: [kind, enabled]
+      properties:
+        kind: { type: string }
+        enabled: { type: boolean }
     Notification:
       type: object
       required: [id, kind, title, body, actor, cardId, projectId, channelId, messageId, link, createdAt, read]

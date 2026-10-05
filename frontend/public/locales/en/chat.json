@@ -460,7 +460,8 @@
       "fourHours": "4 hours",
       "tomorrow": "Until tomorrow",
       "nextWeek": "Until next week"
-    }
+    },
+    "defaults": "Edit default preferences"
   },
   "split": {
     "label": "Second conversation",
