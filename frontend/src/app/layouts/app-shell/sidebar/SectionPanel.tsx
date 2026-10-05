@@ -9,6 +9,8 @@ import { GROUPS, SECTIONS } from '@/features/settings';
 import { useCurrentWorkspace } from '@/features/workspaces';
 import { cn } from '@/shared/lib/cn';
 import { fadeUp, transition } from '@/shared/motion';
+import { useShellLayout } from '@/shared/lib/shellLayout';
+import { ownsList } from './railPanels';
 import { statusTone, toneClasses, type TaskStatus } from '@/shared/ui';
 
 const ACTIVE_ID = 'panel-active-item';
@@ -187,6 +189,12 @@ function SettingsMenu() {
   );
 }
 
+/** An empty column the page itself fills (chat channels, the docs tree) through a portal. */
+function OwnList() {
+  const setSlot = useShellLayout((s) => s.setSlot);
+  return <div ref={setSlot} className="h-full" />;
+}
+
 const MENUS: Record<string, () => ReactNode> = {
   tasks: TasksMenu,
   projects: ProjectsMenu,
@@ -197,6 +205,7 @@ const MENUS: Record<string, () => ReactNode> = {
 /** The menu for the section you are in: what is inside it, one click away. */
 export function SectionPanel({ itemKey }: { itemKey: string }) {
   const { t } = useTranslation('nav');
+  if (ownsList(itemKey)) return <OwnList />;
   const Menu = MENUS[itemKey];
   if (!Menu) return null;
   return (

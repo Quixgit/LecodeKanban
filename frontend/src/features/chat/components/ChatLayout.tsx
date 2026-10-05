@@ -1,11 +1,14 @@
 import { MessagesSquare, Palette } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useMatch, useNavigate } from 'react-router-dom';
 import { useSession } from '@/features/auth';
 import { useAllProjects } from '@/features/projects';
 import { can, useCurrentWorkspace, useWorkspaceMembers } from '@/features/workspaces';
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
+import { useRailSlot } from '@/shared/lib/shellLayout';
+import { cn } from '@/shared/lib/cn';
 import { EmptyState, IconButton, Tooltip } from '@/shared/ui';
 import type { Member } from '@/shared/api';
 import type { ChatChannel, ChatStatus } from '../api/chatApi';
@@ -56,6 +59,7 @@ export function ChatLayout() {
   const members = useWorkspaceMembers(ws);
   const projects = useAllProjects(ws);
   const desktop = useMediaQuery('(min-width: 1024px)');
+  const rail = useRailSlot(desktop);
   const match = useMatch('/chat/:channelId');
   const activeId = match?.params.channelId;
   const setLast = useChatUiStore((s) => s.setLastChannel);
@@ -113,58 +117,64 @@ export function ChatLayout() {
   const showList = desktop || !activeId;
   const showMain = desktop || !!activeId;
 
+  const channelPanel = (
+    <aside
+      aria-label={t('sidebar.title')}
+      style={sidebarVars(theme)}
+      className={cn(
+        'flex shrink-0 flex-col bg-surface text-text transition-colors duration-ui',
+        rail.railed ? 'h-full w-full' : 'w-full border-r border-border-subtle lg:w-72',
+      )}
+    >
+      <div className="flex h-11 items-center gap-2 px-4 pt-1">
+        <MessagesSquare className="size-4 stroke-[1.6] text-primary-ink" aria-hidden />
+        <h2 className="text-md font-semibold text-text">{t('sidebar.title')}</h2>
+        <span className="ml-auto flex items-center gap-1">
+          <Tooltip content={t('appearance.open')}>
+            <IconButton
+              label={t('appearance.open')}
+              variant="ghost"
+              size="sm"
+              onClick={() => setLooks(true)}
+            >
+              <Palette />
+            </IconButton>
+          </Tooltip>
+          <MyStatus workspaceId={workspace.id} />
+        </span>
+      </div>
+      <div className="min-h-0 flex-1">
+        <ChannelList
+          channels={channels.data}
+          loading={channels.isPending}
+          me={me}
+          workspaceId={ws ?? ''}
+          activeId={activeId}
+          canCreate={canWrite}
+          onCreate={() => setDialog('create')}
+          onBrowse={() => setDialog('browse')}
+          online={online}
+          statuses={statuses}
+          onSearch={() => setDialog('search')}
+          onNewMessage={rules.allowDirect ? () => setDialog('direct') : undefined}
+          onSplit={desktop ? (id) => setSplit(id === activeId ? null : id) : undefined}
+          onSearchIn={(ch) => {
+            setSearchSeed(ch.name ? `in:#${ch.name} ` : '');
+            setDialog('search');
+          }}
+        />
+      </div>
+    </aside>
+  );
+
   return (
     <ChatContext.Provider value={context}>
       <div
         style={accentVars(theme)}
         className="flex h-[calc(100dvh-var(--header-h)-3rem)] min-h-[30rem] overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-sm"
       >
-        {showList && (
-          <aside
-            aria-label={t('sidebar.title')}
-            style={sidebarVars(theme)}
-            className="flex w-full shrink-0 flex-col border-r border-border-subtle bg-surface text-text transition-colors duration-ui lg:w-72"
-          >
-            <div className="flex h-11 items-center gap-2 px-4 pt-1">
-              <MessagesSquare className="size-4 stroke-[1.6] text-primary-ink" aria-hidden />
-              <h2 className="text-md font-semibold text-text">{t('sidebar.title')}</h2>
-              <span className="ml-auto flex items-center gap-1">
-                <Tooltip content={t('appearance.open')}>
-                  <IconButton
-                    label={t('appearance.open')}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setLooks(true)}
-                  >
-                    <Palette />
-                  </IconButton>
-                </Tooltip>
-                <MyStatus workspaceId={workspace.id} />
-              </span>
-            </div>
-            <div className="min-h-0 flex-1">
-              <ChannelList
-                channels={channels.data}
-                loading={channels.isPending}
-                me={me}
-                workspaceId={ws ?? ''}
-                activeId={activeId}
-                canCreate={canWrite}
-                onCreate={() => setDialog('create')}
-                onBrowse={() => setDialog('browse')}
-                online={online}
-                statuses={statuses}
-                onSearch={() => setDialog('search')}
-                onNewMessage={rules.allowDirect ? () => setDialog('direct') : undefined}
-                onSplit={desktop ? (id) => setSplit(id === activeId ? null : id) : undefined}
-                onSearchIn={(ch) => {
-                  setSearchSeed(ch.name ? `in:#${ch.name} ` : '');
-                  setDialog('search');
-                }}
-              />
-            </div>
-          </aside>
-        )}
+        {showList && !rail.railed && channelPanel}
+        {rail.target && createPortal(channelPanel, rail.target)}
         {showMain && (
           <div className="flex min-w-0 flex-1 flex-col">
             {!desktop && (
