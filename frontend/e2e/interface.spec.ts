@@ -54,18 +54,18 @@ test.describe('Interface', () => {
     );
     await signIn(page);
     await page.getByRole('button', { name: 'Open menu' }).click();
-    const drawer = page.getByRole('complementary', { name: 'Main navigation' });
+    const drawer = page.getByRole('dialog');
     await drawer.getByRole('button', { name: 'Settings' }).click();
     await expect(drawer.getByRole('link', { name: 'Roles & permissions' })).toBeVisible();
     await page.waitForTimeout(400);
     const axe = await new AxeBuilder({ page })
-      .include('aside')
+      .include('[role=dialog]')
       .withTags(['wcag2a', 'wcag2aa'])
       .analyze();
     expect(axe.violations.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
     await drawer.getByRole('link', { name: 'Roles & permissions' }).click();
     await expect(page).toHaveURL(/\/settings\/roles$/);
     // The drawer closed behind the navigation.
-    await expect(page.getByRole('complementary', { name: 'Main navigation' })).toHaveCount(0);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
   });
 });

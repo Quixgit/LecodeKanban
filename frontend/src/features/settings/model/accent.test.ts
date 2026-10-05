@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ACCENTS } from '@/features/settings/model/workspaceLook';
+import { ACCENTS } from './workspaceLook';
 import {
   ON_PRIMARY_DARK,
   SURFACE_DARK,
@@ -7,7 +7,7 @@ import {
   WHITE,
   accentTokens,
   contrast,
-} from './color';
+} from '@/shared/lib/color';
 
 const AA = 4.5;
 

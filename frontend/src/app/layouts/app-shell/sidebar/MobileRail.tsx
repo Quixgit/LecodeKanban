@@ -87,7 +87,7 @@ export function MobileRail() {
               </IconButton>
             </div>
             <div className="min-h-0 flex-1">
-              <SectionPanel itemKey={shown} />
+              <SectionPanel itemKey={shown} plain />
             </div>
           </div>
         ) : (
