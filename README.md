@@ -174,6 +174,13 @@ docker compose run --rm --entrypoint /app/adduser api -workspace "Acme Studio" -
 
 Existing accounts are only added to the workspace. `-role admin|member|viewer` sets the role (default `member`).
 
+If someone lost their password and email is not set up yet, give them a new one-time password (this also lifts a
+sign-in lock and signs them out everywhere):
+
+```bash
+docker compose run --rm --entrypoint /app/adduser api -reset alex@example.com
+```
+
 </details>
 
 ## Quality gates
