@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+- **Icon-rail menu**: Chat and Docs now keep their lists (channels, the page tree) in the rail's second column instead
+  of inside the page, so the layout is icons → list → content everywhere. The layout choice moved to a shared store
+  (`lk-shell-layout`); anyone who switched to the rail earlier picks it again once.
+
 ### Added
 
 - **Export tasks** (Settings → Data & export): download the workspace's tasks, or one project's, as a CSV that opens in

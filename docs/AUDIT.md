@@ -283,6 +283,10 @@ Facts about what was checked, with how. Update on every phase.
 - Go: export needs the permission (members refused, owner allowed, grantable to members); formula cells neutralised.
 - Browser: the page offers the download (axe) and the file has the header row and data rows.
 - Not covered: export of other data (comments, time entries, docs) and a truncation notice in the UI.
+## Rail: chat and docs lists
+
+- Browser: in the rail layout the channel list is inside the rail and not in the page; the docs tree too; axe on the rail.
+- Not covered: the rail below the lg breakpoint (the mobile layout is unchanged).
 ## Admin overview
 
 - Unit: set-up steps and progress (unknown steps are neither done nor open). Browser: settings suite.

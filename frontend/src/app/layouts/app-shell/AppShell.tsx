@@ -20,7 +20,7 @@ import { Header } from './header/Header';
 import { PageSkeleton } from './PageSkeleton';
 import { MobileNav } from './sidebar/MobileNav';
 import { useWorkspaceAccent } from '@/features/settings';
-import { useSidebarStore } from './sidebarStore';
+import { useShellLayout } from '@/shared/lib/shellLayout';
 import { Sidebar } from './sidebar/Sidebar';
 import { useShellCommands } from './useShellCommands';
 import { useViewer } from './useViewer';
@@ -33,7 +33,7 @@ export function AppShell() {
   const transitionKey =
     ['/docs', '/chat', '/settings'].find((p) => location.pathname.startsWith(p)) ??
     location.pathname;
-  const layout = useSidebarStore((s) => s.layout);
+  const layout = useShellLayout((s) => s.layout);
   const commands = useShellCommands();
   const viewer = useViewer();
   const { user } = useSession();
