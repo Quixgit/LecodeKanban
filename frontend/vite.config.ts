@@ -6,11 +6,35 @@ import { defineConfig } from 'vite';
 
 const pkg = JSON.parse(
   readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8'),
-) as { version: string };
+) as {
+  version: string;
+  dependencies: Record<string, string>;
+  devDependencies: Record<string, string>;
+};
+
+/** The libraries worth naming on the Help page, with the versions this build was made with. */
+const SHOWN_LIBS = [
+  'react',
+  'react-router-dom',
+  '@tanstack/react-query',
+  'framer-motion',
+  'recharts',
+  'tailwindcss',
+  'vite',
+  'typescript',
+];
+const libs = Object.fromEntries(
+  SHOWN_LIBS.flatMap((name) => {
+    const range = pkg.dependencies[name] ?? pkg.devDependencies[name];
+    return range ? [[name, range.replace(/^[\^~]/, '')]] : [];
+  }),
+);
 
 export default defineConfig({
   plugins: [react()],
   define: {
+    __APP_LIBS__: JSON.stringify(libs),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     // Shown on the Help page; CI can pass the commit as LK_BUILD.
     __APP_VERSION__: JSON.stringify(
       process.env.LK_BUILD ? `${pkg.version} (${process.env.LK_BUILD})` : pkg.version,

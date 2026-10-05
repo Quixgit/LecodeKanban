@@ -36,6 +36,7 @@ import (
 	integrationsvc "github.com/reliabilix/lecodekanban/backend/internal/modules/integrations/service"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/notifications"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/projects"
+	"github.com/reliabilix/lecodekanban/backend/internal/modules/support"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/timetracking"
 	"github.com/reliabilix/lecodekanban/backend/internal/modules/users"
 	usershttp "github.com/reliabilix/lecodekanban/backend/internal/modules/users/transport/http"
@@ -49,6 +50,7 @@ import (
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/crypto"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/eventbus"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/httpx"
+	"github.com/reliabilix/lecodekanban/backend/internal/platform/mailer"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/metrics"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/middleware"
 	"github.com/reliabilix/lecodekanban/backend/internal/platform/realtime"
@@ -116,6 +118,10 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 	commentsMod := comments.New(comments.Deps{Pool: pool, Bus: bus, Cards: cardsMod.Service,
 		Workspaces: wsMod.Service, Users: usersMod.Service})
 	customFieldsMod := customfields.New(customfields.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service})
+	supportMod := support.New(support.Deps{Pool: pool, Workspaces: wsMod.Service, Users: usersMod.Service, Log: log,
+		Mail: func(ctx context.Context, m mailer.Message, key string) error {
+			return mailer.Enqueue(ctx, pool, m, key)
+		}})
 	attachmentsMod := attachments.New(attachments.Deps{Pool: pool, Bus: bus, Storage: storage,
 		MaxBytes: cfg.AttachmentMaxBytes(), Cards: cardsMod.Service, Workspaces: wsMod.Service, Users: usersMod.Service})
 	timeMod := timetracking.New(timetracking.Deps{Pool: pool, Cards: cardsMod.Service, Workspaces: wsMod.Service,
@@ -197,6 +203,8 @@ func build(cfg *config.Config, pool *pgxpool.Pool, log *slog.Logger) (*App, erro
 			cardsMod.HTTP.PrivateRoutes(r)
 			commentsMod.HTTP.PrivateRoutes(r)
 			customFieldsMod.HTTP.PrivateRoutes(r)
+			supportMod.HTTP.PrivateRoutes(r)
+			r.Get("/meta", buildInfo(pool))
 			attachmentsMod.HTTP.PrivateRoutes(r)
 			timeMod.HTTP.PrivateRoutes(r)
 			wikiMod.HTTP.PrivateRoutes(r)

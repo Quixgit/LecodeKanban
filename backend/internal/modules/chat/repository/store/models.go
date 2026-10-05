@@ -441,6 +441,23 @@ type SavedView struct {
 	UpdatedAt   time.Time
 }
 
+type SupportRequest struct {
+	ID             uuid.UUID
+	WorkspaceID    uuid.UUID
+	AuthorID       uuid.UUID
+	Kind           string
+	Subject        string
+	Message        string
+	PageUrl        string
+	UserAgent      string
+	Screenshot     []byte
+	ScreenshotType *string
+	Status         string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	ResolvedAt     *time.Time
+}
+
 type TimeEntry struct {
 	ID          uuid.UUID
 	WorkspaceID uuid.UUID

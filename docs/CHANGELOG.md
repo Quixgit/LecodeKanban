@@ -16,6 +16,15 @@
 
 ### Added
 
+- **Support requests on Help & Center.** "Contact the team": a problem, an idea or a question, with a subject, details,
+  an optional screenshot (PNG/JPEG/WebP up to 2 MB, verified by its first bytes) and, by choice, the page address and
+  browser. The people with the new permission `support.manage` (owner and administrators by default) get an email and
+  an inbox on the Help page with New / In progress / Resolved, the screenshot and the author. Everyone sees their own
+  requests and their status; at most 20 unanswered requests per person. API: `POST/GET /workspaces/{id}/support`,
+  `PATCH /support/{id}`, `GET /support/{id}/screenshot`; migration 00035.
+- **"What's new" is now technical and complete**: Changes (each with its API/migration notes and a tag), Planned (the
+  roadmap with what is in progress) and Versions (web app and API release, build times, commit, Go, PostgreSQL and the
+  main libraries). `GET /meta`; the release is stamped with `-X main.version` (Docker build arg `VERSION`).
 - **Help & Center** (the empty page is now real): a search over guides, shortcuts and pages; a five-step quick start
   that ticks itself (project, task, invitation, two-factor sign-in) with one step ticked by hand (notifications);
   six guides in English and Ukrainian (tasks and board, chat, documents, integrations, roles and security, import and
