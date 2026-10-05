@@ -271,6 +271,11 @@ Facts about what was checked, with how. Update on every phase.
 - Go: export needs the permission (members refused, owner allowed, grantable to members); formula cells neutralised.
 - Browser: the page offers the download (axe) and the file has the header row and data rows.
 - Not covered: export of other data (comments, time entries, docs) and a truncation notice in the UI.
+## Filter and sort by custom field
+
+- Go: filter by equality and by text search; sort ascending and descending with numbers as numbers and cards without a value last.
+- Browser: choose a field and a value in the board's filter and only the matching task stays.
+- Not covered: sorting the board by a field (the board keeps its manual order), several field filters at once.
 ## Notification preferences
 
 - Go: all kinds on by default; unknown kind refused; a switched-off kind is not delivered while others are; switching on restores it.

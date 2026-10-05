@@ -17,7 +17,15 @@
       "month": "Next 30 days",
       "none": "No due date"
     },
-    "label": "Label"
+    "label": "Label",
+    "field": "Custom field",
+    "fieldValue": "Value",
+    "yes": "Yes",
+    "no": "No",
+    "sortField": "Sort by field",
+    "noSort": "Default order",
+    "sortAsc": "Sorted ascending, click for descending",
+    "sortDesc": "Sorted descending, click for ascending"
   },
   "add": "Add Task",
   "viewAll": "View All",

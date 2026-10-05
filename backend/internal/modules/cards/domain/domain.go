@@ -126,9 +126,14 @@ type Filter struct {
 	LabelID    *uuid.UUID
 	ParentID   *uuid.UUID
 	Query      string
-	Due        string // overdue | today | week | month | none
-	Sort       string // key | title | assignee | project | progress | deadline | priority | position | updated
-	Desc       bool
+	Due        string     // overdue | today | week | month | none
+	Sort       string     // key | title | assignee | project | progress | deadline | priority | position | updated
+	SortField  *uuid.UUID // sort by this custom field instead of Sort
+	// FieldID with FieldValue keeps the cards whose custom field matches (FieldContains: a text search).
+	FieldID       *uuid.UUID
+	FieldValue    string
+	FieldContains bool
+	Desc          bool
 }
 
 type NewCard struct {

@@ -4466,6 +4466,12 @@ export interface components {
         /** @description Search in title or key (e.g. LK-12) */
         CardQuery: string;
         CardLabelId: string;
+        /** @description Only cards that have a value in this custom field (with fieldValue) */
+        CardFilterFieldId: string;
+        /** @description The value to match in the custom field */
+        CardFilterFieldValue: string;
+        /** @description eq (default) or contains (text and link fields) */
+        CardFilterFieldMatch: "eq" | "contains";
         /** @description Only subtasks of this card */
         CardParentId: string;
         ColumnId: string;
@@ -6005,12 +6011,20 @@ export interface operations {
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
                 labelId?: components["parameters"]["CardLabelId"];
+                /** @description Only cards that have a value in this custom field (with fieldValue) */
+                fieldId?: components["parameters"]["CardFilterFieldId"];
+                /** @description The value to match in the custom field */
+                fieldValue?: components["parameters"]["CardFilterFieldValue"];
+                /** @description eq (default) or contains (text and link fields) */
+                fieldMatch?: components["parameters"]["CardFilterFieldMatch"];
                 /** @description Only subtasks of this card */
                 parentId?: components["parameters"]["CardParentId"];
                 /** @description Search in title or key (e.g. LK-12) */
                 q?: components["parameters"]["CardQuery"];
                 due?: components["parameters"]["CardDue"];
                 sort?: "key" | "title" | "assignee" | "project" | "progress" | "deadline" | "priority" | "position" | "updated";
+                /** @description Sort by this custom field instead of `sort`; cards without a value come last */
+                sortField?: string;
                 order?: "asc" | "desc";
                 page?: components["parameters"]["Page"];
                 pageSize?: components["parameters"]["PageSize"];
@@ -6068,6 +6082,12 @@ export interface operations {
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
                 labelId?: components["parameters"]["CardLabelId"];
+                /** @description Only cards that have a value in this custom field (with fieldValue) */
+                fieldId?: components["parameters"]["CardFilterFieldId"];
+                /** @description The value to match in the custom field */
+                fieldValue?: components["parameters"]["CardFilterFieldValue"];
+                /** @description eq (default) or contains (text and link fields) */
+                fieldMatch?: components["parameters"]["CardFilterFieldMatch"];
                 /** @description Only subtasks of this card */
                 parentId?: components["parameters"]["CardParentId"];
                 /** @description Search in title or key (e.g. LK-12) */
@@ -6469,6 +6489,12 @@ export interface operations {
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
                 labelId?: components["parameters"]["CardLabelId"];
+                /** @description Only cards that have a value in this custom field (with fieldValue) */
+                fieldId?: components["parameters"]["CardFilterFieldId"];
+                /** @description The value to match in the custom field */
+                fieldValue?: components["parameters"]["CardFilterFieldValue"];
+                /** @description eq (default) or contains (text and link fields) */
+                fieldMatch?: components["parameters"]["CardFilterFieldMatch"];
                 /** @description Only subtasks of this card */
                 parentId?: components["parameters"]["CardParentId"];
                 /** @description Search in title or key (e.g. LK-12) */
