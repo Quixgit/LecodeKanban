@@ -81,3 +81,20 @@ export function useSetNotificationPref() {
     onSettled: () => qc.invalidateQueries({ queryKey: notifyPrefsKey }),
   });
 }
+
+export const twoFactorKey = ['two-factor'] as const;
+
+export function useTwoFactor() {
+  return useQuery({ queryKey: twoFactorKey, queryFn: profileApi.twoFactor, staleTime: 15_000 });
+}
+
+export function useTwoFactorMutations() {
+  const qc = useQueryClient();
+  const refresh = () => qc.invalidateQueries({ queryKey: twoFactorKey });
+  return {
+    setup: useMutation({ mutationFn: profileApi.setupTwoFactor }),
+    enable: useMutation({ mutationFn: profileApi.enableTwoFactor, onSuccess: refresh }),
+    disable: useMutation({ mutationFn: profileApi.disableTwoFactor, onSuccess: refresh }),
+    regenerate: useMutation({ mutationFn: profileApi.regenerateRecovery, onSuccess: refresh }),
+  };
+}

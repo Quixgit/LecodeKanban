@@ -45,6 +45,12 @@ func (s *Service) OAuthLogin(ctx context.Context, p domain.ProviderProfile, loca
 	if cred.LockedAt(s.now()) {
 		return domain.Session{}, s.lockedErr(*cred.LockedUntil)
 	}
+	// A provider cannot answer our second factor: such accounts sign in with their password and a code.
+	if on, err := s.requiresSecondFactor(ctx, userID); err != nil {
+		return domain.Session{}, err
+	} else if on {
+		return domain.Session{}, apperr.New(domain.ErrTwoFactorRequired, "this account uses two-factor authentication; sign in with email and password")
+	}
 	return s.newSession(ctx, userID, c)
 }
 

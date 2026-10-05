@@ -34,6 +34,14 @@ export const profileApi = {
   notificationPrefs: () => unwrap(api.GET('/users/me/notification-prefs')),
   setNotificationPref: (body: { kind: string; enabled: boolean }) =>
     unwrap(api.PUT('/users/me/notification-prefs', { body })),
+  twoFactor: () => unwrap(api.GET('/users/me/two-factor')),
+  setupTwoFactor: () => unwrap(api.POST('/users/me/two-factor/setup')),
+  enableTwoFactor: (code: string) =>
+    unwrap(api.POST('/users/me/two-factor/enable', { body: { code } })),
+  disableTwoFactor: (body: { code: string; password?: string }) =>
+    unwrap(api.POST('/users/me/two-factor/disable', { body })),
+  regenerateRecovery: (code: string) =>
+    unwrap(api.POST('/users/me/two-factor/recovery-codes', { body: { code } })),
   resendVerification: () => unwrap(api.POST('/auth/verify-email/resend')),
   devices: () => unwrap(api.GET('/users/me/sessions')),
   signOutDevice: (sessionId: string) =>

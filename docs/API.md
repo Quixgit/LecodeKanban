@@ -30,6 +30,7 @@ Base URL: `/api/v1`
 | POST | `/auth/password/reset` | public | ResetPasswordRequest | 204, 400 Error, 422 Error |  |
 | GET | `/auth/oauth/{provider}/start` | public |  | 302, 404 Error |  |
 | GET | `/auth/oauth/{provider}/callback` | public |  | 302 |  |
+| POST | `/auth/login/two-factor` | public | TwoFactorLoginRequest | 200 Session, 401 Error, 422 Error, 423 Error, 429 Error | Finish a sign-in with the code from the authenticator app (or a recovery code) |
 
 ## users
 
@@ -46,6 +47,11 @@ Base URL: `/api/v1`
 | GET | `/users/me/sessions` | session |  | 200 | Where the caller is signed in |
 | POST | `/users/me/sessions/revoke-others` | session |  | 204 | Sign out everywhere except this device |
 | DELETE | `/users/me/sessions/{sessionId}` | session |  | 204, 404 Error | Sign one device out |
+| GET | `/users/me/two-factor` | session |  | 200 |  |
+| POST | `/users/me/two-factor/setup` | session |  | 200, 409 Error | Generate a secret to scan; nothing changes until a code is confirmed |
+| POST | `/users/me/two-factor/enable` | session | CodeRequest | 200, 409 Error, 422 Error |  |
+| POST | `/users/me/two-factor/disable` | session | TwoFactorDisableRequest | 204, 409 Error, 422 Error |  |
+| POST | `/users/me/two-factor/recovery-codes` | session | CodeRequest | 200, 422 Error | Replace the recovery codes (needs a valid code) |
 | POST | `/users/me/password` | session | ChangePasswordRequest | 204, 401 Error, 422 Error |  |
 
 ## notifications
@@ -323,6 +329,12 @@ Base URL: `/api/v1`
 - **TokenRequest** — `token`: string
 - **EmailRequest** — `email`: string
 - **ResetPasswordRequest** — `token`: string, `password`: string
+- **TwoFactorStatus** — `enabled`: boolean, `recoveryRemaining`: integer
+- **TwoFactorSetup** — `secret`: string, `uri`: string
+- **CodeRequest** — `code`: string
+- **RecoveryCodes** — `codes`: array
+- **TwoFactorDisableRequest** — `code`: string, `password?`: string
+- **TwoFactorLoginRequest** — `token`: string, `code`: string
 - **ChangePasswordRequest** — `currentPassword?`: string, `newPassword`: string
 - **Device** — `id`: string, `startedAt`: string, `lastSeenAt`: string, `userAgent`: string, `ip`: string, `current`: boolean
 - **DeviceList** — `items`: array

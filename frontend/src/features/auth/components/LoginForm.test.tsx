@@ -75,6 +75,35 @@ describe('LoginForm', () => {
     expect(JSON.parse(sent)).toEqual({ email: 'peter@example.com', password: 'Kanban-Board-2026' });
   });
 
+  it('asks for the code after a correct password, then signs in', async () => {
+    document.cookie = 'lk_csrf=t; path=/';
+    let verified = '';
+    stub((url, body) => {
+      if (url.endsWith('/auth/providers')) return providers.clone();
+      if (url.endsWith('/auth/login/two-factor')) {
+        verified = body;
+        return json(200, {
+          user: { id: 'u1', name: 'Peter', email: 'peter@example.com', locale: 'en' },
+        });
+      }
+      return json(401, {
+        error: { code: 'auth.two_factor_required', message: 'x', meta: { token: 'tok-1' } },
+      });
+    });
+    renderWithProviders(<LoginForm />, {
+      route: '/login?next=%2Fteam',
+      path: '/login',
+      extraPaths: ['/team'],
+    });
+    await userEvent.type(screen.getByLabelText('Email'), 'peter@example.com');
+    await userEvent.type(screen.getByLabelText('Password'), 'Kanban-Board-2026');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    await userEvent.type(await screen.findByLabelText('Verification code'), '123456');
+    await userEvent.click(screen.getByRole('button', { name: 'Verify and sign in' }));
+    await waitFor(() => expect(screen.getByTestId('route')).toHaveTextContent('/team'));
+    expect(JSON.parse(verified)).toEqual({ token: 'tok-1', code: '123456' });
+  });
+
   it('disables unconfigured OAuth providers and links configured ones', async () => {
     stub(() => providers.clone());
     renderWithProviders(<LoginForm />, { route: '/login?next=%2Ftasks', path: '/login' });

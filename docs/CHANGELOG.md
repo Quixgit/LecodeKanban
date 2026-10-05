@@ -10,6 +10,10 @@
 
 ### Added
 
+- **Two-step verification (2FA)**: Profile → Security → turn on with any authenticator app (QR code or key), get
+  8 one-time recovery codes, sign in with password + code, turn off with password + code, make new recovery codes.
+  Accounts with it on cannot sign in with Google/GitHub (use email and password). Needs migration `00030`
+  (ADR 0025).
 - **Chat appearance** (palette button in the chat header): eight ready-made themes (Aubergine, Ocean, Forest…) or your
   own sidebar and accent colours. The text colour, borders and the active row follow the colours and stay readable
   (AA); the choice is remembered per browser.
