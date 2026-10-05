@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed
+
+- **Admin centre overview** is now a real landing page: the workspace's icon and name, KPIs (members, open invitations,
+  projects, open tasks), a "Get the workspace ready" checklist with progress (describe it, give it a look, invite people,
+  make email work, tune roles, add fields, create labels), the latest changes from the audit log, and then every
+  settings area. The audit log names the new settings in plain words.
+
 ### Added
 
 - **Docs defaults** (Settings → Rules): who can reach a new docs space by default (author / shared / whole workspace)
