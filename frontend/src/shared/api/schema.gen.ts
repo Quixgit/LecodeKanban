@@ -457,6 +457,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/me/notification-prefs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which kinds of notification the caller wants (all on unless switched off) */
+        get: operations["getNotificationPrefs"];
+        put: operations["setNotificationPref"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/me/password": {
         parameters: {
             query?: never;
@@ -4148,6 +4165,18 @@ export interface components {
             leadMinutes: number;
             attendees: number;
         };
+        NotificationPref: {
+            /** @enum {string} */
+            kind: "assigned" | "task_moved" | "task_updated" | "task_commented" | "mention" | "dm" | "meeting";
+            enabled: boolean;
+        };
+        NotificationPrefs: {
+            items: components["schemas"]["NotificationPref"][];
+        };
+        NotificationPrefInput: {
+            kind: string;
+            enabled: boolean;
+        };
         Notification: {
             /** Format: uuid */
             id: string;
@@ -5099,6 +5128,49 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["RecoveryCodes"];
                 };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    getNotificationPrefs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One entry per kind */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPrefs"];
+                };
+            };
+        };
+    };
+    setNotificationPref: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPrefInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             422: components["responses"]["Error"];
         };

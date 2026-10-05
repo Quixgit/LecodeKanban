@@ -272,3 +272,9 @@ Facts about what was checked, with how. Update on every phase.
 
 - Unit: theme maths (default untouched, light text on dark / dark on light, AA for accents and muted text on every preset).
 - Browser: pick a theme (axe on the themed sidebar and chat), reload keeps it, own colour, reset.
+
+## Notification preferences
+
+- Go: all kinds on by default; unknown kind refused; a switched-off kind is not delivered while others are; switching on restores it.
+- Browser: toggle persists across reload (axe).
+- Not covered: per-channel/per-project overrides and email notifications (the product sends none of those kinds by email).
