@@ -4,6 +4,11 @@
 
 ### Added
 
+- **Docs defaults** (Settings → Rules): who can reach a new docs space by default (author / shared / whole workspace)
+  and how deep its pages may nest. The server applies them when nothing is chosen; the new-space dialog preselects them.
+
+### Added
+
 - **Workspace look** (Settings → General): an icon and an accent colour for the workspace. The colour paints buttons,
   highlights and links for every member, in light and dark themes (text stays readable, AA).
 - **More rules** (Settings → Rules), all enforced by the server: require an assignee on new tasks; direct messages

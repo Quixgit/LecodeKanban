@@ -294,6 +294,7 @@ func toSettings(s domain.Settings) api.WorkspaceSettings {
 		RequireDueDate:  s.RequireDueDate, WeekStart: s.WeekStart,
 		RequireAssignee: s.RequireAssignee, ChatAllowDirect: s.ChatAllowDirect, ChatAllowFiles: s.ChatAllowFiles,
 		ChatEditMinutes: s.ChatEditMinutes, TimeAllowManual: s.TimeAllowManual, AccentColor: s.AccentColor,
+		DocsVisibility: api.WorkspaceSettingsDocsVisibility(s.DocsVisibility), DocsMaxDepth: s.DocsMaxDepth,
 		Icon: api.WorkspaceSettingsIcon(s.Icon),
 		Features: api.WorkspaceFeatures{Chat: s.Features.Chat, Docs: s.Features.Docs, Time: s.Features.Time,
 			Calendar: s.Features.Calendar, Integrations: s.Features.Integrations},
@@ -326,6 +327,11 @@ func (h *Handler) updateSettings(w http.ResponseWriter, r *http.Request) error {
 		RequireDueDate: in.RequireDueDate, WeekStart: in.WeekStart, RequireAssignee: in.RequireAssignee,
 		ChatAllowDirect: in.ChatAllowDirect, ChatAllowFiles: in.ChatAllowFiles, ChatEditMinutes: in.ChatEditMinutes,
 		TimeAllowManual: in.TimeAllowManual, AccentColor: in.AccentColor}
+	if in.DocsVisibility != nil {
+		dv := string(*in.DocsVisibility)
+		p.DocsVisibility = &dv
+	}
+	p.DocsMaxDepth = in.DocsMaxDepth
 	if in.Icon != nil {
 		icon := string(*in.Icon)
 		p.Icon = &icon

@@ -339,6 +339,19 @@ test.describe('Settings admin centre', () => {
     await page.goto('/chat');
     await expect(page.getByRole('button', { name: 'New message' })).toBeVisible();
 
+    // Docs defaults: new spaces start open to the whole workspace.
+    await page.goto('/settings/rules');
+    await main.getByRole('combobox', { name: 'Who can reach a new space' }).click();
+    await page.getByRole('option', { name: 'Everyone in the workspace' }).click();
+    await expect(page.getByText('Saved').first()).toBeVisible();
+    await page.reload();
+    await expect(main.getByRole('combobox', { name: 'Who can reach a new space' })).toContainText(
+      'Everyone in the workspace',
+    );
+    await main.getByRole('combobox', { name: 'Who can reach a new space' }).click();
+    await page.getByRole('option', { name: 'Only the author' }).click();
+    await expect(page.getByText('Saved').first()).toBeVisible();
+
     // Back to the platform look.
     await page.goto('/settings/general');
     await main.getByRole('button', { name: 'Back to the platform colour' }).click();

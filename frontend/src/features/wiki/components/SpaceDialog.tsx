@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useWorkspaceSettings } from '@/features/settings';
 import { useErrorText } from '@/shared/hooks/useErrorText';
 import { cn } from '@/shared/lib/cn';
 import {
@@ -40,14 +41,17 @@ function SpaceForm({ open, onOpenChange, workspaceId, space, onSaved, onDeleted 
   const { t } = useTranslation('wiki');
   const errorText = useErrorText();
   const m = useWikiMutations(workspaceId);
+  const defaults = useWorkspaceSettings(workspaceId).data;
   const [name, setName] = useState(space?.name ?? '');
   const [icon, setIcon] = useState<string>(
     isIconKey(space?.icon) ? space.icon : DEFAULT_SPACE_ICON,
   );
   const [color, setColor] = useState(toneOf(space?.color));
   const [description, setDescription] = useState(space?.description ?? '');
-  const [visibility, setVisibility] = useState<WikiVisibility>(space?.visibility ?? 'private');
-  const [maxDepth, setMaxDepth] = useState(String(space?.maxDepth ?? 12));
+  const [visibility, setVisibility] = useState<WikiVisibility>(
+    space?.visibility ?? defaults?.docsVisibility ?? 'private',
+  );
+  const [maxDepth, setMaxDepth] = useState(String(space?.maxDepth ?? defaults?.docsMaxDepth ?? 12));
   const [error, setError] = useState<unknown>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const nameError = error && (error as { field?: (n: string) => unknown }).field?.('name');

@@ -245,6 +245,11 @@ Facts about what was checked, with how. Update on every phase.
 - Browser: pick icon and accent (style injected, survives reload, axe), switch direct messages off (button gone) and
   back, restore the look.
 - Not covered: "require two-step verification" for everyone (needs the 2FA PR and a gate on authorisation).
+
+## Docs defaults
+
+- Go: workspace defaults apply to new spaces; an explicit choice wins; depth below 2 refused.
+- Browser: set and persist the default visibility.
 ## Two-step verification
 
 - Go: TOTP against RFC 6238 vectors; scoped tokens are not access tokens; full life cycle (setup, wrong/right code,

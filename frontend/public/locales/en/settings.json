@@ -274,6 +274,21 @@
     "manualTime": {
       "title": "Logging time by hand",
       "description": "Allow adding time after the fact. Timers keep working either way."
+    },
+    "docsTitle": "Docs",
+    "docsDescription": "Defaults for new docs spaces. Whoever creates a space can still change them.",
+    "docsVisibility": {
+      "title": "Who can reach a new space",
+      "description": "Pre-selected when someone creates a space.",
+      "private": "Only the author",
+      "shared": "People it is shared with",
+      "workspace": "Everyone in the workspace"
+    },
+    "docsDepth": {
+      "title": "How deep pages nest",
+      "description": "Pre-selected nesting depth for new spaces.",
+      "levels_one": "{{count}} level",
+      "levels_other": "{{count}} levels"
     }
   },
   "audit": {
