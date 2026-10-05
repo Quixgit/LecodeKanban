@@ -33,6 +33,7 @@ type Member struct {
 	Name       string
 	Email      string
 	Avatar     *string
+	JobTitle   string
 	Role       Role
 	JoinedAt   time.Time
 	CustomRole *RoleRef

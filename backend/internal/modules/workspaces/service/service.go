@@ -232,7 +232,7 @@ func (s *Service) Members(ctx context.Context, user, ws uuid.UUID) ([]domain.Mem
 	out := make([]domain.Member, 0, len(rows))
 	for _, m := range rows {
 		p := byID[m.UserID]
-		out = append(out, domain.Member{UserID: m.UserID, Name: p.Name, Email: p.Email, Avatar: p.AvatarURL, Role: m.Role, JoinedAt: m.JoinedAt, CustomRole: m.CustomRole})
+		out = append(out, domain.Member{UserID: m.UserID, Name: p.Name, Email: p.Email, Avatar: p.AvatarURL, JobTitle: p.JobTitle, Role: m.Role, JoinedAt: m.JoinedAt, CustomRole: m.CustomRole})
 	}
 	return out, nil
 }

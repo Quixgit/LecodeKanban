@@ -2483,7 +2483,10 @@ type MemberUser struct {
 	AvatarUrl *string            `json:"avatarUrl"`
 	Email     string             `json:"email"`
 	Id        openapi_types.UUID `json:"id"`
-	Name      string             `json:"name"`
+
+	// JobTitle Empty when the person has not set one
+	JobTitle string `json:"jobTitle"`
+	Name     string `json:"name"`
 }
 
 // Neighbours defines model for Neighbours.

@@ -4,6 +4,10 @@
 
 ### Added
 
+- **Team**: each person's job title shows under their name in the members table.
+
+### Added
+
 - **Chat appearance** (palette button in the chat header): eight ready-made themes (Aubergine, Ocean, Forest…) or your
   own sidebar and accent colours. The text colour, borders and the active row follow the colours and stay readable
   (AA); the choice is remembered per browser.

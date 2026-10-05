@@ -120,17 +120,26 @@ export function MembersTable({ workspace, members, currentUserId, onLeft }: Prop
                 <TD>
                   <span className="flex items-center gap-2.5 font-medium text-text">
                     <Avatar name={m.user.name} src={m.user.avatarUrl} size="sm" />
-                    <OpenMemberCard
-                      userId={m.user.id}
-                      label={t('members.openProfile', { name: m.user.name })}
-                    >
-                      <span className="truncate">{m.user.name}</span>
-                    </OpenMemberCard>
-                    {isSelf && (
-                      <Pill tone="teal" size="sm">
-                        {t('members.you')}
-                      </Pill>
-                    )}
+                    <span className="flex min-w-0 flex-col">
+                      <span className="flex items-center gap-2">
+                        <OpenMemberCard
+                          userId={m.user.id}
+                          label={t('members.openProfile', { name: m.user.name })}
+                        >
+                          <span className="truncate">{m.user.name}</span>
+                        </OpenMemberCard>
+                        {isSelf && (
+                          <Pill tone="teal" size="sm">
+                            {t('members.you')}
+                          </Pill>
+                        )}
+                      </span>
+                      {m.user.jobTitle && (
+                        <span className="truncate text-xs font-normal text-text-muted">
+                          {m.user.jobTitle}
+                        </span>
+                      )}
+                    </span>
                   </span>
                 </TD>
                 <TD className="hidden md:table-cell">{m.user.email}</TD>

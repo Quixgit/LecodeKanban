@@ -163,7 +163,7 @@ func (h *Handler) members(w http.ResponseWriter, r *http.Request) error {
 	out := make([]api.Member, len(list))
 	for i, m := range list {
 		out[i] = api.Member{
-			User:     api.MemberUser{Id: m.UserID, Name: m.Name, Email: m.Email, AvatarUrl: m.Avatar},
+			User:     api.MemberUser{Id: m.UserID, Name: m.Name, Email: m.Email, AvatarUrl: m.Avatar, JobTitle: m.JobTitle},
 			Role:     api.Role(m.Role),
 			JoinedAt: m.JoinedAt,
 		}
