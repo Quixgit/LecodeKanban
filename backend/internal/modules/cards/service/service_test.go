@@ -366,6 +366,9 @@ func TestRequireAssignee(t *testing.T) {
 	if _, err := f.Cards.Create(f.ctx, f.member, f.ws, domain.NewCard{ProjectID: f.project, Title: "Someone",
 		AssigneeIDs: []uuid.UUID{f.member}}); err != nil {
 		t.Fatalf("with an assignee: %v", err)
+	}
+}
+
 func TestFilterAndSortByCustomField(t *testing.T) {
 	f := setup(t)
 	mk := func(title string) uuid.UUID {
