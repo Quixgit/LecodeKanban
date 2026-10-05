@@ -326,6 +326,114 @@ paths:
       responses:
         "204": { description: Signed out }
         "404": { $ref: "#/components/responses/Error" }
+  /auth/login/two-factor:
+    post:
+      tags: [auth]
+      operationId: loginTwoFactor
+      summary: Finish a sign-in with the code from the authenticator app (or a recovery code)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TwoFactorLoginRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/Session" }
+        "401": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "423": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /users/me/two-factor:
+    get:
+      tags: [users]
+      operationId: getTwoFactor
+      responses:
+        "200":
+          description: Whether two-factor authentication is on
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TwoFactorStatus" }
+  /users/me/two-factor/setup:
+    post:
+      tags: [users]
+      operationId: setupTwoFactor
+      summary: Generate a secret to scan; nothing changes until a code is confirmed
+      responses:
+        "200":
+          description: Secret and otpauth address
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TwoFactorSetup" }
+        "409": { $ref: "#/components/responses/Error" }
+  /users/me/two-factor/enable:
+    post:
+      tags: [users]
+      operationId: enableTwoFactor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CodeRequest" }
+      responses:
+        "200":
+          description: Turned on; the recovery codes are shown once
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecoveryCodes" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /users/me/two-factor/disable:
+    post:
+      tags: [users]
+      operationId: disableTwoFactor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TwoFactorDisableRequest" }
+      responses:
+        "204": { description: Turned off }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /users/me/two-factor/recovery-codes:
+    post:
+      tags: [users]
+      operationId: regenerateRecoveryCodes
+      summary: Replace the recovery codes (needs a valid code)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CodeRequest" }
+      responses:
+        "200":
+          description: The new codes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecoveryCodes" }
+        "422": { $ref: "#/components/responses/Error" }
+  /users/me/notification-prefs:
+    get:
+      tags: [notifications]
+      operationId: getNotificationPrefs
+      summary: Which kinds of notification the caller wants (all on unless switched off)
+      responses:
+        "200":
+          description: One entry per kind
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationPrefs" }
+    put:
+      tags: [notifications]
+      operationId: setNotificationPref
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NotificationPrefInput" }
+      responses:
+        "204": { description: Saved }
+        "422": { $ref: "#/components/responses/Error" }
   /users/me/password:
     post:
       tags: [users]
@@ -780,10 +888,14 @@ paths:
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
         - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardFilterFieldId"
+        - $ref: "#/components/parameters/CardFilterFieldValue"
+        - $ref: "#/components/parameters/CardFilterFieldMatch"
         - $ref: "#/components/parameters/CardParentId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
         - { name: sort, in: query, schema: { type: string, enum: [key, title, assignee, project, progress, deadline, priority, position, updated] } }
+        - { name: sortField, in: query, description: Sort by this custom field instead of `sort`; cards without a value come last, schema: { type: string, format: uuid } }
         - { name: order, in: query, schema: { type: string, enum: [asc, desc] } }
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/PageSize"
@@ -818,6 +930,9 @@ paths:
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
         - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardFilterFieldId"
+        - $ref: "#/components/parameters/CardFilterFieldValue"
+        - $ref: "#/components/parameters/CardFilterFieldMatch"
         - $ref: "#/components/parameters/CardParentId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
@@ -1023,6 +1138,9 @@ paths:
         - $ref: "#/components/parameters/CardAssigneeId"
         - $ref: "#/components/parameters/CardPriority"
         - $ref: "#/components/parameters/CardLabelId"
+        - $ref: "#/components/parameters/CardFilterFieldId"
+        - $ref: "#/components/parameters/CardFilterFieldValue"
+        - $ref: "#/components/parameters/CardFilterFieldMatch"
         - $ref: "#/components/parameters/CardParentId"
         - $ref: "#/components/parameters/CardQuery"
         - $ref: "#/components/parameters/CardDue"
@@ -2698,6 +2816,9 @@ components:
     CardPriority: { name: priority, in: query, schema: { $ref: "#/components/schemas/Priority" } }
     CardQuery: { name: q, in: query, schema: { type: string }, description: Search in title or key (e.g. LK-12) }
     CardLabelId: { name: labelId, in: query, schema: { type: string, format: uuid } }
+    CardFilterFieldId: { name: fieldId, in: query, description: Only cards that have a value in this custom field (with fieldValue), schema: { type: string, format: uuid } }
+    CardFilterFieldValue: { name: fieldValue, in: query, description: The value to match in the custom field, schema: { type: string } }
+    CardFilterFieldMatch: { name: fieldMatch, in: query, description: "eq (default) or contains (text and link fields)", schema: { type: string, enum: [eq, contains] } }
     CardParentId: { name: parentId, in: query, description: Only subtasks of this card, schema: { type: string, format: uuid } }
     ColumnId: { name: columnId, in: path, required: true, schema: { type: string, format: uuid } }
     ViewId: { name: viewId, in: path, required: true, schema: { type: string, format: uuid } }
@@ -2824,6 +2945,40 @@ components:
       properties:
         token: { type: string }
         password: { type: string }
+    TwoFactorStatus:
+      type: object
+      required: [enabled, recoveryRemaining]
+      properties:
+        enabled: { type: boolean }
+        recoveryRemaining: { type: integer }
+    TwoFactorSetup:
+      type: object
+      required: [secret, uri]
+      properties:
+        secret: { type: string, description: Base32 secret for manual entry }
+        uri: { type: string, description: otpauth:// address for the QR code }
+    CodeRequest:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string }
+    RecoveryCodes:
+      type: object
+      required: [codes]
+      properties:
+        codes: { type: array, items: { type: string } }
+    TwoFactorDisableRequest:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string, description: A current code or a recovery code }
+        password: { type: string, description: The current password, when the account has one }
+    TwoFactorLoginRequest:
+      type: object
+      required: [token, code]
+      properties:
+        token: { type: string, description: The token from the auth.two_factor_required error }
+        code: { type: string }
     ChangePasswordRequest:
       type: object
       required: [newPassword]
@@ -2871,11 +3026,12 @@ components:
       enum: [admin, member, viewer]
     Workspace:
       type: object
-      required: [id, name, slug, role, memberCount, createdAt, permissions, customRole]
+      required: [id, name, slug, role, memberCount, createdAt, permissions, customRole, twoFactorBlocked]
       properties:
         id: { type: string, format: uuid }
         name: { type: string }
         slug: { type: string }
+        twoFactorBlocked: { type: boolean, description: The workspace requires two-step verification and the caller has not turned it on }
         role: { $ref: "#/components/schemas/Role" }
         permissions: { type: array, items: { type: string }, description: What the caller may do here }
         customRole: { allOf: [{ $ref: "#/components/schemas/RoleRef" }], nullable: true }
@@ -2897,7 +3053,7 @@ components:
         integrations: { type: boolean }
     WorkspaceSettings:
       type: object
-      required: [description, inviteDays, defaultInviteRole, allowedDomains, defaultPriority, requireDueDate, weekStart, features]
+      required: [description, inviteDays, defaultInviteRole, allowedDomains, defaultPriority, requireDueDate, weekStart, requireAssignee, chatAllowDirect, chatAllowFiles, chatEditMinutes, timeAllowManual, requireTwoFactor, docsVisibility, docsMaxDepth, accentColor, icon, features]
       properties:
         description: { type: string, maxLength: 300 }
         inviteDays: { type: integer, minimum: 1, maximum: 30, description: How long an invitation stays valid }
@@ -2906,6 +3062,16 @@ components:
         defaultPriority: { type: string, enum: [low, medium, high] }
         requireDueDate: { type: boolean }
         weekStart: { type: integer, minimum: 0, maximum: 1, description: 0 Sunday, 1 Monday }
+        requireAssignee: { type: boolean, description: New tasks need an assignee }
+        chatAllowDirect: { type: boolean, description: People may open direct messages }
+        chatAllowFiles: { type: boolean, description: Files may be shared in chat }
+        chatEditMinutes: { type: integer, minimum: 0, maximum: 43200, description: "How long a chat message can be edited; 0 means always" }
+        timeAllowManual: { type: boolean, description: Time may be logged by hand }
+        requireTwoFactor: { type: boolean, description: Members need two-step verification to enter the workspace }
+        docsVisibility: { type: string, enum: [private, shared, workspace], description: Who can reach a new docs space by default }
+        docsMaxDepth: { type: integer, minimum: 2, maximum: 12, description: How deep pages nest in new spaces }
+        accentColor: { type: string, description: "#rrggbb or empty for the platform colour" }
+        icon: { type: string, enum: [building, rocket, briefcase, layers, globe, flask, shield, sparkles, leaf, flame] }
         features: { $ref: "#/components/schemas/WorkspaceFeatures" }
     WorkspaceSettingsPatch:
       type: object
@@ -2917,6 +3083,16 @@ components:
         defaultPriority: { type: string, enum: [low, medium, high] }
         requireDueDate: { type: boolean }
         weekStart: { type: integer, minimum: 0, maximum: 1 }
+        requireAssignee: { type: boolean }
+        chatAllowDirect: { type: boolean }
+        chatAllowFiles: { type: boolean }
+        chatEditMinutes: { type: integer, minimum: 0, maximum: 43200 }
+        timeAllowManual: { type: boolean }
+        requireTwoFactor: { type: boolean }
+        docsVisibility: { type: string, enum: [private, shared, workspace] }
+        docsMaxDepth: { type: integer, minimum: 2, maximum: 12 }
+        accentColor: { type: string }
+        icon: { type: string, enum: [building, rocket, briefcase, layers, globe, flask, shield, sparkles, leaf, flame] }
         features: { $ref: "#/components/schemas/WorkspaceFeatures" }
     AuditEntry:
       type: object
@@ -3915,6 +4091,23 @@ components:
         link: { type: string }
         leadMinutes: { type: integer }
         attendees: { type: integer }
+    NotificationPref:
+      type: object
+      required: [kind, enabled]
+      properties:
+        kind: { type: string, enum: [assigned, task_moved, task_updated, task_commented, mention, dm, meeting] }
+        enabled: { type: boolean }
+    NotificationPrefs:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/NotificationPref" } }
+    NotificationPrefInput:
+      type: object
+      required: [kind, enabled]
+      properties:
+        kind: { type: string }
+        enabled: { type: boolean }
     Notification:
       type: object
       required: [id, kind, title, body, actor, cardId, projectId, channelId, messageId, link, createdAt, read]

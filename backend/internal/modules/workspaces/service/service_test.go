@@ -535,3 +535,84 @@ func TestMailStatusAndTestMail(t *testing.T) {
 		t.Fatalf("invite link: %q %v", inv.Link, err)
 	}
 }
+
+func TestSettingsLookAndRules(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	owner := e.user(t, "Owner", "o@example.com", "en")
+	ws, _ := e.svc.Create(ctx, owner, "Studio")
+	bad := "red"
+	_, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{AccentColor: &bad})
+	mustCode(t, err, apperr.Validation)
+	icon := "castle"
+	_, err = e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{Icon: &icon})
+	mustCode(t, err, apperr.Validation)
+	long := 99999
+	_, err = e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{ChatEditMinutes: &long})
+	mustCode(t, err, apperr.Validation)
+
+	colour, rocket, no := " #3F8AE0 ", "rocket", false
+	got, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{AccentColor: &colour, Icon: &rocket, ChatAllowDirect: &no})
+	if err != nil || got.AccentColor != "#3f8ae0" || got.Icon != "rocket" || got.ChatAllowDirect {
+		t.Fatalf("settings %+v %v", got, err)
+	}
+	// What was never stored keeps its default.
+	if !got.ChatAllowFiles || !got.TimeAllowManual || got.RequireAssignee {
+		t.Fatalf("defaults %+v", got)
+	}
+}
+
+type fakeTwoFactor map[uuid.UUID]bool
+
+func (f fakeTwoFactor) Enabled(_ context.Context, u uuid.UUID) (bool, error) { return f[u], nil }
+
+func TestRequireTwoFactor(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	owner := e.user(t, "Owner", "o@example.com", "en")
+	member := e.user(t, "Member", "m@example.com", "en")
+	ws, _ := e.svc.Create(ctx, owner, "Team")
+	if _, err := e.svc.Invite(ctx, owner, ws.ID, "m@example.com", domain.RoleMember); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.svc.Accept(ctx, member, e.inviteToken(t)); err != nil {
+		t.Fatal(err)
+	}
+	has := fakeTwoFactor{}
+	e.svc.SetTwoFactor(has)
+	on := true
+	// The owner cannot require it of everyone before having it.
+	_, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{RequireTwoFactor: &on})
+	mustCode(t, err, domain.ErrTwoFactorRequired)
+	has[owner] = true
+	if _, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{RequireTwoFactor: &on}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Nobody has a second factor yet: everyone is held at the door, but can still see why.
+	_, err = e.svc.Authorize(ctx, ws.ID, member, domain.PermView)
+	mustCode(t, err, domain.ErrTwoFactorRequired)
+	list, err := e.svc.List(ctx, member)
+	if err != nil || len(list) == 0 {
+		t.Fatalf("list: %v %v", list, err)
+	}
+	for _, w := range list {
+		if w.ID == ws.ID && !w.TwoFactorBlocked {
+			t.Fatal("the workspace must be marked blocked")
+		}
+	}
+	// Turning the factor on opens the door.
+	has[member] = true
+	if _, err := e.svc.Authorize(ctx, ws.ID, member, domain.PermView); err != nil {
+		t.Fatalf("with 2FA: %v", err)
+	}
+	// Switching the requirement off lets everyone in again.
+	has[member] = false
+	off := false
+	if _, err := e.svc.UpdateSettings(ctx, owner, ws.ID, domain.SettingsPatch{RequireTwoFactor: &off}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.svc.Authorize(ctx, ws.ID, member, domain.PermView); err != nil {
+		t.Fatalf("requirement off: %v", err)
+	}
+}

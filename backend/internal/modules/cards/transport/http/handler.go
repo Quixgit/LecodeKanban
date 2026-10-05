@@ -117,6 +117,14 @@ func filterFrom(r *http.Request) domain.Filter {
 	if id, err := uuid.Parse(q.Get("labelId")); err == nil {
 		f.LabelID = &id
 	}
+	if id, err := uuid.Parse(q.Get("sortField")); err == nil {
+		f.SortField = &id
+	}
+	if id, err := uuid.Parse(q.Get("fieldId")); err == nil {
+		f.FieldID = &id
+		f.FieldValue = q.Get("fieldValue")
+		f.FieldContains = q.Get("fieldMatch") == "contains"
+	}
 	if id, err := uuid.Parse(q.Get("parentId")); err == nil {
 		f.ParentID = &id
 	}

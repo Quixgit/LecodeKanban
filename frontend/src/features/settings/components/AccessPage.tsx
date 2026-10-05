@@ -1,7 +1,7 @@
 import { Clock, Mail, ShieldCheck, UsersRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Select, SettingsCard, TagInput } from '@/shared/ui';
+import { Select, SettingsCard, Switch, TagInput } from '@/shared/ui';
 import type { WorkspaceSettings } from '../api/settingsApi';
 import { useSaver } from '../hooks/useSaver';
 import { SettingRow } from './SettingRow';
@@ -82,6 +82,20 @@ function AccessBody({
             placeholder={canEdit ? t('access.domains.placeholder') : t('access.domains.any')}
             removeLabel={(d) => t('access.domains.remove', { name: d })}
             fullPlaceholder={t('access.domains.full')}
+          />
+        </SettingRow>
+      </SettingsCard>
+      <SettingsCard title={t('access.securityTitle')} description={t('access.securityDescription')}>
+        <SettingRow
+          icon={<ShieldCheck />}
+          title={t('access.twoFactor.title')}
+          description={t('access.twoFactor.description')}
+        >
+          <Switch
+            checked={settings.requireTwoFactor}
+            disabled={!canEdit}
+            aria-label={t('access.twoFactor.title')}
+            onCheckedChange={(on) => save({ requireTwoFactor: on })}
           />
         </SettingRow>
       </SettingsCard>

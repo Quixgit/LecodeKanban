@@ -8,9 +8,50 @@
   so an English reader saw Ukrainian names (and "До виконання · To Do" in the task window's status list). Default
   columns now show the status name in the reader's own language everywhere (board headers, the task window, the
   activity feed); a column the team renamed keeps its name.
+### Changed
+
+- **Icon-rail menu**: Chat and Docs now keep their lists (channels, the page tree) in the rail's second column instead
+  of inside the page, so the layout is icons → list → content everywhere. The layout choice moved to a shared store
+  (`lk-shell-layout`); anyone who switched to the rail earlier picks it again once.
 
 ### Added
 
+- **Require two-step verification** (Settings → Access & invitations → Security): everyone must turn on 2FA before
+  opening the workspace. The server refuses a member who has none (`workspaces.two_factor_required`); the workspace
+  shows a page that says why and links to Profile → Security. Whoever switches it on must already have 2FA.
+
+### Changed
+
+- **Admin centre overview** is now a real landing page: the workspace's icon and name, KPIs (members, open invitations,
+  projects, open tasks), a "Get the workspace ready" checklist with progress (describe it, give it a look, invite people,
+  make email work, tune roles, add fields, create labels), the latest changes from the audit log, and then every
+  settings area. The audit log names the new settings in plain words.
+
+### Added
+
+- **Docs defaults** (Settings → Rules): who can reach a new docs space by default (author / shared / whole workspace)
+  and how deep its pages may nest. The server applies them when nothing is chosen; the new-space dialog preselects them.
+
+### Added
+
+- **Workspace look** (Settings → General): an icon and an accent colour for the workspace. The colour paints buttons,
+  highlights and links for every member, in light and dark themes (text stays readable, AA).
+- **More rules** (Settings → Rules), all enforced by the server: require an assignee on new tasks; direct messages
+  on/off (personal notes always work); file sharing in chat on/off; how long a chat message can be edited (any time,
+  5 min … 1 day); logging time by hand on/off. The screens stop offering what is switched off.
+- **Filter and sort by a custom field**: in the task filter (board, list and calendar) pick a field and a value — a
+  choice, yes/no, a number or date, or a text search for text and link fields — and sort the list by any field
+  (cards without a value last; numbers sort as numbers). Needs migration `00032` (a published view of field values).
+- **Notification preferences** (Profile → Notifications): choose which kinds reach your bell (put on a task, mentions,
+  direct messages, comments, tasks that move, edits, meeting reminders); everything is on until switched off. The chat
+  menu's "Edit default preferences" opens it. Needs migration `00031` (apply `00030` first if the 2FA change is pending).
+
+### Added
+
+- **Two-step verification (2FA)**: Profile → Security → turn on with any authenticator app (QR code or key), get
+  8 one-time recovery codes, sign in with password + code, turn off with password + code, make new recovery codes.
+  Accounts with it on cannot sign in with Google/GitHub (use email and password). Needs migration `00030`
+  (ADR 0025).
 - **Chat appearance** (palette button in the chat header): eight ready-made themes (Aubergine, Ocean, Forest…) or your
   own sidebar and accent colours. The text colour, borders and the active row follow the colours and stay readable
   (AA); the choice is remembered per browser.

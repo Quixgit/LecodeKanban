@@ -66,7 +66,15 @@ function Group(p: GroupProps) {
   const page = p.single && !p.filters.showAll ? p.filters.page : 1;
   const list = useCardList(
     p.workspaceId,
-    { ...baseQuery(p.filters), status: p.status, ...toSortParams(sorting), page, pageSize: size },
+    {
+      ...baseQuery(p.filters),
+      status: p.status,
+      ...(p.filters.sortField
+        ? { sortField: p.filters.sortField, order: p.filters.sortOrder ?? 'asc' }
+        : toSortParams(sorting)),
+      page,
+      pageSize: size,
+    },
     p.single || !collapsed,
   );
   const cards = useMemo(() => list.data?.items ?? [], [list.data]);

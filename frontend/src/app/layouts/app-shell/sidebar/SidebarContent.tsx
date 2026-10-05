@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button, IconButton, Tooltip } from '@/shared/ui';
-import { useSidebarStore } from '../sidebarStore';
+import { useShellLayout } from '@/shared/lib/shellLayout';
 import { useNavigation } from '../useNavigation';
 import { AnnouncementCard } from './AnnouncementCard';
 import { BrandLogo } from './BrandLogo';
@@ -22,7 +22,7 @@ export function SidebarContent({ collapsed, onToggle, mobile }: Props) {
   const sections = useNavigation();
   const { t } = useTranslation('nav');
   const announcement = useAnnouncement();
-  const setLayout = useSidebarStore((s) => s.setLayout);
+  const setLayout = useShellLayout((s) => s.setLayout);
   const toggleLabel = mobile
     ? t('sidebar.close')
     : collapsed

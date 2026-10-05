@@ -594,6 +594,39 @@ func (e NotificationKind) Valid() bool {
 	}
 }
 
+// Defines values for NotificationPrefKind.
+const (
+	NotificationPrefKindAssigned      NotificationPrefKind = "assigned"
+	NotificationPrefKindDm            NotificationPrefKind = "dm"
+	NotificationPrefKindMeeting       NotificationPrefKind = "meeting"
+	NotificationPrefKindMention       NotificationPrefKind = "mention"
+	NotificationPrefKindTaskCommented NotificationPrefKind = "task_commented"
+	NotificationPrefKindTaskMoved     NotificationPrefKind = "task_moved"
+	NotificationPrefKindTaskUpdated   NotificationPrefKind = "task_updated"
+)
+
+// Valid indicates whether the value is a known member of the NotificationPrefKind enum.
+func (e NotificationPrefKind) Valid() bool {
+	switch e {
+	case NotificationPrefKindAssigned:
+		return true
+	case NotificationPrefKindDm:
+		return true
+	case NotificationPrefKindMeeting:
+		return true
+	case NotificationPrefKindMention:
+		return true
+	case NotificationPrefKindTaskCommented:
+		return true
+	case NotificationPrefKindTaskMoved:
+		return true
+	case NotificationPrefKindTaskUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PermissionInfoGroup.
 const (
 	PermissionInfoGroupAdmin    PermissionInfoGroup = "admin"
@@ -1107,6 +1140,69 @@ func (e WorkspaceSettingsDefaultPriority) Valid() bool {
 	}
 }
 
+// Defines values for WorkspaceSettingsDocsVisibility.
+const (
+	WorkspaceSettingsDocsVisibilityPrivate   WorkspaceSettingsDocsVisibility = "private"
+	WorkspaceSettingsDocsVisibilityShared    WorkspaceSettingsDocsVisibility = "shared"
+	WorkspaceSettingsDocsVisibilityWorkspace WorkspaceSettingsDocsVisibility = "workspace"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsDocsVisibility enum.
+func (e WorkspaceSettingsDocsVisibility) Valid() bool {
+	switch e {
+	case WorkspaceSettingsDocsVisibilityPrivate:
+		return true
+	case WorkspaceSettingsDocsVisibilityShared:
+		return true
+	case WorkspaceSettingsDocsVisibilityWorkspace:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WorkspaceSettingsIcon.
+const (
+	WorkspaceSettingsIconBriefcase WorkspaceSettingsIcon = "briefcase"
+	WorkspaceSettingsIconBuilding  WorkspaceSettingsIcon = "building"
+	WorkspaceSettingsIconFlame     WorkspaceSettingsIcon = "flame"
+	WorkspaceSettingsIconFlask     WorkspaceSettingsIcon = "flask"
+	WorkspaceSettingsIconGlobe     WorkspaceSettingsIcon = "globe"
+	WorkspaceSettingsIconLayers    WorkspaceSettingsIcon = "layers"
+	WorkspaceSettingsIconLeaf      WorkspaceSettingsIcon = "leaf"
+	WorkspaceSettingsIconRocket    WorkspaceSettingsIcon = "rocket"
+	WorkspaceSettingsIconShield    WorkspaceSettingsIcon = "shield"
+	WorkspaceSettingsIconSparkles  WorkspaceSettingsIcon = "sparkles"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsIcon enum.
+func (e WorkspaceSettingsIcon) Valid() bool {
+	switch e {
+	case WorkspaceSettingsIconBriefcase:
+		return true
+	case WorkspaceSettingsIconBuilding:
+		return true
+	case WorkspaceSettingsIconFlame:
+		return true
+	case WorkspaceSettingsIconFlask:
+		return true
+	case WorkspaceSettingsIconGlobe:
+		return true
+	case WorkspaceSettingsIconLayers:
+		return true
+	case WorkspaceSettingsIconLeaf:
+		return true
+	case WorkspaceSettingsIconRocket:
+		return true
+	case WorkspaceSettingsIconShield:
+		return true
+	case WorkspaceSettingsIconSparkles:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for WorkspaceSettingsPatchDefaultPriority.
 const (
 	WorkspaceSettingsPatchDefaultPriorityHigh   WorkspaceSettingsPatchDefaultPriority = "high"
@@ -1122,6 +1218,69 @@ func (e WorkspaceSettingsPatchDefaultPriority) Valid() bool {
 	case WorkspaceSettingsPatchDefaultPriorityLow:
 		return true
 	case WorkspaceSettingsPatchDefaultPriorityMedium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WorkspaceSettingsPatchDocsVisibility.
+const (
+	WorkspaceSettingsPatchDocsVisibilityPrivate   WorkspaceSettingsPatchDocsVisibility = "private"
+	WorkspaceSettingsPatchDocsVisibilityShared    WorkspaceSettingsPatchDocsVisibility = "shared"
+	WorkspaceSettingsPatchDocsVisibilityWorkspace WorkspaceSettingsPatchDocsVisibility = "workspace"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsPatchDocsVisibility enum.
+func (e WorkspaceSettingsPatchDocsVisibility) Valid() bool {
+	switch e {
+	case WorkspaceSettingsPatchDocsVisibilityPrivate:
+		return true
+	case WorkspaceSettingsPatchDocsVisibilityShared:
+		return true
+	case WorkspaceSettingsPatchDocsVisibilityWorkspace:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for WorkspaceSettingsPatchIcon.
+const (
+	WorkspaceSettingsPatchIconBriefcase WorkspaceSettingsPatchIcon = "briefcase"
+	WorkspaceSettingsPatchIconBuilding  WorkspaceSettingsPatchIcon = "building"
+	WorkspaceSettingsPatchIconFlame     WorkspaceSettingsPatchIcon = "flame"
+	WorkspaceSettingsPatchIconFlask     WorkspaceSettingsPatchIcon = "flask"
+	WorkspaceSettingsPatchIconGlobe     WorkspaceSettingsPatchIcon = "globe"
+	WorkspaceSettingsPatchIconLayers    WorkspaceSettingsPatchIcon = "layers"
+	WorkspaceSettingsPatchIconLeaf      WorkspaceSettingsPatchIcon = "leaf"
+	WorkspaceSettingsPatchIconRocket    WorkspaceSettingsPatchIcon = "rocket"
+	WorkspaceSettingsPatchIconShield    WorkspaceSettingsPatchIcon = "shield"
+	WorkspaceSettingsPatchIconSparkles  WorkspaceSettingsPatchIcon = "sparkles"
+)
+
+// Valid indicates whether the value is a known member of the WorkspaceSettingsPatchIcon enum.
+func (e WorkspaceSettingsPatchIcon) Valid() bool {
+	switch e {
+	case WorkspaceSettingsPatchIconBriefcase:
+		return true
+	case WorkspaceSettingsPatchIconBuilding:
+		return true
+	case WorkspaceSettingsPatchIconFlame:
+		return true
+	case WorkspaceSettingsPatchIconFlask:
+		return true
+	case WorkspaceSettingsPatchIconGlobe:
+		return true
+	case WorkspaceSettingsPatchIconLayers:
+		return true
+	case WorkspaceSettingsPatchIconLeaf:
+		return true
+	case WorkspaceSettingsPatchIconRocket:
+		return true
+	case WorkspaceSettingsPatchIconShield:
+		return true
+	case WorkspaceSettingsPatchIconSparkles:
 		return true
 	default:
 		return false
@@ -1149,6 +1308,24 @@ func (e CardDue) Valid() bool {
 	case CardDueToday:
 		return true
 	case CardDueWeek:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CardFilterFieldMatch.
+const (
+	CardFilterFieldMatchContains CardFilterFieldMatch = "contains"
+	CardFilterFieldMatchEq       CardFilterFieldMatch = "eq"
+)
+
+// Valid indicates whether the value is a known member of the CardFilterFieldMatch enum.
+func (e CardFilterFieldMatch) Valid() bool {
+	switch e {
+	case CardFilterFieldMatchContains:
+		return true
+	case CardFilterFieldMatchEq:
 		return true
 	default:
 		return false
@@ -1260,6 +1437,24 @@ func (e ExportWikiSpaceParamsFormat) Valid() bool {
 	}
 }
 
+// Defines values for ListCardsParamsFieldMatch.
+const (
+	ListCardsParamsFieldMatchContains ListCardsParamsFieldMatch = "contains"
+	ListCardsParamsFieldMatchEq       ListCardsParamsFieldMatch = "eq"
+)
+
+// Valid indicates whether the value is a known member of the ListCardsParamsFieldMatch enum.
+func (e ListCardsParamsFieldMatch) Valid() bool {
+	switch e {
+	case ListCardsParamsFieldMatchContains:
+		return true
+	case ListCardsParamsFieldMatchEq:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListCardsParamsDue.
 const (
 	ListCardsParamsDueMonth   ListCardsParamsDue = "month"
@@ -1344,6 +1539,24 @@ func (e ListCardsParamsOrder) Valid() bool {
 	}
 }
 
+// Defines values for BoardCardsParamsFieldMatch.
+const (
+	BoardCardsParamsFieldMatchContains BoardCardsParamsFieldMatch = "contains"
+	BoardCardsParamsFieldMatchEq       BoardCardsParamsFieldMatch = "eq"
+)
+
+// Valid indicates whether the value is a known member of the BoardCardsParamsFieldMatch enum.
+func (e BoardCardsParamsFieldMatch) Valid() bool {
+	switch e {
+	case BoardCardsParamsFieldMatchContains:
+		return true
+	case BoardCardsParamsFieldMatchEq:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for BoardCardsParamsDue.
 const (
 	BoardCardsParamsDueMonth   BoardCardsParamsDue = "month"
@@ -1365,6 +1578,24 @@ func (e BoardCardsParamsDue) Valid() bool {
 	case BoardCardsParamsDueToday:
 		return true
 	case BoardCardsParamsDueWeek:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CardStatusCountsParamsFieldMatch.
+const (
+	CardStatusCountsParamsFieldMatchContains CardStatusCountsParamsFieldMatch = "contains"
+	CardStatusCountsParamsFieldMatchEq       CardStatusCountsParamsFieldMatch = "eq"
+)
+
+// Valid indicates whether the value is a known member of the CardStatusCountsParamsFieldMatch enum.
+func (e CardStatusCountsParamsFieldMatch) Valid() bool {
+	switch e {
+	case CardStatusCountsParamsFieldMatchContains:
+		return true
+	case CardStatusCountsParamsFieldMatchEq:
 		return true
 	default:
 		return false
@@ -2034,6 +2265,11 @@ type ChecklistSummary struct {
 	Total int `json:"total"`
 }
 
+// CodeRequest defines model for CodeRequest.
+type CodeRequest struct {
+	Code string `json:"code"`
+}
+
 // ColumnInput defines model for ColumnInput.
 type ColumnInput struct {
 	Name     string     `json:"name"`
@@ -2531,6 +2767,26 @@ type NotificationPage struct {
 	Unread int `json:"unread"`
 }
 
+// NotificationPref defines model for NotificationPref.
+type NotificationPref struct {
+	Enabled bool                 `json:"enabled"`
+	Kind    NotificationPrefKind `json:"kind"`
+}
+
+// NotificationPrefKind defines model for NotificationPref.Kind.
+type NotificationPrefKind string
+
+// NotificationPrefInput defines model for NotificationPrefInput.
+type NotificationPrefInput struct {
+	Enabled bool   `json:"enabled"`
+	Kind    string `json:"kind"`
+}
+
+// NotificationPrefs defines model for NotificationPrefs.
+type NotificationPrefs struct {
+	Items []NotificationPref `json:"items"`
+}
+
 // NotificationsReadInput defines model for NotificationsReadInput.
 type NotificationsReadInput struct {
 	// All Mark every notification in the workspace
@@ -2672,6 +2928,11 @@ type RealtimeMessage struct {
 	// UserId Set on notification hints; only that person's clients refresh
 	UserId      *openapi_types.UUID `json:"userId,omitempty"`
 	WorkspaceId openapi_types.UUID  `json:"workspaceId"`
+}
+
+// RecoveryCodes defines model for RecoveryCodes.
+type RecoveryCodes struct {
+	Codes []string `json:"codes"`
 }
 
 // RegisterRequest defines model for RegisterRequest.
@@ -2828,6 +3089,38 @@ type Trend struct {
 	ChangePct *float32 `json:"changePct"`
 	Previous  int      `json:"previous"`
 	Value     int      `json:"value"`
+}
+
+// TwoFactorDisableRequest defines model for TwoFactorDisableRequest.
+type TwoFactorDisableRequest struct {
+	// Code A current code or a recovery code
+	Code string `json:"code"`
+
+	// Password The current password
+	Password *string `json:"password,omitempty"`
+}
+
+// TwoFactorLoginRequest defines model for TwoFactorLoginRequest.
+type TwoFactorLoginRequest struct {
+	Code string `json:"code"`
+
+	// Token The token from the auth.two_factor_required error
+	Token string `json:"token"`
+}
+
+// TwoFactorSetup defines model for TwoFactorSetup.
+type TwoFactorSetup struct {
+	// Secret Base32 secret for manual entry
+	Secret string `json:"secret"`
+
+	// Uri otpauth:// address for the QR code
+	Uri string `json:"uri"`
+}
+
+// TwoFactorStatus defines model for TwoFactorStatus.
+type TwoFactorStatus struct {
+	Enabled           bool `json:"enabled"`
+	RecoveryRemaining int  `json:"recoveryRemaining"`
 }
 
 // UpdateMemberRequest defines model for UpdateMemberRequest.
@@ -3260,6 +3553,9 @@ type Workspace struct {
 	Permissions []string `json:"permissions"`
 	Role        Role     `json:"role"`
 	Slug        string   `json:"slug"`
+
+	// TwoFactorBlocked The workspace requires two-step verification and the caller has not turned it on
+	TwoFactorBlocked bool `json:"twoFactorBlocked"`
 }
 
 // WorkspaceFeatures defines model for WorkspaceFeatures.
@@ -3278,16 +3574,44 @@ type WorkspaceInput struct {
 
 // WorkspaceSettings defines model for WorkspaceSettings.
 type WorkspaceSettings struct {
+	// AccentColor #rrggbb or empty for the platform colour
+	AccentColor string `json:"accentColor"`
+
 	// AllowedDomains Only addresses of these domains may be invited; empty allows any
-	AllowedDomains    []string                         `json:"allowedDomains"`
+	AllowedDomains []string `json:"allowedDomains"`
+
+	// ChatAllowDirect People may open direct messages
+	ChatAllowDirect bool `json:"chatAllowDirect"`
+
+	// ChatAllowFiles Files may be shared in chat
+	ChatAllowFiles bool `json:"chatAllowFiles"`
+
+	// ChatEditMinutes How long a chat message can be edited; 0 means always
+	ChatEditMinutes   int                              `json:"chatEditMinutes"`
 	DefaultInviteRole InviteRole                       `json:"defaultInviteRole"`
 	DefaultPriority   WorkspaceSettingsDefaultPriority `json:"defaultPriority"`
 	Description       string                           `json:"description"`
-	Features          WorkspaceFeatures                `json:"features"`
+
+	// DocsMaxDepth How deep pages nest in new spaces
+	DocsMaxDepth int `json:"docsMaxDepth"`
+
+	// DocsVisibility Who can reach a new docs space by default
+	DocsVisibility WorkspaceSettingsDocsVisibility `json:"docsVisibility"`
+	Features       WorkspaceFeatures               `json:"features"`
+	Icon           WorkspaceSettingsIcon           `json:"icon"`
 
 	// InviteDays How long an invitation stays valid
-	InviteDays     int  `json:"inviteDays"`
-	RequireDueDate bool `json:"requireDueDate"`
+	InviteDays int `json:"inviteDays"`
+
+	// RequireAssignee New tasks need an assignee
+	RequireAssignee bool `json:"requireAssignee"`
+	RequireDueDate  bool `json:"requireDueDate"`
+
+	// RequireTwoFactor Members need two-step verification to enter the workspace
+	RequireTwoFactor bool `json:"requireTwoFactor"`
+
+	// TimeAllowManual Time may be logged by hand
+	TimeAllowManual bool `json:"timeAllowManual"`
 
 	// WeekStart 0 Sunday
 	WeekStart int `json:"weekStart"`
@@ -3296,20 +3620,42 @@ type WorkspaceSettings struct {
 // WorkspaceSettingsDefaultPriority defines model for WorkspaceSettings.DefaultPriority.
 type WorkspaceSettingsDefaultPriority string
 
+// WorkspaceSettingsDocsVisibility Who can reach a new docs space by default
+type WorkspaceSettingsDocsVisibility string
+
+// WorkspaceSettingsIcon defines model for WorkspaceSettings.Icon.
+type WorkspaceSettingsIcon string
+
 // WorkspaceSettingsPatch defines model for WorkspaceSettingsPatch.
 type WorkspaceSettingsPatch struct {
+	AccentColor       *string                                `json:"accentColor,omitempty"`
 	AllowedDomains    *[]string                              `json:"allowedDomains,omitempty"`
+	ChatAllowDirect   *bool                                  `json:"chatAllowDirect,omitempty"`
+	ChatAllowFiles    *bool                                  `json:"chatAllowFiles,omitempty"`
+	ChatEditMinutes   *int                                   `json:"chatEditMinutes,omitempty"`
 	DefaultInviteRole *InviteRole                            `json:"defaultInviteRole,omitempty"`
 	DefaultPriority   *WorkspaceSettingsPatchDefaultPriority `json:"defaultPriority,omitempty"`
 	Description       *string                                `json:"description,omitempty"`
+	DocsMaxDepth      *int                                   `json:"docsMaxDepth,omitempty"`
+	DocsVisibility    *WorkspaceSettingsPatchDocsVisibility  `json:"docsVisibility,omitempty"`
 	Features          *WorkspaceFeatures                     `json:"features,omitempty"`
+	Icon              *WorkspaceSettingsPatchIcon            `json:"icon,omitempty"`
 	InviteDays        *int                                   `json:"inviteDays,omitempty"`
+	RequireAssignee   *bool                                  `json:"requireAssignee,omitempty"`
 	RequireDueDate    *bool                                  `json:"requireDueDate,omitempty"`
+	RequireTwoFactor  *bool                                  `json:"requireTwoFactor,omitempty"`
+	TimeAllowManual   *bool                                  `json:"timeAllowManual,omitempty"`
 	WeekStart         *int                                   `json:"weekStart,omitempty"`
 }
 
 // WorkspaceSettingsPatchDefaultPriority defines model for WorkspaceSettingsPatch.DefaultPriority.
 type WorkspaceSettingsPatchDefaultPriority string
+
+// WorkspaceSettingsPatchDocsVisibility defines model for WorkspaceSettingsPatch.DocsVisibility.
+type WorkspaceSettingsPatchDocsVisibility string
+
+// WorkspaceSettingsPatchIcon defines model for WorkspaceSettingsPatch.Icon.
+type WorkspaceSettingsPatchIcon string
 
 // AttachmentId defines model for AttachmentId.
 type AttachmentId = openapi_types.UUID
@@ -3319,6 +3665,15 @@ type CardAssigneeId = openapi_types.UUID
 
 // CardDue defines model for CardDue.
 type CardDue string
+
+// CardFilterFieldId defines model for CardFilterFieldId.
+type CardFilterFieldId = openapi_types.UUID
+
+// CardFilterFieldMatch defines model for CardFilterFieldMatch.
+type CardFilterFieldMatch string
+
+// CardFilterFieldValue defines model for CardFilterFieldValue.
+type CardFilterFieldValue = string
 
 // CardId defines model for CardId.
 type CardId = openapi_types.UUID
@@ -3497,17 +3852,32 @@ type ListCardsParams struct {
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
 	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
+	// FieldId Only cards that have a value in this custom field (with fieldValue)
+	FieldId *CardFilterFieldId `form:"fieldId,omitempty" json:"fieldId,omitempty"`
+
+	// FieldValue The value to match in the custom field
+	FieldValue *CardFilterFieldValue `form:"fieldValue,omitempty" json:"fieldValue,omitempty"`
+
+	// FieldMatch eq (default) or contains (text and link fields)
+	FieldMatch *ListCardsParamsFieldMatch `form:"fieldMatch,omitempty" json:"fieldMatch,omitempty"`
+
 	// ParentId Only subtasks of this card
 	ParentId *CardParentId `form:"parentId,omitempty" json:"parentId,omitempty"`
 
 	// Q Search in title or key (e.g. LK-12)
-	Q        *CardQuery            `form:"q,omitempty" json:"q,omitempty"`
-	Due      *ListCardsParamsDue   `form:"due,omitempty" json:"due,omitempty"`
-	Sort     *ListCardsParamsSort  `form:"sort,omitempty" json:"sort,omitempty"`
-	Order    *ListCardsParamsOrder `form:"order,omitempty" json:"order,omitempty"`
-	Page     *Page                 `form:"page,omitempty" json:"page,omitempty"`
-	PageSize *PageSize             `form:"pageSize,omitempty" json:"pageSize,omitempty"`
+	Q    *CardQuery           `form:"q,omitempty" json:"q,omitempty"`
+	Due  *ListCardsParamsDue  `form:"due,omitempty" json:"due,omitempty"`
+	Sort *ListCardsParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
+
+	// SortField Sort by this custom field instead of `sort`; cards without a value come last
+	SortField *openapi_types.UUID   `form:"sortField,omitempty" json:"sortField,omitempty"`
+	Order     *ListCardsParamsOrder `form:"order,omitempty" json:"order,omitempty"`
+	Page      *Page                 `form:"page,omitempty" json:"page,omitempty"`
+	PageSize  *PageSize             `form:"pageSize,omitempty" json:"pageSize,omitempty"`
 }
+
+// ListCardsParamsFieldMatch defines parameters for ListCards.
+type ListCardsParamsFieldMatch string
 
 // ListCardsParamsDue defines parameters for ListCards.
 type ListCardsParamsDue string
@@ -3525,6 +3895,15 @@ type BoardCardsParams struct {
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
 	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
+	// FieldId Only cards that have a value in this custom field (with fieldValue)
+	FieldId *CardFilterFieldId `form:"fieldId,omitempty" json:"fieldId,omitempty"`
+
+	// FieldValue The value to match in the custom field
+	FieldValue *CardFilterFieldValue `form:"fieldValue,omitempty" json:"fieldValue,omitempty"`
+
+	// FieldMatch eq (default) or contains (text and link fields)
+	FieldMatch *BoardCardsParamsFieldMatch `form:"fieldMatch,omitempty" json:"fieldMatch,omitempty"`
+
 	// ParentId Only subtasks of this card
 	ParentId *CardParentId `form:"parentId,omitempty" json:"parentId,omitempty"`
 
@@ -3532,6 +3911,9 @@ type BoardCardsParams struct {
 	Q   *CardQuery           `form:"q,omitempty" json:"q,omitempty"`
 	Due *BoardCardsParamsDue `form:"due,omitempty" json:"due,omitempty"`
 }
+
+// BoardCardsParamsFieldMatch defines parameters for BoardCards.
+type BoardCardsParamsFieldMatch string
 
 // BoardCardsParamsDue defines parameters for BoardCards.
 type BoardCardsParamsDue string
@@ -3548,6 +3930,15 @@ type CardStatusCountsParams struct {
 	Priority   *CardPriority   `form:"priority,omitempty" json:"priority,omitempty"`
 	LabelId    *CardLabelId    `form:"labelId,omitempty" json:"labelId,omitempty"`
 
+	// FieldId Only cards that have a value in this custom field (with fieldValue)
+	FieldId *CardFilterFieldId `form:"fieldId,omitempty" json:"fieldId,omitempty"`
+
+	// FieldValue The value to match in the custom field
+	FieldValue *CardFilterFieldValue `form:"fieldValue,omitempty" json:"fieldValue,omitempty"`
+
+	// FieldMatch eq (default) or contains (text and link fields)
+	FieldMatch *CardStatusCountsParamsFieldMatch `form:"fieldMatch,omitempty" json:"fieldMatch,omitempty"`
+
 	// ParentId Only subtasks of this card
 	ParentId *CardParentId `form:"parentId,omitempty" json:"parentId,omitempty"`
 
@@ -3555,6 +3946,9 @@ type CardStatusCountsParams struct {
 	Q   *CardQuery                 `form:"q,omitempty" json:"q,omitempty"`
 	Due *CardStatusCountsParamsDue `form:"due,omitempty" json:"due,omitempty"`
 }
+
+// CardStatusCountsParamsFieldMatch defines parameters for CardStatusCounts.
+type CardStatusCountsParamsFieldMatch string
 
 // CardStatusCountsParamsDue defines parameters for CardStatusCounts.
 type CardStatusCountsParamsDue string
@@ -3641,6 +4035,9 @@ type ListWikiTemplatesParamsLang string
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
 
+// LoginTwoFactorJSONRequestBody defines body for LoginTwoFactor for application/json ContentType.
+type LoginTwoFactorJSONRequestBody = TwoFactorLoginRequest
+
 // ForgotPasswordJSONRequestBody defines body for ForgotPassword for application/json ContentType.
 type ForgotPasswordJSONRequestBody = EmailRequest
 
@@ -3725,8 +4122,20 @@ type UploadAvatarMultipartRequestBody UploadAvatarMultipartBody
 // UploadCoverMultipartRequestBody defines body for UploadCover for multipart/form-data ContentType.
 type UploadCoverMultipartRequestBody UploadCoverMultipartBody
 
+// SetNotificationPrefJSONRequestBody defines body for SetNotificationPref for application/json ContentType.
+type SetNotificationPrefJSONRequestBody = NotificationPrefInput
+
 // ChangePasswordJSONRequestBody defines body for ChangePassword for application/json ContentType.
 type ChangePasswordJSONRequestBody = ChangePasswordRequest
+
+// DisableTwoFactorJSONRequestBody defines body for DisableTwoFactor for application/json ContentType.
+type DisableTwoFactorJSONRequestBody = TwoFactorDisableRequest
+
+// EnableTwoFactorJSONRequestBody defines body for EnableTwoFactor for application/json ContentType.
+type EnableTwoFactorJSONRequestBody = CodeRequest
+
+// RegenerateRecoveryCodesJSONRequestBody defines body for RegenerateRecoveryCodes for application/json ContentType.
+type RegenerateRecoveryCodesJSONRequestBody = CodeRequest
 
 // UpdateSavedViewJSONRequestBody defines body for UpdateSavedView for application/json ContentType.
 type UpdateSavedViewJSONRequestBody = SavedViewPatch

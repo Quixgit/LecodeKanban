@@ -30,6 +30,7 @@ Base URL: `/api/v1`
 | POST | `/auth/password/reset` | public | ResetPasswordRequest | 204, 400 Error, 422 Error |  |
 | GET | `/auth/oauth/{provider}/start` | public |  | 302, 404 Error |  |
 | GET | `/auth/oauth/{provider}/callback` | public |  | 302 |  |
+| POST | `/auth/login/two-factor` | public | TwoFactorLoginRequest | 200 Session, 401 Error, 422 Error, 423 Error, 429 Error | Finish a sign-in with the code from the authenticator app (or a recovery code) |
 
 ## users
 
@@ -46,7 +47,21 @@ Base URL: `/api/v1`
 | GET | `/users/me/sessions` | session |  | 200 | Where the caller is signed in |
 | POST | `/users/me/sessions/revoke-others` | session |  | 204 | Sign out everywhere except this device |
 | DELETE | `/users/me/sessions/{sessionId}` | session |  | 204, 404 Error | Sign one device out |
+| GET | `/users/me/two-factor` | session |  | 200 |  |
+| POST | `/users/me/two-factor/setup` | session |  | 200, 409 Error | Generate a secret to scan; nothing changes until a code is confirmed |
+| POST | `/users/me/two-factor/enable` | session | CodeRequest | 200, 409 Error, 422 Error |  |
+| POST | `/users/me/two-factor/disable` | session | TwoFactorDisableRequest | 204, 409 Error, 422 Error |  |
+| POST | `/users/me/two-factor/recovery-codes` | session | CodeRequest | 200, 422 Error | Replace the recovery codes (needs a valid code) |
 | POST | `/users/me/password` | session | ChangePasswordRequest | 204, 401 Error, 422 Error |  |
+
+## notifications
+
+| Method | Path | Auth | Request | Responses | Summary |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/users/me/notification-prefs` | session |  | 200 | Which kinds of notification the caller wants (all on unless switched off) |
+| PUT | `/users/me/notification-prefs` | session | NotificationPrefInput | 204, 422 Error |  |
+| GET | `/workspaces/{workspaceId}/notifications` | session |  | 200 | The caller's notifications in the workspace, newest first, with the unread count |
+| POST | `/workspaces/{workspaceId}/notifications/read` | session | NotificationsReadInput | 204 | Mark the given notifications (or all of them) as read |
 
 ## workspaces
 
@@ -300,13 +315,6 @@ Base URL: `/api/v1`
 | POST | `/cards/{cardId}/github/issue` | session |  | 201, 409 Error | Open a GitHub issue for the card in its project's repository |
 | POST | `/integrations/github/webhook` | public |  | 204, 401 Error | Where GitHub delivers pull request and issue events (signed with the workspace secret) |
 
-## notifications
-
-| Method | Path | Auth | Request | Responses | Summary |
-| --- | --- | --- | --- | --- | --- |
-| GET | `/workspaces/{workspaceId}/notifications` | session |  | 200 | The caller's notifications in the workspace, newest first, with the unread count |
-| POST | `/workspaces/{workspaceId}/notifications/read` | session | NotificationsReadInput | 204 | Mark the given notifications (or all of them) as read |
-
 ## Schemas
 
 - **ErrorResponse** — `error`: object
@@ -321,17 +329,23 @@ Base URL: `/api/v1`
 - **TokenRequest** — `token`: string
 - **EmailRequest** — `email`: string
 - **ResetPasswordRequest** — `token`: string, `password`: string
+- **TwoFactorStatus** — `enabled`: boolean, `recoveryRemaining`: integer
+- **TwoFactorSetup** — `secret`: string, `uri`: string
+- **CodeRequest** — `code`: string
+- **RecoveryCodes** — `codes`: array
+- **TwoFactorDisableRequest** — `code`: string, `password?`: string
+- **TwoFactorLoginRequest** — `token`: string, `code`: string
 - **ChangePasswordRequest** — `currentPassword?`: string, `newPassword`: string
 - **Device** — `id`: string, `startedAt`: string, `lastSeenAt`: string, `userAgent`: string, `ip`: string, `current`: boolean
 - **DeviceList** — `items`: array
 - **UpdateProfileRequest** — `name?`: string, `locale?`: Locale, `jobTitle?`: string, `phone?`: string, `location?`: string, `timezone?`: string, `bio?`: string, `pronouns?`: string, `linkedin?`: string, `telegram?`: string, `website?`: string, `workStart?`: string, `workEnd?`: string, `skills?`: array, `coverPreset?`: string
 - **Role**: `owner` | `admin` | `member` | `viewer`
 - **InviteRole**: `admin` | `member` | `viewer`
-- **Workspace** — `id`: string, `name`: string, `slug`: string, `role`: Role, `permissions`: array, `customRole`: object \| null, `memberCount`: integer, `createdAt`: string
+- **Workspace** — `id`: string, `name`: string, `slug`: string, `twoFactorBlocked`: boolean, `role`: Role, `permissions`: array, `customRole`: object \| null, `memberCount`: integer, `createdAt`: string
 - **WorkspaceInput** — `name`: string
 - **WorkspaceFeatures** — `chat`: boolean, `docs`: boolean, `time`: boolean, `calendar`: boolean, `integrations`: boolean
-- **WorkspaceSettings** — `description`: string, `inviteDays`: integer, `defaultInviteRole`: InviteRole, `allowedDomains`: array, `defaultPriority`: string, `requireDueDate`: boolean, `weekStart`: integer, `features`: WorkspaceFeatures
-- **WorkspaceSettingsPatch** — `description?`: string, `inviteDays?`: integer, `defaultInviteRole?`: InviteRole, `allowedDomains?`: array, `defaultPriority?`: string, `requireDueDate?`: boolean, `weekStart?`: integer, `features?`: WorkspaceFeatures
+- **WorkspaceSettings** — `description`: string, `inviteDays`: integer, `defaultInviteRole`: InviteRole, `allowedDomains`: array, `defaultPriority`: string, `requireDueDate`: boolean, `weekStart`: integer, `requireAssignee`: boolean, `chatAllowDirect`: boolean, `chatAllowFiles`: boolean, `chatEditMinutes`: integer, `timeAllowManual`: boolean, `requireTwoFactor`: boolean, `docsVisibility`: string, `docsMaxDepth`: integer, `accentColor`: string, `icon`: string, `features`: WorkspaceFeatures
+- **WorkspaceSettingsPatch** — `description?`: string, `inviteDays?`: integer, `defaultInviteRole?`: InviteRole, `allowedDomains?`: array, `defaultPriority?`: string, `requireDueDate?`: boolean, `weekStart?`: integer, `requireAssignee?`: boolean, `chatAllowDirect?`: boolean, `chatAllowFiles?`: boolean, `chatEditMinutes?`: integer, `timeAllowManual?`: boolean, `requireTwoFactor?`: boolean, `docsVisibility?`: string, `docsMaxDepth?`: integer, `accentColor?`: string, `icon?`: string, `features?`: WorkspaceFeatures
 - **AuditEntry** — `id`: string, `actor`: object \| null, `action`: string, `details`: object, `at`: string
 - **PermissionInfo** — `key`: string, `group`: string, `fixed`: boolean
 - **RoleDefinition** — `key`: string, `id`: string \| null, `custom`: boolean, `name`: string, `description`: string, `base`: Role, `permissions`: array, `defaults`: array, `changed`: boolean, `locked`: boolean, `members`: integer
@@ -449,6 +463,9 @@ Base URL: `/api/v1`
 - **Meeting** — `id`: string, `provider`: string, `title`: string, `startsAt`: string, `endsAt`: string, `location`: string, `url`: string, `attendees`: array
 - **MeetingList** — `items`: array
 - **ChatMeeting** — `kind`: string, `title`: string, `startsAt`: string, `endsAt`: string, `location?`: string, `link?`: string, `leadMinutes`: integer, `attendees`: integer
+- **NotificationPref** — `kind`: string, `enabled`: boolean
+- **NotificationPrefs** — `items`: array
+- **NotificationPrefInput** — `kind`: string, `enabled`: boolean
 - **Notification** — `id`: string, `kind`: string, `title`: string, `body`: string, `actor`: object \| null, `cardId`: string \| null, `projectId`: string \| null, `channelId`: string \| null, `messageId`: string \| null, `link`: string \| null, `createdAt`: string, `read`: boolean
 - **NotificationPage** — `items`: array, `unread`: integer, `next`: string \| null
 - **NotificationsReadInput** — `ids?`: array, `all?`: boolean

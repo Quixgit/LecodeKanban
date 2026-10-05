@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { PanelLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { matchPath, NavLink, useLocation } from 'react-router-dom';
@@ -9,13 +10,12 @@ import { transition } from '@/shared/motion';
 import { IconButton, Tooltip } from '@/shared/ui';
 import type { NavItem } from '../navigation';
 import { useNavigation } from '../useNavigation';
-import { useSidebarStore } from '../sidebarStore';
+import { useShellLayout } from '@/shared/lib/shellLayout';
 import { BrandLogo } from './BrandLogo';
-import { panelFor } from './railPanels';
+import { panelFor, panelWidth } from './railPanels';
 import { SectionPanel } from './SectionPanel';
 
 const RAIL_W = 68;
-const PANEL_W = 232;
 const ACTIVE_ID = 'rail-active-item';
 
 function RailItem({ item, active }: { item: NavItem; active: boolean }) {
@@ -68,10 +68,15 @@ export function RailSidebar() {
   const { t } = useTranslation('nav');
   const sections = useNavigation();
   const { pathname } = useLocation();
-  const setLayout = useSidebarStore((s) => s.setLayout);
+  const setLayout = useShellLayout((s) => s.setLayout);
   const items = sections.flatMap((s) => s.items);
   const current = items.find((i) => matchPath({ path: i.to, end: i.end ?? false }, pathname));
   const hasPanel = !!current && panelFor(current.key);
+  // Keep the last width while the column closes, so the content does not jump.
+  const [width, setWidth] = useState(232);
+  useEffect(() => {
+    if (current && panelFor(current.key)) setWidth(panelWidth(current.key));
+  }, [current]);
 
   return (
     <aside
@@ -108,12 +113,12 @@ export function RailSidebar() {
       </div>
       <motion.div
         initial={false}
-        animate={{ width: hasPanel ? PANEL_W : 0, opacity: hasPanel ? 1 : 0 }}
+        animate={{ width: hasPanel ? width : 0, opacity: hasPanel ? 1 : 0 }}
         transition={transition.large}
         className="overflow-hidden border-l border-border-subtle bg-surface-muted/40"
         aria-hidden={!hasPanel}
       >
-        <div style={{ width: PANEL_W }} className="h-full">
+        <div style={{ width }} className="h-full">
           {current && hasPanel && <SectionPanel itemKey={current.key} />}
         </div>
       </motion.div>

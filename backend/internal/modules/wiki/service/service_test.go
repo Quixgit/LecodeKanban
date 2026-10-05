@@ -96,6 +96,7 @@ type env struct {
 	svc      *service.Service
 	users    *userssvc.Service
 	wsr      *wsrepo.Repo
+	wsSvc    *wssvc.Service
 	ws       uuid.UUID
 	alice    uuid.UUID // workspace owner and the main author
 	bob      uuid.UUID // member
@@ -126,6 +127,7 @@ func setup(t *testing.T) *env {
 		t.Fatal(err)
 	}
 	e.ws = w.ID
+	e.wsSvc = wsSvc
 	for u, r := range map[uuid.UUID]wsdomain.Role{e.bob: wsdomain.RoleMember, e.carol: wsdomain.RoleMember,
 		e.admin: wsdomain.RoleAdmin, e.view: wsdomain.RoleViewer} {
 		if err := e.wsr.AddMember(context.Background(), e.ws, u, r); err != nil {
@@ -1122,5 +1124,28 @@ func keys(m map[string]string) []string {
 func must0(err error) {
 	if err != nil {
 		panic(err)
+	}
+}
+
+func TestSpaceDefaultsFollowTheWorkspace(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	vis, depth := "workspace", 4
+	if _, err := e.wsSvc.UpdateSettings(ctx, e.alice, e.ws, wsdomain.SettingsPatch{DocsVisibility: &vis, DocsMaxDepth: &depth}); err != nil {
+		t.Fatal(err)
+	}
+	// Nothing said: the workspace's defaults apply.
+	sp, err := e.svc.CreateSpace(ctx, e.bob, e.ws, service.SpaceInput{Name: "Defaults"})
+	if err != nil || sp.Space.Visibility != domain.Workspace || sp.Space.MaxDepth != 4 {
+		t.Fatalf("defaults: %+v %v", sp.Space, err)
+	}
+	// An explicit choice wins.
+	sp, err = e.svc.CreateSpace(ctx, e.bob, e.ws, service.SpaceInput{Name: "Mine", Visibility: domain.Private, MaxDepth: 6})
+	if err != nil || sp.Space.Visibility != domain.Private || sp.Space.MaxDepth != 6 {
+		t.Fatalf("explicit: %+v %v", sp.Space, err)
+	}
+	bad := 1
+	if _, err := e.wsSvc.UpdateSettings(ctx, e.alice, e.ws, wsdomain.SettingsPatch{DocsMaxDepth: &bad}); err == nil {
+		t.Fatal("depth below 2 must be refused")
 	}
 }

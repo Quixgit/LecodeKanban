@@ -2,7 +2,8 @@
   "nav": {
     "label": "Profile sections",
     "profile": "Profile",
-    "security": "Security"
+    "security": "Security",
+    "notifications": "Notifications"
   },
   "avatar": {
     "title": "Profile photo",
@@ -129,6 +130,77 @@
       "slate": "Slate",
       "dawn": "Dawn",
       "mint": "Mint"
+    }
+  },
+  "twoFactor": {
+    "title": "Two-step verification",
+    "description": "Ask for a code from an authenticator app when you sign in, on top of your password.",
+    "on": "Two-step verification is on",
+    "off": "Two-step verification is off",
+    "statusOn": "On",
+    "statusOff": "Off",
+    "offHint": "Protect your account even if your password leaks.",
+    "recoveryLeft_one": "{{count}} recovery code left",
+    "recoveryLeft_other": "{{count}} recovery codes left",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "newCodes": "New recovery codes",
+    "cancel": "Cancel",
+    "setupTitle": "Set up an authenticator",
+    "setupDescription": "Use an app such as Google Authenticator, 1Password or Authy.",
+    "scan": "Scan this code with your authenticator app, then enter the 6-digit code it shows.",
+    "manual": "Cannot scan? Enter this key by hand:",
+    "qrAlt": "QR code for your authenticator app",
+    "code": "6-digit code",
+    "codeOrRecovery": "Code from the app, or a recovery code",
+    "password": "Current password",
+    "show": "Show password",
+    "hide": "Hide password",
+    "codesTitle": "Your recovery codes",
+    "codesDescription": "Keep these somewhere safe. Each works once if you lose your phone. They are shown only now.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "download": "Download",
+    "savedThem": "I have saved them",
+    "disableTitle": "Turn off two-step verification?",
+    "disableDescription": "Your account will only need the password. Enter a current code and your password to confirm.",
+    "regenerateTitle": "New recovery codes",
+    "regenerateDescription": "The old codes stop working. Enter a current code to confirm.",
+    "regenerate": "Create new codes",
+    "turnedOff": "Two-step verification is off"
+  },
+  "notify": {
+    "title": "Notifications",
+    "description": "Choose what reaches your bell. Everything is on until you switch it off.",
+    "kinds": {
+      "assigned": {
+        "title": "Put on a task",
+        "description": "Someone assigns a task to you."
+      },
+      "mention": {
+        "title": "Mentions",
+        "description": "You are named, or reached with @channel or @here."
+      },
+      "dm": {
+        "title": "Direct messages",
+        "description": "Someone writes to you privately."
+      },
+      "task_commented": {
+        "title": "Comments on your tasks",
+        "description": "Someone writes on a task you work on."
+      },
+      "task_moved": {
+        "title": "Tasks that move",
+        "description": "A task you work on changes column."
+      },
+      "task_updated": {
+        "title": "Task edits",
+        "description": "A task you work on is edited."
+      },
+      "meeting": {
+        "title": "Meeting reminders",
+        "description": "A calendar meeting is about to start."
+      }
     }
   }
 }

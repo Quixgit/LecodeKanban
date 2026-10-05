@@ -105,3 +105,23 @@ func mustCode(t *testing.T, err error, code apperr.Code) {
 		t.Fatalf("want %s, got %v", code, err)
 	}
 }
+
+func TestManualTimeCanBeSwitchedOff(t *testing.T) {
+	tdb.Reset(t)
+	e := testkit.New(t, tdb.Pool)
+	ctx := context.Background()
+	owner := e.User("Owner", "o@example.com")
+	member := e.User("Member", "m@example.com")
+	ws := e.Workspace(owner, map[uuid.UUID]wsdomain.Role{member: wsdomain.RoleMember}, tdb.Pool)
+	card := e.Card(member, ws, e.Project(owner, ws, "Core"), "Task")
+	off := false
+	if _, err := e.Workspaces.UpdateSettings(ctx, owner, ws, wsdomain.SettingsPatch{TimeAllowManual: &off}); err != nil {
+		t.Fatal(err)
+	}
+	_, err := e.Time.Log(ctx, member, card.ID, service.LogInput{Seconds: 600})
+	mustCode(t, err, wsdomain.ErrPolicy)
+	// Timers are unaffected.
+	if _, err := e.Time.Start(ctx, member, card.ID); err != nil {
+		t.Fatalf("a timer still works: %v", err)
+	}
+}

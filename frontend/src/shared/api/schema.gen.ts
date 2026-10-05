@@ -358,6 +358,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/login/two-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finish a sign-in with the code from the authenticator app (or a recovery code) */
+        post: operations["loginTwoFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/two-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTwoFactor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/two-factor/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate a secret to scan; nothing changes until a code is confirmed */
+        post: operations["setupTwoFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/two-factor/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["enableTwoFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/two-factor/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["disableTwoFactor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/two-factor/recovery-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replace the recovery codes (needs a valid code) */
+        post: operations["regenerateRecoveryCodes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/notification-prefs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which kinds of notification the caller wants (all on unless switched off) */
+        get: operations["getNotificationPrefs"];
+        put: operations["setNotificationPref"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/me/password": {
         parameters: {
             query?: never;
@@ -2822,6 +2938,33 @@ export interface components {
             token: string;
             password: string;
         };
+        TwoFactorStatus: {
+            enabled: boolean;
+            recoveryRemaining: number;
+        };
+        TwoFactorSetup: {
+            /** @description Base32 secret for manual entry */
+            secret: string;
+            /** @description otpauth:// address for the QR code */
+            uri: string;
+        };
+        CodeRequest: {
+            code: string;
+        };
+        RecoveryCodes: {
+            codes: string[];
+        };
+        TwoFactorDisableRequest: {
+            /** @description A current code or a recovery code */
+            code: string;
+            /** @description The current password */
+            password?: string;
+        };
+        TwoFactorLoginRequest: {
+            /** @description The token from the auth.two_factor_required error */
+            token: string;
+            code: string;
+        };
         ChangePasswordRequest: {
             /** @description Required when the account already has a password */
             currentPassword?: string;
@@ -2877,6 +3020,8 @@ export interface components {
             id: string;
             name: string;
             slug: string;
+            /** @description The workspace requires two-step verification and the caller has not turned it on */
+            twoFactorBlocked: boolean;
             role: components["schemas"]["Role"];
             /** @description What the caller may do here */
             permissions: string[];
@@ -2907,6 +3052,29 @@ export interface components {
             requireDueDate: boolean;
             /** @description 0 Sunday */
             weekStart: number;
+            /** @description New tasks need an assignee */
+            requireAssignee: boolean;
+            /** @description People may open direct messages */
+            chatAllowDirect: boolean;
+            /** @description Files may be shared in chat */
+            chatAllowFiles: boolean;
+            /** @description How long a chat message can be edited; 0 means always */
+            chatEditMinutes: number;
+            /** @description Time may be logged by hand */
+            timeAllowManual: boolean;
+            /** @description Members need two-step verification to enter the workspace */
+            requireTwoFactor: boolean;
+            /**
+             * @description Who can reach a new docs space by default
+             * @enum {string}
+             */
+            docsVisibility: "private" | "shared" | "workspace";
+            /** @description How deep pages nest in new spaces */
+            docsMaxDepth: number;
+            /** @description #rrggbb or empty for the platform colour */
+            accentColor: string;
+            /** @enum {string} */
+            icon: "building" | "rocket" | "briefcase" | "layers" | "globe" | "flask" | "shield" | "sparkles" | "leaf" | "flame";
             features: components["schemas"]["WorkspaceFeatures"];
         };
         WorkspaceSettingsPatch: {
@@ -2918,6 +3086,18 @@ export interface components {
             defaultPriority?: "low" | "medium" | "high";
             requireDueDate?: boolean;
             weekStart?: number;
+            requireAssignee?: boolean;
+            chatAllowDirect?: boolean;
+            chatAllowFiles?: boolean;
+            chatEditMinutes?: number;
+            timeAllowManual?: boolean;
+            requireTwoFactor?: boolean;
+            /** @enum {string} */
+            docsVisibility?: "private" | "shared" | "workspace";
+            docsMaxDepth?: number;
+            accentColor?: string;
+            /** @enum {string} */
+            icon?: "building" | "rocket" | "briefcase" | "layers" | "globe" | "flask" | "shield" | "sparkles" | "leaf" | "flame";
             features?: components["schemas"]["WorkspaceFeatures"];
         };
         AuditEntry: {
@@ -4000,6 +4180,18 @@ export interface components {
             leadMinutes: number;
             attendees: number;
         };
+        NotificationPref: {
+            /** @enum {string} */
+            kind: "assigned" | "task_moved" | "task_updated" | "task_commented" | "mention" | "dm" | "meeting";
+            enabled: boolean;
+        };
+        NotificationPrefs: {
+            items: components["schemas"]["NotificationPref"][];
+        };
+        NotificationPrefInput: {
+            kind: string;
+            enabled: boolean;
+        };
         Notification: {
             /** Format: uuid */
             id: string;
@@ -4292,6 +4484,12 @@ export interface components {
         /** @description Search in title or key (e.g. LK-12) */
         CardQuery: string;
         CardLabelId: string;
+        /** @description Only cards that have a value in this custom field (with fieldValue) */
+        CardFilterFieldId: string;
+        /** @description The value to match in the custom field */
+        CardFilterFieldValue: string;
+        /** @description eq (default) or contains (text and link fields) */
+        CardFilterFieldMatch: "eq" | "contains";
         /** @description Only subtasks of this card */
         CardParentId: string;
         ColumnId: string;
@@ -4817,6 +5015,185 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["Error"];
+        };
+    };
+    loginTwoFactor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorLoginRequest"];
+            };
+        };
+        responses: {
+            200: components["responses"]["Session"];
+            401: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+            423: components["responses"]["Error"];
+            429: components["responses"]["Error"];
+        };
+    };
+    getTwoFactor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Whether two-factor authentication is on */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwoFactorStatus"];
+                };
+            };
+        };
+    };
+    setupTwoFactor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Secret and otpauth address */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TwoFactorSetup"];
+                };
+            };
+            409: components["responses"]["Error"];
+        };
+    };
+    enableTwoFactor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Turned on; the recovery codes are shown once */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryCodes"];
+                };
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    disableTwoFactor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TwoFactorDisableRequest"];
+            };
+        };
+        responses: {
+            /** @description Turned off */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            409: components["responses"]["Error"];
+            422: components["responses"]["Error"];
+        };
+    };
+    regenerateRecoveryCodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeRequest"];
+            };
+        };
+        responses: {
+            /** @description The new codes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryCodes"];
+                };
+            };
+            422: components["responses"]["Error"];
+        };
+    };
+    getNotificationPrefs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One entry per kind */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPrefs"];
+                };
+            };
+        };
+    };
+    setNotificationPref: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPrefInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: components["responses"]["Error"];
         };
     };
     changePassword: {
@@ -5652,12 +6029,20 @@ export interface operations {
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
                 labelId?: components["parameters"]["CardLabelId"];
+                /** @description Only cards that have a value in this custom field (with fieldValue) */
+                fieldId?: components["parameters"]["CardFilterFieldId"];
+                /** @description The value to match in the custom field */
+                fieldValue?: components["parameters"]["CardFilterFieldValue"];
+                /** @description eq (default) or contains (text and link fields) */
+                fieldMatch?: components["parameters"]["CardFilterFieldMatch"];
                 /** @description Only subtasks of this card */
                 parentId?: components["parameters"]["CardParentId"];
                 /** @description Search in title or key (e.g. LK-12) */
                 q?: components["parameters"]["CardQuery"];
                 due?: components["parameters"]["CardDue"];
                 sort?: "key" | "title" | "assignee" | "project" | "progress" | "deadline" | "priority" | "position" | "updated";
+                /** @description Sort by this custom field instead of `sort`; cards without a value come last */
+                sortField?: string;
                 order?: "asc" | "desc";
                 page?: components["parameters"]["Page"];
                 pageSize?: components["parameters"]["PageSize"];
@@ -5715,6 +6100,12 @@ export interface operations {
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
                 labelId?: components["parameters"]["CardLabelId"];
+                /** @description Only cards that have a value in this custom field (with fieldValue) */
+                fieldId?: components["parameters"]["CardFilterFieldId"];
+                /** @description The value to match in the custom field */
+                fieldValue?: components["parameters"]["CardFilterFieldValue"];
+                /** @description eq (default) or contains (text and link fields) */
+                fieldMatch?: components["parameters"]["CardFilterFieldMatch"];
                 /** @description Only subtasks of this card */
                 parentId?: components["parameters"]["CardParentId"];
                 /** @description Search in title or key (e.g. LK-12) */
@@ -6091,6 +6482,12 @@ export interface operations {
                 assigneeId?: components["parameters"]["CardAssigneeId"];
                 priority?: components["parameters"]["CardPriority"];
                 labelId?: components["parameters"]["CardLabelId"];
+                /** @description Only cards that have a value in this custom field (with fieldValue) */
+                fieldId?: components["parameters"]["CardFilterFieldId"];
+                /** @description The value to match in the custom field */
+                fieldValue?: components["parameters"]["CardFilterFieldValue"];
+                /** @description eq (default) or contains (text and link fields) */
+                fieldMatch?: components["parameters"]["CardFilterFieldMatch"];
                 /** @description Only subtasks of this card */
                 parentId?: components["parameters"]["CardParentId"];
                 /** @description Search in title or key (e.g. LK-12) */

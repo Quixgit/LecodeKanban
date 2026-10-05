@@ -14,6 +14,7 @@ import {
   Input,
 } from '@/shared/ui';
 import type { TaskFilters } from '../model/filters';
+import { FieldFilter } from './FieldFilter';
 
 interface Props {
   filters: TaskFilters;
@@ -148,6 +149,7 @@ export function TasksToolbar({
                 label: t(`filters.dueOptions.${d}`),
               }))}
             />
+            <FieldFilter filters={filters} update={update} />
           </div>
           {activeCount > 0 && (
             <>

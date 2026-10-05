@@ -211,3 +211,51 @@ func TestChatNotifications(t *testing.T) {
 		t.Fatalf("card chat: %v", got)
 	}
 }
+
+func TestNotificationPreferences(t *testing.T) {
+	w := setup(t)
+	ctx := context.Background()
+	n := w.e.Notices
+
+	// Everything is on by default, in a fixed order.
+	prefs, err := n.Prefs(ctx, w.anna)
+	if err != nil || len(prefs) != len(domain.Kinds) {
+		t.Fatalf("prefs: %v %v", prefs, err)
+	}
+	for _, p := range prefs {
+		if !p.Enabled {
+			t.Fatalf("%s should be on by default", p.Kind)
+		}
+	}
+	if err := n.SetPref(ctx, w.anna, "bogus", false); !apperr.IsCode(err, domain.ErrUnknownKind) {
+		t.Fatalf("unknown kind: %v", err)
+	}
+
+	// Anna switches off "assigned" and keeps the rest: being put on a task no longer reaches her bell.
+	if err := n.SetPref(ctx, w.anna, domain.Assigned, false); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.e.Cards.Create(ctx, w.ben, w.ws, carddomain.NewCard{ProjectID: w.project, Title: "Quiet", AssigneeIDs: []uuid.UUID{w.anna}}); err != nil {
+		t.Fatal(err)
+	}
+	if got := kinds(t, w, w.anna); len(got) != 0 {
+		t.Fatalf("assigned was switched off: %v", got)
+	}
+	// Someone else still gets theirs, and Anna's other kinds still work.
+	if _, err := w.e.Cards.Create(ctx, w.owner, w.ws, carddomain.NewCard{ProjectID: w.project, Title: "Loud", AssigneeIDs: []uuid.UUID{w.ben}}); err != nil {
+		t.Fatal(err)
+	}
+	if got := kinds(t, w, w.ben); !equal(got, []domain.Kind{domain.Assigned}) {
+		t.Fatalf("ben: %v", got)
+	}
+	// Switching it back on restores delivery.
+	if err := n.SetPref(ctx, w.anna, domain.Assigned, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.e.Cards.Create(ctx, w.ben, w.ws, carddomain.NewCard{ProjectID: w.project, Title: "Back", AssigneeIDs: []uuid.UUID{w.anna}}); err != nil {
+		t.Fatal(err)
+	}
+	if got := kinds(t, w, w.anna); !equal(got, []domain.Kind{domain.Assigned}) {
+		t.Fatalf("anna after switching on: %v", got)
+	}
+}

@@ -31,6 +31,18 @@ test.describe('Icon-rail menu', () => {
     await aside.getByRole('link', { name: 'Calendar' }).click();
     await expect(aside.getByRole('navigation', { name: 'Tasks' })).toBeHidden();
 
+    // Chat and Docs keep their own lists in the rail's column; the page itself is only the conversation / the page.
+    await aside.getByRole('link', { name: 'Chat' }).click();
+    await expect(page).toHaveURL(/\/chat/);
+    const railChat = page.locator('aside[aria-label="Main navigation"] aside[aria-label="Chat"]');
+    await expect(railChat).toBeVisible();
+    await expect(page.getByRole('main').locator('aside[aria-label="Chat"]')).toHaveCount(0);
+    await aside.getByRole('link', { name: 'Docs' }).click();
+    await expect(page).toHaveURL(/\/docs/);
+    await expect(
+      page.locator('aside[aria-label="Main navigation"]').getByRole('tree').first(),
+    ).toBeVisible();
+
     await page.waitForTimeout(500);
     const axe = await new AxeBuilder({ page })
       .include('aside')

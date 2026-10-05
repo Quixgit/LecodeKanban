@@ -1,4 +1,4 @@
-import { BadgeCheck, MapPin, ShieldCheck, UserRound, type LucideIcon } from 'lucide-react';
+import { BadgeCheck, Bell, MapPin, ShieldCheck, UserRound, type LucideIcon } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet } from 'react-router-dom';
@@ -7,9 +7,10 @@ import { cn } from '@/shared/lib/cn';
 import { CoverEditor } from './CoverEditor';
 import { Avatar, ProfileCover } from '@/shared/ui';
 
-const TABS: { to: string; key: 'profile' | 'security'; icon: LucideIcon }[] = [
+const TABS: { to: string; key: 'profile' | 'security' | 'notifications'; icon: LucideIcon }[] = [
   { to: '/profile', key: 'profile', icon: UserRound },
   { to: '/profile/security', key: 'security', icon: ShieldCheck },
+  { to: '/profile/notifications', key: 'notifications', icon: Bell },
 ];
 
 /** The person's own page: a header with who they are, and tabs for profile and security. */

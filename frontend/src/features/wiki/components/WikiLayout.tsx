@@ -2,11 +2,13 @@ import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import { BookOpen, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useMatch } from 'react-router-dom';
 import { useSession } from '@/features/auth';
 import { useCurrentWorkspace } from '@/features/workspaces';
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery';
+import { useRailSlot } from '@/shared/lib/shellLayout';
 import { transition } from '@/shared/motion';
 import { EmptyState, IconButton, Tooltip } from '@/shared/ui';
 import { useNode, useSpaces } from '../hooks/useWiki';
@@ -37,6 +39,7 @@ export function WikiLayout() {
   const { user } = useSession();
   const userId = user?.id ?? 'anonymous';
   const desktop = useMediaQuery('(min-width: 1024px)');
+  const rail = useRailSlot(desktop);
 
   const spaceMatch = useMatch('/docs/s/:spaceId');
   const pageMatch = useMatch('/docs/p/:nodeId');
@@ -93,7 +96,22 @@ export function WikiLayout() {
 
   return (
     <div className="flex h-[calc(100dvh-var(--header-h)-3rem)] min-h-[30rem] overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-sm">
-      {desktop ? (
+      {rail.target &&
+        createPortal(
+          <div className="flex h-full flex-col">
+            <PanelHeader />
+            <div className="min-h-0 flex-1">
+              <TreePanel
+                workspaceId={workspace.id}
+                spaces={list}
+                spaceId={spaceId}
+                selectedId={selectedId}
+              />
+            </div>
+          </div>,
+          rail.target,
+        )}
+      {rail.railed ? null : desktop ? (
         <motion.aside
           initial={false}
           animate={{ width: collapsed ? 0 : width }}
@@ -132,7 +150,7 @@ export function WikiLayout() {
         )
       )}
 
-      {desktop && !collapsed && (
+      {desktop && !rail.railed && !collapsed && (
         <div
           role="separator"
           aria-orientation="vertical"
@@ -155,7 +173,7 @@ export function WikiLayout() {
         </div>
       )}
 
-      {desktop && collapsed && (
+      {desktop && !rail.railed && collapsed && (
         <div className="flex w-12 shrink-0 flex-col items-center border-r border-border-subtle py-3">
           <Tooltip content={t('panel.expand')} side="right">
             <IconButton

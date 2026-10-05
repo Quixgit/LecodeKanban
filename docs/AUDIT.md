@@ -238,6 +238,25 @@ Facts about what was checked, with how. Update on every phase.
 - Unit: `can()`, invitable roles. Browser: Settings → Roles (axe, toggle + reset, create + delete a custom role).
 - Not covered: a module-level permission test in the browser for every action (covered by Go authz tests).
 
+## Workspace look and more rules
+
+- Go: look values validated (colour, icon, edit window), defaults for what was never stored; require-assignee,
+  direct messages (own notes still allowed), files, edit window, manual time are refused by the owning module.
+- Browser: pick icon and accent (style injected, survives reload, axe), switch direct messages off (button gone) and
+  back, restore the look.
+- Not covered: "require two-step verification" for everyone (needs the 2FA PR and a gate on authorisation).
+
+## Docs defaults
+
+- Go: workspace defaults apply to new spaces; an explicit choice wins; depth below 2 refused.
+- Browser: set and persist the default visibility.
+## Two-step verification
+
+- Go: TOTP against RFC 6238 vectors; scoped tokens are not access tokens; full life cycle (setup, wrong/right code,
+  replayed code refused, recovery code once, regenerate, disable needs password + code), lock-out after repeated wrong codes.
+- Unit: login form asks for the code. Browser: register, turn on (axe on the dialog), wrong code, sign in with a code,
+  with a recovery code, turn off.
+- Not covered: admin policy to require 2FA; reset when both phone and recovery codes are lost.
 ## UI polish
 
 - Unit: existing MetricCard/overlay tests; browser: settings, kanban, task window suites pass with the new fields and close button.
@@ -258,3 +277,29 @@ Facts about what was checked, with how. Update on every phase.
 
 - Unit: theme maths (default untouched, light text on dark / dark on light, AA for accents and muted text on every preset).
 - Browser: pick a theme (axe on the themed sidebar and chat), reload keeps it, own colour, reset.
+
+## Rail: chat and docs lists
+
+- Browser: in the rail layout the channel list is inside the rail and not in the page; the docs tree too; axe on the rail.
+- Not covered: the rail below the lg breakpoint (the mobile layout is unchanged).
+## Admin overview
+
+- Unit: set-up steps and progress (unknown steps are neither done nor open). Browser: settings suite.
+- Not covered: the checklist has no step for integrations (it would make settings depend on the integrations module).
+
+## Require two-step verification
+
+- Go: setting refused for an owner without 2FA; members without it blocked in `Authorize` and marked in the list;
+  turning it on opens the door; turning the requirement off lets everyone in.
+- Browser: owner enables 2FA, requires it, turns their own off and sees the gate with the way to the security page.
+- Cost: one small indexed query per authorised request (the flag in the settings row).
+## Filter and sort by custom field
+
+- Go: filter by equality and by text search; sort ascending and descending with numbers as numbers and cards without a value last.
+- Browser: choose a field and a value in the board's filter and only the matching task stays.
+- Not covered: sorting the board by a field (the board keeps its manual order), several field filters at once.
+## Notification preferences
+
+- Go: all kinds on by default; unknown kind refused; a switched-off kind is not delivered while others are; switching on restores it.
+- Browser: toggle persists across reload (axe).
+- Not covered: per-channel/per-project overrides and email notifications (the product sends none of those kinds by email).
