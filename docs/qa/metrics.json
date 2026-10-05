@@ -1,386 +1,386 @@
 [
- {
-  "name": "dashboard",
-  "theme": "light",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "projects",
-  "theme": "light",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-list",
-  "theme": "light",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-kanban",
-  "theme": "light",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-calendar",
-  "theme": "light",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "calendar",
-  "theme": "light",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "team",
-  "theme": "light",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "ui-kit",
-  "theme": "light",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "dashboard",
-  "theme": "light",
-  "lang": "en",
-  "w": 1024,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "projects",
-  "theme": "light",
-  "lang": "en",
-  "w": 1024,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-list",
-  "theme": "light",
-  "lang": "en",
-  "w": 1024,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-kanban",
-  "theme": "light",
-  "lang": "en",
-  "w": 1024,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-calendar",
-  "theme": "light",
-  "lang": "en",
-  "w": 1024,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "calendar",
-  "theme": "light",
-  "lang": "en",
-  "w": 1024,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "team",
-  "theme": "light",
-  "lang": "en",
-  "w": 1024,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "ui-kit",
-  "theme": "light",
-  "lang": "en",
-  "w": 1024,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "dashboard",
-  "theme": "light",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "projects",
-  "theme": "light",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-list",
-  "theme": "light",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-kanban",
-  "theme": "light",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-calendar",
-  "theme": "light",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "calendar",
-  "theme": "light",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "team",
-  "theme": "light",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "ui-kit",
-  "theme": "light",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 34,
-  "errors": []
- },
- {
-  "name": "dashboard",
-  "theme": "light",
-  "lang": "uk",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "projects",
-  "theme": "light",
-  "lang": "uk",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-list",
-  "theme": "light",
-  "lang": "uk",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-kanban",
-  "theme": "light",
-  "lang": "uk",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-calendar",
-  "theme": "light",
-  "lang": "uk",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "calendar",
-  "theme": "light",
-  "lang": "uk",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "team",
-  "theme": "light",
-  "lang": "uk",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "ui-kit",
-  "theme": "light",
-  "lang": "uk",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "dashboard",
-  "theme": "dark",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "projects",
-  "theme": "dark",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-list",
-  "theme": "dark",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-kanban",
-  "theme": "dark",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-calendar",
-  "theme": "dark",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "calendar",
-  "theme": "dark",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "team",
-  "theme": "dark",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "ui-kit",
-  "theme": "dark",
-  "lang": "en",
-  "w": 1440,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "dashboard",
-  "theme": "dark",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "projects",
-  "theme": "dark",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-list",
-  "theme": "dark",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-kanban",
-  "theme": "dark",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "tasks-calendar",
-  "theme": "dark",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "calendar",
-  "theme": "dark",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "team",
-  "theme": "dark",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 0,
-  "errors": []
- },
- {
-  "name": "ui-kit",
-  "theme": "dark",
-  "lang": "en",
-  "w": 390,
-  "overflowPx": 34,
-  "errors": []
- }
+  {
+    "name": "dashboard",
+    "theme": "light",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "projects",
+    "theme": "light",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-list",
+    "theme": "light",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-kanban",
+    "theme": "light",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-calendar",
+    "theme": "light",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "calendar",
+    "theme": "light",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "team",
+    "theme": "light",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "ui-kit",
+    "theme": "light",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "dashboard",
+    "theme": "light",
+    "lang": "en",
+    "w": 1024,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "projects",
+    "theme": "light",
+    "lang": "en",
+    "w": 1024,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-list",
+    "theme": "light",
+    "lang": "en",
+    "w": 1024,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-kanban",
+    "theme": "light",
+    "lang": "en",
+    "w": 1024,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-calendar",
+    "theme": "light",
+    "lang": "en",
+    "w": 1024,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "calendar",
+    "theme": "light",
+    "lang": "en",
+    "w": 1024,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "team",
+    "theme": "light",
+    "lang": "en",
+    "w": 1024,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "ui-kit",
+    "theme": "light",
+    "lang": "en",
+    "w": 1024,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "dashboard",
+    "theme": "light",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "projects",
+    "theme": "light",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-list",
+    "theme": "light",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-kanban",
+    "theme": "light",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-calendar",
+    "theme": "light",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "calendar",
+    "theme": "light",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "team",
+    "theme": "light",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "ui-kit",
+    "theme": "light",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 34,
+    "errors": []
+  },
+  {
+    "name": "dashboard",
+    "theme": "light",
+    "lang": "uk",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "projects",
+    "theme": "light",
+    "lang": "uk",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-list",
+    "theme": "light",
+    "lang": "uk",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-kanban",
+    "theme": "light",
+    "lang": "uk",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-calendar",
+    "theme": "light",
+    "lang": "uk",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "calendar",
+    "theme": "light",
+    "lang": "uk",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "team",
+    "theme": "light",
+    "lang": "uk",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "ui-kit",
+    "theme": "light",
+    "lang": "uk",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "dashboard",
+    "theme": "dark",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "projects",
+    "theme": "dark",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-list",
+    "theme": "dark",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-kanban",
+    "theme": "dark",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-calendar",
+    "theme": "dark",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "calendar",
+    "theme": "dark",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "team",
+    "theme": "dark",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "ui-kit",
+    "theme": "dark",
+    "lang": "en",
+    "w": 1440,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "dashboard",
+    "theme": "dark",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "projects",
+    "theme": "dark",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-list",
+    "theme": "dark",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-kanban",
+    "theme": "dark",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "tasks-calendar",
+    "theme": "dark",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "calendar",
+    "theme": "dark",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "team",
+    "theme": "dark",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 0,
+    "errors": []
+  },
+  {
+    "name": "ui-kit",
+    "theme": "dark",
+    "lang": "en",
+    "w": 390,
+    "overflowPx": 34,
+    "errors": []
+  }
 ]

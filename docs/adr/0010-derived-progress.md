@@ -13,11 +13,11 @@ completed tasks) ignored all work in flight.
 
 Progress is **computed by the server and read-only** in the API:
 
-| Task state | Progress |
-| --- | --- |
-| Completed (any column of the `done` status) | 100 % |
-| Has a checklist | checked ÷ total, **capped at 99 %** |
-| No checklist | workflow stage: To Do 0 %, In Progress 40 %, In Review 80 % |
+| Task state                                  | Progress                                                    |
+| ------------------------------------------- | ----------------------------------------------------------- |
+| Completed (any column of the `done` status) | 100 %                                                       |
+| Has a checklist                             | checked ÷ total, **capped at 99 %**                         |
+| No checklist                                | workflow stage: To Do 0 %, In Progress 40 %, In Review 80 % |
 
 Custom columns use the weight of their status. 100 % therefore always means "done". The value
 is stored on `cards.progress` (recomputed on move / checklist change) so lists can sort and

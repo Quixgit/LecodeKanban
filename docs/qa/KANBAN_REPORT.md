@@ -4,6 +4,7 @@ Screenshots: `docs/qa/kanban-before/` and `docs/qa/kanban-after/` (light + dark,
 Checked by Playwright (`frontend/e2e/kanban.spec.ts`, `make e2e`) and axe.
 
 ## Done
+
 - **A Layout**: CSS-grid board, columns `minmax(17rem, 1fr)` fill the width (scroll + snap only when they don't fit); one shared inner padding gives header chips, lane titles and cards the same left edge; each lane is a grid row so cells have equal height and the add-card button lines up; sticky column headers with a shadow only when stuck; tinted column surface (`--c-surface-column`) and a status-coloured 8 % drag-over tint.
 - **B Lanes**: chevron (rotates), project dot / avatar, semibold name, count pill (uk plurals), full-width divider, collapse animates height.
 - **C Column headers**: panel-icon collapse button appears on hover/focus (always on touch) with tooltip; persistent "+"; WIP shown as "2 / 5" in the danger colour when exceeded.
@@ -16,6 +17,7 @@ Checked by Playwright (`frontend/e2e/kanban.spec.ts`, `make e2e`) and axe.
 - Tokens: raw hex / rgb / arbitrary radius, shadow and px font sizes in `features/` and `pages/` now fail `make test` (`src/test/tokens.test.ts`).
 
 ## Deliberately skipped
+
 - **G (brighter teal, mint background/sidebar)**: measured on the reference — buttons are `#4cb5ae` (already `--c-primary`), app background `#f9f9f9`, sidebar white. White text on `#4cb5ae` is 2.46:1 (fails AA), so the filled button stays `#36827d` (4.52:1). Say if you want a bright button with dark text instead.
 - **8 / 35 (data)**: lowercase project names and junk card titles are in your own database, not in the seed; I did not touch your data.
 - **Logo restyle (31)**, column min width is 272 px (not 280) so 4 columns fit at 1440 with the sidebar open.

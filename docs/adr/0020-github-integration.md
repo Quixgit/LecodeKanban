@@ -22,7 +22,7 @@ should not have to be retyped.
   keys (`PLT-12`) are read from pull request titles, branch names and bodies and resolved through the
   cards module (`FindByKey`). Rules (switches) decide what opened/merged pull requests and issue events do.
 - **Outbound**: a subscriber on `CardMoved` closes/reopens linked issues and comments on open pull
-  requests, off the request path with a detached context. Moves that came *from* GitHub carry a context
+  requests, off the request path with a detached context. Moves that came _from_ GitHub carry a context
   marker, so a merge is not echoed back as a comment or a close.
 - Issues the app creates carry a hidden marker with the card id, so their own `opened` webhook links
   instead of creating a duplicate card.
