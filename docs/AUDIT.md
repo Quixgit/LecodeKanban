@@ -250,6 +250,13 @@ Facts about what was checked, with how. Update on every phase.
 
 - Go: workspace defaults apply to new spaces; an explicit choice wins; depth below 2 refused.
 - Browser: set and persist the default visibility.
+## Two-step verification
+
+- Go: TOTP against RFC 6238 vectors; scoped tokens are not access tokens; full life cycle (setup, wrong/right code,
+  replayed code refused, recovery code once, regenerate, disable needs password + code), lock-out after repeated wrong codes.
+- Unit: login form asks for the code. Browser: register, turn on (axe on the dialog), wrong code, sign in with a code,
+  with a recovery code, turn off.
+- Not covered: admin policy to require 2FA; reset when both phone and recovery codes are lost.
 ## UI polish
 
 - Unit: existing MetricCard/overlay tests; browser: settings, kanban, task window suites pass with the new fields and close button.
