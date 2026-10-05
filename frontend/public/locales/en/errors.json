@@ -156,5 +156,8 @@
     "name_taken": "A field with this name already exists.",
     "too_many": "You've reached the limit of 30 custom fields.",
     "bad_value": "That value doesn't fit this field."
+  },
+  "notifications": {
+    "unknown_kind": "That kind of notification does not exist."
   }
 }

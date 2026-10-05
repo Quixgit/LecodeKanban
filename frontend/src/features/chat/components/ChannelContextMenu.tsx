@@ -160,6 +160,9 @@ export function ChannelContextMenu({
                       {t(`menu.mute.${preset}`)}
                     </ContextMenuItem>
                   ))}
+                  <ContextMenuItem onSelect={() => navigate('/profile/notifications')}>
+                    {t('menu.defaults')}
+                  </ContextMenuItem>
                   <ContextMenuSeparator />
                   {(channel.unread > 0 || channel.mentions > 0) && (
                     <ContextMenuItem onSelect={() => m.markRead.mutate(channel.id, { onError })}>
